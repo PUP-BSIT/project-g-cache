@@ -1,5 +1,8 @@
 # Group G-Cache
 
 ## Members
+- Hannah Lorainne Genandoy
 - Daniel Victorioso  
-- [Add other members here]
+- Ivan Delumen
+- Gerald Mamasalanang
+- Simone Jake Reyes
