@@ -1,0 +1,61 @@
+classDiagram
+    class User {
+        +int userId
+        +string name
+        +string email
+        -string passwordHash
+        +datetime createdAt
+        +datetime updatedAt
+    }
+
+    class Activity {
+        +int activityId
+        #int userId
+        +string title
+        +string description
+        +datetime createdAt
+        +datetime updatedAt
+    }
+
+    class Session {
+        +int sessionId
+        #int userId
+        #int activityId
+        #int teamId
+        +string type
+        +datetime startTime
+        +datetime endTime
+        +int duration
+        +string status
+    }
+
+    class Note {
+        +int noteId
+        #int sessionId
+        +string content
+        +datetime createdAt
+        +datetime updatedAt
+    }
+
+    class Team {
+        +int teamId
+        +string teamName
+        #int ownerId
+        +datetime createdAt
+        +datetime updatedAt
+    }
+
+    class TeamMember {
+        +int teamMemberId
+        #int teamId
+        #int userId
+    }
+
+    %% Relationships
+    User "1" --> "0..*" Activity : owns
+    User "1" --> "0..*" Session : creates
+    Activity "1" --> "0..*" Session : categorizes
+    Session "1" --> "0..*" Note : has
+    Team "1" --> "0..*" Session : contains
+    Team "1" --> "0..*" TeamMember : has
+    User "1" --> "0..*" TeamMember : member_of
