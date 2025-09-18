@@ -1,10 +1,10 @@
-package com.pomodify;
+package com.pomodify.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class PomodifyApplicationTests {
+class PomodifyApiApplicationTests {
 
 	@Test
 	void contextLoads() {

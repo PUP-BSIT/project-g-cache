@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.5</version>
+		<version>3.5.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.gcache.org</groupId>
-	<artifactId>pomodify</artifactId>
+	<groupId>com.pomodify</groupId>
+	<artifactId>pomodify-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>pomodify</name>
-	<description>Backend api for pomodify app</description>
+	<name>Pomodify API</name>
+	<description>Pomodify backend API for managing Pomodoro sessions, teams, and users.</description>
 	<url/>
 	<licenses>
 		<license/>
