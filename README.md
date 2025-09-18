@@ -29,6 +29,7 @@
 - **Database:** PostgreSQL
 - **Database Migrations:** Flyway
 - **Authentication & Security:** JWT, Spring Security
+- **Integrations:** Google Calendar API
 - **DevOps & CI/CD:** Docker, GitHub Actions
 
 ## 📁 Project Folder Structure
@@ -65,11 +66,11 @@ project-root/
 - Use meaningful variable and function names
 
 ## 🧑‍💻 Contributors
-- Hannah Lorainne Genandoy – Project Manager / Developer
-- Daniel Victorioso – Technical Lead / Developer
-- Ivan Delumen – UI/UX / Developer
+- [Hannah Lorainne Genandoy](https://www.linkedin.com/in/hannah-lorainne-genandoy-3b8a1b2b2/) – Project Manager / Developer
+- [Daniel Victorioso](https://www.linkedin.com/in/daniel-victorioso-304688292/) – Technical Lead / Developer
+- [Ivan Delumen](https://www.linkedin.com/in/ivan-delumen-53982728a/) – UI/UX / Developer
 - Gerald Mamasalanang – Tester / Developer
-- Simone Jake Reyes – UI/UX / Developer
+- [Simone Jake Reyes](https://www.linkedin.com/in/simone-jake-reyes-75199234a/) – UI/UX / Developer
 
 ## 📝 Developer Documentation
 > See the `document/` folder for API docs, architecture diagrams, and more.
