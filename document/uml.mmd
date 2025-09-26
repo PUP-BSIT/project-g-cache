@@ -17,7 +17,7 @@ classDiagram
         +datetime updatedAt
     }
 
-    class Session {
+    class PomodoroSession {
         +int sessionId
         #int userId
         #int activityId
@@ -53,9 +53,9 @@ classDiagram
 
     %% Relationships
     User "1" --> "0..*" Activity : owns
-    User "1" --> "0..*" Session : creates
-    Activity "1" --> "0..*" Session : categorizes
-    Session "1" --> "0..*" Note : has
-    Team "1" --> "0..*" Session : contains
+    User "1" --> "0..*" PomodoroSession : creates
+    Activity "1" --> "0..*" PomodoroSession : categorizes
+    PomodoroSession "1" --> "0..*" Note : has
+    Team "1" --> "0..*" PomodoroSession : contains
     Team "1" --> "0..*" TeamMember : has
     User "1" --> "0..*" TeamMember : member_of
