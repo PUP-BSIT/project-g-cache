@@ -1,0 +1,61 @@
+erDiagram
+    USER {
+        int user_id PK
+        string name
+        string email
+        string password_hash
+        datetime created_at
+        datetime updated_at
+    }
+
+    ACTIVITY {
+        int activity_id PK
+        int user_id FK
+        string title
+        string description
+        datetime created_at
+        datetime updated_at
+    }
+
+    SESSION {
+        int session_id PK
+        int user_id FK
+        int activity_id FK
+        int team_id FK
+        string type
+        datetime start_time
+        datetime end_time
+        int duration
+        string status
+    }
+
+    NOTE {
+        int note_id PK
+        int session_id FK
+        string content
+        datetime created_at
+        datetime updated_at
+    }
+
+    TEAM {
+        int team_id PK
+        string team_name
+        int owner_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    TEAM_MEMBER {
+        int team_member_id PK
+        int team_id FK
+        int user_id FK
+    }
+
+    USER ||--o{ ACTIVITY : "owns"
+    USER ||--o{ SESSION : "creates"
+    ACTIVITY ||--o{ SESSION : "categorizes"
+    SESSION ||--o{ NOTE : "has"
+    TEAM ||--o{ SESSION : "used in"
+    TEAM ||--o{ TEAM_MEMBER : "has members"
+    USER ||--o{ TEAM_MEMBER : "member of"
+    TEAM_MEMBER }o--|| USER : "is"
