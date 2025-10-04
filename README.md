@@ -21,7 +21,7 @@
 
 ## 🌐 Live Demo
 
-> [Add your deployed web app link here]
+> - [Pomidify Web Host](http://3.106.212.47/)
 
 ## 🛠️ Tech Stack
 - **Frontend:** Angular, Tailwind CSS
