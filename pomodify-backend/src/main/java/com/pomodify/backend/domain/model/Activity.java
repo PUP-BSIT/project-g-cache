@@ -5,7 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Builder
 @Data
@@ -25,7 +29,7 @@ public class Activity {
     private String description;
 
     @Column(name = "scheduled_at")
-    private Date scheduledAt;
+    private LocalDateTime scheduledAt;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
@@ -36,13 +40,17 @@ public class Activity {
     @EqualsAndHashCode.Exclude
     private User user;
 
+    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<PomodoroSession> sessions = new ArrayList<>();
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default
@@ -73,7 +81,7 @@ public class Activity {
      * Schedule this activity for a specific date/time.
      * Useful for planning when to work on this activity.
      */
-    public void scheduleFor(Date scheduledAt) {
+    public void scheduleFor(LocalDateTime scheduledAt) {
         this.scheduledAt = scheduledAt;
     }
 
@@ -94,6 +102,101 @@ public class Activity {
         }
         this.durationMinutes = durationMinutes;
     }
+
+    // Pomodoro session management methods
+
+    /**
+     * Add a new Pomodoro session to this activity.
+     * Maintains bidirectional relationship consistency.
+     */
+    public void addSession(PomodoroSession session) {
+        if (session == null) {
+            throw new IllegalArgumentException("Session cannot be null");
+        }
+        sessions.add(session);
+        session.setActivity(this);
+    }
+
+    /**
+     * Get all active (non-deleted) Pomodoro sessions for this activity.
+     */
+    public List<PomodoroSession> getActiveSessions() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all completed Pomodoro sessions for this activity.
+     */
+    public List<PomodoroSession> getCompletedSessions() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get sessions completed today for this activity.
+     */
+    public List<PomodoroSession> getSessionsCompletedToday() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompletedToday)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Count total completed sessions for this activity.
+     */
+    public long countCompletedSessions() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .count();
+    }
+
+    /**
+     * Calculate total time spent on this activity (sum of all completed session durations).
+     */
+    public long getTotalTimeSpentMinutes() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToLong(PomodoroSession::getTotalDurationMinutes)
+                .sum();
+    }
+
+    /**
+     * Calculate total Pomodoro cycles completed for this activity.
+     */
+    public int getTotalCyclesCompleted() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToInt(PomodoroSession::getCyclesCompleted)
+                .sum();
+    }
+
+    /**
+     * Check if there's a session currently in progress for this activity.
+     */
+    public boolean hasSessionInProgress() {
+        return sessions.stream()
+                .anyMatch(PomodoroSession::isInProgress);
+    }
+
+    /**
+     * Get the current session in progress, if any.
+     */
+    public PomodoroSession getCurrentSession() {
+        return sessions.stream()
+                .filter(PomodoroSession::isInProgress)
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Activity status methods
 
     /**
      * Check if this activity is active (not soft-deleted).
@@ -116,8 +219,7 @@ public class Activity {
         if (scheduledAt == null || isDeleted) {
             return false;
         }
-        Date now = new Date();
-        return isSameDay(scheduledAt, now);
+        return scheduledAt.toLocalDate().isEqual(LocalDate.now());
     }
 
     /**
@@ -127,7 +229,7 @@ public class Activity {
         if (scheduledAt == null || isDeleted) {
             return false;
         }
-        return scheduledAt.after(new Date());
+        return scheduledAt.isAfter(LocalDateTime.now());
     }
 
     /**
@@ -137,16 +239,7 @@ public class Activity {
         if (scheduledAt == null || isDeleted) {
             return false;
         }
-        Date now = new Date();
-        return scheduledAt.before(now) && !isSameDay(scheduledAt, now);
-    }
-
-    // Helper method for date comparison
-    private boolean isSameDay(Date date1, Date date2) {
-        if (date1 == null || date2 == null) {
-            return false;
-        }
-        long diff = Math.abs(date1.getTime() - date2.getTime());
-        return diff < 24 * 60 * 60 * 1000;
+        LocalDateTime now = LocalDateTime.now();
+        return scheduledAt.isBefore(now) && !scheduledAt.toLocalDate().isEqual(now.toLocalDate());
     }
 }
