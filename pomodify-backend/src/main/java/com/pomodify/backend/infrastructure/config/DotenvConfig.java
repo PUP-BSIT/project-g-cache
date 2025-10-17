@@ -25,9 +25,7 @@ public class DotenvConfig implements ApplicationContextInitializer<ConfigurableA
                     .load();
 
             Map<String, Object> dotenvProperties = new HashMap<>();
-            dotenv.entries().forEach(entry -> {
-                dotenvProperties.put(entry.getKey(), entry.getValue());
-            });
+            dotenv.entries().forEach(entry -> dotenvProperties.put(entry.getKey(), entry.getValue()));
 
             environment.getPropertySources()
                     .addFirst(new MapPropertySource("dotenvProperties", dotenvProperties));
