@@ -1,4 +1,4 @@
-package com.pomodify.backend.config;
+package com.pomodify.backend.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
