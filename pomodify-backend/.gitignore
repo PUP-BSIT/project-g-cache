@@ -52,14 +52,12 @@ logs/
 spring.log
 
 ### Environment Variables & Sensitive Files ###
-.env
 .env.local
 .env.production
 application-local.properties
 application-prod.properties
 
 ### Application specific ###
-application-local.properties
 application-dev.properties
 
 ### Database ###
@@ -85,3 +83,4 @@ gradle-app.setting
 !gradle-wrapper.properties
 .gradletasknamecache
 
+4

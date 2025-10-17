@@ -1,106 +1,89 @@
-package com.pomodify.backend.controllers;
+package com.pomodify.backend.presentation.controllers;
 
-import com.pomodify.backend.domain.dto.*;
-import com.pomodify.backend.exception.AuthenticationException;
-import com.pomodify.backend.services.AuthService;
-import com.pomodify.backend.services.JwtService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.pomodify.backend.application.dto.request.RegisterRequest;
+import com.pomodify.backend.application.dto.response.ApiResponse;
+import com.pomodify.backend.application.dto.response.UserResponse;
+import com.pomodify.backend.application.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST Controller for authentication endpoints.
+ * Handles user registration, login, logout, token refresh, and current user retrieval.
+ */
 @RestController
-@RequestMapping("api/v1/auth")
+@RequestMapping("/api/v1/auth")
 @Slf4j
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtService jwtService;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService) {
         this.authService = authService;
-        this.jwtService = jwtService;
     }
 
+    /**
+     * Register a new user.
+     *
+     * @param request RegisterRequest containing username, email, and password
+     * @return ApiResponse with UserResponse data
+     */
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest request) {
-        RegisterResponse response = authService.register(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid RegisterRequest request) {
+        log.info("Registration request received for username: {}", request.username());
+
+        UserResponse userResponse = authService.registerUser(request);
+
+        log.info("User registered successfully: {}", request.username());
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("User registered successfully", userResponse));
     }
 
+    /**
+     * Authenticate user and generate JWT token.
+     * TODO: Implement login functionality
+     */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-            @RequestBody @Valid LoginRequest request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse) {
-
-        LoginResponse response = authService.login(request, httpRequest, httpResponse);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<?> login() {
+        // TODO: Implement login
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ApiResponse.error("Login endpoint not yet implemented", "NOT_IMPLEMENTED"));
     }
 
+    /**
+     * Logout user and invalidate session.
+     * TODO: Implement logout functionality
+     */
     @PostMapping("/logout")
-    public ResponseEntity<LogoutResponse> logout(
-            HttpServletRequest request,
-            HttpServletResponse response) {
-
-        String token = extractTokenFromRequest(request);
-        String sessionId = null;
-
-        if (token != null && jwtService.isTokenValid(token)) {
-            sessionId = jwtService.extractSessionId(token);
-        }
-
-        LogoutResponse logoutResponse = authService.logout(sessionId, response);
-        return ResponseEntity.ok(logoutResponse);
+    public ResponseEntity<?> logout() {
+        // TODO: Implement logout
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ApiResponse.error("Logout endpoint not yet implemented", "NOT_IMPLEMENTED"));
     }
 
+    /**
+     * Refresh JWT access token using refresh token.
+     * TODO: Implement token refresh functionality
+     */
     @PostMapping("/refresh")
-    public ResponseEntity<RefreshResponse> refresh(
-            HttpServletRequest request,
-            HttpServletResponse response) {
-
-        String refreshToken = extractRefreshTokenFromCookies(request);
-        if (refreshToken == null) {
-            throw new AuthenticationException("Refresh token not found");
-        }
-
-        RefreshResponse refreshResponse = authService.refreshToken(refreshToken, request, response);
-        return ResponseEntity.ok(refreshResponse);
+    public ResponseEntity<?> refresh() {
+        // TODO: Implement token refresh
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ApiResponse.error("Refresh endpoint not yet implemented", "NOT_IMPLEMENTED"));
     }
 
+    /**
+     * Get current authenticated user information.
+     * TODO: Implement get current user functionality
+     */
     @GetMapping("/me")
-    public ResponseEntity<MeResponse> me() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AuthenticationException("Not authenticated");
-        }
-
-        String username = authentication.getName();
-        MeResponse response = authService.getCurrentUser(username);
-        return ResponseEntity.ok(response);
-    }
-
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-    private String extractRefreshTokenFromCookies(HttpServletRequest request) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("refreshToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
+    public ResponseEntity<?> me() {
+        // TODO: Implement get current user
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(ApiResponse.error("Me endpoint not yet implemented", "NOT_IMPLEMENTED"));
     }
 }

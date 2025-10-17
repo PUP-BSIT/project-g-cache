@@ -1,5 +1,9 @@
-package com.pomodify.backend.domain.dto;
+package com.pomodify.backend.application.dto.response;
 
+/**
+ * Generic API response wrapper for consistent response structure.
+ * Provides success/error responses with optional data and error details.
+ */
 public record ApiResponse<T>(
         boolean success,
         String message,
@@ -14,3 +18,4 @@ public record ApiResponse<T>(
         return new ApiResponse<>(false, message, null, error);
     }
 }
+

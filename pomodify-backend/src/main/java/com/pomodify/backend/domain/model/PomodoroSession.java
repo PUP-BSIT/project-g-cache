@@ -218,4 +218,4 @@ public class PomodoroSession {
     public User getUser() {
         return activity != null ? activity.getUser() : null;
     }
-    }
+}
