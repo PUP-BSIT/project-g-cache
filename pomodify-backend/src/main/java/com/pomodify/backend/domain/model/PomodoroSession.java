@@ -19,6 +19,10 @@ public class PomodoroSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * -- GETTER --
+     *  Get the activity this session belongs to.
+     */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "activity_id", nullable = false)
     @ToString.Exclude
@@ -203,13 +207,6 @@ public class PomodoroSession {
             return false;
         }
         return completedAt.toLocalDate().isEqual(LocalDate.now());
-    }
-
-    /**
-     * Get the activity this session belongs to.
-     */
-    public Activity getActivity() {
-        return activity;
     }
 
     /**
