@@ -8,8 +8,9 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,11 +48,11 @@ public class User {
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
      @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
      @Builder.Default
@@ -116,13 +117,13 @@ public class User {
     /**
      * Get activities scheduled for a specific date.
      */
-    public List<Activity> getActivitiesScheduledOn(Date date) {
+    public List<Activity> getActivitiesScheduledOn(LocalDate date) {
         if (date == null) {
             throw new IllegalArgumentException("Date cannot be null");
         }
         return activities.stream()
                 .filter(activity -> !activity.isDeleted())
-                .filter(activity -> isSameDay(activity.getScheduledAt(), date))
+                .filter(activity -> activity.getScheduledAt() != null && activity.getScheduledAt().toLocalDate().isEqual(date))
                 .collect(Collectors.toList());
     }
 
@@ -172,15 +173,5 @@ public class User {
             this.email = newEmail;
             this.isEmailVerified = false;
         }
-    }
-
-    // Helper method for date comparison
-    private boolean isSameDay(Date date1, Date date2) {
-        if (date1 == null || date2 == null) {
-            return false;
-        }
-        // Simple day comparison - you might want to use a proper date library
-        long diff = Math.abs(date1.getTime() - date2.getTime());
-        return diff < 24 * 60 * 60 * 1000;
     }
 }
