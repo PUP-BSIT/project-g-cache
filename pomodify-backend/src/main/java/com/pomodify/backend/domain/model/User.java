@@ -53,7 +53,14 @@ public class User {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // TODO: Uncomment when Activity entity is created
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @Builder.Default
+    // private List<Activity> activities = new ArrayList<>();
+
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
-    private List<Activity> activities = new ArrayList<>();
+    private boolean isDeleted = false;
+
+
 }
