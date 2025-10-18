@@ -8,8 +8,9 @@ import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,13 +48,130 @@ public class User {
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+     @Builder.Default
+     private List<Activity> activities = new ArrayList<>();
+
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
-    private List<Activity> activities = new ArrayList<>();
+    private boolean isDeleted = false;
+
+    // Domain methods for managing activities (aggregate boundary)
+
+    /**
+     * Add a new activity to this user's activity list.
+     * Maintains bidirectional relationship consistency.
+     */
+    public void addActivity(Activity activity) {
+        if (activity == null) {
+            throw new IllegalArgumentException("Activity cannot be null");
+        }
+        activities.add(activity);
+        activity.setUser(this);
+    }
+
+    /**
+     * Soft delete an activity owned by this user.
+     * Marks the activity as deleted without physically removing it from the database.
+     */
+    public void deleteActivity(Activity activity) {
+        if (activity == null) {
+            throw new IllegalArgumentException("Activity cannot be null");
+        }
+        if (!activities.contains(activity)) {
+            throw new IllegalStateException("Activity does not belong to this user");
+        }
+        activity.setDeleted(true);
+    }
+
+    /**
+     * Restore a soft-deleted activity owned by this user.
+     * Marks the activity as active again.
+     */
+    public void restoreActivity(Activity activity) {
+        if (activity == null) {
+            throw new IllegalArgumentException("Activity cannot be null");
+        }
+        if (!activities.contains(activity)) {
+            throw new IllegalStateException("Activity does not belong to this user");
+        }
+        activity.setDeleted(false);
+    }
+
+    /**
+     * Get only active (non-deleted) activities.
+     * Domain query method.
+     */
+    public List<Activity> getActiveActivities() {
+        return activities.stream()
+                .filter(activity -> !activity.isDeleted())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get activities scheduled for a specific date.
+     */
+    public List<Activity> getActivitiesScheduledOn(LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+        return activities.stream()
+                .filter(activity -> !activity.isDeleted())
+                .filter(activity -> activity.getScheduledAt() != null && activity.getScheduledAt().toLocalDate().isEqual(date))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Count active activities for this user.
+     */
+    public long countActiveActivities() {
+        return activities.stream()
+                .filter(activity -> !activity.isDeleted())
+                .count();
+    }
+
+    /**
+     * Verify the user's email.
+     * Domain operation.
+     */
+    public void verifyEmail() {
+        this.isEmailVerified = true;
+    }
+
+    /**
+     * Soft delete this user.
+     * Domain operation.
+     */
+    public void delete() {
+        this.isDeleted = true;
+        // Optionally cascade soft delete to all activities
+        activities.forEach(activity -> activity.setDeleted(true));
+    }
+
+    /**
+     * Check if user is active (not deleted).
+     */
+    public boolean isActive() {
+        return !isDeleted;
+    }
+
+    /**
+     * Update user's email.
+     * When email changes, verification should be reset.
+     */
+    public void updateEmail(Email newEmail) {
+        if (newEmail == null) {
+            throw new IllegalArgumentException("Email cannot be null");
+        }
+        if (!this.email.equals(newEmail)) {
+            this.email = newEmail;
+            this.isEmailVerified = false;
+        }
+    }
 }
