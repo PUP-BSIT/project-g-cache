@@ -1,0 +1,143 @@
+/* Header styles */
+.site-header {
+  background: #3aa0a6; /* teal */
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .brand img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+
+    a,
+    .menu-btn {
+      color: #f2fbfb;
+      text-decoration: none;
+      font-weight: 500;
+      font-family: 'Roboto', Arial, Helvetica, sans-serif;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+
+    a:hover,
+    .menu-btn:hover {
+      opacity: 0.9;
+    }
+
+    .menu-group {
+      position: relative;
+
+      .menu {
+        position: absolute;
+        right: 0;
+        top: 140%;
+        background: #ffffff;
+        color: #26464d;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        display: none;
+        min-width: 180px;
+        padding: 8px 0;
+
+        a {
+          display: block;
+          padding: 8px 14px;
+          color: #26464d;
+        }
+
+        a:hover {
+          background: #f0f6f7;
+        }
+      }
+
+      &:hover .menu {
+        display: block;
+      }
+    }
+  }
+}
+
+.header-border {
+  height: 4px;
+  background: #2f8f94; /* darker teal strip */
+}
+
+/* Ensure page content not hidden under sticky header */
+:host ::ng-deep main,
+:host ::ng-deep router-outlet {
+  display: block;
+}
+
+
+/* Hero styles */
+.hero {
+  background: linear-gradient(180deg, #eaf8f7 0%, rgba(234,248,247,0) 55%);
+  padding: 48px 0 28px;
+}
+.hero .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: 36px;
+}
+.hero-copy .kicker {
+  color: #35b9b1;
+  font-weight: 700;
+  letter-spacing: .1em;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.hero-copy h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.1; margin: 8px 0 14px; font-weight: 800; color: #24424b; }
+.hero-copy p { color: #6b7a86; font-size: 16px; line-height: 1.6; margin-bottom: 18px; }
+.hero-cta { display: flex; gap: 12px; }
+.btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #e4eef0; background: #fff; color: #24424b; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn.primary { background: #35b9b1; color: #fff; border-color: #35b9b1; }
+.btn.primary:hover { background: #2aa29b; }
+.btn.ghost { background: transparent; }
+
+.hero-visual { position: relative; height: 420px; display: grid; place-items: center; }
+
+.hero-cards { position: absolute; inset: 0; pointer-events: none; }
+.card { position: absolute; width: 260px; background: #fff; border-radius: 16px; box-shadow: 0 20px 30px rgba(0,0,0,0.12); padding: 16px; display: flex; gap: 12px; align-items: flex-start; pointer-events: auto; }
+.card img { width: 24px; height: 24px; }
+.card .title { font-weight: 700; color: #24424b; }
+.card .desc { font-size: 13px; color: #6b7a86; }
+.card.tl { top: 10px; left: -20px; }
+.card.tr { top: -10px; right: -20px; }
+.card.bl { bottom: 40px; left: -10px; }
+.card.br { bottom: -10px; right: -10px; }
+.notes-row { margin-top: 14px; }
+.note { display: inline-flex; gap: 10px; align-items: center; background: #fff; border: 1px solid #e4eef0; border-radius: 10px; padding: 10px 12px; }
+.note img { width: 28px; height: 28px; }
+.note .title { font-weight: 700; color: #24424b; }
+.note .desc { font-size: 12px; color: #6b7a86; }
+
+@media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; }
+    .hero-visual { height: 360px; }
+}
+

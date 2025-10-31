@@ -1,0 +1,25 @@
+<header class="site-header" (mouseleave)="closeMenu()">
+<div class="container">
+    <a class="brand" routerLink="/" aria-label="Pomodify">
+        <img [src]="brandSrc" alt="Pomodify" />
+    </a>
+
+    <nav class="nav">
+        <a routerLink="/" routerLinkActive="active" (click)="closeMenu()">Home</a>
+
+    <div class="menu-group" [ngClass]="{ open: menuOpen() }">
+        <button type="button" class="menu-btn" (click)="toggleMenu()">Features</button>
+        @if (menuOpen()) {
+        <div class="menu">
+            @for (item of featureItems; track item.link) {
+            <a [href]="item.link" (click)="closeMenu()">{{ item.label }}</a>
+            }
+        </div>
+        }
+    </div>
+
+        <a href="#subscribe" (click)="closeMenu()">Subscribe</a>
+    </nav>
+</div>
+<div class="header-border"></div>
+</header>
