@@ -7,7 +7,6 @@ import java.util.Optional;
 public interface CategoryRepository {
     Optional<Category> findById(Long id);
     List<Category> findByUserId(Long userId);
-    List<Category> findActiveByUserId(Long userId);
     void save(Category category);
     void delete(Long id);
     boolean existsByIdAndUserId(Long id, Long userId);

@@ -2,12 +2,11 @@ package com.pomodify.backend.presentation.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import java.util.List;
 
 @Data
 @Builder
-public class CategoryResponse {
+public class ActivitySummaryDTO {
     private Long id;
     private String name;
-    private List<ActivityDetailsDTO> activities;
+    private String status;
 }
