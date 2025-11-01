@@ -15,7 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/activities")
+@RequestMapping("/api/v1/activities")
 @RequiredArgsConstructor
 public class ActivityController {
     private final CreateActivityHandler createActivityHandler;
