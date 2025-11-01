@@ -1,11 +1,16 @@
 package com.pomodify.backend.presentation.controllers;
 
 import com.pomodify.backend.application.commands.CreateActivityCommand;
+import com.pomodify.backend.application.commands.UpdateActivityCommand;
 import com.pomodify.backend.application.commands.handlers.CreateActivityHandler;
-import com.pomodify.backend.application.dto.ActivityDetailsDTO;
+import com.pomodify.backend.application.commands.handlers.UpdateActivityHandler;
+import com.pomodify.backend.presentation.dto.response.ActivityDetailsDTO;
 import com.pomodify.backend.application.dto.ActivitySummaryDTO;
-import com.pomodify.backend.application.services.ActivityQueryService;
 import com.pomodify.backend.presentation.dto.request.CreateActivityRequest;
+import com.pomodify.backend.presentation.dto.request.UpdateActivityRequest;
+import com.pomodify.backend.application.services.ActivityQueryService;
+import com.pomodify.backend.domain.model.Activity;
+import com.pomodify.backend.infrastructure.repository.spring.SpringActivityJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -85,6 +90,9 @@ public class ActivityController {
             @PathVariable Long activityId,
             @RequestParam Long userId) {
         
+        if (activityId == null) {
+            throw new IllegalArgumentException("Activity ID cannot be null");
+        }
         Activity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
 
