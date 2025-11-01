@@ -4,7 +4,6 @@ import com.pomodify.backend.application.commands.CreateActivityCommand;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.Category;
 import com.pomodify.backend.domain.repository.CategoryRepository;
-import com.pomodify.backend.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CreateActivityHandler {
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
 
     @Transactional
     public Long handle(CreateActivityCommand command) {

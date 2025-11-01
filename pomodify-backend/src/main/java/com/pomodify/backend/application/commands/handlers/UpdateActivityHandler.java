@@ -8,16 +8,20 @@ import com.pomodify.backend.infrastructure.repository.spring.SpringActivityJpaRe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.pomodify.backend.infrastructure.repository.impl.BaseRepositoryImpl;
 
 @Service
 @RequiredArgsConstructor
-public class UpdateActivityHandler {
+public class UpdateActivityHandler extends BaseRepositoryImpl {
     private final SpringActivityJpaRepository activityRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional
     public void handle(UpdateActivityCommand command) {
-        Activity activity = activityRepository.findById(command.getActivityId())
+        if (command.getActivityId() == null) {
+            throw new IllegalArgumentException("Activity ID cannot be null");
+        }
+        Activity activity = activityRepository.findById(checkNotNull(command.getActivityId()))
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
 
         // Verify ownership
