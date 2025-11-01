@@ -1,7 +1,6 @@
 package com.pomodify.backend.application.services;
 
 import com.pomodify.backend.application.dto.ActivitySummaryDTO;
-import com.pomodify.backend.application.dto.ActivityDetailsDTO;
 import com.pomodify.backend.application.mapper.ActivityDTOMapper;
 import com.pomodify.backend.application.repository.ActivityQueryRepository;
 import lombok.RequiredArgsConstructor;
