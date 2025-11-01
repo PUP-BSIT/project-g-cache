@@ -6,12 +6,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SpringCategoryJpaRepository extends JpaRepository<Category, Long> {
     List<Category> findByUserId(Long userId);
     
     @Query("SELECT c FROM Category c WHERE c.user.id = :userId AND c.isDeleted = false")
-    List<Category> findActiveByUserId(@Param("userId") Long userId);
+    List<Category> findByUserIdAndDeletedFalse(@Param("userId") Long userId);
+    
+    @Query("SELECT c FROM Category c WHERE c.id = :id AND c.user.id = :userId AND c.isDeleted = false")
+    Optional<Category> findByIdAndUserIdAndDeletedFalse(@Param("id") Long id, @Param("userId") Long userId);
     
     boolean existsByIdAndUserId(Long id, Long userId);
 }
