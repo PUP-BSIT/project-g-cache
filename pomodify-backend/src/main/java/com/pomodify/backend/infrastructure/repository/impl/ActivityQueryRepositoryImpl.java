@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class ActivityQueryRepositoryImpl implements ActivityQueryRepository {
+public class ActivityQueryRepositoryImpl extends BaseRepositoryImpl implements ActivityQueryRepository {
     private final SpringActivityJpaRepository springActivityJpaRepository;
 
     @Override
@@ -37,7 +37,7 @@ public class ActivityQueryRepositoryImpl implements ActivityQueryRepository {
 
     @Override
     public Optional<ActivityDetailsDTO> findDetailsById(Long activityId) {
-        return springActivityJpaRepository.findById(activityId)
+        return springActivityJpaRepository.findById(checkNotNull(activityId))
                 .map(this::toDetailsDTO);
     }
 
@@ -81,11 +81,11 @@ public class ActivityQueryRepositoryImpl implements ActivityQueryRepository {
         List<SessionDTO> sessionDTOs = activity.getSessions().stream()
                 .map(session -> SessionDTO.builder()
                         .id(session.getId())
-                        .durationMinutes(session.getDurationMinutes())
-                        .startTime(session.getStartTime())
-                        .endTime(session.getEndTime())
-                        .notes(session.getNotes())
-                        .completed(session.isCompleted())
+                        .durationMinutes(session.getFocusTimeMinutes())
+                        .startTime(session.getStartedAt())
+                        .endTime(session.getCompletedAt())
+                        .notes(session.getDescription())
+                        .completed(!session.isInProgress())
                         .build())
                 .collect(Collectors.toList());
 
@@ -94,10 +94,10 @@ public class ActivityQueryRepositoryImpl implements ActivityQueryRepository {
                 .name(activity.getTitle())
                 .categoryName(activity.getCategory().getName())
                 .description(activity.getDescription())
-                .scheduledAt(activity.getScheduledAt())
+                .scheduledStartTime(activity.getScheduledAt())
                 .sessions(sessionDTOs)
-                .totalCompletedSessions((int) activity.countCompletedSessions())
-                .totalDurationMinutes(activity.getTotalTimeSpentMinutes())
+                .totalFocusTime(activity.getTotalFocusTimeMinutes())
+                .totalBreakTime(activity.getTotalBreakTimeMinutes())
                 .build();
     }
 }
