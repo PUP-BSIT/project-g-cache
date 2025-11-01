@@ -2,6 +2,7 @@ package com.pomodify.backend.application.services;
 
 import com.pomodify.backend.application.dto.ActivitySummaryDTO;
 import com.pomodify.backend.application.dto.ActivityDetailsDTO;
+import com.pomodify.backend.application.mapper.ActivityDTOMapper;
 import com.pomodify.backend.application.repository.ActivityQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,11 @@ public class ActivityQueryService {
         return activityQueryRepository.findByCategory(userId, categoryId);
     }
 
-    public ActivityDetailsDTO getActivityDetails(Long activityId) {
-        return activityQueryRepository.findDetailsById(activityId)
-                .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+    public com.pomodify.backend.presentation.dto.response.ActivityDetailsDTO getActivityDetails(Long activityId) {
+        return ActivityDTOMapper.toResponse(
+            activityQueryRepository.findDetailsById(activityId)
+                .orElseThrow(() -> new IllegalArgumentException("Activity not found"))
+        );
     }
 
     public List<ActivitySummaryDTO> getScheduledActivities(Long userId, LocalDate date) {
