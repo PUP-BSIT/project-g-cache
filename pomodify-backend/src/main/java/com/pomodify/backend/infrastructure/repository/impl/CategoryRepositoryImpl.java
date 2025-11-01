@@ -6,17 +6,18 @@ import com.pomodify.backend.infrastructure.repository.spring.SpringCategoryJpaRe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class CategoryRepositoryImpl implements CategoryRepository {
+public class CategoryRepositoryImpl extends BaseRepositoryImpl implements CategoryRepository {
     private final SpringCategoryJpaRepository springCategoryJpaRepository;
 
     @Override
     public Optional<Category> findById(Long id) {
-        return springCategoryJpaRepository.findById(id);
+        return springCategoryJpaRepository.findById(checkNotNull(id));
     }
 
     @Override
@@ -26,17 +27,22 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public List<Category> findActiveByUserId(Long userId) {
-        return springCategoryJpaRepository.findActiveByUserId(userId);
+        return springCategoryJpaRepository.findByUserIdAndDeletedFalse(userId);
     }
 
     @Override
-    public void save(Category category) {
-        springCategoryJpaRepository.save(category);
+    public Optional<Category> findByIdAndUserId(Long id, Long userId) {
+        return springCategoryJpaRepository.findByIdAndUserIdAndDeletedFalse(id, userId);
+    }
+
+    @Override
+    public Category save(Category category) {
+        return springCategoryJpaRepository.save(checkNotNull(category, "Category"));
     }
 
     @Override
     public void delete(Long id) {
-        springCategoryJpaRepository.findById(id).ifPresent(category -> {
+        springCategoryJpaRepository.findById(checkNotNull(id)).ifPresent(category -> {
             category.delete();
             springCategoryJpaRepository.save(category);
         });
