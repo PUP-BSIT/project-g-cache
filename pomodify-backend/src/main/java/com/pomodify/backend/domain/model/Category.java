@@ -58,7 +58,7 @@ public class Category {
 
     public void delete() {
         this.isDeleted = true;
-        activities.forEach(Activity::delete);
+        activities.forEach(activity -> activity.setDeleted(true));
     }
 
     public static Category create(String name, User user) {
