@@ -248,4 +248,20 @@ public class Activity {
         LocalDateTime now = LocalDateTime.now();
         return scheduledAt.isBefore(now) && !scheduledAt.toLocalDate().isEqual(now.toLocalDate());
     }
+
+    public int getTotalFocusTimeMinutes() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToInt(PomodoroSession::getFocusTimeMinutes)
+                .sum();
+    }
+
+    public int getTotalBreakTimeMinutes() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToInt(session -> session.getBreakDurationMinutes() * session.getCyclesCompleted())
+                .sum();
+    }
 }
