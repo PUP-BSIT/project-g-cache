@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { Landing } from './landing';
 
 describe('Landing', () => {

@@ -1,0 +1,90 @@
+.site-header {
+  background-color: #4DA1A9;
+  color: #fff;
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-text {
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.accent {
+  color: #bfefff;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-link {
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.95;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+}
+
+.nav-link:hover { opacity: 1; }
+
+.dropdown {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+
+.caret { margin-left: 6px; font-size: 12px; }
+
+.menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  background: #ffffff;
+  color: #123;
+  min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  padding: 8px;
+  z-index: 10;
+}
+
+.dropdown:focus .menu,
+.dropdown:hover .menu { display: block; }
+
+.menu-item {
+  display: block;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.menu-item:hover { background: #f2f6f7; }

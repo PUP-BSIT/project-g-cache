@@ -1,1 +1,107 @@
-<p>landing works!</p>
+<app-header></app-header>
+
+<main class="landing">
+    <section class="hero">
+    <div class="hero-left">
+        <h1 class="brand">POMODIFY</h1>
+        <h2 class="headline">Master Your Time</h2>
+        <h2 class="headline">Amplify Your Focus.</h2>
+        <p class="subtext">
+        Pomodify helps you optimize your work-rest cycles with customizable Pomodoro timers, intuitive activity tracking, and insightful progress reports. Achieve deep focus, boost productivity, and conquer your daily tasks with ease.
+        </p>
+        <div class="cta">
+        <a class="btn btn-outline" routerLink="/login">Log In</a>
+        <a class="btn btn-primary" routerLink="/get-started">Get Started</a>
+        </div>
+    </div>
+    <div class="hero-right">
+        <div class="clock-frame">
+        <img class="student" src="assets/images/student_young_man.png" alt="Student" />
+        </div>
+    </div>
+    </section>
+
+    <section class="features">
+    <div class="feature">
+        <div class="feature-card">
+        <img class="feature-icon" src="assets/images/custom_timers.png" alt="Custom Timers" />
+        <div class="text">
+            <div class="title">Custom Timers</div>
+            <div class="desc">Set your own work & break cycles.</div>
+        </div>
+        </div>
+    </div>
+    <div class="feature">
+        <div class="feature-card">
+        <img class="feature-icon" src="assets/images/activities.png" alt="Activities" />
+        <div class="text">
+            <div class="title">Activities</div>
+            <div class="desc">Organize sessions by subject or task.</div>
+        </div>
+        </div>
+    </div>
+    <div class="feature">
+        <div class="feature-card">
+        <img class="feature-icon" src="assets/images/session_notes.png" alt="Session Notes" />
+        <div class="text">
+            <div class="title">Session Notes</div>
+            <div class="desc">Record accomplishments after each focus round.</div>
+        </div>
+        </div>
+    </div>
+    <div class="feature">
+        <div class="feature-card">
+        <img class="feature-icon" src="assets/images/progress_report.png" alt="Progress Reports" />
+        <div class="text">
+            <div class="title">Progress Reports</div>
+            <div class="desc">Track hours, sessions, and productivity trends.</div>
+        </div>
+        </div>
+    </div>
+    </section>
+
+    <section class="feature-grid">
+    <h3 class="feature-eyebrow">Your Time. Your Flow</h3>
+    <h2 class="feature-title">Features</h2>
+
+    <div class="feature-grid-wrap">
+        <article class="feature-box">
+        <h4>Create and manage activities</h4>
+        <p>Users can add, edit, rename, or delete activities such as “Learn Angular” or “Study Math.”</p>
+        <img src="assets/images/create_manage.png" alt="Create and manage activities" />
+        <a class="learn-btn" routerLink="/features/activities">Learn More</a>
+        </article>
+
+        <article class="feature-box">
+        <h4>Start and track Pomodoro sessions</h4>
+        <p>Set custom work and break durations, run consecutive cycles, and associate each session with an activity.</p>
+        <img src="assets/images/start_track.png" alt="Start and track sessions" />
+        <a class="learn-btn" routerLink="/features/timers">Learn More</a>
+        </article>
+
+        <article class="feature-box">
+        <h4>Add session notes</h4>
+        <p>After each session, jot down what you accomplished. Notes can be viewed, edited, or deleted later.</p>
+        <img src="assets/images/add_session.png" alt="Add session notes" />
+        <a class="learn-btn" routerLink="/features/notes">Learn More</a>
+        </article>
+
+        <article class="feature-box">
+        <h4>View reports and progress</h4>
+        <p>See summaries of sessions, hours per activity, and progress over time.</p>
+        <img src="assets/images/view_reports.png" alt="View reports and progress" />
+        <a class="learn-btn" routerLink="/features/reports">Learn More</a>
+        </article>
+
+        <article class="feature-box">
+        <h4>Manage user accounts securely</h4>
+        <p>Register, log in, update your profile, and manage your account securely.</p>
+        <img src="assets/images/manage_user.png" alt="Manage user accounts" />
+        <a class="learn-btn" routerLink="/features/account">Learn More</a>
+        </article>
+    </div>
+    </section>
+
+    <app-footer></app-footer>
+
+</main>

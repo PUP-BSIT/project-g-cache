@@ -1,1 +1,22 @@
-<p>header works!</p>
+<header class="site-header">
+<div class="container">
+    <a class="brand" routerLink="/">
+        <img class="logo" src="assets/images/logo-with-name.png" alt="Pomodify" />
+    </a>
+
+    <nav class="nav">
+        <a routerLink="/" class="nav-link">Home</a>
+
+        <div class="nav-link dropdown" tabindex="0">
+        <span>Features</span>
+        <span class="caret">▾</span>
+        <div class="menu">
+            <a class="menu-item" routerLink="/features/timers">Timers</a>
+            <a class="menu-item" routerLink="/features/analytics">Analytics</a>
+        </div>
+        </div>
+
+        <a routerLink="/subscribe" class="nav-link">Subscribe</a>
+    </nav>
+    </div>
+</header>
