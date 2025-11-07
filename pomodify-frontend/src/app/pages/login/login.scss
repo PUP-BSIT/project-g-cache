@@ -1,0 +1,247 @@
+.login-container {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.login-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 50px 50px 45px;
+    width: 100%;
+    max-width: 540px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    position: relative;
+}
+
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #5a9a9f;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 10;
+    border-radius: 50%;
+
+    &:hover {
+    color: #4a8a8f;
+    background: rgba(90, 154, 159, 0.1);
+    }
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 36px;
+
+    h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    }
+
+    p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    }
+}
+
+.login-form {
+    .form-group {
+    margin-bottom: 22px;
+
+    label {
+        display: block;
+        font-family: 'Roboto', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 16px 18px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-sizing: border-box;
+        background: white;
+
+        &:focus {
+        outline: none;
+        border-color: #5a9a9f;
+        box-shadow: 0 0 0 3px rgba(90, 154, 159, 0.1);
+        }
+
+        &.is-invalid {
+        border-color: #ef4444;
+
+        &:focus {
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        }
+    }
+
+    .invalid-feedback {
+        font-family: 'Roboto', sans-serif;
+        color: #ef4444;
+        font-size: 14px;
+        margin-top: 8px;
+        display: block;
+    }
+    }
+
+    .error-message {
+    font-family: 'Roboto', sans-serif;
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    border-left: 4px solid #ef4444;
+    }
+
+    .btn-login {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: white;
+    background: #5a9a9f;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 14px;
+
+    &:hover {
+        background: #4a8a8f;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    }
+
+    .btn-google {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #2c3e50;
+    background: white;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 18px;
+
+    .google-icon {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
+
+    &:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+    }
+
+    .forgot-password {
+    display: block;
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    color: #2c3e50;
+    text-decoration: underline;
+    font-weight: 500;
+    margin-top: 14px;
+
+    &:hover {
+        color: #5a9a9f;
+    }
+    }
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 26px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+
+    p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    color: #6b7280;
+    margin: 0;
+
+    a {
+        font-family: 'Roboto', sans-serif;
+        color: #2c3e50;
+        text-decoration: none;
+        font-weight: 700;
+
+        &:hover {
+        color: #5a9a9f;
+        text-decoration: underline;
+        }
+    }
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+    padding: 30px 24px;
+    }
+
+    .login-header h1 {
+    font-size: 28px;
+    }
+
+    .back-btn {
+    top: 12px;
+    left: 12px;
+    font-size: 24px;
+    width: 32px;
+    height: 32px;
+    }
+}
