@@ -3,7 +3,6 @@ package com.pomodify.backend.application.commands.handlers;
 import com.pomodify.backend.application.commands.CreateCategoryCommand;
 import com.pomodify.backend.domain.model.Category;
 import com.pomodify.backend.domain.model.User;
-import com.pomodify.backend.domain.repository.CategoryRepository;
 import com.pomodify.backend.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

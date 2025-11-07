@@ -4,7 +4,6 @@ import com.pomodify.backend.application.commands.CreateCategoryCommand;
 import com.pomodify.backend.application.commands.handlers.CreateCategoryHandler;
 import com.pomodify.backend.application.services.ActivityQueryService;
 import com.pomodify.backend.domain.model.Category;
-import com.pomodify.backend.domain.repository.CategoryRepository;
 import com.pomodify.backend.presentation.dto.request.CreateCategoryRequest;
 import com.pomodify.backend.presentation.dto.response.CategoryResponse;
 import lombok.RequiredArgsConstructor;

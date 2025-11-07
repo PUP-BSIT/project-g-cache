@@ -1,6 +1,5 @@
 package com.pomodify.backend.application.mapper;
 
-import com.pomodify.backend.application.dto.ActivityDetailsDTO;
 import com.pomodify.backend.presentation.dto.response.SessionDTO;
 import java.util.List;
 import java.util.stream.Collectors;

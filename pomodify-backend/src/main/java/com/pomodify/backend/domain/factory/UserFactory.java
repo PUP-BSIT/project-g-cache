@@ -4,31 +4,39 @@ import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.valueobject.Email;
 
 /**
- * Factory for creating User aggregate roots.
- * Encapsulates the complex logic of creating valid User entities.
+ * Factory responsible for creating {@link User} aggregate roots.
+ * Encapsulates the business rules required for valid user creation.
  */
 public class UserFactory {
 
     /**
-     * Create a new User with the given credentials.
-     * The user starts with unverified email and is not deleted.
+     * Creates a new User with the given credentials.
+     * The user starts as active, with an unverified email.
+     *
+     * @param username the chosen username
+     * @param emailValue the email string to be wrapped as a value object
+     * @param passwordHash the already-hashed password
+     * @return a new User aggregate instance
      */
     public User createUser(String username, String emailValue, String passwordHash) {
-        if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Username cannot be null or empty");
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username cannot be null or blank");
         }
-        if (passwordHash == null || passwordHash.trim().isEmpty()) {
-            throw new IllegalArgumentException("Password hash cannot be null or empty");
+        if (emailValue == null || emailValue.isBlank()) {
+            throw new IllegalArgumentException("Email cannot be null or blank");
+        }
+        if (passwordHash == null || passwordHash.isBlank()) {
+            throw new IllegalArgumentException("Password hash cannot be null or blank");
         }
 
-        Email email = new Email(emailValue);
+        Email email = new Email(emailValue.trim());
 
         return User.builder()
                 .username(username.trim())
                 .email(email)
                 .passwordHash(passwordHash)
                 .isEmailVerified(false)
-                .isDeleted(false)
+                .isActive(true)
                 .build();
     }
 }

@@ -3,7 +3,6 @@ package com.pomodify.backend.application.commands.handlers;
 import com.pomodify.backend.application.commands.UpdateActivityCommand;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.Category;
-import com.pomodify.backend.domain.repository.CategoryRepository;
 import com.pomodify.backend.infrastructure.repository.spring.SpringActivityJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

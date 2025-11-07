@@ -1,8 +1,5 @@
 package com.pomodify.backend.infrastructure.repository.impl;
 
-import com.pomodify.backend.application.dto.ActivitySummaryDTO;
-import com.pomodify.backend.application.dto.ActivityDetailsDTO;
-import com.pomodify.backend.application.dto.SessionDTO;
 import com.pomodify.backend.application.repository.ActivityQueryRepository;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.infrastructure.repository.spring.SpringActivityJpaRepository;

@@ -1,8 +1,5 @@
 package com.pomodify.backend.application.repository;
 
-import com.pomodify.backend.application.dto.ActivitySummaryDTO;
-import com.pomodify.backend.application.dto.ActivityDetailsDTO;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;

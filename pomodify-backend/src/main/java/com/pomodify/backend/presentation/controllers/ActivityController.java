@@ -5,7 +5,6 @@ import com.pomodify.backend.application.commands.UpdateActivityCommand;
 import com.pomodify.backend.application.commands.handlers.CreateActivityHandler;
 import com.pomodify.backend.application.commands.handlers.UpdateActivityHandler;
 import com.pomodify.backend.presentation.dto.response.ActivityDetailsDTO;
-import com.pomodify.backend.application.dto.ActivitySummaryDTO;
 import com.pomodify.backend.presentation.dto.request.CreateActivityRequest;
 import com.pomodify.backend.presentation.dto.request.UpdateActivityRequest;
 import com.pomodify.backend.application.services.ActivityQueryService;

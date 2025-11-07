@@ -1,6 +1,5 @@
 package com.pomodify.backend.application.repository;
 
-import com.pomodify.backend.application.dto.SessionDTO;
 import java.time.LocalDate;
 import java.util.List;
 

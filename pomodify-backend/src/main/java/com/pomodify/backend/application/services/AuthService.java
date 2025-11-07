@@ -47,29 +47,17 @@ public class AuthService {
     @Autowired
     private RevokedTokenRepository revokedTokenRepository;
 
-    /**
-     * Register a new user.
-     * Application service handles password encoding (framework concern),
-     * validation, duplicate checking, then delegates to domain factory for user creation (domain logic).
-     *
-     * @param request RegisterRequest DTO containing username, email, and password
-     * @return UserResponse DTO with user data
-     * @throws IllegalArgumentException if username or email already exists, or validation fails
-     */
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
         log.info("Attempting to register new user: {}", request.getUsername());
 
-        // Validate input using dedicated validator
         registrationValidator.validateRegistration(request.getUsername(), request.getEmail(), request.getPassword());
 
-        // Check for duplicate username
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration failed: Username '{}' already exists", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
 
-        // Check for duplicate email
         Email emailVO = new Email(request.getEmail());
         if (userRepository.existsByEmail(emailVO)) {
             log.warn("Registration failed: Email '{}' already exists", request.getEmail());
@@ -85,13 +73,6 @@ public class AuthService {
         return userMapper.toUserResponse(savedUser);
     }
 
-    /**
-     * Authenticate a user and generate JWT tokens.
-     *
-     * @param request LoginRequest DTO containing username/email and password
-     * @return AuthResponse DTO with user data and tokens
-     * @throws IllegalArgumentException if credentials are invalid
-     */
     @Transactional(readOnly = true)
     public AuthResponse loginUser(LoginRequest request) {
         log.info("Attempting to login user: {}", request.getUsername());
@@ -99,9 +80,9 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseGet(() -> userRepository.findByEmail(new Email(request.getUsername())).orElse(null));
 
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        if (user == null || !user.isActive() || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             log.warn("Login failed: Invalid credentials for {}", request.getUsername());
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new IllegalArgumentException("Invalid credentials or inactive account");
         }
 
         String accessToken = jwtService.generateAccessToken(user.getUsername());
@@ -112,11 +93,6 @@ public class AuthService {
         return new AuthResponse(userResponse, accessToken, refreshToken);
     }
 
-    /**
-     * Logout user by revoking the JWT token.
-     *
-     * @param token the JWT token to revoke
-     */
     @Transactional
     public void logout(String token) {
         log.info("Logging out user with token");
@@ -130,13 +106,6 @@ public class AuthService {
         log.info("Token revoked successfully");
     }
 
-    /**
-     * Refresh JWT tokens using refresh token.
-     *
-     * @param refreshToken the refresh token
-     * @return AuthResponse with new tokens
-     * @throws IllegalArgumentException if refresh token is invalid
-     */
     @Transactional(readOnly = true)
     public AuthResponse refreshTokens(String refreshToken) {
         log.info("Refreshing tokens");
@@ -147,7 +116,12 @@ public class AuthService {
         }
 
         String username = jwtService.extractUsername(refreshToken);
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.isActive()) {
+            throw new IllegalStateException("Inactive user cannot refresh tokens");
+        }
 
         String newAccessToken = jwtService.generateAccessToken(username);
         String newRefreshToken = jwtService.generateRefreshToken(username);
@@ -157,18 +131,18 @@ public class AuthService {
         return new AuthResponse(userResponse, newAccessToken, newRefreshToken);
     }
 
-    /**
-     * Get current authenticated user.
-     *
-     * @param username the username
-     * @return UserResponse
-     * @throws IllegalArgumentException if user not found
-     */
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(String username) {
         log.info("Retrieving current user: {}", username);
 
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.isActive()) {
+            throw new IllegalStateException("Inactive user cannot be retrieved");
+        }
+
         return userMapper.toUserResponse(user);
     }
+}
 }

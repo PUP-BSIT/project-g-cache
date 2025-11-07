@@ -1,6 +1,5 @@
 package com.pomodify.backend.infrastructure.factory;
 
-import com.pomodify.backend.domain.factory.PomodoroSessionFactory;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.PomodoroSession;
 import org.springframework.stereotype.Component;
