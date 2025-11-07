@@ -58,26 +58,26 @@ public class AuthService {
      */
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
-        log.info("Attempting to register new user: {}", request.username());
+        log.info("Attempting to register new user: {}", request.getUsername());
 
         // Validate input using dedicated validator
-        registrationValidator.validateRegistration(request.username(), request.email(), request.password());
+        registrationValidator.validateRegistration(request.getUsername(), request.getEmail(), request.getPassword());
 
         // Check for duplicate username
-        if (userRepository.existsByUsername(request.username())) {
-            log.warn("Registration failed: Username '{}' already exists", request.username());
+        if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Registration failed: Username '{}' already exists", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
 
         // Check for duplicate email
-        Email emailVO = new Email(request.email());
+        Email emailVO = new Email(request.getEmail());
         if (userRepository.existsByEmail(emailVO)) {
-            log.warn("Registration failed: Email '{}' already exists", request.email());
+            log.warn("Registration failed: Email '{}' already exists", request.getEmail());
             throw new IllegalArgumentException("Email already exists");
         }
 
-        String passwordHash = passwordEncoder.encode(request.password());
-        User user = userFactory.createUser(request.username(), request.email(), passwordHash);
+        String passwordHash = passwordEncoder.encode(request.getPassword());
+        User user = userFactory.createUser(request.getUsername(), request.getEmail(), passwordHash);
         User savedUser = userRepository.save(user);
 
         log.info("Successfully registered new user with ID: {}", savedUser.getId());
@@ -94,13 +94,13 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public AuthResponse loginUser(LoginRequest request) {
-        log.info("Attempting to login user: {}", request.usernameOrEmail());
+        log.info("Attempting to login user: {}", request.getUsername());
 
-        User user = userRepository.findByUsername(request.usernameOrEmail())
-                .orElseGet(() -> userRepository.findByEmail(new Email(request.usernameOrEmail())).orElse(null));
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseGet(() -> userRepository.findByEmail(new Email(request.getUsername())).orElse(null));
 
-        if (user == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            log.warn("Login failed: Invalid credentials for {}", request.usernameOrEmail());
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("Login failed: Invalid credentials for {}", request.getUsername());
             throw new IllegalArgumentException("Invalid credentials");
         }
 

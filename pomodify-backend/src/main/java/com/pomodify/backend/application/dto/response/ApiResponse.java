@@ -1,21 +1,30 @@
 package com.pomodify.backend.application.dto.response;
 
-/**
- * Generic API response wrapper for consistent response structure.
- * Provides success/error responses with optional data and error details.
- */
-public record ApiResponse<T>(
-        boolean success,
-        String message,
-        T data,
-        String error
-) {
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(true, message, data, null);
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ApiResponse<T> {
+    private boolean success;
+    private String message;
+    private T data;
+
+    public static <T> ApiResponse<T> success(T data) {
+        return new ApiResponse<>(true, "Success", data);
     }
 
-    public static <T> ApiResponse<T> error(String message, String error) {
-        return new ApiResponse<>(false, message, null, error);
+    public static <T> ApiResponse<T> success(String message, T data) {
+        return new ApiResponse<>(true, message, data);
+    }
+
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null);
+    }
+
+    public static <T> ApiResponse<T> error(String message, String code) {
+        return new ApiResponse<>(false, message + " (" + code + ")", null);
     }
 }
-

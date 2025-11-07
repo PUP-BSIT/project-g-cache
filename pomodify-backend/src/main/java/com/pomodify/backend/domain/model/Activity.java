@@ -40,6 +40,12 @@ public class Activity {
     @EqualsAndHashCode.Exclude
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Category category;
+
     @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<PomodoroSession> sessions = new ArrayList<>();
@@ -241,5 +247,21 @@ public class Activity {
         }
         LocalDateTime now = LocalDateTime.now();
         return scheduledAt.isBefore(now) && !scheduledAt.toLocalDate().isEqual(now.toLocalDate());
+    }
+
+    public int getTotalFocusTimeMinutes() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToInt(PomodoroSession::getFocusTimeMinutes)
+                .sum();
+    }
+
+    public int getTotalBreakTimeMinutes() {
+        return sessions.stream()
+                .filter(PomodoroSession::isActive)
+                .filter(PomodoroSession::isCompleted)
+                .mapToInt(session -> session.getBreakDurationMinutes() * session.getCyclesCompleted())
+                .sum();
     }
 }

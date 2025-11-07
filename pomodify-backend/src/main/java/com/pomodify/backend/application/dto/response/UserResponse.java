@@ -1,17 +1,19 @@
 package com.pomodify.backend.application.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-/**
- * DTO for user data in responses.
- * Excludes sensitive information like password hash.
- */
-public record UserResponse(
-        Long id,
-        String username,
-        String email,
-        boolean isEmailVerified,
-        LocalDateTime createdAt
-) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserResponse {
+    private Long id;
+    private String username;
+    private String email;
+    private boolean emailVerified;
+    private LocalDateTime createdAt;
 }
-

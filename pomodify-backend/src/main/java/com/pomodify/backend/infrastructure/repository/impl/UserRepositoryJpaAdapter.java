@@ -16,18 +16,18 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class UserRepositoryJpaAdapter implements UserRepository {
+public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements UserRepository {
     
     private final SpringUserJpaRepository springUserJpaRepository;
 
     @Override
     public User save(User user) {
-        return springUserJpaRepository.save(user);
+        return springUserJpaRepository.save(checkNotNull(user, "User"));
     }
 
     @Override
     public Optional<User> findById(Long id) {
-        return springUserJpaRepository.findById(id);
+        return springUserJpaRepository.findById(checkNotNull(id));
     }
 
     @Override

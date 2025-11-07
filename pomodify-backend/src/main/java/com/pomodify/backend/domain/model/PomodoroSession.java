@@ -215,4 +215,12 @@ public class PomodoroSession {
     public User getUser() {
         return activity != null ? activity.getUser() : null;
     }
+
+    public int getFocusTimeMinutes() {
+        return getTotalPlannedWorkMinutes();
+    }
+
+    public String getDescription() {
+        return "Session " + id + " - " + cyclesCompleted + " cycles completed";
+    }
 }

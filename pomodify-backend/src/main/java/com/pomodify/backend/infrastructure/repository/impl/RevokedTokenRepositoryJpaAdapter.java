@@ -13,7 +13,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class RevokedTokenRepositoryJpaAdapter implements RevokedTokenRepository {
+public class RevokedTokenRepositoryJpaAdapter extends BaseRepositoryImpl implements RevokedTokenRepository {
 
     private final SpringRevokedTokenJpaRepository springRepository;
 
@@ -29,6 +29,6 @@ public class RevokedTokenRepositoryJpaAdapter implements RevokedTokenRepository 
 
     @Override
     public RevokedToken save(RevokedToken revokedToken) {
-        return springRepository.save(revokedToken);
+        return springRepository.save(checkNotNull(revokedToken, "RevokedToken"));
     }
 }

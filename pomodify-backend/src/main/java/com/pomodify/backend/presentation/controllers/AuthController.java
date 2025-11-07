@@ -38,14 +38,14 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody @Valid RegisterRequest request) {
-        log.info("Registration request received for username: {}", request.username());
+        log.info("Registration request received for username: {}", request.getUsername());
 
-        UserResponse userResponse = authService.registerUser(request);
+        UserResponse response = authService.registerUser(request);
 
-        log.info("User registered successfully: {}", request.username());
+        log.info("User registered successfully: {}", request.getUsername());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("User registered successfully", userResponse));
+                .body(ApiResponse.success("User registered successfully", response));
     }
 
     /**
@@ -53,12 +53,12 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody @Valid LoginRequest request) {
-        log.info("Login request received for: {}", request.usernameOrEmail());
+        log.info("Login request received for: {}", request.getUsername());
 
-        AuthResponse authResponse = authService.loginUser(request);
+        AuthResponse response = authService.loginUser(request);
 
-        log.info("User logged in successfully: {}", request.usernameOrEmail());
-        return ResponseEntity.ok(ApiResponse.success("Login successful", authResponse));
+        log.info("User logged in successfully: {}", request.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
     /**
@@ -87,10 +87,10 @@ public class AuthController {
     public ResponseEntity<?> refresh(@RequestBody @Valid RefreshRequest request) {
         log.info("Refresh request received");
 
-        AuthResponse authResponse = authService.refreshTokens(request.refreshToken());
+        AuthResponse response = authService.refreshTokens(request.getRefreshToken());
 
         log.info("Tokens refreshed successfully");
-        return ResponseEntity.ok(ApiResponse.success("Tokens refreshed", authResponse));
+        return ResponseEntity.ok(ApiResponse.success("Tokens refreshed", response));
     }
 
     /**
