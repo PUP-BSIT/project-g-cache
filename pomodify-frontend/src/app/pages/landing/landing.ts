@@ -5,10 +5,9 @@ import { Footer } from '../../shared/components/footer/footer';
 
 @Component({
   selector: 'app-landing',
+  standalone: true,
   imports: [Header, RouterLink, Footer],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
-export class Landing {
-
-}
+export class Landing {}
