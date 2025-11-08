@@ -2,62 +2,90 @@
 
 <main class="landing">
     <section class="hero">
-    <div class="hero-left">
-        <h1 class="brand">POMODIFY</h1>
-        <h2 class="headline">Master Your Time</h2>
-        <h2 class="headline">Amplify Your Focus.</h2>
-        <p class="subtext">
-        Pomodify helps you optimize your work-rest cycles with customizable Pomodoro timers, intuitive activity tracking, and insightful progress reports. Achieve deep focus, boost productivity, and conquer your daily tasks with ease.
-        </p>
-        <div class="cta">
-        <a class="btn btn-outline" routerLink="/login">Log In</a>
-        <a class="btn btn-primary" routerLink="/get-started">Get Started</a>
+        <div class="hero-left">
+            <h1 class="site-brand">POMODIFY</h1>
+            <h2 class="headline">Master Your Time<br>Amplify Your Focus.</h2>
+            <p class="subtext">
+                Pomodify helps you optimize your work-rest cycles with customizable Pomodoro timers, intuitive activity tracking, and insightful progress reports. Achieve deep focus, boost productivity, and conquer your daily tasks with ease.
+            </p>
+            <div class="cta">
+                <a class="btn btn-outline" routerLink="/login">Log In</a>
+                <a class="btn btn-primary" routerLink="/get-started">Get Started</a>
+            </div>
         </div>
-    </div>
-    <div class="hero-right">
-        <div class="clock-frame">
-        <img class="student" src="assets/images/student_young_man.png" alt="Student" />
-        </div>
-    </div>
-    </section>
+        
+        <div class="hero-right">
+            <div class="clock-frame">
+                <img class="student" src="assets/images/student_young_man.png" alt="Student" />
+            </div>
+            
+            <!-- Floating feature cards (positioned around the clock) -->
+            <div class="features">
+                <div class="feature feature-1">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="assets/images/custom_timers.png" alt="Custom Timers" />
+                        </div>
+                        <div class="feature-tail" aria-hidden="true"></div>
+                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                        <div class="text">
+                            <div class="title">Custom Timers</div>
+                            <div class="desc">Set your own work & break cycles.</div>
+                        </div>
+                    </div>
+                </div>
 
-    <section class="features">
-    <div class="feature">
-        <div class="feature-card">
-        <img class="feature-icon" src="assets/images/custom_timers.png" alt="Custom Timers" />
-        <div class="text">
-            <div class="title">Custom Timers</div>
-            <div class="desc">Set your own work & break cycles.</div>
+                <div class="feature feature-2">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="assets/images/acvtivities.png" alt="Activities" />
+                        </div>
+                        <div class="feature-tail" aria-hidden="true"></div>
+                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                        <div class="text">
+                            <div class="title">Activities</div>
+                            <div class="desc">Organize sessions by subject or task.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature feature-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="assets/images/session_notes.png" alt="Session Notes" />
+                        </div>
+                        <div class="feature-tail" aria-hidden="true"></div>
+                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                        <div class="text">
+                            <div class="title">Session Notes</div>
+                            <div class="desc">Record accomplishments after each focus round.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature feature-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <img src="assets/images/progress_report.png" alt="Progress Reports" />
+                        </div>
+                        <div class="feature-tail" aria-hidden="true"></div>
+                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
+                        </svg>
+                        <div class="text">
+                            <div class="title">Progress Reports</div>
+                            <div class="desc">Track hours, sessions, and productivity trends.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        </div>
-    </div>
-    <div class="feature">
-        <div class="feature-card">
-        <img class="feature-icon" src="assets/images/activities.png" alt="Activities" />
-        <div class="text">
-            <div class="title">Activities</div>
-            <div class="desc">Organize sessions by subject or task.</div>
-        </div>
-        </div>
-    </div>
-    <div class="feature">
-        <div class="feature-card">
-        <img class="feature-icon" src="assets/images/session_notes.png" alt="Session Notes" />
-        <div class="text">
-            <div class="title">Session Notes</div>
-            <div class="desc">Record accomplishments after each focus round.</div>
-        </div>
-        </div>
-    </div>
-    <div class="feature">
-        <div class="feature-card">
-        <img class="feature-icon" src="assets/images/progress_report.png" alt="Progress Reports" />
-        <div class="text">
-            <div class="title">Progress Reports</div>
-            <div class="desc">Track hours, sessions, and productivity trends.</div>
-        </div>
-        </div>
-    </div>
     </section>
 
     <section class="feature-grid">
