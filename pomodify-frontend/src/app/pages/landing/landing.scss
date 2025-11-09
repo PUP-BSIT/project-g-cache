@@ -48,12 +48,28 @@
   padding: 24px;
   text-align: left;
   background: #fff;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
+  scroll-margin-top: 80px;
 }
 
 .feature-box:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+.feature-box.highlight {
+  border-color: #4DA1A9;
+  box-shadow: 0 0 0 4px rgba(77, 161, 169, 0.2);
+  animation: pulse 0.6s ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
 }
 
 .feature-box h4 {
