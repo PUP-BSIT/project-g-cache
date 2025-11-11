@@ -11,8 +11,11 @@
         <span>Features</span>
         <span class="caret">▾</span>
         <div class="menu">
-            <a class="menu-item" routerLink="/features/timers">Timers</a>
-            <a class="menu-item" routerLink="/features/analytics">Analytics</a>
+            <a class="menu-item" (click)="scrollToFeature('activities')">Create and manage activities</a>
+            <a class="menu-item" (click)="scrollToFeature('timers')">Start and track Pomodoro sessions</a>
+            <a class="menu-item" (click)="scrollToFeature('notes')">Add session notes</a>
+            <a class="menu-item" (click)="scrollToFeature('reports')">View reports and progress</a>
+            <a class="menu-item" (click)="scrollToFeature('accounts')">Manage user accounts securely</a>
         </div>
         </div>
 
