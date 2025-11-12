@@ -32,7 +32,7 @@ export class Login {
     event.preventDefault();
     console.log('Sign up clicked');
     // Navigate to sign up page
-    // this.router.navigate(['/signup']);
+    this.router.navigate(['/signup']);
   }
 
   onClose() {
