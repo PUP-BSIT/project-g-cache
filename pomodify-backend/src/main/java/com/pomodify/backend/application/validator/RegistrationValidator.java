@@ -18,13 +18,15 @@ public class RegistrationValidator {
     /**
      * Validate complete registration input (username, email, password).
      * 
-     * @param username Username to validate
+     * @param firstName First Name to validate
+     * @param lastName Last Name to validate
      * @param email Email to validate
      * @param password Password to validate
      * @throws IllegalArgumentException if any validation fails
      */
-    public void validateRegistration(String username, String email, String password) {
-        validateUsername(username);
+    public void validateRegistration(String firstName, String lastName, String email, String password) {
+        validateName(firstName);
+        validateName(lastName);
         validateEmail(email);
         validatePassword(password);
     }
@@ -32,32 +34,30 @@ public class RegistrationValidator {
     /**
      * Validate username format and constraints.
      * 
-     * @param username Username to validate
+     * @param name First Name or Last Name to validate
      * @throws IllegalArgumentException if validation fails
      */
-    public void validateUsername(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Username cannot be null or empty");
+
+    public void validateName(String name) {
+        final int MAX_NAME_LENGTH = 50;
+        final String NAME_PATTERN = "^[A-Za-z\\s-]+$";
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("First name cannot be null or empty");
         }
-        
-        if (username.length() < MIN_USERNAME_LENGTH) {
+
+        if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException(
-                String.format("Username must be at least %d characters long", MIN_USERNAME_LENGTH)
+                    String.format("First name cannot exceed %d characters", MAX_NAME_LENGTH)
             );
         }
-        
-        if (username.length() > MAX_USERNAME_LENGTH) {
+
+        if (!name.matches(NAME_PATTERN)) {
             throw new IllegalArgumentException(
-                String.format("Username cannot exceed %d characters", MAX_USERNAME_LENGTH)
-            );
-        }
-        
-        if (!username.matches(USERNAME_PATTERN)) {
-            throw new IllegalArgumentException(
-                "Username can only contain letters, numbers, underscores, and hyphens"
+                    "First name can only contain letters, spaces, and hyphens"
             );
         }
     }
+
     
     /**
      * Validate email is not null or empty.

@@ -1,0 +1,22 @@
+### Create Category
+POST http://localhost:8080/api/v1/categories
+Authorization: Bearer {{access_token_here}}
+Content-Type: application/json
+
+{
+  "name": "Focus Work"
+}
+
+### Update Category
+PUT http://localhost:8080/api/v1/categories/1
+Content-Type: application/json
+
+{
+  "name": "Deep Work"
+}
+
+### Delete Category
+DELETE http://localhost:8080/api/v1/categories/1
+
+### List Categories
+GET http://localhost:8080/api/v1/categories

@@ -1,6 +1,7 @@
 package com.pomodify.backend.domain.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class RevokedToken {
 
     @Id
@@ -28,7 +30,4 @@ public class RevokedToken {
     @CreationTimestamp
     @Column(name = "revoked_at", updatable = false)
     private LocalDateTime revokedAt;
-
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
 }

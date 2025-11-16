@@ -32,18 +32,8 @@ public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements User
     }
 
     @Override
-    public Optional<User> findByUsername(String username) {
-        return springUserJpaRepository.findByUsername(checkNotNull(username, "Username"));
-    }
-
-    @Override
     public Optional<User> findByEmail(Email email) {
         return springUserJpaRepository.findByEmail(checkNotNull(email, "Email"));
-    }
-
-    @Override
-    public boolean existsByUsername(String username) {
-        return springUserJpaRepository.existsByUsername(checkNotNull(username, "Username"));
     }
 
     @Override

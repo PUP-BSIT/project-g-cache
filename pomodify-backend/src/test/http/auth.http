@@ -1,0 +1,61 @@
+### Register
+POST {{base_url}}/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Daniel",
+  "lastName": "Victorioso",
+  "email": "daniel@example.com",
+  "password": "Password@123"
+}
+
+### Login
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "daniel@example.com",
+  "password": "Password@123"
+}
+
+### Refresh Tokens
+POST {{base_url}}/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh_token}}"
+}
+
+### Logout
+POST {{base_url}}/auth/logout
+Authorization: Bearer {{access_token}}
+
+### Current User
+GET {{base_url}}/auth/me
+Authorization: Bearer {{access_token}}
+
+### Get All Categories
+GET {{base_url}}/categories
+Authorization: Bearer {{access_token}}
+
+### Create Category
+POST {{base_url}}/categories
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Work"
+}
+
+### Update Category
+PUT {{base_url}}/categories/{{category_id}}
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Work"
+}
+
+### Delete Category
+DELETE {{base_url}}/categories/{{category_id}}
+Authorization: Bearer {{access_token}}

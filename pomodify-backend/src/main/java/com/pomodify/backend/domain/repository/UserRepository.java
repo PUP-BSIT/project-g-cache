@@ -24,19 +24,9 @@ public interface UserRepository {
     Optional<User> findById(Long id);
 
     /**
-     * Find a user by their unique username.
-     */
-    Optional<User> findByUsername(String username);
-
-    /**
      * Find a user by their unique email.
      */
     Optional<User> findByEmail(Email email);
-
-    /**
-     * Check if a username already exists.
-     */
-    boolean existsByUsername(String username);
 
     /**
      * Check if an email already exists.

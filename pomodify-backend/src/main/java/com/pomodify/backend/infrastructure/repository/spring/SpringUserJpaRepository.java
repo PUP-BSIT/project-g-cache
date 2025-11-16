@@ -16,21 +16,10 @@ import java.util.Optional;
  */
 @Repository
 public interface SpringUserJpaRepository extends JpaRepository<User, Long> {
-
-    /**
-     * Find user by username.
-     */
-    Optional<User> findByUsername(String username);
-
     /**
      * Find user by email value object.
      */
     Optional<User> findByEmail(Email email);
-
-    /**
-     * Check if username exists.
-     */
-    boolean existsByUsername(String username);
 
     /**
      * Check if email exists.
