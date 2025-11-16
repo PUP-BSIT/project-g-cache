@@ -14,7 +14,6 @@ import java.util.List;
 @Table(
         name = "app_user",
         uniqueConstraints = {
-                @UniqueConstraint(name = "unique_username", columnNames = "username"),
                 @UniqueConstraint(name = "unique_email", columnNames = "email")
         }
 )
@@ -54,11 +53,11 @@ public class User {
     private boolean isActive = true;
 
     // ──────────────── Relationships ────────────────
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Category> categories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 

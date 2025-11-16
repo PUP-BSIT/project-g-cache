@@ -8,12 +8,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RegistrationValidator {
-    
-    private static final int MIN_USERNAME_LENGTH = 3;
-    private static final int MAX_USERNAME_LENGTH = 50;
     private static final int MIN_PASSWORD_LENGTH = 8;
     private static final int MAX_PASSWORD_LENGTH = 100;
-    private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_-]+$";
+    private static final int MAX_NAME_LENGTH = 50;
+    private static final String NAME_PATTERN = "^[A-Za-z\\s-]+$";
     
     /**
      * Validate complete registration input (username, email, password).
@@ -39,8 +37,6 @@ public class RegistrationValidator {
      */
 
     public void validateName(String name) {
-        final int MAX_NAME_LENGTH = 50;
-        final String NAME_PATTERN = "^[A-Za-z\\s-]+$";
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("First name cannot be null or empty");
         }

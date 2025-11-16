@@ -18,9 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Service
 @Slf4j
@@ -90,7 +87,6 @@ public class AuthService {
         }
 
         Long userId = jwtService.extractUserId(refreshToken);
-        String username = jwtService.extractUserEmail(refreshToken);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
