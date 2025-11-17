@@ -15,7 +15,10 @@ export class Login {
   constructor(private router: Router) {}
 
   onSubmit() {
-    console.log('Login submitted:', { email: this.email, password: this.password });
+    console.log('Login submitted:', {
+      email: this.email,
+      password: this.password,
+    });
   }
 
   onGoogleSignIn() {
