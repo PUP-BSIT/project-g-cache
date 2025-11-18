@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-login',
@@ -12,13 +13,36 @@ export class Login {
   email: string = '';
   password: string = '';
 
-  constructor(private router: Router) {}
+  isLoading = false;
+  errorMessage = '';
+
+  constructor(
+    private router: Router,
+    private auth: Auth
+  ) {}
 
   onSubmit() {
-    console.log('Login submitted:', {
-      email: this.email,
-      password: this.password,
-    });
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please enter both email and password';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.auth.login(this.email, this.password)
+      .then(result => {
+        if (result.needsVerification) {
+          this.auth.showVerifyEmailModal();
+        }
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        this.errorMessage = 'Invalid email or password';
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
   }
 
   onGoogleSignIn() {
