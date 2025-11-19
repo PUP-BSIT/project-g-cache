@@ -1,22 +1,56 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Auth } from '../../core/services/auth';
 
 @Component({
+  standalone: true,
   selector: 'app-signup',
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './signup.html',
   styleUrl: './signup.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Signup {
   email: string = '';
   password: string = '';
   confirmPassword: string = '';
 
-  constructor(private router: Router) {}
+  isLoading = false;
+  errorMessage = '';
+
+  private router = inject(Router);
+  private auth = inject(Auth);
 
   onSubmit() {
-    console.log('Signup submitted:', { email: this.email, password: this.password });
+    if (!this.email || !this.password || !this.confirmPassword) {
+      this.errorMessage = 'Please fill in all fields';
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // In a real app, you would call your signup API here
+    // For now, we'll simulate a successful signup that requires email verification
+    this.auth.signup(this.email, this.password)
+      .then(() => {
+        // Show verify email modal
+        this.auth.showVerifyEmailModal();
+      })
+      .catch(error => {
+        console.error('Signup error:', error);
+        this.errorMessage = 'Failed to create account. Please try again.';
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
   }
 
   onGoogleSignIn() {
