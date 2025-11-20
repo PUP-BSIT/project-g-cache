@@ -4,9 +4,8 @@ import com.pomodify.backend.application.command.auth.LoginUserCommand;
 import com.pomodify.backend.application.command.auth.RegisterUserCommand;
 import com.pomodify.backend.application.command.auth.RefreshTokensCommand;
 import com.pomodify.backend.application.command.auth.LogoutCommand;
-import com.pomodify.backend.application.result.AuthResult;
-import com.pomodify.backend.application.result.UserResult;
 import com.pomodify.backend.application.service.AuthService;
+import com.pomodify.backend.application.service.JwtService;
 import com.pomodify.backend.presentation.dto.request.LoginRequest;
 import com.pomodify.backend.presentation.dto.request.RegisterRequest;
 import com.pomodify.backend.presentation.dto.request.RefreshTokensRequest;
@@ -20,7 +19,6 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,9 +27,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtService jwtService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtService jwtService) {
         this.authService = authService;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -45,8 +45,7 @@ public class AuthController {
                 .password(request.password())
                 .build();
 
-        UserResult result = authService.registerUser(command);
-        UserResponse response = UserMapper.toUserResponse(result);
+        UserResponse response = UserMapper.toUserResponse(authService.registerUser(command));
 
         log.info("User registered successfully: {}", request.email());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -61,8 +60,7 @@ public class AuthController {
                 .password(request.password())
                 .build();
 
-        AuthResult result = authService.loginUser(command);
-        AuthResponse response = AuthMapper.toAuthResponse(result);
+        AuthResponse response = AuthMapper.toAuthResponse(authService.loginUser(command));
 
         log.info("User logged in successfully: {}", request.email());
         return ResponseEntity.ok(response);
@@ -83,7 +81,7 @@ public class AuthController {
         String token = authHeader.substring(7);
         LogoutCommand command = LogoutCommand.builder().token(token).build();
 
-        String message = authService.logout(command); // service returns string
+        String message = authService.logout(command);
         log.info("User logged out successfully");
 
         return ResponseEntity.ok(
@@ -99,8 +97,7 @@ public class AuthController {
         log.info("Refresh request received");
 
         RefreshTokensCommand command = new RefreshTokensCommand(request.refreshToken());
-        AuthResult result = authService.refreshTokens(command);
-        AuthResponse response = AuthMapper.toAuthResponse(result);
+        AuthResponse response = AuthMapper.toAuthResponse(authService.refreshTokens(command));
 
         log.info("Tokens refreshed successfully");
         return ResponseEntity.ok(response);
@@ -108,12 +105,18 @@ public class AuthController {
 
     // ──────────────── Current User ────────────────
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(Authentication authentication) {
-        String email = authentication.getName();
+    public ResponseEntity<UserResponse> me(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Missing token");
+        }
+
+        String token = authHeader.substring(7);
+        String email = jwtService.extractUserEmailFrom(token);
+
         log.info("Me request received for user with email: {}", email);
 
-        UserResult userResult = authService.getCurrentUser(email);
-        UserResponse userResponse = UserMapper.toUserResponse(userResult);
+        UserResponse userResponse = UserMapper.toUserResponse(authService.getCurrentUser(email));
 
         log.info("Current user retrieved successfully");
         return ResponseEntity.ok(userResponse);

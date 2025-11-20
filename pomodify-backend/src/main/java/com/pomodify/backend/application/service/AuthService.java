@@ -13,55 +13,53 @@ import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
 import com.pomodify.backend.domain.model.RevokedToken;
 import com.pomodify.backend.domain.repository.RevokedTokenRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private RegistrationValidator registrationValidator;
+    private final RegistrationValidator registrationValidator;
 
-    @Autowired
-    private UserFactoryBean userFactory;
+    private final UserFactoryBean userFactory;
 
-    @Autowired
-    private JwtService jwtService;
+    private final JwtService jwtService;
 
-    @Autowired
-    private RevokedTokenRepository revokedTokenRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
 
     // Register
     @Transactional
     public UserResult registerUser(RegisterUserCommand command) {
         registrationValidator.validateRegistration(command.firstName(), command.lastName(), command.email(), command.password());
 
-        Email emailVO = new Email(command.email());
+        Email emailVO = Email.of(command.email());
         if (userRepository.existsByEmail(emailVO)) {
             throw new IllegalArgumentException("Email already exists");
         }
 
         String passwordHash = passwordEncoder.encode(command.password());
-        User user = userFactory.createUser(command.firstName(), command.lastName(), emailVO, passwordHash);
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.save(userFactory.createUser(command.firstName(), command.lastName(), emailVO, passwordHash));
 
-        return new UserResult(savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail().getValue());
+        return UserResult.builder()
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .email(savedUser.getEmail().getValue())
+                .build();
     }
 
     // Login
     @Transactional(readOnly = true)
     public AuthResult loginUser(LoginUserCommand command) {
-        Email emailVO = new Email(command.email());
+        Email emailVO = Email.of(command.email());
 
         User user = userRepository.findByEmail(emailVO)
                 .orElse(null);
@@ -73,7 +71,13 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        return new AuthResult(user.getFirstName(), user.getLastName(), user.getEmail().getValue(), accessToken, refreshToken);
+        return AuthResult.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail().getValue())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     // Refresh Tokens
@@ -86,7 +90,7 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid refresh token");
         }
 
-        Long userId = jwtService.extractUserId(refreshToken);
+        Long userId = jwtService.extractUserIdFrom(refreshToken);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -98,12 +102,13 @@ public class AuthService {
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        return new AuthResult(
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail().getValue(),
-                newAccessToken,
-                newRefreshToken);
+        return AuthResult.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail().getValue())
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
     }
 
     // Logout
@@ -120,7 +125,7 @@ public class AuthService {
     // Get Current User
     @Transactional(readOnly = true)
     public UserResult getCurrentUser(String email) {
-        Email emailVO = new Email(email);
+        Email emailVO = Email.of(email);
         User user = userRepository.findByEmail(emailVO)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -128,6 +133,10 @@ public class AuthService {
             throw new IllegalStateException("Inactive user cannot be retrieved");
         }
 
-        return new UserResult(user.getFirstName(), user.getFirstName(), user.getEmail().getValue());
+        return UserResult.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail().getValue())
+                .build();
     }
 }

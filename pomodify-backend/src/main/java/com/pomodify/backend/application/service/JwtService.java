@@ -32,7 +32,7 @@ public class JwtService {
 
     public String generateAccessToken(User user) {
         return Jwts.builder()
-                .subject(String.valueOf(user.getEmail()))
+                .subject(user.getEmail().getValue())
                 .claim("userId", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
@@ -42,7 +42,7 @@ public class JwtService {
 
     public String generateRefreshToken(User user) {
         return Jwts.builder()
-                .subject(String.valueOf(user.getEmail()))
+                .subject(user.getEmail().getValue())
                 .claim("userId", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
@@ -71,14 +71,14 @@ public class JwtService {
      * @param token the JWT token
      * @return the username
      */
-    public String extractUserEmail(String token) {
+    public String extractUserEmailFrom(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     /**
     * Extract the user ID from the JWT token.
     */
-    public Long extractUserId(String token) {
+    public Long extractUserIdFrom(String token) {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
@@ -103,15 +103,5 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
-    }
-
-    /**
-     * Get the expiration date from the JWT token.
-     *
-     * @param token the JWT token
-     * @return the expiration date
-     */
-    public Date getExpirationDate(String token) {
-        return extractClaim(token, Claims::getExpiration);
     }
 }
