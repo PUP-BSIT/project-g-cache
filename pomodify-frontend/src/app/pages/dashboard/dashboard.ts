@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 interface Activity {
   id: string;
@@ -11,7 +12,7 @@ interface Activity {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

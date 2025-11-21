@@ -1,4 +1,4 @@
-<div class="dashboard">
+<div class="settings-page">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
@@ -50,7 +50,7 @@
         </svg>
         <span class="nav-text" *ngIf="sidebarExpanded()">Support</span>
       </button>
-      <button class="nav-icon" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon active" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,99 +81,57 @@
       </div>
     </header>
 
-    <div class="content-grid">
-      <!-- Recent Activities Section -->
-      <section class="activities-section">
-        <h2 class="section-title">Recent activities</h2>
-        <div class="activities-list">
-          @for (activity of activities(); track activity.id) {
-            <button 
-              class="activity-card"
-              [class.active]="activity.id === selectedActivityId()"
-              (click)="selectActivity(activity.id)">
-              <span class="activity-icon">{{ activity.icon }}</span>
-              <div class="activity-info">
-                <h3 class="activity-name">{{ activity.name }}</h3>
-                <p class="activity-time">Last: {{ activity.lastAccessed }}</p>
-              </div>
-            </button>
-          }
+    <!-- Settings Content -->
+    <div class="settings-container">
+      <h1 class="settings-title">App Settings</h1>
+
+      <!-- Notifications & Calendar Sync Section -->
+      <section class="settings-section">
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Notifications</h3>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="notifications-toggle" class="toggle-input" [checked]="notificationsEnabled()" (change)="toggleNotifications()">
+            <label for="notifications-toggle" class="toggle-label"></label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Google Calendar Sync</h3>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="calendar-toggle" class="toggle-input" [checked]="calendarSyncEnabled()" (change)="toggleCalendarSync()">
+            <label for="calendar-toggle" class="toggle-label"></label>
+          </div>
         </div>
       </section>
 
-      <!-- Focus Session Section -->
-      <section class="focus-section">
-        <div class="focus-card">
-          <h2 class="focus-title">Current Focus Session</h2>
-          
-          <div class="activity-selector">
-            <select [value]="selectedActivityId()" (change)="selectActivity($any($event.target).value)">
-              @for (activity of activities(); track activity.id) {
-                <option [value]="activity.id">{{ activity.name }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="timer-circle">
-            <div class="timer-display">
-              <div class="timer-value">{{ focusTime() }}</div>
-              <div class="timer-label">Your Focus</div>
-            </div>
-          </div>
-
-          <div class="timer-controls">
-            <button 
-              class="control-btn play-btn" 
-              (click)="playTimer()"
-              [disabled]="isTimerRunning() && !isPaused()">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </button>
-            <button 
-              class="control-btn pause-btn" 
-              (click)="pauseTimer()"
-              [disabled]="!isTimerRunning() || isPaused()">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-              </svg>
-            </button>
-            <button 
-              class="control-btn stop-btn" 
-              (click)="stopTimer()"
-              [disabled]="!isTimerRunning()">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 6h12v12H6z"/>
-              </svg>
-            </button>
-          </div>
+      <!-- Data Section -->
+      <section class="settings-section data-section">
+        <h2 class="section-title">Data</h2>
+        <div class="data-buttons">
+          <button class="data-btn export-btn">
+            <span>Export my data</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="data-btn import-btn">
+            <span>Import data</span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5V19M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
+      </section>
 
-        <!-- Status Section -->
-        <div class="status-section">
-          <h3 class="status-title">STATUS</h3>
-          <div class="status-cards">
-            <div class="status-card">
-              <div class="status-label">Current Streak</div>
-              <div class="status-value">
-                <span class="status-number">{{ currentStreak() }}</span>
-                <span class="status-unit">days</span>
-              </div>
-            </div>
-            <div class="status-card">
-              <div class="status-label">Today's Focus Hours</div>
-              <div class="status-value">
-                <span class="status-number">{{ todayFocusHours() }}</span>
-                <span class="status-unit">HRS</span>
-              </div>
-            </div>
-            <div class="status-card">
-              <div class="status-label">Total Sessions</div>
-              <div class="status-value">
-                <span class="status-number">{{ totalSessions() }}</span>
-              </div>
-            </div>
-          </div>
+      <!-- Actions Section -->
+      <section class="settings-section actions-section">
+        <div class="action-buttons">
+          <button class="btn btn-delete">Delete my Account</button>
+          <button class="btn btn-save">Save changes</button>
         </div>
       </section>
     </div>
