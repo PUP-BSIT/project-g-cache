@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, HostListener } from '@angular/core';
 
 interface Activity {
   id: string;
@@ -16,6 +16,24 @@ interface Activity {
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
+  // Sidebar state
+  protected sidebarExpanded = signal(true);
+
+  // Toggle sidebar
+  protected toggleSidebar(): void {
+    this.sidebarExpanded.update(expanded => !expanded);
+  }
+
+  // Close sidebar on mobile when clicking outside
+  @HostListener('document:click', ['$event'])
+  onClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
+      if (window.innerWidth < 768) {
+        this.sidebarExpanded.set(false);
+      }
+    }
+  }
   // --- State ---
   protected readonly activities = signal<Activity[]>([
     { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
