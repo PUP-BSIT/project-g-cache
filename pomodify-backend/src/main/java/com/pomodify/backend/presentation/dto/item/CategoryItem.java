@@ -1,4 +1,4 @@
-package com.pomodify.backend.presentation.dto.response;
+package com.pomodify.backend.presentation.dto.item;
 
 import lombok.Builder;
 

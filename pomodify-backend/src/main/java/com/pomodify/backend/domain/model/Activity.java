@@ -44,7 +44,7 @@ public class Activity {
     // ──────────────── State ────────────────
     @Column(name = "is_not_deleted", nullable = false)
     @Builder.Default
-    private boolean isNotDeleted = true;
+    private boolean isDeleted = false;
 
     // ──────────────── Timestamps ────────────────
     @CreationTimestamp
@@ -67,7 +67,7 @@ public class Activity {
                 .description(description != null ? description.trim() : null)
                 .user(user)
                 .category(category)
-                .isNotDeleted(true)
+                .isDeleted(true)
                 .build();
     }
 
@@ -100,8 +100,13 @@ public class Activity {
         session.setActivity(null);
     }
 
-    public void deactivate() {
-        this.isNotDeleted = false;
+    public Activity delete(Long id) {
+        if (!this.id.equals(id))
+            throw new IllegalArgumentException("Activity ID mismatch");
+
+        ensureActive();
+        this.setDeleted(true);
+        return this;
     }
 
     public List<PomodoroSession> getActiveSessions() {
@@ -112,7 +117,7 @@ public class Activity {
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {
-        if (!isNotDeleted)
+        if (!isDeleted)
             throw new IllegalStateException("Activity is inactive and cannot be modified");
     }
 }

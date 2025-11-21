@@ -1,4 +1,4 @@
-package com.pomodify.backend.application.command;
+package com.pomodify.backend.application.command.activity;
 
 import lombok.Builder;
 import lombok.Data;

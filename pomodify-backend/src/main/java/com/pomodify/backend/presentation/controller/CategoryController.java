@@ -7,7 +7,7 @@ import com.pomodify.backend.application.command.category.UpdateCategoryCommand;
 import com.pomodify.backend.application.service.CategoryService;
 import com.pomodify.backend.presentation.dto.request.category.CategoryRequest;
 import com.pomodify.backend.presentation.dto.request.category.UpdateCategoryRequest;
-import com.pomodify.backend.presentation.dto.response.CategoryItem;
+import com.pomodify.backend.presentation.dto.item.CategoryItem;
 import com.pomodify.backend.presentation.dto.response.CategoryResponse;
 import com.pomodify.backend.presentation.mapper.CategoryMapper;
 import jakarta.validation.Valid;
@@ -32,7 +32,7 @@ public class CategoryController {
     }
 
     // ──────────────── Create ────────────────
-    @PostMapping
+    @PostMapping("/create-category")
     public ResponseEntity<CategoryResponse> createCategory(
             @RequestBody @Valid CategoryRequest request,
             @AuthenticationPrincipal Jwt jwt) {

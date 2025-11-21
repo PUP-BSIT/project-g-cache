@@ -63,3 +63,14 @@ Content-Type: application/json
 ### Delete Category
 DELETE {{base_url}}/category/3
 Authorization: Bearer {{access_token}}
+
+### GET request to example server
+POST {{base_url}}/api/v1/activity/
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "title": "Develop POMODIFY BACKEND 3",
+  "description": "DEVELOP A REST API USING NODE.JS AND EXPRESS",
+  "categoryId": 3
+}

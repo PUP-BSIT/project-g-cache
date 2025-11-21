@@ -83,25 +83,25 @@ public class Category {
         if (activities.contains(activity)) {
             activities.remove(activity);
             activity.setCategory(null);
-            activity.setNotDeleted(false);
+            activity.setDeleted(false);
         }
     }
 
     public List<Activity> getActiveActivities() {
         return activities.stream()
-                .filter(Activity::isNotDeleted)
+                .filter(Activity::isDeleted)
                 .toList();
     }
 
     public List<Activity> getInactiveActivities() {
         return activities.stream()
-                .filter(a -> !a.isNotDeleted())
+                .filter(a -> !a.isDeleted())
                 .toList();
     }
 
     public Category delete() {
         this.isNotDeleted = false;
-        activities.forEach(a -> a.setNotDeleted(false));
+        activities.forEach(a -> a.setDeleted(false));
         return this;
     }
 }

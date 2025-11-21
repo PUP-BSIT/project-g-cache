@@ -135,18 +135,18 @@ public class User {
         if (activity == null)
             throw new IllegalArgumentException("Activity cannot be null");
 
-        activity.deactivate();
+        activity.delete(activity.getId());
     }
 
     public List<Activity> getActiveActivities() {
         return activities.stream()
-                .filter(Activity::isNotDeleted)
+                .filter(Activity::isDeleted)
                 .toList();
     }
 
     public List<Activity> getInactiveActivities() {
         return activities.stream()
-                .filter(a -> !a.isNotDeleted())
+                .filter(a -> !a.isDeleted())
                 .toList();
     }
 

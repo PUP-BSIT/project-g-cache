@@ -1,7 +1,7 @@
 package com.pomodify.backend.presentation.mapper;
 
 import com.pomodify.backend.application.result.CategoryResult;
-import com.pomodify.backend.presentation.dto.response.CategoryItem;
+import com.pomodify.backend.presentation.dto.item.CategoryItem;
 import com.pomodify.backend.presentation.dto.response.CategoryResponse;
 
 import java.util.Collections;

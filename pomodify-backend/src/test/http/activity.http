@@ -1,0 +1,32 @@
+### Login
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "daniel@example.com",
+  "password": "Password@123"
+}
+
+### Create Activity
+POST {{base_url}}/activity/create-activity
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+"title": "M",
+  "description": "DEVELOP A REST API USING NODE.JS AND EXPRESS",
+  "categoryId": 4
+}
+
+### Get All Activities
+GET {{base_url}}/activity/all
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+### Get Activities with Pagination and Sorting
+GET {{base_url}}/activity/all?page=0&size=10&sortBy=title&sortOrder=asc&deleted=true&categoryId=4 HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+
+
