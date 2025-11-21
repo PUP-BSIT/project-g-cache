@@ -1,14 +1,18 @@
 package com.pomodify.backend.domain.valueobject;
 
 import jakarta.persistence.Embeddable;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
 import java.util.Objects;
 
+@Getter
 @Embeddable
-@NoArgsConstructor
 public class Email {
     private String value;
+
+    protected Email() {
+        // for JPA
+    }
 
     public Email(String value) {
         if (value == null || value.trim().isEmpty()) {
@@ -20,8 +24,8 @@ public class Email {
         this.value = value.toLowerCase().trim();
     }
 
-    public String getValue() {
-        return value;
+    public static Email of(String value) {
+        return new Email(value);
     }
 
     private boolean isValidEmail(String email) {

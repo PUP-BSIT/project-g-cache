@@ -7,17 +7,18 @@ import com.pomodify.backend.infrastructure.repository.spring.SpringUserJpaReposi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * JPA adapter implementation of the domain UserRepository interface.
- * This adapter delegates to Spring Data JPA repository while implementing
- * the domain's repository contract.
+ * Delegates to the Spring Data JPA repository while conforming
+ * to the domain's repository contract.
  */
 @Component
 @RequiredArgsConstructor
 public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements UserRepository {
-    
+
     private final SpringUserJpaRepository springUserJpaRepository;
 
     @Override
@@ -26,40 +27,29 @@ public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements User
     }
 
     @Override
-    public Optional<User> findById(Long id) {
-        return springUserJpaRepository.findById(checkNotNull(id));
-    }
-
-    @Override
-    public Optional<User> findByUsername(String username) {
-        return springUserJpaRepository.findByUsername(username);
+    public Optional<User> findUser(Long id) {
+        return springUserJpaRepository.findById(checkNotNull(id, "User ID"));
     }
 
     @Override
     public Optional<User> findByEmail(Email email) {
-        return springUserJpaRepository.findByEmail(email);
-    }
-
-    @Override
-    public boolean existsByUsername(String username) {
-        return springUserJpaRepository.existsByUsername(username);
+        return springUserJpaRepository.findByEmail(checkNotNull(email, "Email"));
     }
 
     @Override
     public boolean existsByEmail(Email email) {
-        return springUserJpaRepository.existsByEmail(email);
+        return springUserJpaRepository.existsByEmail(checkNotNull(email, "Email"));
     }
 
     @Override
     public void delete(User user) {
-        // Soft delete: mark as deleted and save
-        user.delete();
+        checkNotNull(user, "User");
+        user.deactivate(); // soft delete
         springUserJpaRepository.save(user);
     }
 
     @Override
-    public Iterable<User> findAllActive() {
+    public List<User> findAllActive() {
         return springUserJpaRepository.findAllActive();
     }
 }
-
