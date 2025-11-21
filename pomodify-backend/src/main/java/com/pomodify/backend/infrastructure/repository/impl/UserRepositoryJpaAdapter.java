@@ -27,7 +27,7 @@ public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements User
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public Optional<User> findUser(Long id) {
         return springUserJpaRepository.findById(checkNotNull(id, "User ID"));
     }
 

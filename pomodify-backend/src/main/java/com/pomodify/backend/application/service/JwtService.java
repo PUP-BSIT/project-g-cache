@@ -1,5 +1,7 @@
 package com.pomodify.backend.application.service;
 
+import com.pomodify.backend.application.exception.InvalidJwtException;
+import com.pomodify.backend.application.exception.JwtExpiredException;
 import com.pomodify.backend.domain.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -79,7 +81,13 @@ public class JwtService {
     * Extract the user ID from the JWT token.
     */
     public Long extractUserIdFrom(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Long.class));
+        try {
+            return extractClaim(token, claims -> claims.get("userId", Long.class));
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            throw new JwtExpiredException("JWT token has expired", e);
+        } catch (Exception e) {
+            throw new InvalidJwtException("Invalid JWT token", e);
+        }
     }
 
     /**

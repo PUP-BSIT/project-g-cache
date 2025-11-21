@@ -1,10 +1,13 @@
 package com.pomodify.backend.application.result;
 
+import lombok.Builder;
+
+@Builder
 public record CategoryResult(
-        Long id,
-        String name,
-        boolean active,
-        int activeActivitiesCount,
-        int inactiveActivitiesCount
+        Long categoryId,
+        String categoryName,
+        Boolean active,
+        Integer activeActivitiesCount,
+        Integer inactiveActivitiesCount
 ) {
 }

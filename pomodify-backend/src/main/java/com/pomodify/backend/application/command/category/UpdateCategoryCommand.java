@@ -6,6 +6,7 @@ import lombok.Builder;
 @Builder
 public record UpdateCategoryCommand(
         Long categoryId,
+        Long userId,
         @NotBlank(message = "Category name is required")
-        String newName
+        String newCategoryName
 ) {}

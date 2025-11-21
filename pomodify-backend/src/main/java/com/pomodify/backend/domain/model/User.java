@@ -107,18 +107,18 @@ public class User {
         if (category == null)
             throw new IllegalArgumentException("Category cannot be null");
 
-        category.setActive(false);
+        category.setNotDeleted(false);
     }
 
     public List<Category> getActiveCategories() {
         return categories.stream()
-                .filter(Category::isActive)
+                .filter(Category::isNotDeleted)
                 .toList();
     }
 
     public List<Category> getInactiveCategories() {
         return categories.stream()
-                .filter(c -> !c.isActive())
+                .filter(c -> !c.isNotDeleted())
                 .toList();
     }
 
@@ -140,13 +140,13 @@ public class User {
 
     public List<Activity> getActiveActivities() {
         return activities.stream()
-                .filter(Activity::isActive)
+                .filter(Activity::isNotDeleted)
                 .toList();
     }
 
     public List<Activity> getInactiveActivities() {
         return activities.stream()
-                .filter(a -> !a.isActive())
+                .filter(a -> !a.isNotDeleted())
                 .toList();
     }
 

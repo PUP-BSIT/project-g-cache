@@ -21,7 +21,7 @@ public interface UserRepository {
     /**
      * Find a user by their unique ID.
      */
-    Optional<User> findById(Long id);
+    Optional<User> findUser(Long id);
 
     /**
      * Find a user by their unique email.

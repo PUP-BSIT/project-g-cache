@@ -92,7 +92,7 @@ public class AuthService {
 
         Long userId = jwtService.extractUserIdFrom(refreshToken);
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findUser(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (!user.isActive()) {

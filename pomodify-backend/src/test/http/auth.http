@@ -35,7 +35,11 @@ GET {{base_url}}/auth/me
 Authorization: Bearer {{access_token}}
 
 ### Get All Categories
-GET {{base_url}}/categories
+GET {{base_url}}/category/all
+Authorization: Bearer {{access_token}}
+
+### Get All Deleted Categories
+GET {{base_url}}/category/all-deleted
 Authorization: Bearer {{access_token}}
 
 ### Create Category
@@ -44,18 +48,18 @@ Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
 {
-  "name": "Work"
+  "categoryName": "WebDev"
 }
 
 ### Update Category
-PUT {{base_url}}/categories/{{category_id}}
+PUT {{base_url}}/category/3
 Authorization: Bearer {{access_token}}
 Content-Type: application/json
 
 {
-  "name": "Updated Work"
+  "newCategoryName": "Updated Work 4"
 }
 
 ### Delete Category
-DELETE {{base_url}}/categories/{{category_id}}
+DELETE {{base_url}}/category/3
 Authorization: Bearer {{access_token}}

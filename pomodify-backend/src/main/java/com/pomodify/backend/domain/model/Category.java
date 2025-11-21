@@ -27,13 +27,13 @@ public class Category {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_not_deleted", nullable = false)
     @Builder.Default
-    private boolean isActive = true;
+    private boolean isNotDeleted = true;
 
     // ──────────────────────────────
     // Factory Method
@@ -48,7 +48,7 @@ public class Category {
         return Category.builder()
                 .name(name.trim())
                 .user(user)
-                .isActive(true)
+                .isNotDeleted(true)
                 .build();
     }
 
@@ -83,24 +83,25 @@ public class Category {
         if (activities.contains(activity)) {
             activities.remove(activity);
             activity.setCategory(null);
-            activity.setActive(false);
+            activity.setNotDeleted(false);
         }
     }
 
     public List<Activity> getActiveActivities() {
         return activities.stream()
-                .filter(Activity::isActive)
+                .filter(Activity::isNotDeleted)
                 .toList();
     }
 
     public List<Activity> getInactiveActivities() {
         return activities.stream()
-                .filter(a -> !a.isActive())
+                .filter(a -> !a.isNotDeleted())
                 .toList();
     }
 
-    public void deactivate() {
-        this.isActive = false;
-        activities.forEach(a -> a.setActive(false));
+    public Category delete() {
+        this.isNotDeleted = false;
+        activities.forEach(a -> a.setNotDeleted(false));
+        return this;
     }
 }

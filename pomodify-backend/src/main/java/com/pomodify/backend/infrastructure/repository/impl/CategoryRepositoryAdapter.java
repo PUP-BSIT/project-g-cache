@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class CategoryRepositoryImpl implements CategoryRepository {
+public class CategoryRepositoryAdapter implements CategoryRepository {
 
     private final SpringCategoryRepository springRepo;
 
-    public CategoryRepositoryImpl(SpringCategoryRepository springRepo) {
+    public CategoryRepositoryAdapter(SpringCategoryRepository springRepo) {
         this.springRepo = springRepo;
     }
 
@@ -23,13 +23,18 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public Optional<Category> findById(Long id) {
-        return springRepo.findById(id);
+    public Optional<Category> findCategory(Long id) {
+        return springRepo.findByIdAndIsNotDeleted(id, true);
     }
 
     @Override
-    public List<Category> findAll() {
-        return springRepo.findAll();
+    public List<Category> findAllNotDeleted(Long userId) {
+        return springRepo.findByUserIdAndIsNotDeleted(userId, true);
+    }
+
+    @Override
+    public  List<Category> findAllDeleted(Long userId) {
+        return springRepo.findByUserIdAndIsNotDeleted(userId, false);
     }
 
 }

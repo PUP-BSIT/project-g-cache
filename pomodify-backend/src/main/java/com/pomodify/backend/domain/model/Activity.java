@@ -42,9 +42,9 @@ public class Activity {
     private List<PomodoroSession> sessions = new ArrayList<>();
 
     // ──────────────── State ────────────────
-    @Column(name = "is_active", nullable = false)
+    @Column(name = "is_not_deleted", nullable = false)
     @Builder.Default
-    private boolean isActive = true;
+    private boolean isNotDeleted = true;
 
     // ──────────────── Timestamps ────────────────
     @CreationTimestamp
@@ -67,7 +67,7 @@ public class Activity {
                 .description(description != null ? description.trim() : null)
                 .user(user)
                 .category(category)
-                .isActive(true)
+                .isNotDeleted(true)
                 .build();
     }
 
@@ -101,7 +101,7 @@ public class Activity {
     }
 
     public void deactivate() {
-        this.isActive = false;
+        this.isNotDeleted = false;
     }
 
     public List<PomodoroSession> getActiveSessions() {
@@ -112,7 +112,7 @@ public class Activity {
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {
-        if (!isActive)
+        if (!isNotDeleted)
             throw new IllegalStateException("Activity is inactive and cannot be modified");
     }
 }
