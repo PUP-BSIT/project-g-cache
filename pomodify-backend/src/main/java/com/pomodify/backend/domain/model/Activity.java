@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Table(name = "activity")
@@ -42,7 +43,7 @@ public class Activity {
     private List<PomodoroSession> sessions = new ArrayList<>();
 
     // ──────────────── State ────────────────
-    @Column(name = "is_not_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
     private boolean isDeleted = false;
 
@@ -67,21 +68,32 @@ public class Activity {
                 .description(description != null ? description.trim() : null)
                 .user(user)
                 .category(category)
-                .isDeleted(true)
                 .build();
     }
 
     // ──────────────── Domain Behavior ────────────────
-    public void updateTitle(String newTitle) {
+    public void updateDetails(String newTitle, String newDescription, Category newCategoryId) {
         ensureActive();
-        if (newTitle == null || newTitle.trim().isEmpty())
-            throw new IllegalArgumentException("Title cannot be empty");
+        if (newTitle != null && !newTitle.isBlank())
+            updateTitle(newTitle);
+
+        if (newDescription != null)
+            updateDescription(newDescription);
+
+        if (newCategoryId != null)
+            updateCategory(newCategoryId);
+    }
+
+    private void updateTitle(String newTitle) {
         this.title = newTitle.trim();
     }
 
-    public void updateDescription(String newDescription) {
-        ensureActive();
-        this.description = (newDescription != null) ? newDescription.trim() : null;
+    private void updateDescription(String newDescription) {
+        this.description = newDescription.isBlank()? null : newDescription.trim();
+    }
+
+    private void updateCategory(Category newCategory) {
+        this.category = newCategory;
     }
 
     public void addPomodoroSession(PomodoroSession session) {
@@ -117,7 +129,7 @@ public class Activity {
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {
-        if (!isDeleted)
-            throw new IllegalStateException("Activity is inactive and cannot be modified");
+        if (isDeleted)
+            throw new IllegalStateException("Activity is deleted and cannot be modified");
     }
 }

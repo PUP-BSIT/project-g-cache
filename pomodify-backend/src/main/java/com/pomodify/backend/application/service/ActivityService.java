@@ -2,6 +2,7 @@ package com.pomodify.backend.application.service;
 
 import com.pomodify.backend.application.command.activity.CreateActivityCommand;
 import com.pomodify.backend.application.command.activity.GetAllActivityCommand;
+import com.pomodify.backend.application.command.activity.UpdateActivityCommand;
 import com.pomodify.backend.application.result.ActivityResult;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.Category;
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,6 +53,39 @@ public class ActivityService {
         );
 
         return activitiesPage.map(this::mapToResult);
+    }
+
+    public ActivityResult updateActivity(UpdateActivityCommand command) {
+        User user = userRepository.findUser(command.activityOwnerId())
+                .orElseThrow(() -> new IllegalArgumentException("Unauthorized user"));
+
+        Optional<Activity> activityOpt= activityRepository.findNotDeletedActivity(command.activityId(), command.activityOwnerId());
+        if (activityOpt.isEmpty()) {
+            throw new IllegalArgumentException("Activity not found");
+        }
+
+        Category changeCategory = null;
+
+        if (command.changeCategoryIdTo() != null) {
+            Optional<Category> categoryOpt = categoryRepository.findCategory(command.changeCategoryIdTo());
+            if (categoryOpt.isEmpty()) {
+                throw new IllegalArgumentException("Category not found");
+            }
+            changeCategory = categoryOpt.get();
+        }
+
+        Activity activityToUpdate = activityOpt.get();
+        String changeActivityTitle = command.changeActivityTitleTo();
+        String changeActivityDescription = command.changeActivityDescriptionTo();
+
+        activityToUpdate.updateDetails(
+                changeActivityTitle,
+                changeActivityDescription,
+                changeCategory
+        );
+
+        Activity updatedActivity = activityRepository.save(activityToUpdate);
+        return mapToResult(updatedActivity);
     }
 
     private ActivityResult mapToResult(Activity activity) {

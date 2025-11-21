@@ -60,7 +60,7 @@ public class CategoryController {
     }
 
     // ──────────────── Update ────────────────
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
             @RequestBody @Valid UpdateCategoryRequest request,

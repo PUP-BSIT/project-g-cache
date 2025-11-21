@@ -2,9 +2,11 @@ package com.pomodify.backend.presentation.controller;
 
 import com.pomodify.backend.application.command.activity.CreateActivityCommand;
 import com.pomodify.backend.application.command.activity.GetAllActivityCommand;
+import com.pomodify.backend.application.command.activity.UpdateActivityCommand;
 import com.pomodify.backend.application.service.ActivityService;
 import com.pomodify.backend.presentation.dto.item.ActivityItem;
 import com.pomodify.backend.presentation.dto.request.activity.CreateActivityRequest;
+import com.pomodify.backend.presentation.dto.request.activity.UpdateActivityRequest;
 import com.pomodify.backend.presentation.dto.response.ActivityResponse;
 import com.pomodify.backend.presentation.mapper.ActivityMapper;
 import jakarta.validation.Valid;
@@ -18,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/activity")
@@ -95,6 +99,35 @@ public class ActivityController {
 
         ActivityResponse response = ActivityMapper.toActivityResponse(items, message);
         log.info("{}: {} activities found for userId: {}", message, items.getTotalElements(), userId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PutMapping("/update/{activityId}")
+    public ResponseEntity<ActivityResponse> updateActivity(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long activityId,
+            @RequestBody @Valid UpdateActivityRequest request
+            ) {
+        Long userId = jwt.getClaim("userId");
+        log.info("Update activity request received for activityId: {} by userId: {}", activityId, userId);
+
+        UpdateActivityCommand command = UpdateActivityCommand.builder()
+                .activityId(activityId)
+                .activityOwnerId(userId)
+                .changeCategoryIdTo(request.newCategoryId())
+                .changeActivityTitleTo(request.newActivityTitle())
+                .changeActivityDescriptionTo(request.newActivityDescription())
+                .build();
+
+        log.info("after command build");
+
+        ActivityItem item = ActivityMapper.toActivityItem(activityService.updateActivity(command));
+        String message = item.activityId() == null
+                ? "Failed to update activity"
+                : "Activity updated successfully";
+
+        ActivityResponse response = ActivityMapper.toActivityResponse(item, message);
+
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

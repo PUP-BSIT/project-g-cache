@@ -28,5 +28,14 @@ GET {{base_url}}/activity/all?page=0&size=10&sortBy=title&sortOrder=asc&deleted=
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
+### Update Activity
+PUT {{base_url}}/activity/update/3
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "newActivityTitle": "Updated Activity Title"
+}
+
 
 

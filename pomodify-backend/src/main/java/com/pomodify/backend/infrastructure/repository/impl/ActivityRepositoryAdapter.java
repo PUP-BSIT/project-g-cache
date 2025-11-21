@@ -32,8 +32,8 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
      * @return
      */
     @Override
-    public Optional<Activity> findNotDeletedActivity(Long id) {
-        return springRepo.findByIdAndIsDeletedFalse(id);
+    public Optional<Activity> findNotDeletedActivity(Long id, Long userId) {
+        return springRepo.findByIdAndUserIdAndIsDeletedFalse(id, userId);
     }
 
     /**
@@ -41,8 +41,8 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
      * @return
      */
     @Override
-    public Optional<Activity> findDeletedActivity(Long id) {
-        return springRepo.findByIdAndIsDeletedTrue(id);
+    public Optional<Activity> findDeletedActivity(Long id, Long userId) {
+        return springRepo.findByIdAndUserIdAndIsDeletedTrue(id, userId);
     }
 
     /**
