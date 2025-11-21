@@ -14,7 +14,7 @@
   justify-content: space-between;
 }
 
-.brand {
+.site-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -85,6 +85,10 @@
   color: inherit;
   border-radius: 6px;
   font-family: 'Roboto', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.menu-item:hover { background: #f2f6f7; }
+.menu-item:hover { 
+  background: #f2f6f7; 
+}

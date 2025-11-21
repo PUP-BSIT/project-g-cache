@@ -1,0 +1,78 @@
+<div class="signup-container">
+  <div class="signup-panel">
+    <div class="signup-card">
+    <button class="close-btn" (click)="onClose()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+
+    <h1 class="page-title">Create an Account</h1>
+
+    <div class="tab-toggle">
+      <button type="button" class="tab-btn" (click)="onLogin($event)">Log In</button>
+      <button type="button" class="tab-btn active">Sign Up</button>
+    </div>
+
+    <form class="signup-form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="Email"
+        />
+      </div>
+
+      <div class="form-group">
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          placeholder="Password"
+        />
+      </div>
+
+      <div class="form-group">
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          required
+          placeholder="Confirm Password"
+        />
+      </div>
+
+      <button type="submit" class="btn-signup">Sign Up</button>
+
+      <p class="login-text">
+        Already have an account?
+        <a href="#" (click)="onLogin($event)">Log In</a>
+      </p>
+    </form>
+    </div>
+
+    <div class="signup-illustration">
+      <div class="illustration-logo">
+        <img src="assets/images/logo-with-name.png" alt="Pomodify logo" />
+      </div>
+      <img src="assets/images/login-signup-design.png" alt="Pomodify productivity illustration" />
+    </div>
+  </div>
+</div>
