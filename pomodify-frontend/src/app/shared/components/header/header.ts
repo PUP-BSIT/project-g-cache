@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { toggleTheme } from '../../theme';
 
 @Component({
   selector: 'app-header',
@@ -30,5 +31,9 @@ export class Header {
       element.classList.add('highlight');
       setTimeout(() => element.classList.remove('highlight'), 2000);
     }
+  }
+
+  onToggleTheme() {
+    toggleTheme();
   }
 }

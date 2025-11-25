@@ -26,3 +26,41 @@ body {
 }
 
 /* Add any other global styles below */
+
+/* Global light/dark CSS variables */
+:root {
+  --bg: #F5F5F5;
+  --card: #FFFFFF;
+  --text: #2C3E50;
+  --muted: #7F8C8D;
+  --border: #E0E0E0;
+}
+
+:root.theme-dark {
+  --bg: #0F172A;
+  --card: #111827;
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+  --border: #1F2937;
+}
+
+/* Base surfaces adopt variables so pages respond to theme */
+body { background: var(--bg); color: var(--text); }
+
+/* Optional helpers for inputs/cards/dividers used across pages */
+.app-card { background: var(--card); border: 1px solid var(--border); }
+.input-surface { background: var(--card); border: 1px solid var(--border); color: var(--text); }
+.divider-surface { background: var(--border); }
+
+/* Strong dark overrides to ensure visibility across components */
+:root.theme-dark body { background: var(--bg) !important; color: var(--text) !important; }
+:root.theme-dark .header { background-color: #1E293B !important; }
+:root.theme-dark .sidebar { background-color: #0B1220 !important; border-right-color: var(--border) !important; }
+:root.theme-dark .nav-icon { color: var(--muted) !important; }
+:root.theme-dark .nav-icon:hover { background-color: rgba(95,169,164,0.15) !important; color: #7BC4BF !important; }
+:root.theme-dark .nav-icon.active { background-color: #4D8B87 !important; color: #FFFFFF !important; }
+:root.theme-dark .settings-container, :root.theme-dark .content-grid, :root.theme-dark .help-container { background: transparent !important; }
+:root.theme-dark .section-title, :root.theme-dark .settings-title, :root.theme-dark .help-title { color: var(--text) !important; }
+:root.theme-dark input, :root.theme-dark textarea, :root.theme-dark select { background: #0F172A !important; color: var(--text) !important; border-color: var(--border) !important; }
+:root.theme-dark .divider, :root.theme-dark .divider-surface { background: var(--border) !important; }
+:root.theme-dark .data-btn, :root.theme-dark .activity-card, :root.theme-dark .focus-card, :root.theme-dark .status-card { background: #111827 !important; color: var(--text) !important; }

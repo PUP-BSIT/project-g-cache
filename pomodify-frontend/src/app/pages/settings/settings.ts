@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { toggleTheme } from '../../shared/theme';
 
 @Component({
   selector: 'app-settings',
@@ -21,6 +22,8 @@ export class Settings {
   protected toggleSidebar(): void {
     this.sidebarExpanded.update(expanded => !expanded);
   }
+
+  onToggleTheme() { toggleTheme(); }
 
   // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])

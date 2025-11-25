@@ -43,12 +43,12 @@
     </nav>
 
     <div class="nav-bottom">
-      <button class="nav-icon">
+      <button class="nav-icon" routerLink="/help" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Support</span>
+        <span class="nav-text" *ngIf="sidebarExpanded()">Help</span>
       </button>
       <button class="nav-icon active" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -65,7 +65,7 @@
     <!-- Header -->
     <header class="header">
       <div class="theme-toggle">
-        <button class="theme-btn">
+        <button class="theme-btn" (click)="onToggleTheme()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
           </svg>
