@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { toggleTheme } from '../../shared/theme';
 
 @Component({
   selector: 'app-help',
@@ -15,6 +16,8 @@ export class HelpPage {
   private _expanded = signal(true);
   sidebarExpanded = this._expanded.asReadonly();
   toggleSidebar() { this._expanded.set(!this._expanded()); }
+
+  onToggleTheme() { toggleTheme(); }
 
   // form state
   form = {

@@ -273,6 +273,29 @@ textarea {
 .actions { display: flex; justify-content: center; margin-top: 24px; }
 .btn.primary { background: $primary-teal; color: $text-white; border: none; padding: 16px 32px; border-radius: 16px; font-weight: 600; }
 
+/* Dark theme overrides */
+:root.theme-dark {
+  --bg: #0F172A;
+  --card: #111827;
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+  --border: #1F2937;
+}
+
+:root.theme-dark .dashboard { background-color: var(--bg); }
+:root.theme-dark .sidebar { background-color: #0B1220; border-right-color: var(--border); }
+:root.theme-dark .header { background-color: #1E293B; }
+:root.theme-dark .nav-icon { color: var(--muted); }
+:root.theme-dark .nav-icon:hover { background-color: rgba(95,169,164,0.15); color: $primary-teal-light; }
+:root.theme-dark .nav-icon.active { background-color: $primary-teal-dark; color: $text-white; }
+:root.theme-dark .help-container { background: transparent; }
+:root.theme-dark .help-title { color: var(--text); border-bottom-color: var(--border); }
+:root.theme-dark .field-label { color: var(--text); }
+:root.theme-dark .field.search-field { background: #0F172A; border-color: var(--border); }
+:root.theme-dark textarea { background: #0F172A; border-color: var(--border); color: var(--text); }
+:root.theme-dark .divider { background: var(--border); }
+:root.theme-dark .dropzone { background: #0F172A; color: var(--muted); border-color: var(--border); }
+
 // Responsive tweaks
 @media (max-width: 768px) {
   .sidebar { width: 56px; min-width: 56px; padding: 16px 0; &.expanded { width: 200px; padding: 16px 12px; } }
