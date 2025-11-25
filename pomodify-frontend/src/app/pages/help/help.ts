@@ -12,7 +12,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class HelpPage {
   // mimic settings page sidebar behavior
-  private _expanded = signal(false);
+  private _expanded = signal(true);
   sidebarExpanded = this._expanded.asReadonly();
   toggleSidebar() { this._expanded.set(!this._expanded()); }
 
