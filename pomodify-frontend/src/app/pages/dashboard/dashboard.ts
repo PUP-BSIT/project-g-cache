@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener } from '@angular/core';
+import { Component, computed, signal, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
+import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
 
 interface Activity {
   id: string;
@@ -18,6 +20,8 @@ interface Activity {
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
+  private dialog = inject(MatDialog);
+
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
@@ -80,5 +84,14 @@ export class Dashboard {
   protected stopTimer(): void {
     this.isTimerRunning.set(false);
     this.isPaused.set(false);
+  }
+
+  protected openCreateActivityModal(): void {
+    this.dialog.open(CreateActivityModal).afterClosed().subscribe((result: ActivityData) => {
+      if (result) {
+        console.log('New activity created:', result);
+        // TODO: Send to backend and add to activities list
+      }
+    });
   }
 }

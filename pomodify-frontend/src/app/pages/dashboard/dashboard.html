@@ -84,7 +84,10 @@
     <div class="content-grid">
       <!-- Recent Activities Section -->
       <section class="activities-section">
-        <h2 class="section-title">Recent activities</h2>
+        <div class="section-header">
+          <h2 class="section-title">Recent activities</h2>
+          <button class="btn-create-activity" (click)="openCreateActivityModal()">+ New Activity</button>
+        </div>
         <div class="activities-list">
           @for (activity of activities(); track activity.id) {
             <button 
