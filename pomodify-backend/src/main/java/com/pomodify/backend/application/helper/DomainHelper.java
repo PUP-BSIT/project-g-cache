@@ -33,7 +33,7 @@ public class DomainHelper {
     public void checkForExistingCategory (Long user, String categoryName) {
         List<Category> existingCategories = categoryRepository.findAllCategories(user);
 
-        if (existingCategories.stream().anyMatch(cat -> cat.getName().equalsIgnoreCase(categoryName))) {
+        if (existingCategories.stream().anyMatch(cat -> cat.getName().equalsIgnoreCase(categoryName.trim()))) {
             throw new IllegalArgumentException("Category with the same name already exists");
         }
     }

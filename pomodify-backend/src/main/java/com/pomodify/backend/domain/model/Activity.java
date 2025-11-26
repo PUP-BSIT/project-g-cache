@@ -57,7 +57,7 @@ public class Activity {
     private LocalDateTime updatedAt;
 
     // ──────────────── Factory ────────────────
-    protected static Activity create(String title, String description,User user, Category category) {
+    protected static Activity create(String title, String description, User user, Category category) {
         if (title == null || title.trim().isEmpty())
             throw new IllegalArgumentException("Activity createActivityTitle cannot be null or empty");
         if (user == null)
