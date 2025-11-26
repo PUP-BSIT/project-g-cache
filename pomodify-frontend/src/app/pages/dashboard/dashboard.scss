@@ -305,11 +305,69 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   gap: 20px;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 3; /* keep actions above nearby content */
+}
+
 .section-title {
   font-size: 18px;
   font-weight: 600;
   color: $text-dark;
   margin: 0;
+}
+
+.btn-create-activity {
+  padding: 8px 16px;
+  background-color: #4b9fa8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+
+  &:hover {
+    background-color: #3d8490;
+    box-shadow: 0 4px 8px rgba(75, 159, 168, 0.2);
+  }
+
+  &:active {
+    background-color: #2f6a75;
+  }
+}
+
+.section-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-edit-activity { display: inline-block; }
+
+.btn-delete-activity {
+  /* delete button uses primary look but can be customized if needed */
+
+  &:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
 }
 
 .activities-list {

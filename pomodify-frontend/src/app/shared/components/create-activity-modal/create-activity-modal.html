@@ -1,0 +1,82 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Create New Activity</h2>
+    <button class="close-btn" (click)="onCancel()">✕</button>
+  </div>
+
+  <form [formGroup]="activityForm" class="modal-form">
+    <!-- Activity Name -->
+    <div class="form-group">
+      <label for="activityName" class="label-required">Activity Name<span class="required">*</span></label>
+      <input
+        id="activityName"
+        type="text"
+        formControlName="name"
+        class="form-input"
+        placeholder="Enter activity name"
+      />
+      @if (activityForm.get('name')?.invalid && activityForm.get('name')?.touched) {
+        <div class="error-message">
+          Activity name is required
+        </div>
+      }
+    </div>
+
+    <!-- Category/Tag -->
+    <div class="form-group">
+      <label for="category">Category/Tag (Optional)</label>
+      <input
+        id="category"
+        type="text"
+        formControlName="category"
+        class="form-input"
+        placeholder="e.g., Work, Study, Personal"
+      />
+    </div>
+
+    <!-- Color Tag -->
+    <div class="form-group">
+      <label>Color Tag</label>
+      <div class="color-picker">
+        @for (color of colors; track color.name) {
+          <button
+            type="button"
+            [attr.data-color]="color.name"
+            [class.selected]="selectedColor === color.name"
+            [style.background-color]="color.hex"
+            (click)="selectColor(color.name)"
+            class="color-option"
+            [attr.aria-label]="'Select ' + color.name + ' color'"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <!-- Estimated Focus Hours per Week -->
+    <div class="form-group">
+      <label for="estimatedHours">Estimated Focus Hours / Week (Optional)</label>
+      <div class="hours-input-wrapper">
+        <input
+          id="estimatedHours"
+          type="number"
+          formControlName="estimatedHoursPerWeek"
+          class="form-input hours-input"
+          min="0"
+          max="168"
+        />
+        <span class="hours-label">hrs</span>
+      </div>
+    </div>
+  </form>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button
+      class="btn btn-primary"
+      (click)="onCreateActivity()"
+      [disabled]="activityForm.invalid"
+    >
+      Create Activity
+    </button>
+  </div>
+</div>
