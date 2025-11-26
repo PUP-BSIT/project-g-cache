@@ -6,6 +6,9 @@ import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { CreateNoteModal, NoteData as CreateNoteData } from '../../shared/components/create-note-modal/create-note-modal';
+import { EditNoteModal, NoteData as EditNoteData } from '../../shared/components/edit-note-modal/edit-note-modal';
+import { DeleteNoteModal } from '../../shared/components/delete-note-modal/delete-note-modal';
 
 interface Activity {
   id: string;
@@ -120,6 +123,43 @@ export class Dashboard {
       if (confirmed) {
         console.log('Delete confirmed for', sample);
         // TODO: remove from activities and call backend
+      }
+    });
+  }
+
+  // --- Notes Modals ---
+  protected openCreateNoteModal(): void {
+    this.dialog.open(CreateNoteModal).afterClosed().subscribe((result: CreateNoteData) => {
+      if (result) {
+        console.log('New note created:', result);
+        // TODO: Send to backend and add to notes list
+      }
+    });
+  }
+
+  protected openEditNoteModal(): void {
+    const sample: EditNoteData = {
+      id: 'note-1',
+      title: 'Sample Note',
+      category: 'Personal',
+      content: 'This is a sample note for edit modal',
+      colorTag: 'blue'
+    };
+
+    this.dialog.open(EditNoteModal, { data: sample }).afterClosed().subscribe((updated: EditNoteData) => {
+      if (updated) {
+        console.log('Updated note:', updated);
+        // TODO: persist updated note and update UI
+      }
+    });
+  }
+
+  protected openDeleteNoteModal(): void {
+    const sample = { id: 'note-1', title: 'Sample Note' };
+    this.dialog.open(DeleteNoteModal, { data: sample }).afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        console.log('Delete confirmed for', sample);
+        // TODO: remove from notes and call backend
       }
     });
   }

@@ -14,6 +14,8 @@ $sidebar-bg: #F8F9FA;
 $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
+@use "sass:color";
+
 .dashboard {
   display: flex;
   min-height: 100vh;
@@ -355,6 +357,69 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-wrap: wrap;
 }
 
+.note-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.btn-danger {
+  background: #F97316;
+  color: #fff;
+  box-shadow: 0 6px 12px rgba(14, 165, 233, 0.08);
+}
+
+/* Reuse the activities page new activity button style for note buttons */
+.btn-new-activity.small {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: 84px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+.btn-new-activity {
+  padding: 12px 24px;
+  background-color: $primary-teal;
+  color: $text-white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: $card-shadow;
+}
+
+.btn-new-activity.small.delete {
+  background: #F97316;
+  color: #fff;
+}
+
+.btn-new-activity.small:not(.delete) {
+  background: $primary-teal;
+  color: $text-white;
+}
+.btn-new-activity.small:not(.delete):hover {
+  background: $primary-teal-dark;
+  transform: translateY(-2px);
+}
+
+.btn-new-activity.small.delete:hover {
+  background: color.adjust(#F97316, $lightness: -6%);
+  transform: translateY(-2px);
+}
 .btn-edit-activity { display: inline-block; }
 
 .btn-delete-activity {

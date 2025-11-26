@@ -13,6 +13,8 @@ $red: #E74C3C;
 $sidebar-bg: #F8F9FA;
 $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+@use "sass:color";
 $border-light: #E0E0E0;
 $toggle-bg-inactive: #D0D0D0;
 
@@ -448,7 +450,7 @@ $toggle-bg-inactive: #D0D0D0;
     color: $text-white;
     
     &:hover {
-      background-color: adjust-color($red, $lightness: -10%);
+      background-color: color.adjust($red, $lightness: -10%);
     }
   }
   

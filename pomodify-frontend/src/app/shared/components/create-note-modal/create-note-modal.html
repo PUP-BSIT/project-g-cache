@@ -1,0 +1,79 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Create New Note</h2>
+    <button class="close-btn" (click)="onCancel()">✕</button>
+  </div>
+
+  <form [formGroup]="noteForm" class="modal-form">
+    <!-- Note Title -->
+    <div class="form-group">
+      <label for="noteTitle" class="label-required">Note Title<span class="required">*</span></label>
+      <input
+        id="noteTitle"
+        type="text"
+        formControlName="title"
+        class="form-input"
+        placeholder="Enter note title"
+      />
+      @if (noteForm.get('title')?.invalid && noteForm.get('title')?.touched) {
+        <div class="error-message">Note title is required</div>
+      }
+    </div>
+
+    <!-- Category/Tag -->
+    <div class="form-group">
+      <label for="category">Category/Tag (Optional)</label>
+      <input
+        id="category"
+        type="text"
+        formControlName="category"
+        class="form-input"
+        placeholder="e.g., Work, Study, Personal"
+      />
+    </div>
+
+    <!-- Note Content -->
+    <div class="form-group">
+      <label for="content" class="label-required">Note Content<span class="required">*</span></label>
+      <textarea
+        id="content"
+        formControlName="content"
+        class="form-input textarea"
+        placeholder="Write your note here..."
+        rows="6"
+      ></textarea>
+      @if (noteForm.get('content')?.invalid && noteForm.get('content')?.touched) {
+        <div class="error-message">Note content is required</div>
+      }
+    </div>
+
+    <!-- Color Tag -->
+    <div class="form-group">
+      <label>Color Tag</label>
+      <div class="color-picker">
+        @for (color of colors; track color.name) {
+          <button
+            type="button"
+            [attr.data-color]="color.name"
+            [class.selected]="selectedColor === color.name"
+            [style.background-color]="color.hex"
+            (click)="selectColor(color.name)"
+            class="color-option"
+            [attr.aria-label]="'Select ' + color.name + ' color'"
+          ></button>
+        }
+      </div>
+    </div>
+  </form>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button
+      class="btn btn-primary"
+      (click)="onCreateNote()"
+      [disabled]="noteForm.invalid"
+    >
+      Create Note
+    </button>
+  </div>
+</div>
