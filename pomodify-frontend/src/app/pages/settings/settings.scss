@@ -448,7 +448,7 @@ $toggle-bg-inactive: #D0D0D0;
     color: $text-white;
     
     &:hover {
-      background-color: darken($red, 10%);
+      background-color: adjust-color($red, $lightness: -10%);
     }
   }
   

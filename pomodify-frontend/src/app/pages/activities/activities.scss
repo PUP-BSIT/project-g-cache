@@ -1,0 +1,868 @@
+// Color palette
+$primary-teal: #5FA9A4;
+$primary-teal-light: #7BC4BF;
+$primary-teal-dark: #4D8B87;
+$bg-light: #F5F5F5;
+$bg-white: #FFFFFF;
+$text-dark: #2C3E50;
+$text-light: #7F8C8D;
+$text-white: #FFFFFF;
+$green: #52C97C;
+$yellow: #F4C430;
+$red: #E74C3C;
+$sidebar-bg: #F8F9FA;
+$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+$card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+// Color tags for activities
+$color-teal: #5FA9A4;
+$color-blue: #4A90E2;
+$color-purple: #9B59B6;
+$color-orange: #E67E22;
+$color-green: #27AE60;
+$color-yellow: #F39C12;
+
+.activities-page {
+  display: flex;
+  min-height: 100vh;
+  background-color: $bg-light;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Dark mode overrides for this component */
+:host-context(.theme-dark) {
+  .activities-page {
+    background-color: #071216;
+    color: #cbd5e1;
+  }
+
+  .sidebar {
+    background-color: #071826;
+    border-right-color: rgba(255,255,255,0.04);
+  }
+
+  .nav-icon {
+    color: rgba(255,255,255,0.72);
+  }
+
+  .header {
+    background-color: #0b2830;
+  }
+
+  .page-content {
+    background: transparent;
+  }
+
+  .search-container {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.06);
+  }
+
+  .status-card {
+    background: #09121A;
+    color: #e6eef2;
+    box-shadow: none;
+  }
+
+  .pagination-dots .page-btn,
+  .pagination-dots .page-number {
+    background: #0b1820;
+    border-color: rgba(255,255,255,0.04);
+    color: #cbd5e1;
+  }
+
+  .pagination-dots .page-number.active {
+    background: $primary-teal;
+    color: $text-white;
+  }
+}
+
+/* Additional targeted fixes requested: make activity cards match status cards, fix search input background, ensure title visible */
+:host-context(.theme-dark) {
+  /* Make activity cards same color as status cards */
+  .activity-card-compact,
+  .status-card {
+    background: #09121A !important;
+    color: #e6eef2 !important;
+    box-shadow: none !important;
+  }
+
+  .activity-title-compact,
+  .activity-meta-compact {
+    color: #e6eef2 !important;
+  }
+
+  /* Ensure icons remain legible */
+  .activity-icon {
+    background: rgba(255,255,255,0.02) !important;
+  }
+
+  /* Make page header section dark so title is visible */
+  .page-header-section {
+    background: transparent !important;
+  }
+
+  .page-title {
+    color: #e6eef2 !important;
+    opacity: 1 !important;
+  }
+
+  /* Remove dark autofill/outline and any dark fill inside the search input */
+  .search-container {
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    box-shadow: none !important;
+  }
+
+  .search-input {
+    background: transparent !important;
+    color: #e6eef2 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  input.search-input:-webkit-autofill,
+  input.search-input:-webkit-autofill:focus,
+  input.search-input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: #e6eef2 !important;
+  }
+}
+
+/* Additional dark overrides to target cards, buttons and search input */
+:host-context(.theme-dark) {
+  .activity-card-compact {
+    background: #153b3a; /* darker teal */
+    box-shadow: none;
+    color: #e6eef2;
+  }
+
+  .activity-title-compact,
+  .activity-meta-compact {
+    color: #e6eef2;
+  }
+
+  .activity-icon {
+    background: rgba(255,255,255,0.03);
+  }
+
+  .action-btn-compact {
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+  }
+
+  .action-btn-compact.delete-btn {
+    color: #ffb3b0;
+  }
+
+  .btn-new-activity {
+    background-color: darken($primary-teal, 6%);
+    color: $text-white;
+    box-shadow: none;
+  }
+
+  .page-title {
+    color: #e6eef2;
+  }
+
+  /* Remove the dark autofill/outline inside search input in dark theme */
+  .search-container {
+    box-shadow: none;
+  }
+
+  .search-input {
+    background: transparent;
+    color: #e6eef2;
+    box-shadow: none !important;
+  }
+
+  input.search-input:-webkit-autofill,
+  input.search-input:-webkit-autofill:focus,
+  input.search-input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: #e6eef2 !important;
+  }
+}
+
+// Sidebar
+.sidebar {
+  width: 72px;
+  min-width: 72px;
+  background-color: $sidebar-bg;
+  border-right: 1px solid #E0E0E0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.3s ease, padding 0.3s ease;
+  will-change: width, padding;
+  
+  &.expanded {
+    width: 250px;
+    align-items: flex-start;
+    padding: 24px 16px;
+  }
+}
+
+.logo {
+  margin-bottom: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  
+  img {
+    display: block;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    margin: 0 auto;
+  }
+  
+  .app-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-dark;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+}
+
+.sidebar.expanded {
+  .logo {
+    padding: 12px 16px;
+    
+    .app-name {
+      opacity: 1;
+      transition-delay: 0.1s;
+      font-size: 20px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    
+    img {
+      width: 40px;
+      height: 40px;
+      margin: 0;
+    }
+  }
+  
+  .sidebar-toggle {
+    opacity: 1;
+  }
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 24px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: $text-light;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: $primary-teal;
+  }
+  
+  svg {
+    transition: transform 0.2s ease;
+  }
+}
+
+.nav-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 280px);
+  width: 100%;
+  padding: 0 8px;
+  box-sizing: border-box;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+}
+
+.nav-icon {
+  width: 100%;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: $text-light;
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  svg {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .nav-text {
+    margin-left: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    background-color: rgba(95, 169, 164, 0.1);
+    color: $primary-teal;
+  }
+  
+  &.active {
+    background-color: $primary-teal;
+    color: $text-white;
+  }
+}
+
+.sidebar.expanded {
+  .nav-icon .nav-text {
+    opacity: 1;
+    transition-delay: 0.1s;
+  }
+  
+  .nav-icon {
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+}
+
+.nav-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding: 24px 8px;
+  flex-shrink: 0;
+  width: 100%;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  
+  .nav-icon {
+    margin-bottom: 0;
+  }
+}
+
+// Main Content
+.main-content {
+  margin-left: 72px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 72px);
+  overflow-x: hidden; /* prevent horizontal scroll from wide grids */
+}
+
+/* When sidebar is expanded shift the main content to match dashboard behavior */
+.sidebar.expanded ~ .main-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  transition: margin-left 0.28s ease, width 0.28s ease;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px 40px;
+  gap: 16px;
+  background-color: $primary-teal;
+}
+
+.theme-btn,
+.profile-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-white;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// Page Content
+.page-content {
+  flex: 1;
+  padding: 0 40px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background: $bg-white;
+  display: flex;
+  flex-direction: column;
+}
+
+// Page Header Section (White)
+.page-header-section {
+  background: $bg-white;
+  padding: 40px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: $text-dark;
+  margin: 0;
+}
+
+.btn-new-activity {
+  padding: 12px 24px;
+  background-color: $primary-teal;
+  color: $text-white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: $card-shadow;
+  
+  &:hover {
+    background-color: $primary-teal-dark;
+    box-shadow: $card-shadow-hover;
+    transform: translateY(-2px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Search Bar
+.search-container {
+  display: flex;
+  align-items: center;
+  background: $bg-white;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  gap: 12px;
+  max-width: 300px;
+  box-shadow: $card-shadow;
+}
+
+.search-icon {
+  color: $text-light;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: $text-dark;
+  font-family: 'Inter', sans-serif;
+  
+  &::placeholder {
+    color: $text-light;
+  }
+}
+
+// Activities Container (Teal Background - centered)
+.activities-container {
+  background: $bg-white;
+  padding: 32px 40px; /* horizontal padding to align with search */
+  flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// Activities Grid
+.activities-grid {
+  display: grid;
+  /* fixed 3 columns per row with equal distribution */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  box-sizing: border-box;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.activity-card-compact {
+  flex-shrink: 0;
+  background: #5FA9A4;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: $text-white;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  // All cards same teal color
+  &.color-teal,
+  &.color-blue,
+  &.color-purple,
+  &.color-orange,
+  &.color-green,
+  &.color-yellow {
+    background: #5FA9A4;
+  }
+}
+
+.card-header-compact {
+  display: flex;
+  justify-content: center;
+}
+
+.activity-icon {
+  font-size: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+}
+
+.activity-title-compact {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-white;
+  margin: 0;
+  word-break: break-word;
+  text-align: center;
+}
+
+.activity-meta-compact {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  text-align: center;
+}
+
+.card-actions-compact {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-btn-compact {
+  padding: 6px 14px;
+  background: #263238;
+  border: none;
+  border-radius: 4px;
+  color: $text-white;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #1a2227;
+  }
+  
+  &.delete-btn {
+    color: #E74C3C;
+    
+    &:hover {
+      background: #1a2227;
+      color: #C0392B;
+    }
+  }
+}
+
+// Status Section (White Background)
+.status-section {
+  background: $bg-white;
+  padding: 40px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.status-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: $text-dark;
+  text-align: center;
+  margin: 0;
+}
+
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.status-card {
+  background: $primary-teal;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: $card-shadow;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+}
+
+.status-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.status-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
+
+.status-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: $text-white;
+  line-height: 1;
+}
+
+.status-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+// No Activities State
+.no-activities {
+  text-align: center;
+  padding: 40px 20px;
+  color: $text-white;
+  grid-column: 1 / -1;
+  
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+  /* Pagination */
+  .pagination-dots {
+    margin-top: 16px;
+  }
+
+  .pagination-dots .page-btn,
+  .pagination-dots .page-number {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: $text-dark;
+  }
+
+  .pagination-dots .page-number.active {
+    background: $primary-teal;
+    color: $text-white;
+    border-color: rgba(0,0,0,0.08);
+  }
+
+  .pagination-dots .page-btn:hover,
+  .pagination-dots .page-number:hover {
+    transform: translateY(-1px);
+  }
+
+// Responsive Design
+@media (max-width: 1200px) {
+  .container-header,
+  .search-container,
+  .activities-scroll,
+  .pagination-dots,
+  .status-section {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 56px;
+    min-width: 56px;
+    padding: 16px 0;
+  }
+  
+  .main-content {
+    margin-left: 56px;
+    width: calc(100% - 56px);
+  }
+  
+  .logo img {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .header {
+    padding: 16px 20px;
+  }
+  
+  .container-header,
+  .search-container,
+  .activities-scroll,
+  .pagination-dots,
+  .status-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .container-title {
+    font-size: 22px;
+  }
+  
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 24px;
+  }
+  
+  .activity-card-compact {
+    width: 240px;
+    padding: 16px;
+  }
+  
+  .activity-title {
+    font-size: 16px;
+  }
+  
+  .activity-meta {
+    font-size: 11px;
+  }
+  
+  .action-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  
+  .status-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 56px;
+    transform: translateX(-100%);
+    
+    &.expanded {
+      transform: translateX(0);
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .container-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px 16px;
+  }
+  
+  .container-title {
+    font-size: 20px;
+  }
+  
+  .btn-new-activity {
+    align-self: flex-end;
+  }
+  
+  .search-container,
+  .activities-scroll,
+  .pagination-dots,
+  .status-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .activity-card-compact {
+    width: 200px;
+  }
+  
+  .status-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

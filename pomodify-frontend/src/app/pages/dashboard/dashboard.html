@@ -20,7 +20,7 @@
         </svg>
         <span class="nav-text" *ngIf="sidebarExpanded()">Dashboard</span>
       </button>
-      <button class="nav-icon">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -87,9 +87,7 @@
         <div class="section-header">
           <h2 class="section-title">Recent activities</h2>
           <div class="section-actions">
-            <button class="btn-create-activity" (click)="openCreateActivityModal()">+ New Activity</button>
-            <button class="btn-create-activity btn-edit-activity" (click)="openEditActivityModal()">Edit Activity</button>
-            <button class="btn-create-activity btn-delete-activity" (click)="openDeleteActivityModal()">Delete Activity</button>
+            <!-- Activity actions moved to Activities page -->
           </div>
         </div>
         <div class="activities-list">
