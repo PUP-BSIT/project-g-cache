@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "category")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,11 +21,13 @@ public class Category {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
@@ -32,39 +35,35 @@ public class Category {
     @Builder.Default
     private boolean isDeleted = false;
 
-    // Domain methods
-    public void addActivity(Activity activity) {
-        if (!activity.getUser().getId().equals(this.user.getId())) {
-            throw new IllegalArgumentException("Activity user does not match category user");
-        }
-        activities.add(activity);
-        activity.setCategory(this);
+    // ──────────────────────────────
+    // Factory Method
+    // ──────────────────────────────
+
+    protected static Category create(String name, User user) {
+        if (name == null || name.trim().isEmpty())
+            throw new IllegalArgumentException("Category name cannot be null or empty");
+        if (user == null)
+            throw new IllegalArgumentException("User cannot be null");
+
+        return Category.builder()
+                .name(name.trim())
+                .user(user)
+                .build();
     }
 
-    public void removeActivity(Activity activity) {
-        activities.remove(activity);
-        activity.setCategory(null);
+    // ──────────────────────────────
+    // Domain Logic
+    // ──────────────────────────────
+
+    protected void updateName(String newName) {
+        if (newName == null || newName.trim().isEmpty())
+            throw new IllegalArgumentException("Category name cannot be null or empty");
+        this.name = newName.trim();
     }
 
-    public List<Activity> getActiveActivities() {
-        return activities.stream()
-                .filter(activity -> !activity.isDeleted())
-                .toList();
-    }
-
-    public boolean belongsToUser(Long userId) {
-        return this.user.getId().equals(userId);
-    }
-
-    public void delete() {
-        this.isDeleted = true;
-        activities.forEach(activity -> activity.setDeleted(true));
-    }
-
-    public static Category create(String name, User user) {
-        Category category = new Category();
-        category.setName(name);
-        category.setUser(user);
-        return category;
+    protected Category delete() {
+        this.setDeleted(true);
+        activities.forEach(a -> a.setDeleted(true));
+        return this;
     }
 }

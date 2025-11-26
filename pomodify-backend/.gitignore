@@ -6,6 +6,7 @@ target/
 .env
 request/
 
+
 ### STS ###
 .apt_generated
 .classpath
@@ -84,3 +85,4 @@ gradle-app.setting
 .gradletasknamecache
 
 4
+/src/test/http/
