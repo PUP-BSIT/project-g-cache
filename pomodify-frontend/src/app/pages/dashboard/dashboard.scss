@@ -341,6 +341,33 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
+.section-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-edit-activity {
+  padding: 8px 16px;
+  background-color: #ffffff;
+  color: $text-dark;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
 .activities-list {
   display: flex;
   flex-direction: column;

@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
+import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 
 interface Activity {
   id: string;
@@ -91,6 +92,23 @@ export class Dashboard {
       if (result) {
         console.log('New activity created:', result);
         // TODO: Send to backend and add to activities list
+      }
+    });
+  }
+
+  protected openEditActivityModal(): void {
+    // Sample data to demonstrate the Edit Activity modal UI
+    const sample: ActivityData = {
+      name: 'Study Math',
+      category: 'Study',
+      colorTag: 'blue',
+      estimatedHoursPerWeek: 3
+    };
+
+    this.dialog.open(EditActivityModal, { data: sample }).afterClosed().subscribe((updated: ActivityData) => {
+      if (updated) {
+        console.log('Updated activity:', updated);
+        // TODO: persist updated activity and update UI
       }
     });
   }
