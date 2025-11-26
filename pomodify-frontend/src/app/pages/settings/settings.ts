@@ -8,7 +8,7 @@ import { toggleTheme } from '../../shared/theme';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './settings.html',
-  styleUrl: './settings.scss',
+  styleUrls: ['./settings.scss'],
 })
 export class Settings {
   // Sidebar state

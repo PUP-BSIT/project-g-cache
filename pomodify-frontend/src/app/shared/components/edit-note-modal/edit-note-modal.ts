@@ -19,7 +19,7 @@ export interface NoteData {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatInputModule, MatFormFieldModule],
   templateUrl: './edit-note-modal.html',
-  styleUrl: './edit-note-modal.scss'
+  styleUrls: ['./edit-note-modal.scss']
 })
 export class EditNoteModal implements OnInit {
   private dialogRef = inject(MatDialogRef<EditNoteModal>);

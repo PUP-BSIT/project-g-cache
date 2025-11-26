@@ -13,7 +13,7 @@ export interface DeleteNoteData {
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule],
   templateUrl: './delete-note-modal.html',
-  styleUrl: './delete-note-modal.scss'
+  styleUrls: ['./delete-note-modal.scss']
 })
 export class DeleteNoteModal {
   private dialogRef = inject(MatDialogRef<DeleteNoteModal>);

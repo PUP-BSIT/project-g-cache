@@ -13,7 +13,7 @@ export interface DeleteActivityData {
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule],
   templateUrl: './delete-activity-modal.html',
-  styleUrl: './delete-activity-modal.scss'
+  styleUrls: ['./delete-activity-modal.scss']
 })
 export class DeleteActivityModal {
   private dialogRef = inject(MatDialogRef<DeleteActivityModal>);

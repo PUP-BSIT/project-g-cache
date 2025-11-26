@@ -383,12 +383,39 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* Reuse the activities page new activity button style for note buttons */
+/* small variant */
 .btn-new-activity.small {
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  min-width: 84px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  min-width: 72px; /* close match to activities compact buttons */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* Dashboard local compact action button to match Activities compact style */
+.action-btn-compact {
+  padding: 6px 14px;
+  background: #263238;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 72px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.action-btn-compact:hover {
+  background: #1a2227;
+}
+.action-btn-compact.delete-btn {
+  color: #E74C3C; /* same delete color used in activities */
+  background: #263238;
+}
+.action-btn-compact.delete-btn:hover {
+  color: #C0392B;
+  background: #1a2227;
 }
 
 .btn-new-activity {
@@ -402,22 +429,26 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   box-shadow: $card-shadow;
 }
 
+.section-header .btn-new-activity {
+  min-width: 120px; /* match the activities new activity button */
+}
+
 .btn-new-activity.small.delete {
-  background: #F97316;
-  color: #fff;
+  background: #263238; /* use activities compact action button bg */
+  color: #E74C3C; /* match delete coloring in activities page */
 }
 
 .btn-new-activity.small:not(.delete) {
-  background: $primary-teal;
+  background: #263238;
   color: $text-white;
 }
 .btn-new-activity.small:not(.delete):hover {
-  background: $primary-teal-dark;
+  background: #1a2227;
   transform: translateY(-2px);
 }
 
 .btn-new-activity.small.delete:hover {
-  background: color.adjust(#F97316, $lightness: -6%);
+  background: #1a2227;
   transform: translateY(-2px);
 }
 .btn-edit-activity { display: inline-block; }

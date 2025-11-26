@@ -5,7 +5,7 @@
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       <span class="app-name" *ngIf="sidebarExpanded()">Pomodify</span>
     </div>
-    
+
     <button class="sidebar-toggle" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarExpanded()" aria-label="Toggle sidebar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path *ngIf="!sidebarExpanded()" d="M9 18l6-6-6-6" />
@@ -87,13 +87,14 @@
         <div class="section-header">
           <h2 class="section-title">Recent activities</h2>
           <div class="section-actions">
-            <!-- Activity actions moved to Activities page -->
+            <!-- Create Note button matches Activities page style -->
+            <button class="btn-new-activity" (click)="openCreateNoteModal()">Create Note</button>
             <div class="note-actions">
-              <button class="btn-new-activity small" (click)="openCreateNoteModal()">Create Note</button>
-              <button class="btn-new-activity small" (click)="openEditNoteModal()">Edit Note</button>
-              <button class="btn-new-activity small delete" (click)="openDeleteNoteModal()">Delete Note</button>
+              <button class="action-btn-compact" (click)="openEditNoteModal()">Edit Note</button>
+                <button class="action-btn-compact delete-btn" (click)="openDeleteNoteModal()">Delete Note</button>
             </div>
           </div>
+        
         </div>
         <div class="activities-list">
           @for (activity of activities(); track activity.id) {
@@ -110,6 +111,7 @@
           }
         </div>
       </section>
+      
 
       <!-- Focus Session Section -->
       <section class="focus-section">
@@ -188,4 +190,7 @@
       </section>
     </div>
   </main>
+
 </div>
+  
+

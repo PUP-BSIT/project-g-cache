@@ -23,7 +23,7 @@ export interface NoteData {
     MatFormFieldModule
   ],
   templateUrl: './create-note-modal.html',
-  styleUrl: './create-note-modal.scss'
+  styleUrls: ['./create-note-modal.scss']
 })
 export class CreateNoteModal implements OnInit {
   private dialogRef = inject(MatDialogRef<CreateNoteModal>);

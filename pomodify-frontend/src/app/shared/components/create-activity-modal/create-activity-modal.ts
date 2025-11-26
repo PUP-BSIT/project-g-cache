@@ -23,7 +23,7 @@ export interface ActivityData {
     MatFormFieldModule
   ],
   templateUrl: './create-activity-modal.html',
-  styleUrl: './create-activity-modal.scss'
+  styleUrls: ['./create-activity-modal.scss']
 })
 export class CreateActivityModal implements OnInit {
   private dialogRef = inject(MatDialogRef<CreateActivityModal>);

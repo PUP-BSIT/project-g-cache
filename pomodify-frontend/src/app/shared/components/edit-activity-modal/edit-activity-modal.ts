@@ -17,7 +17,7 @@ import { ActivityData } from '../create-activity-modal/create-activity-modal';
     MatFormFieldModule
   ],
   templateUrl: './edit-activity-modal.html',
-  styleUrl: './edit-activity-modal.scss'
+  styleUrls: ['./edit-activity-modal.scss']
 })
 export class EditActivityModal implements OnInit {
   private dialogRef = inject(MatDialogRef<EditActivityModal>);

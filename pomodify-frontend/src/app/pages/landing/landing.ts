@@ -8,6 +8,6 @@ import { Footer } from '../../shared/components/footer/footer';
   standalone: true,
   imports: [Header, RouterLink, Footer],
   templateUrl: './landing.html',
-  styleUrl: './landing.scss',
+  styleUrls: ['./landing.scss'],
 })
 export class Landing {}
