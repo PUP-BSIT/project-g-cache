@@ -310,6 +310,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  position: relative;
+  z-index: 3; /* keep actions above nearby content */
 }
 
 .section-title {
@@ -330,6 +332,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
 
   &:hover {
     background-color: #3d8490;
@@ -345,18 +352,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-.btn-edit-activity {
-  padding: 8px 16px;
-  background-color: #ffffff;
-  color: $text-dark;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.btn-edit-activity { display: inline-block; }
+
+.btn-delete-activity {
+  /* delete button uses primary look but can be customized if needed */
 
   &:hover {
     background-color: #f3f4f6;

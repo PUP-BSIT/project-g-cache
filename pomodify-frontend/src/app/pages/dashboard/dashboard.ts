@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
+import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
 
 interface Activity {
   id: string;
@@ -109,6 +110,16 @@ export class Dashboard {
       if (updated) {
         console.log('Updated activity:', updated);
         // TODO: persist updated activity and update UI
+      }
+    });
+  }
+
+  protected openDeleteActivityModal(): void {
+    const sample = { id: 'math', name: 'Study Math' };
+    this.dialog.open(DeleteActivityModal, { data: sample }).afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        console.log('Delete confirmed for', sample);
+        // TODO: remove from activities and call backend
       }
     });
   }
