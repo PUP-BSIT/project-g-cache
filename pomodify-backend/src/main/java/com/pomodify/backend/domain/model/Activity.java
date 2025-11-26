@@ -8,11 +8,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
 @Table(name = "activity")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
@@ -57,9 +57,9 @@ public class Activity {
     private LocalDateTime updatedAt;
 
     // ──────────────── Factory ────────────────
-    public static Activity create(String title, String description, User user, Category category) {
+    protected static Activity create(String title, String description,User user, Category category) {
         if (title == null || title.trim().isEmpty())
-            throw new IllegalArgumentException("Activity title cannot be null or empty");
+            throw new IllegalArgumentException("Activity createActivityTitle cannot be null or empty");
         if (user == null)
             throw new IllegalArgumentException("User cannot be null");
 
@@ -72,7 +72,7 @@ public class Activity {
     }
 
     // ──────────────── Domain Behavior ────────────────
-    public void updateDetails(String newTitle, String newDescription, Category newCategoryId) {
+    protected void updateDetails(String newTitle, String newDescription, Category newCategoryId) {
         ensureActive();
         if (newTitle != null && !newTitle.isBlank())
             updateTitle(newTitle);
@@ -84,12 +84,12 @@ public class Activity {
             updateCategory(newCategoryId);
     }
 
-    private void updateTitle(String newTitle) {
+    protected void updateTitle(String newTitle) {
         this.title = newTitle.trim();
     }
 
     private void updateDescription(String newDescription) {
-        this.description = newDescription.isBlank()? null : newDescription.trim();
+        this.description = newDescription.isBlank() ? null : newDescription.trim();
     }
 
     private void updateCategory(Category newCategory) {

@@ -1,9 +1,7 @@
 package com.pomodify.backend.presentation.controller;
 
-import com.pomodify.backend.application.command.category.CreateCategoryCommand;
-import com.pomodify.backend.application.command.category.DeleteCategoryCommand;
-import com.pomodify.backend.application.command.category.GetAllCategoryCommand;
-import com.pomodify.backend.application.command.category.UpdateCategoryCommand;
+import com.pomodify.backend.application.command.category.*;
+import com.pomodify.backend.application.result.CategoryResult;
 import com.pomodify.backend.application.service.CategoryService;
 import com.pomodify.backend.presentation.dto.request.category.CategoryRequest;
 import com.pomodify.backend.presentation.dto.request.category.UpdateCategoryRequest;
@@ -17,11 +15,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import java.util.Collections;
+
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/category")
+@RequestMapping("/api/v1/categories")
 @Slf4j
 public class CategoryController {
 
@@ -31,142 +29,76 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    // ──────────────── Create ────────────────
-    @PostMapping("/create-category")
-    public ResponseEntity<CategoryResponse> createCategory(
-            @RequestBody @Valid CategoryRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+    @PostMapping
+    public ResponseEntity<CategoryResponse> createCategory(@RequestBody @Valid CategoryRequest request,
+                                                           @AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("user");
+        log.info("Create category request: {}", request.categoryName());
 
-        Long userId = jwt.getClaim("userId");
+        CategoryResult result = categoryService.createCategory(
+                CreateCategoryCommand.builder()
+                        .user(userId)
+                        .createCategory(request.categoryName())
+                        .build()
+        );
 
-        log.info("Create category request received: {}", request.categoryName());
-
-        CreateCategoryCommand command = CreateCategoryCommand.builder()
-                .name(request.categoryName())
-                .userId(userId)
-                .build();
-
-        CategoryItem item = CategoryMapper.toCategoryItem(
-                categoryService.createCategory(command).orElse(null));
-
-        String message = item.categoryId() == null
-                ? "Failed to create category"
-                : "Category created successfully";
-
-        CategoryResponse response = CategoryMapper.toCategoryResponse(item, message);
-
-        log.info("{}: {}", message, item.categoryName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        CategoryItem item = CategoryMapper.toCategoryItem(result);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CategoryMapper.toCategoryResponse(item, "Category created successfully"));
     }
 
-    // ──────────────── Update ────────────────
-    @PutMapping("/update/{id}")
-    public ResponseEntity<CategoryResponse> updateCategory(
-            @PathVariable Long id,
-            @RequestBody @Valid UpdateCategoryRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id,
+                                                           @RequestBody @Valid UpdateCategoryRequest request,
+                                                           @AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("user");
 
-        Long userId = jwt.getClaim("userId");
-        log.info("Update category request received for category id: {} by userId: {}", id, userId);
+        CategoryResult result = categoryService.updateCategory(
+                UpdateCategoryCommand.builder()
+                        .categoryId(id)
+                        .changeCategoryName(request.newCategoryName())
+                        .user(userId)
+                        .build()
+        );
 
-        UpdateCategoryCommand command = UpdateCategoryCommand.builder()
-                .categoryId(id)
-                .newCategoryName(request.newCategoryName())
-                .userId(userId)
-                .build();
-
-        CategoryItem item = CategoryMapper.toCategoryItem(
-                categoryService.updateCategory(command).orElse(null));
-
-        String message = item.categoryId() == null
-                ? "Failed to update category"
-                : "Category updated successfully";
-
-        CategoryResponse response = CategoryMapper.toCategoryResponse(item, message);
-
-        log.info("{}: {}", message, item.categoryName());
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        CategoryItem item = CategoryMapper.toCategoryItem(result);
+        return ResponseEntity.ok(CategoryMapper.toCategoryResponse(item, "Category updated successfully"));
     }
 
-
-    // ──────────────── Delete ────────────────
     @DeleteMapping("/{id}")
-    public ResponseEntity<CategoryResponse> deleteCategory(
-            @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<CategoryResponse> deleteCategory(@PathVariable Long id,
+                                                           @AuthenticationPrincipal Jwt jwt) {
+        Long userId = jwt.getClaim("user");
 
-        Long userId = jwt.getClaim("userId");
-        log.info("Delete request received for category id:{} by userId: {}", id, userId);
+        CategoryResult result = categoryService.deleteCategory(
+                DeleteCategoryCommand.builder()
+                        .categoryId(id)
+                        .user(userId)
+                        .build()
+        );
 
-        DeleteCategoryCommand command = DeleteCategoryCommand.builder()
-                .categoryId(id)
-                .userId(userId)
-                .build();
-
-        CategoryItem item = CategoryMapper.toCategoryItem(categoryService.deleteCategory(command));
-
-        String message = item == null
-                ? "Failed to delete category"
-                : "Category deleted successfully";
-
-        if (item == null) {
-            log.error("Failed to delete category with id: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    CategoryMapper.toCategoryResponse(Collections.emptyList(), message)
-            );
-        }
-
-        CategoryResponse response = CategoryMapper.toCategoryResponse(item, message);
-
-        log.info("Category deleted successfully: {}", item.categoryName());
-        return ResponseEntity.ok(response);
+        CategoryItem item = CategoryMapper.toCategoryItem(result);
+        return ResponseEntity.ok(CategoryMapper.toCategoryResponse(item, "Category deleted successfully"));
     }
 
-    // ──────────────── List All ────────────────
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<CategoryResponse> getAllCategories(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = jwt.getClaim("userId");
-        log.info("Get all categories request received from userId: {}", userId);
+        Long userId = jwt.getClaim("user");
 
-        GetAllCategoryCommand command = GetAllCategoryCommand.builder()
-                .userId(userId)
-                .build();
+        List<CategoryResult> results = categoryService.getAllCategories(
+                GetAllCategoryCommand.builder()
+                        .user(userId)
+                        .build()
+        );
 
-        List<CategoryItem> items = categoryService.getAllCategories(command)
-                        .stream()
-                        .map(CategoryMapper::toCategoryItem)
-                        .toList();
-
-        String message = items.isEmpty()
-                ? "No categories found"
-                : (" Categories retrieved successfully: " + items.size());
-
-        CategoryResponse response = CategoryMapper.toCategoryResponse(items, message);
-
-        log.info(message);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/all-deleted")
-    public ResponseEntity<CategoryResponse> getAllDeletedCategories(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = jwt.getClaim("userId");
-        log.info("Get all deleted categories request received from userId: {}", userId);
-
-        GetAllCategoryCommand command = GetAllCategoryCommand.builder()
-                .userId(userId)
-                .build();
-
-        List<CategoryItem> items = categoryService.getAllDeletedCategories(command)
-                .stream()
+        List<CategoryItem> items = results.stream()
                 .map(CategoryMapper::toCategoryItem)
                 .toList();
 
         String message = items.isEmpty()
-                ? "No deleted categories found"
-                : ("Deleted categories retrieved successfully: " + items.size());
+                ? "No categories found"
+                : "Categories retrieved successfully: " + items.size();
 
-        log.info(message);
-        return ResponseEntity.ok(
-                CategoryMapper.toCategoryResponse(items, message)
-        );
+        return ResponseEntity.ok(CategoryMapper.toCategoryResponse(items, message));
     }
 }

@@ -1,5 +1,6 @@
 package com.pomodify.backend.infrastructure.config;
 
+import com.pomodify.backend.application.exception.GlobalExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -7,12 +8,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
@@ -21,10 +22,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        String message = authException.getMessage();
-        Map<String, String> body = Map.of(
-                "message", message
-        );
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+        response.getWriter().write(objectMapper.writeValueAsString(
+                handler.handleExpiredJwt(authException).getBody()));
     }
 }

@@ -18,7 +18,7 @@ import java.util.List;
         }
 )
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User {
@@ -102,24 +102,20 @@ public class User {
         return category;
     }
 
-    public void removeCategory(Category category) {
+    public Category deleteCategory(Category category) {
         ensureActive();
         if (category == null)
             throw new IllegalArgumentException("Category cannot be null");
 
-        category.setNotDeleted(false);
+        return category.delete();
     }
 
-    public List<Category> getActiveCategories() {
-        return categories.stream()
-                .filter(Category::isNotDeleted)
-                .toList();
-    }
+    public void changeCategoryName(String newName, Category category) {
+        ensureActive();
+        if (category == null)
+            throw new IllegalArgumentException("Category cannot be null");
 
-    public List<Category> getInactiveCategories() {
-        return categories.stream()
-                .filter(c -> !c.isNotDeleted())
-                .toList();
+        category.updateName(newName);
     }
 
     // ──────────────── Activity Operations ────────────────
@@ -130,29 +126,26 @@ public class User {
         return activity;
     }
 
-    public void removeActivity(Activity activity) {
+    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory) {
+        ensureActive();
+        if (activityToUpdate == null)
+            throw new IllegalArgumentException("Activity cannot be null");
+
+        activityToUpdate.updateDetails(newTitle, newDescription, newCategory);
+        return activityToUpdate;
+    }
+
+    public Activity deleteActivity(Activity activity) {
         ensureActive();
         if (activity == null)
             throw new IllegalArgumentException("Activity cannot be null");
 
-        activity.delete(activity.getId());
-    }
-
-    public List<Activity> getActiveActivities() {
-        return activities.stream()
-                .filter(Activity::isDeleted)
-                .toList();
-    }
-
-    public List<Activity> getInactiveActivities() {
-        return activities.stream()
-                .filter(a -> !a.isDeleted())
-                .toList();
+        return activity.delete(activity.getId());
     }
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {
-        if (!isActive)
+        if (!this.isActive)
             throw new IllegalStateException("Inactive user cannot perform operations");
     }
 }

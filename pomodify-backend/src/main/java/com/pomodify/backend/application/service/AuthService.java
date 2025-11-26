@@ -7,7 +7,7 @@ import com.pomodify.backend.application.command.auth.RegisterUserCommand;
 import com.pomodify.backend.application.result.AuthResult;
 import com.pomodify.backend.application.result.UserResult;
 import com.pomodify.backend.application.validator.RegistrationValidator;
-import com.pomodify.backend.infrastructure.factory.UserFactoryBean;
+import com.pomodify.backend.domain.factory.UserFactory;
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
@@ -30,7 +30,7 @@ public class AuthService {
 
     private final RegistrationValidator registrationValidator;
 
-    private final UserFactoryBean userFactory;
+    private final UserFactory userFactory;
 
     private final JwtService jwtService;
 

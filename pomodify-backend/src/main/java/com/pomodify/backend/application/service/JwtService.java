@@ -35,7 +35,7 @@ public class JwtService {
     public String generateAccessToken(User user) {
         return Jwts.builder()
                 .subject(user.getEmail().getValue())
-                .claim("userId", user.getId())
+                .claim("user", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -45,7 +45,7 @@ public class JwtService {
     public String generateRefreshToken(User user) {
         return Jwts.builder()
                 .subject(user.getEmail().getValue())
-                .claim("userId", user.getId())
+                .claim("user", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
@@ -82,7 +82,7 @@ public class JwtService {
     */
     public Long extractUserIdFrom(String token) {
         try {
-            return extractClaim(token, claims -> claims.get("userId", Long.class));
+            return extractClaim(token, claims -> claims.get("user", Long.class));
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             throw new JwtExpiredException("JWT token has expired", e);
         } catch (Exception e) {

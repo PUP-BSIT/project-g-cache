@@ -3,7 +3,6 @@ package com.pomodify.backend.application.command.activity;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.util.Optional;
 
 @Builder
 public record UpdateActivityCommand(
@@ -11,7 +10,8 @@ public record UpdateActivityCommand(
         Long activityId,
 
         @NotNull(message = "User ID is required")
-        Long activityOwnerId,
+        Long user,
+
         Long changeCategoryIdTo,
         String changeActivityTitleTo,
         String changeActivityDescriptionTo

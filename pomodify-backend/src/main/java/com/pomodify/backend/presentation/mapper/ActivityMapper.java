@@ -4,17 +4,12 @@ import com.pomodify.backend.application.result.ActivityResult;
 import com.pomodify.backend.presentation.dto.item.ActivityItem;
 import com.pomodify.backend.presentation.dto.response.ActivityResponse;
 import org.springframework.data.domain.Page;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ActivityMapper {
-    private ActivityMapper() { }
 
     public static ActivityItem toActivityItem(ActivityResult result) {
-        if (result == null) {
-            return ActivityItem.builder().build();
-        }
+        if (result == null) return ActivityItem.builder().build();
 
         return ActivityItem.builder()
                 .activityId(result.activityId())
@@ -24,25 +19,28 @@ public class ActivityMapper {
                 .build();
     }
 
-    // For a single activity response
-    public static ActivityResponse toActivityResponse(ActivityItem activityItem, String message) {
+    public static Page<ActivityItem> toActivityItemPage(Page<ActivityResult> resultsPage) {
+        return resultsPage.map(ActivityMapper::toActivityItem);
+    }
+
+    public static ActivityResponse toActivityResponse(Page<ActivityItem> items, String message) {
         return ActivityResponse.builder()
-                .activities(List.of(activityItem))
+                .activities(items.getContent())
                 .message(message)
-                .currentPage(0)
-                .totalPages(1)
-                .totalItems(activityItem.activityId() != null ? 1 : 0)
+                .currentPage(items.getNumber())
+                .totalPages(items.getTotalPages())
+                .totalItems(items.getTotalElements())
                 .build();
     }
 
-    // For a paged response (used in getAllActivities)
-    public static ActivityResponse toActivityResponse(Page<ActivityItem> page, String message) {
+    public static ActivityResponse toActivityResponse(ActivityItem item, String message) {
         return ActivityResponse.builder()
-                .activities(page.getContent())
+                .activities(List.of(item))
                 .message(message)
-                .currentPage(page.getNumber())
-                .totalPages(page.getTotalPages())
-                .totalItems(page.getTotalElements())
+                .currentPage(0)
+                .totalPages(1)
+                .totalItems(item.activityId() != null ? 1 : 0)
                 .build();
     }
 }
+

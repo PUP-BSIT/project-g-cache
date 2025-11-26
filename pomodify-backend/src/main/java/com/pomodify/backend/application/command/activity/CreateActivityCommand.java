@@ -1,19 +1,19 @@
 package com.pomodify.backend.application.command.activity;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Data;
 
 @Builder
 public record CreateActivityCommand(
-        @NotBlank(message = "userId is required")
-        Long userId,
+        @NotNull(message = "user is required")
+        Long user,
 
         Long categoryId,
 
         @NotBlank(message = "Title is required")
-        String title,
+        String createActivityTitle,
 
-        String description
+        String createDescription
 ) {
 }

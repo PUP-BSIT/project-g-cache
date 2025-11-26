@@ -23,18 +23,12 @@ public class CategoryRepositoryAdapter implements CategoryRepository {
     }
 
     @Override
-    public Optional<Category> findCategory(Long id) {
-        return springRepo.findByIdAndIsNotDeleted(id, true);
+    public Optional<Category> findCategory(Long id, Long userId) {
+        return springRepo.findByIdAndUserIdAndIsDeletedFalse(id, userId);
     }
 
     @Override
-    public List<Category> findAllNotDeleted(Long userId) {
-        return springRepo.findByUserIdAndIsNotDeleted(userId, true);
+    public List<Category> findAllCategories(Long userId) {
+        return springRepo.findAllByUserIdAndIsDeletedFalse(userId);
     }
-
-    @Override
-    public  List<Category> findAllDeleted(Long userId) {
-        return springRepo.findByUserIdAndIsNotDeleted(userId, false);
-    }
-
 }

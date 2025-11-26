@@ -7,7 +7,6 @@ import java.util.Optional;
 
 public interface CategoryRepository {
     Category save(Category category);
-    Optional<Category> findCategory(Long id);
-    List<Category> findAllNotDeleted(Long userId);
-    List<Category> findAllDeleted(Long userId);
+    Optional<Category> findCategory(Long id, Long userId);
+    List<Category> findAllCategories(Long userId);
 }

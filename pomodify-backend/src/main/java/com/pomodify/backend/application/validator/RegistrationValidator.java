@@ -38,18 +38,18 @@ public class RegistrationValidator {
 
     public void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("First name cannot be null or empty");
+            throw new IllegalArgumentException("First name or last name cannot be null or empty");
         }
 
         if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException(
-                    String.format("First name cannot exceed %d characters", MAX_NAME_LENGTH)
+                    String.format("First name or last name cannot exceed %d characters", MAX_NAME_LENGTH)
             );
         }
 
         if (!name.matches(NAME_PATTERN)) {
             throw new IllegalArgumentException(
-                    "First name can only contain letters, spaces, and hyphens"
+                    "First name or last name can only contain letters, spaces, and hyphens"
             );
         }
     }
@@ -88,27 +88,6 @@ public class RegistrationValidator {
         if (password.length() > MAX_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(
                 String.format("Password cannot exceed %d characters", MAX_PASSWORD_LENGTH)
-            );
-        }
-    }
-    
-    /**
-     * Validate password strength with additional complexity requirements.
-     * Optional method for stricter password policies.
-     * 
-     * @param password Password to validate
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validatePasswordStrength(String password) {
-        validatePassword(password);
-        
-        boolean hasUpperCase = password.chars().anyMatch(Character::isUpperCase);
-        boolean hasLowerCase = password.chars().anyMatch(Character::isLowerCase);
-        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
-        
-        if (!hasUpperCase || !hasLowerCase || !hasDigit) {
-            throw new IllegalArgumentException(
-                "Password must contain at least one uppercase letter, one lowercase letter, and one digit"
             );
         }
     }

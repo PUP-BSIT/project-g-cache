@@ -9,9 +9,9 @@ import java.util.List;
 @Table(name = "category")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder(access = AccessLevel.PRIVATE)
 public class Category {
 
     @Id
@@ -31,15 +31,15 @@ public class Category {
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
-    @Column(name = "is_not_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false)
     @Builder.Default
-    private boolean isNotDeleted = true;
+    private boolean isDeleted = false;
 
     // ──────────────────────────────
     // Factory Method
     // ──────────────────────────────
 
-    public static Category create(String name, User user) {
+    protected static Category create(String name, User user) {
         if (name == null || name.trim().isEmpty())
             throw new IllegalArgumentException("Category name cannot be null or empty");
         if (user == null)
@@ -48,7 +48,6 @@ public class Category {
         return Category.builder()
                 .name(name.trim())
                 .user(user)
-                .isNotDeleted(true)
                 .build();
     }
 
@@ -56,52 +55,15 @@ public class Category {
     // Domain Logic
     // ──────────────────────────────
 
-    public void updateName(String newName) {
+    protected void updateName(String newName) {
         if (newName == null || newName.trim().isEmpty())
             throw new IllegalArgumentException("Category name cannot be null or empty");
         this.name = newName.trim();
     }
 
-    public Activity createActivity(String title, String description) {
-        Activity activity = Activity.create(title, description, this.user, this);
-        addActivity(activity);
-        return activity;
-    }
-
-    public void addActivity(Activity activity) {
-        if (activity == null)
-            throw new IllegalArgumentException("Activity cannot be null");
-        if (!activities.contains(activity)) {
-            activities.add(activity);
-            activity.setCategory(this);
-        }
-    }
-
-    public void removeActivity(Activity activity) {
-        if (activity == null)
-            throw new IllegalArgumentException("Activity cannot be null");
-        if (activities.contains(activity)) {
-            activities.remove(activity);
-            activity.setCategory(null);
-            activity.setDeleted(false);
-        }
-    }
-
-    public List<Activity> getActiveActivities() {
-        return activities.stream()
-                .filter(Activity::isDeleted)
-                .toList();
-    }
-
-    public List<Activity> getInactiveActivities() {
-        return activities.stream()
-                .filter(a -> !a.isDeleted())
-                .toList();
-    }
-
-    public Category delete() {
-        this.isNotDeleted = false;
-        activities.forEach(a -> a.setDeleted(false));
+    protected Category delete() {
+        this.setDeleted(true);
+        activities.forEach(a -> a.setDeleted(true));
         return this;
     }
 }

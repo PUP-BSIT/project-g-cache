@@ -8,33 +8,33 @@ import java.util.Collections;
 import java.util.List;
 
 public class CategoryMapper {
+
     private CategoryMapper() {} // prevent instantiation
 
-    // Single item -> CategoryItem
+    // ─── Convert domain result → presentation item ───
     public static CategoryItem toCategoryItem(CategoryResult result) {
-        if (result == null) return CategoryItem.builder().build();
+        if (result == null) return null;
 
         return CategoryItem.builder()
                 .categoryId(result.categoryId())
                 .categoryName(result.categoryName())
+                .activitiesCount(result.activitiesCount())
                 .build();
     }
 
-    // Wrap a single item
+    // ─── Convert a single presentation item → response ───
     public static CategoryResponse toCategoryResponse(CategoryItem item, String message) {
-
         return CategoryResponse.builder()
-                .categories(Collections.singletonList(item))
+                .categories(item != null ? Collections.singletonList(item) : Collections.emptyList())
                 .message(message)
                 .build();
     }
 
-    // Wrap multiple items
+    // ─── Convert multiple presentation items → response ───
     public static CategoryResponse toCategoryResponse(List<CategoryItem> items, String message) {
         return CategoryResponse.builder()
-                .message(items.isEmpty() ? "No categories found" : message)
-                .categories(items)
+                .categories(items != null ? items : Collections.emptyList())
+                .message(message)
                 .build();
     }
 }
-

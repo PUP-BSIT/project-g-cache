@@ -6,8 +6,6 @@ import lombok.Builder;
 public record CategoryResult(
         Long categoryId,
         String categoryName,
-        Boolean active,
-        Integer activeActivitiesCount,
-        Integer inactiveActivitiesCount
+        Long activitiesCount
 ) {
 }

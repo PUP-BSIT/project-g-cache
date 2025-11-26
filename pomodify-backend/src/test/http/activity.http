@@ -1,4 +1,3 @@
-### Login
 POST {{base_url}}/auth/login
 Content-Type: application/json
 
@@ -7,35 +6,50 @@ Content-Type: application/json
   "password": "Password@123"
 }
 
-### Create Activity
-POST {{base_url}}/activity/create-activity
+###
+
+POST {{base_url}}/activities
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
-"title": "M",
-  "description": "DEVELOP A REST API USING NODE.JS AND EXPRESS",
-  "categoryId": 4
+  "title": "Mobile App Development 3",
+  "description": "Developing a mobile application for e-commerce",
+  "categoryId": 1
 }
 
-### Get All Activities
-GET {{base_url}}/activity/all
+###
+
+GET {{base_url}}/activities/deleted
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-### Get Activities with Pagination and Sorting
-GET {{base_url}}/activity/all?page=0&size=10&sortBy=title&sortOrder=asc&deleted=true&categoryId=4 HTTP/1.1
+###
+
+GET {{base_url}}/activities?page=0&size=10&sortBy=title&sortOrder=asc&categoryId=4
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-### Update Activity
-PUT {{base_url}}/activity/update/3
+###
+
+GET {{base_url}}/activities/16
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+###
+
+PUT {{base_url}}/activities/14
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
-  "newActivityTitle": "Updated Activity Title"
+  "newActivityTitle": "Updated Activity Title",
+  "newActivityDescription": "Updated description",
+  "newCategoryId": 2
 }
 
+###
 
-
+DELETE {{base_url}}/activities/14
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json

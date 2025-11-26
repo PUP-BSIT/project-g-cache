@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface SpringCategoryRepository extends JpaRepository<Category, Long> {
-    Optional<Category> findByIdAndIsNotDeleted(Long id, boolean isNotDeleted);
-    List<Category> findByUserIdAndIsNotDeleted(Long userId, Boolean isNotDeleted);
+    Optional<Category> findByIdAndUserIdAndIsDeletedFalse(Long id, Long userId);
+    List<Category> findAllByUserIdAndIsDeletedFalse(Long userId);
 }

@@ -1,108 +1,87 @@
 package com.pomodify.backend.application.service;
 
-import com.pomodify.backend.application.command.category.CreateCategoryCommand;
-import com.pomodify.backend.application.command.category.DeleteCategoryCommand;
-import com.pomodify.backend.application.command.category.GetAllCategoryCommand;
-import com.pomodify.backend.application.command.category.UpdateCategoryCommand;
+import com.pomodify.backend.application.command.category.*;
+import com.pomodify.backend.application.helper.DomainHelper;
+import com.pomodify.backend.application.helper.UserHelper;
 import com.pomodify.backend.application.result.CategoryResult;
 import com.pomodify.backend.domain.model.Category;
 import com.pomodify.backend.domain.model.User;
-import com.pomodify.backend.infrastructure.repository.impl.CategoryRepositoryAdapter;
-import com.pomodify.backend.infrastructure.repository.impl.UserRepositoryJpaAdapter;
+import com.pomodify.backend.domain.repository.ActivityRepository;
+import com.pomodify.backend.domain.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryService {
 
-    private final UserRepositoryJpaAdapter userRepository;
-    private final CategoryRepositoryAdapter categoryRepository;
+    private final CategoryRepository categoryRepository;
+    private final ActivityRepository activityRepository;
+    private final UserHelper userHelper;
+    private final DomainHelper domainHelper;
 
+    /* -------------------- CREATE -------------------- */
     @Transactional
-    public Optional<CategoryResult> createCategory(CreateCategoryCommand command) {
-        User user = userRepository.findUser(command.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Category category = Category.create(command.name(), user);
-        Category saved = categoryRepository.save(category);
-
-        return Optional.of(mapToResult(saved));
+    @CacheEvict(value = "categories", allEntries = true)
+    public CategoryResult createCategory(CreateCategoryCommand command) {
+        User user = userHelper.getUserOrThrow(command.user());
+        Category saved = categoryRepository.save(user.createCategory(command.createCategory()));
+        log.info("Category created with ID: {}", saved.getId());
+        return mapToResult(saved, command.user());
     }
 
+    /* -------------------- UPDATE -------------------- */
     @Transactional
-    public Optional<CategoryResult> updateCategory(UpdateCategoryCommand command) {
-        Optional<Category> categoryOpt = categoryRepository.findCategory(command.categoryId());
+    @CacheEvict(value = "categories", allEntries = true)
+    public CategoryResult updateCategory(UpdateCategoryCommand command) {
+        User user = userHelper.getUserOrThrow(command.user());
+        Category category = domainHelper.getCategoryOrThrow(command.categoryId(), command.user());
 
-        if (categoryOpt.isEmpty()) {
-            log.error("Category ID: {} not found or is deleted", command.categoryId());
-            return Optional.empty();
-        }
-
-        Category category = categoryOpt.get();
-
-        if (!command.userId().equals(category.getUser().getId())) {
-            throw new IllegalArgumentException("Unauthorized to update this category");
-        }
-
-        category.updateName(command.newCategoryName());
+        user.changeCategoryName(command.changeCategoryName(), category);
         Category updated = categoryRepository.save(category);
-
-        return Optional.of(mapToResult(updated));
+        log.info("Category updated with ID: {}", updated.getId());
+        return mapToResult(updated, command.user());
     }
 
+    /* -------------------- DELETE -------------------- */
     @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResult deleteCategory(DeleteCategoryCommand command) {
-        Optional<Category> categoryOpt = categoryRepository.findCategory(command.categoryId());
+        User user = userHelper.getUserOrThrow(command.user());
+        Category category = domainHelper.getCategoryOrThrow(command.categoryId(), command.user());
 
-        if (categoryOpt.isEmpty()) {
-            log.error("Category ID: {} not found or is already deleted", command.categoryId());
-            return null;
+        if (category.isDeleted()) {
+            throw new IllegalArgumentException("Category is already deleted");
         }
 
-        Category category = categoryOpt.get();
-
-        if (!command.userId().equals(category.getUser().getId())) {
-            throw new IllegalArgumentException("Unauthorized to delete this category");
-        }
-
-        Category deleted = categoryRepository.save(category.delete());
-
-        String message = "Category deleted successfully";
-
-        log.info(message);
-        return mapToResult(deleted);
+        Category deleted = categoryRepository.save(user.deleteCategory(category));
+        log.info("Category soft-deleted with ID: {}", deleted.getId());
+        return mapToResult(deleted, command.user());
     }
 
+    /* -------------------- GET ALL -------------------- */
+    @Cacheable(value = "categories", key = "#command.user")
     public List<CategoryResult> getAllCategories(GetAllCategoryCommand command) {
-        List<Category> categories = categoryRepository.findAllNotDeleted(command.userId());
-
+        List<Category> categories = categoryRepository.findAllCategories(command.user());
         return categories.stream()
-                .map(this::mapToResult)
+                .map(cat -> mapToResult(cat, command.user()))
                 .toList();
     }
 
-    public List<CategoryResult> getAllDeletedCategories(GetAllCategoryCommand command) {
-        List<Category> categories = categoryRepository.findAllDeleted(command.userId());
-
-        return categories.stream()
-                .map(this::mapToResult)
-                .toList();
-    }
-
-    // Mapping domain entity → application result
-    private CategoryResult mapToResult(Category category) {
+    /* -------------------- HELPERS -------------------- */
+    private CategoryResult mapToResult(Category category, Long userId) {
+        long activitiesCount = activityRepository.countActivities(userId, false, category.getId());
         return CategoryResult.builder()
                 .categoryId(category.getId())
                 .categoryName(category.getName())
-                .active(category.isNotDeleted())
-                .activeActivitiesCount(category.getActiveActivities().size())
-                .inactiveActivitiesCount(category.getInactiveActivities().size())
+                .activitiesCount(activitiesCount)
                 .build();
     }
 }
