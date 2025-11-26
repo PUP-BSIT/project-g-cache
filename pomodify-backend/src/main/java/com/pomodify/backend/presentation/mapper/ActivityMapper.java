@@ -6,7 +6,10 @@ import com.pomodify.backend.presentation.dto.response.ActivityResponse;
 import org.springframework.data.domain.Page;
 import java.util.List;
 
+
 public class ActivityMapper {
+    private ActivityMapper () {
+    }
 
     public static ActivityItem toActivityItem(ActivityResult result) {
         if (result == null) return ActivityItem.builder().build();
