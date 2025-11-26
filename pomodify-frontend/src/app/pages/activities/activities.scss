@@ -30,6 +30,163 @@ $color-yellow: #F39C12;
   overflow-x: hidden;
 }
 
+/* Dark mode overrides for this component */
+:host-context(.theme-dark) {
+  .activities-page {
+    background-color: #071216;
+    color: #cbd5e1;
+  }
+
+  .sidebar {
+    background-color: #071826;
+    border-right-color: rgba(255,255,255,0.04);
+  }
+
+  .nav-icon {
+    color: rgba(255,255,255,0.72);
+  }
+
+  .header {
+    background-color: #0b2830;
+  }
+
+  .page-content {
+    background: transparent;
+  }
+
+  .search-container {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.06);
+  }
+
+  .status-card {
+    background: #09121A;
+    color: #e6eef2;
+    box-shadow: none;
+  }
+
+  .pagination-dots .page-btn,
+  .pagination-dots .page-number {
+    background: #0b1820;
+    border-color: rgba(255,255,255,0.04);
+    color: #cbd5e1;
+  }
+
+  .pagination-dots .page-number.active {
+    background: $primary-teal;
+    color: $text-white;
+  }
+}
+
+/* Additional targeted fixes requested: make activity cards match status cards, fix search input background, ensure title visible */
+:host-context(.theme-dark) {
+  /* Make activity cards same color as status cards */
+  .activity-card-compact,
+  .status-card {
+    background: #09121A !important;
+    color: #e6eef2 !important;
+    box-shadow: none !important;
+  }
+
+  .activity-title-compact,
+  .activity-meta-compact {
+    color: #e6eef2 !important;
+  }
+
+  /* Ensure icons remain legible */
+  .activity-icon {
+    background: rgba(255,255,255,0.02) !important;
+  }
+
+  /* Make page header section dark so title is visible */
+  .page-header-section {
+    background: transparent !important;
+  }
+
+  .page-title {
+    color: #e6eef2 !important;
+    opacity: 1 !important;
+  }
+
+  /* Remove dark autofill/outline and any dark fill inside the search input */
+  .search-container {
+    background: transparent !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    box-shadow: none !important;
+  }
+
+  .search-input {
+    background: transparent !important;
+    color: #e6eef2 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  input.search-input:-webkit-autofill,
+  input.search-input:-webkit-autofill:focus,
+  input.search-input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: #e6eef2 !important;
+  }
+}
+
+/* Additional dark overrides to target cards, buttons and search input */
+:host-context(.theme-dark) {
+  .activity-card-compact {
+    background: #153b3a; /* darker teal */
+    box-shadow: none;
+    color: #e6eef2;
+  }
+
+  .activity-title-compact,
+  .activity-meta-compact {
+    color: #e6eef2;
+  }
+
+  .activity-icon {
+    background: rgba(255,255,255,0.03);
+  }
+
+  .action-btn-compact {
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+  }
+
+  .action-btn-compact.delete-btn {
+    color: #ffb3b0;
+  }
+
+  .btn-new-activity {
+    background-color: darken($primary-teal, 6%);
+    color: $text-white;
+    box-shadow: none;
+  }
+
+  .page-title {
+    color: #e6eef2;
+  }
+
+  /* Remove the dark autofill/outline inside search input in dark theme */
+  .search-container {
+    box-shadow: none;
+  }
+
+  .search-input {
+    background: transparent;
+    color: #e6eef2;
+    box-shadow: none !important;
+  }
+
+  input.search-input:-webkit-autofill,
+  input.search-input:-webkit-autofill:focus,
+  input.search-input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: #e6eef2 !important;
+  }
+}
+
 // Sidebar
 .sidebar {
   width: 72px;
@@ -241,6 +398,13 @@ $color-yellow: #F39C12;
   flex-direction: column;
   width: calc(100% - 72px);
   overflow-x: hidden; /* prevent horizontal scroll from wide grids */
+}
+
+/* When sidebar is expanded shift the main content to match dashboard behavior */
+.sidebar.expanded ~ .main-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  transition: margin-left 0.28s ease, width 0.28s ease;
 }
 
 .header {
