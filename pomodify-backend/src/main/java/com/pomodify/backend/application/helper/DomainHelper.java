@@ -7,6 +7,8 @@ import com.pomodify.backend.domain.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class DomainHelper {
@@ -26,5 +28,13 @@ public class DomainHelper {
 
     public Category getCategoryOrNull(Long categoryId, Long userId) {
         return categoryId == null ? null : categoryRepository.findCategory(categoryId, userId).orElse(null);
+    }
+
+    public void checkForExistingCategory (Long user, String categoryName) {
+        List<Category> existingCategories = categoryRepository.findAllCategories(user);
+
+        if (existingCategories.stream().anyMatch(cat -> cat.getName().equalsIgnoreCase(categoryName))) {
+            throw new IllegalArgumentException("Category with the same name already exists");
+        }
     }
 }

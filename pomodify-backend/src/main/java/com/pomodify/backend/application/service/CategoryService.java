@@ -32,7 +32,11 @@ public class CategoryService {
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResult createCategory(CreateCategoryCommand command) {
         User user = userHelper.getUserOrThrow(command.user());
+
+        domainHelper.checkForExistingCategory(command.user(), command.createCategory());
+
         Category saved = categoryRepository.save(user.createCategory(command.createCategory()));
+
         log.info("Category created with ID: {}", saved.getId());
         return mapToResult(saved, command.user());
     }
@@ -42,7 +46,9 @@ public class CategoryService {
     @CacheEvict(value = "categories", allEntries = true)
     public CategoryResult updateCategory(UpdateCategoryCommand command) {
         User user = userHelper.getUserOrThrow(command.user());
+
         Category category = domainHelper.getCategoryOrThrow(command.categoryId(), command.user());
+        domainHelper.checkForExistingCategory(command.user(), command.changeCategoryName());
 
         user.changeCategoryName(command.changeCategoryName(), category);
         Category updated = categoryRepository.save(category);

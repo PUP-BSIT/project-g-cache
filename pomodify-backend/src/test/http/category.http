@@ -23,7 +23,7 @@ Content-Type: application/json
 
 ###
 
-PUT {{base_url}}/categories/5
+PUT {{base_url}}/categories/6
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
@@ -32,6 +32,6 @@ Content-Type: application/json
 }
 
 ###
-DELETE {{base_url}}/categories/5
+DELETE {{base_url}}/categories/6
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
