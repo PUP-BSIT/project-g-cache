@@ -9,7 +9,7 @@ import { toggleTheme } from '../../shared/theme';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './help.html',
-  styleUrl: './help.scss',
+  styleUrls: ['./help.scss'],
 })
 export class HelpPage {
   // mimic settings page sidebar behavior

@@ -1,0 +1,17 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Are you sure you want to <span class="danger">DELETE</span> this note?</h2>
+    <button class="close-btn" (click)="onCancel()">✕</button>
+  </div>
+
+  <div class="modal-body">
+    @if (noteTitle) {
+      <p class="activity-name">"{{ noteTitle }}"</p>
+    }
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button class="btn btn-primary btn-delete" (click)="onDelete()">Delete</button>
+  </div>
+</div>

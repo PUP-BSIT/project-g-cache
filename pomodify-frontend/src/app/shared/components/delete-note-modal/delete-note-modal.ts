@@ -3,30 +3,29 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
-export interface DeleteActivityData {
+export interface DeleteNoteData {
   id?: string;
-  name?: string;
+  title?: string;
 }
 
 @Component({
-  selector: 'app-delete-activity-modal',
+  selector: 'app-delete-note-modal',
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule],
-  templateUrl: './delete-activity-modal.html',
-  styleUrls: ['./delete-activity-modal.scss']
+  templateUrl: './delete-note-modal.html',
+  styleUrls: ['./delete-note-modal.scss']
 })
-export class DeleteActivityModal {
-  private dialogRef = inject(MatDialogRef<DeleteActivityModal>);
-  private data = inject(MAT_DIALOG_DATA) as DeleteActivityData | undefined;
+export class DeleteNoteModal {
+  private dialogRef = inject(MatDialogRef<DeleteNoteModal>);
+  private data = inject(MAT_DIALOG_DATA) as DeleteNoteData | undefined;
 
-  activityName = this.data?.name ?? '';
+  noteTitle = this.data?.title ?? '';
 
   onCancel(): void {
     this.dialogRef.close(false);
   }
 
   onDelete(): void {
-    // Close with confirmation true
     this.dialogRef.close(true);
   }
 }

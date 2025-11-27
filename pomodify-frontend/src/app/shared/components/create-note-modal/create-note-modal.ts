@@ -5,15 +5,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-export interface ActivityData {
-  name: string;
+export interface NoteData {
+  title: string;
   category?: string;
+  content: string;
   colorTag: string;
-  estimatedHoursPerWeek?: number;
 }
 
 @Component({
-  selector: 'app-create-activity-modal',
+  selector: 'app-create-note-modal',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -22,16 +22,16 @@ export interface ActivityData {
     MatInputModule,
     MatFormFieldModule
   ],
-  templateUrl: './create-activity-modal.html',
-  styleUrls: ['./create-activity-modal.scss']
+  templateUrl: './create-note-modal.html',
+  styleUrls: ['./create-note-modal.scss']
 })
-export class CreateActivityModal implements OnInit {
-  private dialogRef = inject(MatDialogRef<CreateActivityModal>);
+export class CreateNoteModal implements OnInit {
+  private dialogRef = inject(MatDialogRef<CreateNoteModal>);
   private fb = inject(FormBuilder);
 
-  activityForm!: FormGroup;
+  noteForm!: FormGroup;
   selectedColor: string = 'red';
-  
+
   colors = [
     { name: 'red', hex: '#EF4444' },
     { name: 'orange', hex: '#F97316' },
@@ -42,32 +42,32 @@ export class CreateActivityModal implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.activityForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1)]],
+    this.noteForm = this.fb.group({
+      title: ['', [Validators.required, Validators.minLength(1)]],
       category: [''],
-      colorTag: [this.selectedColor],
-      estimatedHoursPerWeek: [1, [Validators.min(0), Validators.max(168)]]
+      content: ['', [Validators.required, Validators.minLength(1)]],
+      colorTag: [this.selectedColor]
     });
   }
 
   selectColor(colorName: string): void {
     this.selectedColor = colorName;
-    this.activityForm.patchValue({ colorTag: colorName });
+    this.noteForm.patchValue({ colorTag: colorName });
   }
 
   onCancel(): void {
     this.dialogRef.close();
   }
 
-  onCreateActivity(): void {
-    if (this.activityForm.valid) {
-      const activityData: ActivityData = {
-        name: this.activityForm.get('name')?.value,
-        category: this.activityForm.get('category')?.value || undefined,
-        colorTag: this.selectedColor,
-        estimatedHoursPerWeek: this.activityForm.get('estimatedHoursPerWeek')?.value || 0
+  onCreateNote(): void {
+    if (this.noteForm.valid) {
+      const noteData: NoteData = {
+        title: this.noteForm.get('title')?.value,
+        category: this.noteForm.get('category')?.value || undefined,
+        content: this.noteForm.get('content')?.value,
+        colorTag: this.selectedColor
       };
-      this.dialogRef.close(activityData);
+      this.dialogRef.close(noteData);
     }
   }
 }
