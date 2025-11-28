@@ -111,32 +111,102 @@
 
       <!-- Activities Container (Teal Background) -->
       <div class="activities-container">
-        <!-- Activities Grid -->
-        <div class="activities-grid">
-          @if (pagedActivities().length > 0) {
-            @for (activity of pagedActivities(); track activity.id) {
-              <div class="activity-card-compact" [ngClass]="getColorClass(activity.colorTag)">
-                <div class="card-header-compact">
-                  <span class="activity-icon">{{ activity.icon }}</span>
+        @if (selectedActivity()) {
+          <!-- Session View -->
+          <div class="session-view">
+            <div class="session-view-header">
+              <button class="back-btn" (click)="closeActivityView()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back
+              </button>
+              <div class="session-view-title">
+                <span class="session-activity-icon">{{ selectedActivity()!.icon }}</span>
+                <h2>{{ selectedActivity()!.name }}</h2>
+              </div>
+              <button class="btn-add-session-header" (click)="openAddSessionModal(selectedActivity()!)">
+                + Add Session
+              </button>
+            </div>
+
+            <div class="sessions-list">
+              @if (selectedActivity()!.sessions.length > 0) {
+                @for (session of selectedActivity()!.sessions; track session.id) {
+                  <div class="session-card">
+                    <div class="session-info">
+                      <div class="session-time-info">
+                        <div class="time-item">
+                          <span class="time-label">Focus:</span>
+                          <span class="time-value">{{ session.focusTimeMinutes }} min</span>
+                        </div>
+                        <div class="time-item">
+                          <span class="time-label">Break:</span>
+                          <span class="time-value">{{ session.breakTimeMinutes }} min</span>
+                        </div>
+                      </div>
+                      @if (session.note) {
+                        <div class="session-note">
+                          <span class="note-label">Note:</span>
+                          <span class="note-text">{{ session.note }}</span>
+                        </div>
+                      }
+                      <div class="session-date">
+                        Created: {{ formatDate(session.createdAt) }}
+                      </div>
+                    </div>
+                    <div class="session-actions">
+                      <button class="session-action-btn start-btn" (click)="startSession(selectedActivity()!, session)">
+                        Start
+                      </button>
+                      <button class="session-action-btn edit-btn" (click)="openEditSessionModal(selectedActivity()!, session)">
+                        Edit
+                      </button>
+                      <button class="session-action-btn delete-btn" (click)="deleteSession(selectedActivity()!, session)">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="no-sessions">
+                  <p>No sessions yet. Click "Add Session" to create one.</p>
                 </div>
-                <h3 class="activity-title-compact">{{ activity.name }}</h3>
-                <p class="activity-meta-compact">Last: {{ activity.lastAccessed }}</p>
-                <div class="card-actions-compact">
-                  <button class="action-btn-compact" (click)="openEditActivityModal(activity)">
-                    Edit
-                  </button>
-                  <button class="action-btn-compact delete-btn" (click)="openDeleteActivityModal(activity)">
-                    Delete
-                  </button>
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- Activities Grid -->
+          <div class="activities-grid">
+            @if (pagedActivities().length > 0) {
+              @for (activity of pagedActivities(); track activity.id) {
+                <div class="activity-card-compact" [ngClass]="getColorClass(activity.colorTag)" (click)="selectActivity(activity)">
+                  <div class="card-header-compact">
+                    <span class="activity-icon">{{ activity.icon }}</span>
+                  </div>
+                  <h3 class="activity-title-compact">{{ activity.name }}</h3>
+                  <p class="activity-meta-compact">Last: {{ activity.lastAccessed }}</p>
+                  <p class="activity-sessions-count">{{ activity.sessions.length }} session{{ activity.sessions.length !== 1 ? 's' : '' }}</p>
+                  <div class="card-actions-compact" (click)="$event.stopPropagation()">
+                    <button class="action-btn-compact add-session-btn" (click)="openAddSessionModal(activity)">
+                      Add Session
+                    </button>
+                    <button class="action-btn-compact" (click)="openEditActivityModal(activity)">
+                      Edit
+                    </button>
+                    <button class="action-btn-compact delete-btn" (click)="openDeleteActivityModal(activity)">
+                      Delete
+                    </button>
+                  </div>
                 </div>
+              }
+            } @else {
+              <div class="no-activities">
+                <p>No activities found matching your search.</p>
               </div>
             }
-          } @else {
-            <div class="no-activities">
-              <p>No activities found matching your search.</p>
-            </div>
-          }
-        </div>
+          </div>
+        }
 
         <!-- Pagination -->
         @if (totalPages() > 1) {

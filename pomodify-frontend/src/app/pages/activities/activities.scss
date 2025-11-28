@@ -187,6 +187,30 @@ $color-yellow: #F39C12;
     color: #ffb3b0;
   }
 
+  .action-btn-compact.add-session-btn {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: $text-white !important;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.25) !important;
+    }
+  }
+
+  .session-view-header,
+  .session-card,
+  .session-action-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .session-view-title h2 {
+    color: #e6eef2 !important;
+  }
+
+  .time-value {
+    color: #e6eef2 !important;
+  }
+
   .btn-new-activity {
     background-color: color.adjust($primary-teal, $lightness: -6%);
     color: $text-white;
@@ -734,6 +758,8 @@ $color-yellow: #F39C12;
   flex: 0 0 auto;
   width: 100%;
   box-sizing: border-box;
+  min-height: 400px;
+  position: relative;
 }
 
 // Activities Grid
@@ -766,6 +792,7 @@ $color-yellow: #F39C12;
   flex-direction: column;
   gap: 12px;
   color: $text-white;
+  cursor: pointer;
   
   &:hover {
     transform: translateY(-2px);
@@ -781,6 +808,13 @@ $color-yellow: #F39C12;
   &.color-yellow {
     background: #5FA9A4;
   }
+}
+
+.activity-sessions-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  text-align: center;
 }
 
 .card-header-compact {
@@ -819,6 +853,7 @@ $color-yellow: #F39C12;
   display: flex;
   gap: 8px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .action-btn-compact {
@@ -834,6 +869,15 @@ $color-yellow: #F39C12;
   
   &:hover {
     background: #1a2227;
+  }
+
+  &.add-session-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: $text-white;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   }
   
   &.delete-btn {
@@ -922,6 +966,270 @@ $color-yellow: #F39C12;
     font-size: 16px;
     margin: 0;
   }
+}
+
+// Session View
+.session-view {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 0;
+  min-height: 400px;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.session-view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(95, 169, 164, 0.3);
+  border: 1px solid rgba(95, 169, 164, 0.5);
+  border-radius: 8px;
+  color: $text-white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: rgba(95, 169, 164, 0.5);
+    border-color: rgba(95, 169, 164, 0.7);
+    transform: translateX(-2px);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.session-view-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+
+  h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: $text-white !important;
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.session-activity-icon {
+  font-size: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+}
+
+.btn-add-session-header {
+  padding: 12px 24px;
+  background: rgba(95, 169, 164, 0.4);
+  border: 1px solid rgba(95, 169, 164, 0.6);
+  border-radius: 8px;
+  color: $text-white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: rgba(95, 169, 164, 0.6);
+    border-color: rgba(95, 169, 164, 0.8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  visibility: visible;
+  opacity: 1;
+}
+
+.session-card {
+  background: rgba(95, 169, 164, 0.3);
+  border: 1px solid rgba(95, 169, 164, 0.5);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background: rgba(95, 169, 164, 0.4);
+    border-color: rgba(95, 169, 164, 0.7);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.session-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-time-info {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.time-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+}
+
+.time-value {
+  font-size: 16px;
+  color: $text-white !important;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.session-date {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500;
+}
+
+.session-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.session-action-btn {
+  padding: 8px 16px;
+  background: rgba(95, 169, 164, 0.3);
+  border: 1px solid rgba(95, 169, 164, 0.5);
+  border-radius: 6px;
+  color: $text-white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: rgba(95, 169, 164, 0.5);
+    border-color: rgba(95, 169, 164, 0.7);
+    transform: translateY(-1px);
+  }
+
+  &.start-btn {
+    background: rgba(82, 201, 124, 0.3);
+    border-color: rgba(82, 201, 124, 0.5);
+    color: #ffffff;
+    font-weight: 600;
+
+    &:hover {
+      background: rgba(82, 201, 124, 0.5);
+      border-color: rgba(82, 201, 124, 0.7);
+      box-shadow: 0 2px 6px rgba(82, 201, 124, 0.4);
+    }
+  }
+
+  &.edit-btn {
+    &:hover {
+      background: rgba(95, 169, 164, 0.6);
+      border-color: $primary-teal;
+      box-shadow: 0 2px 6px rgba(95, 169, 164, 0.4);
+    }
+  }
+
+  &.delete-btn {
+    color: #ffb3b0;
+    background: rgba(231, 76, 60, 0.2);
+    border-color: rgba(231, 76, 60, 0.4);
+
+    &:hover {
+      background: rgba(231, 76, 60, 0.4);
+      border-color: #E74C3C;
+      color: #ff6b6b;
+      box-shadow: 0 2px 6px rgba(231, 76, 60, 0.4);
+    }
+  }
+}
+
+.no-sessions {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(95, 169, 164, 0.2);
+  border: 1px dashed rgba(95, 169, 164, 0.5);
+  border-radius: 12px;
+  margin-top: 20px;
+
+  p {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.session-note {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(95, 169, 164, 0.2);
+  border-left: 3px solid rgba(95, 169, 164, 0.6);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.note-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.5;
+  word-wrap: break-word;
 }
 
   /* Pagination */
@@ -1070,5 +1378,30 @@ $color-yellow: #F39C12;
   .status-cards {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .session-view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .session-view-title {
+    width: 100%;
+  }
+
+  .btn-add-session-header {
+    width: 100%;
+  }
+
+  .session-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .session-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
