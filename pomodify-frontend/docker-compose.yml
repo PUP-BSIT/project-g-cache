@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  pomodify-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pomodify-frontend
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - pomodify-network
+
+networks:
+  pomodify-network:
+    driver: bridge
