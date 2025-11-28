@@ -1,4 +1,4 @@
-<div class="settings-page">
+<div class="report-page">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
@@ -20,7 +20,7 @@
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round"/>
@@ -40,7 +40,7 @@
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon active" routerLink="/settings" routerLinkActive="active"
+      <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
               [routerLinkActiveOptions]="{ exact: true }"
               (click)="onNavIconClick($event, '/settings')">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -55,83 +55,96 @@
         }
       </button>
     </nav>
-
-    <div class="nav-bottom">
-    </div>
   </aside>
 
   <!-- Main Content -->
   <main class="main-content" (click)="onMainContentClick()">
     <!-- Header -->
     <header class="header">
-      <div class="theme-toggle">
-        <button class="theme-btn" (click)="onToggleTheme()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2"/>
-          </svg>
-        </button>
+      <div class="header-title">
+        <h1>Reports</h1>
       </div>
-      <div class="user-profile">
-        <button class="profile-btn" (click)="openProfileModal()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-            <path d="M6 21V19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19V21" stroke="currentColor" stroke-width="2"/>
-          </svg>
-        </button>
+      <div class="header-actions">
+        <div class="theme-toggle">
+          <button class="theme-btn" (click)="onToggleTheme()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                      stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="user-profile">
+          <button class="profile-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+              <path d="M6 21V19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19V21"
+                      stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Settings Content -->
-    <div class="settings-container">
-      <h1 class="settings-title">App Settings</h1>
+    <!-- Report Content -->
+    <div class="report-content">
+      <!-- Help Form -->
+      <section class="help-form">
+        <h1 class="form-title">Help us understand the problem</h1>
 
-      <!-- Notifications & Calendar Sync Section -->
-      <section class="settings-section">
-        <div class="setting-item">
-          <div class="setting-info">
-            <h3 class="setting-label">Notifications</h3>
-          </div>
-          <div class="toggle-switch">
-            <input type="checkbox" id="notifications-toggle" class="toggle-input" [checked]="notificationsEnabled()" (change)="toggleNotifications()">
-            <label for="notifications-toggle" class="toggle-label"></label>
-          </div>
-        </div>
-
-        <div class="setting-item">
-          <div class="setting-info">
-            <h3 class="setting-label">Google Calendar Sync</h3>
-          </div>
-          <div class="toggle-switch">
-            <input type="checkbox" id="calendar-toggle" class="toggle-input" [checked]="calendarSyncEnabled()" (change)="toggleCalendarSync()">
-            <label for="calendar-toggle" class="toggle-label"></label>
-          </div>
-        </div>
-      </section>
-
-      <!-- Data Section -->
-      <section class="settings-section data-section">
-        <h2 class="section-title">Data</h2>
-        <div class="data-buttons">
-          <button class="data-btn export-btn">
-            <span>Export my data</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5V19M12 19L19 12M12 19L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Search Section -->
+        <div class="form-section">
+          <label class="form-label">Search for a solution</label>
+          <div class="search-input-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round"/>
             </svg>
-          </button>
-          <button class="data-btn import-btn">
-            <span>Import data</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5V19M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Trying to reset password">
+          </div>
         </div>
-      </section>
 
-      <!-- Actions Section -->
-      <section class="settings-section actions-section">
-        <div class="action-buttons">
-          <button class="btn btn-delete">Delete my Account</button>
-          <button class="btn btn-save">Save changes</button>
+        <!-- Full Details Section -->
+        <div class="form-section">
+          <label class="form-label">Full Details</label>
+          <textarea 
+            class="details-textarea" 
+            rows="5"
+            placeholder="Please describe the steps you took and what is your expecting to happen"></textarea>
+        </div>
+
+        <!-- Evidence Section -->
+        <div class="form-section">
+          <label class="form-label">Evidence</label>
+          <div class="evidence-container">
+            <div class="upload-area">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                      class="upload-icon">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"
+                        stroke-width="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <div class="upload-text">
+                <div class="upload-title">Drag & Drop Screenshot /</div>
+                <div class="upload-subtitle">Screen Recordings</div>
+              </div>
+            </div>
+            
+            <div class="action-buttons">
+              <button class="btn-action btn-screenshot">Take a Screenshot Now</button>
+              <button class="btn-action btn-record">Record My Screen</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="submit-section">
+          <button class="btn-submit">Send Report</button>
         </div>
       </section>
     </div>

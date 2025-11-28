@@ -40,15 +40,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   height: 100vh;
   max-height: 100vh;
   z-index: 100;
-  overflow-y: auto;
-  overflow-x: hidden;
-  transition: width 0.3s ease, padding 0.3s ease;
-  will-change: width, padding;
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
   
   &.expanded {
     width: 250px;
     align-items: flex-start;
-    padding: 24px 16px;
+    padding: 24px 0;
   }
 }
 
@@ -57,54 +56,58 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-start;
+  position: relative;
   cursor: pointer;
-  padding: 8px 12px;
-  width: 100%;
+  padding: 8px 0;
+  width: 72px;
   box-sizing: border-box;
+  height: 52px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   img {
     display: block;
     width: 36px;
     height: 36px;
     flex-shrink: 0;
-    transition: all 0.2s ease;
-    margin: 0 auto;
+    min-width: 36px;
+    margin-left: 18px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .app-name {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: $text-dark;
     white-space: nowrap;
     opacity: 0;
+    margin-left: 12px;
     transition: opacity 0.2s ease;
-    pointer-events: none;
   }
 }
 
 .sidebar.expanded {
   .logo {
-    padding: 12px 16px;
-    
-    .app-name {
-      opacity: 1;
-      transition-delay: 0.1s;
-      font-size: 20px;
-      font-weight: 700;
-      margin-left: 8px;
-    }
+    width: 250px;
     
     img {
       width: 40px;
       height: 40px;
-      margin: 0;
+      min-width: 40px;
+      margin-left: 16px;
+    }
+    
+    .app-name {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
     }
   }
   
   .sidebar-toggle {
     opacity: 1;
+    transition: opacity 0.3s ease 0.2s;
   }
 }
 
@@ -115,7 +118,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   width: 24px;
   height: 24px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,15 +127,15 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 4px;
   cursor: pointer;
   color: $text-light;
-  transition: all 0.2s ease;
   
   &:hover {
     background: rgba(0, 0, 0, 0.05);
     color: $primary-teal;
+    transition: all 0.2s ease;
   }
   
   svg {
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
   }
 }
 
@@ -141,12 +144,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 16px;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   max-height: calc(100vh - 280px);
-  width: 100%;
-  padding: 0 8px;
+  width: 72px;
   box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &::-webkit-scrollbar {
     width: 4px;
@@ -158,8 +160,12 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
+.sidebar.expanded .nav-icons {
+  width: 250px;
+}
+
 .nav-icon {
-  width: 100%;
+  width: 72px;
   height: 40px;
   border: none;
   background: transparent;
@@ -168,14 +174,37 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
-  transition: all 0.2s ease;
+  justify-content: flex-start;
+  padding: 0;
+  transition: background-color 0.2s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: visible;
+  margin: 0 auto;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 100%;
+    border-radius: 8px;
+    background: transparent;
+    transition: background-color 0.2s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: -1;
+  }
   
   svg {
     flex-shrink: 0;
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    margin-left: 24px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
   }
   
   .nav-text {
@@ -185,29 +214,45 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
-    pointer-events: none;
+    position: relative;
+    z-index: 1;
+  }
+  
+  &:hover::before {
+    background-color: rgba(95, 169, 164, 0.1);
   }
   
   &:hover {
-    background-color: rgba(95, 169, 164, 0.1);
     color: $primary-teal;
   }
   
-  &.active {
+  &.active::before {
     background-color: $primary-teal;
+  }
+  
+  &.active {
     color: $text-white;
   }
 }
 
 .sidebar.expanded {
-  .nav-icon .nav-text {
-    opacity: 1;
-    transition-delay: 0.1s;
-  }
-  
   .nav-icon {
-    justify-content: flex-start;
-    padding: 0 16px;
+    width: 250px;
+    
+    &::before {
+      left: 3%;
+      transform: translateX(0);
+      width: 90%;
+    }
+    
+    svg {
+      margin-left: 16px;
+    }
+    
+    .nav-text {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
+    }
   }
 }
 
@@ -216,15 +261,20 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 8px;
   margin-top: auto;
-  padding: 24px 8px;
+  padding: 24px 0;
   flex-shrink: 0;
-  width: 100%;
+  width: 72px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   .nav-icon {
     margin-bottom: 0;
   }
+}
+
+.sidebar.expanded .nav-bottom {
+  width: 250px;
 }
 
 // Responsive adjustments
@@ -241,17 +291,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   
   .main-content {
     margin-left: 0 !important;
-  }
-}
-
-// Adjust main content when sidebar is expanded
-.main-content {
-  margin-left: 72px;
-  flex: 1;
-  transition: margin-left 0.3s ease;
-  
-  .sidebar.expanded ~ & {
-    margin-left: 250px;
+    width: 100% !important;
   }
 }
 
@@ -262,6 +302,12 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   width: calc(100% - 72px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+.sidebar.expanded ~ .main-content {
+  margin-left: 250px;
+  width: calc(100% - 250px);
 }
 
 .header {
@@ -313,7 +359,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   align-items: center;
   gap: 16px;
   position: relative;
-  z-index: 3; /* keep actions above nearby content */
+  z-index: 3;
 }
 
 .section-title {
@@ -357,105 +403,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-wrap: wrap;
 }
 
-.note-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.btn-edit-activity {
+  display: inline-block;
 }
-
-.btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid rgba(0,0,0,0.08);
-}
-
-.btn-danger {
-  background: #F97316;
-  color: #fff;
-  box-shadow: 0 6px 12px rgba(14, 165, 233, 0.08);
-}
-
-/* Reuse the activities page new activity button style for note buttons */
-/* small variant */
-.btn-new-activity.small {
-  padding: 6px 14px;
-  border-radius: 4px;
-  font-size: 11px;
-  min-width: 72px; /* close match to activities compact buttons */
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-
-/* Dashboard local compact action button to match Activities compact style */
-.action-btn-compact {
-  padding: 6px 14px;
-  background: #263238;
-  border: none;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 72px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.action-btn-compact:hover {
-  background: #1a2227;
-}
-.action-btn-compact.delete-btn {
-  color: #E74C3C; /* same delete color used in activities */
-  background: #263238;
-}
-.action-btn-compact.delete-btn:hover {
-  color: #C0392B;
-  background: #1a2227;
-}
-
-.btn-new-activity {
-  padding: 12px 24px;
-  background-color: $primary-teal;
-  color: $text-white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: $card-shadow;
-}
-
-.section-header .btn-new-activity {
-  min-width: 120px; /* match the activities new activity button */
-}
-
-.btn-new-activity.small.delete {
-  background: #263238; /* use activities compact action button bg */
-  color: #E74C3C; /* match delete coloring in activities page */
-}
-
-.btn-new-activity.small:not(.delete) {
-  background: #263238;
-  color: $text-white;
-}
-.btn-new-activity.small:not(.delete):hover {
-  background: #1a2227;
-  transform: translateY(-2px);
-}
-
-.btn-new-activity.small.delete:hover {
-  background: #1a2227;
-  transform: translateY(-2px);
-}
-.btn-edit-activity { display: inline-block; }
 
 .btn-delete-activity {
-  /* delete button uses primary look but can be customized if needed */
-
   &:hover {
     background-color: #f3f4f6;
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -761,17 +713,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    width: 56px;
-    min-width: 56px;
-    padding: 16px 0;
-  }
-  
-  .main-content {
-    margin-left: 56px;
-    width: calc(100% - 56px);
-  }
-  
   .logo img {
     width: 32px;
     height: 32px;
