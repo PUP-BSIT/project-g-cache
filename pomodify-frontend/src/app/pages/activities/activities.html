@@ -6,13 +6,6 @@
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       <span class="app-name" *ngIf="sidebarExpanded()">Pomodify</span>
     </div>
-    
-    <button class="sidebar-toggle" (click)="toggleSidebar()" [attr.aria-expanded]="sidebarExpanded()" aria-label="Toggle sidebar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path *ngIf="!sidebarExpanded()" d="M9 18l6-6-6-6" />
-        <path *ngIf="sidebarExpanded()" d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavIconClick($event, '/dashboard')">
