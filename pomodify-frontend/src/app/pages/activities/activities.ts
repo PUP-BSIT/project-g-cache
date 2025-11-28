@@ -1,10 +1,14 @@
+// activities.ts
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
-import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
+import {
+  CreateActivityModal,
+  ActivityData,
+} from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
 import { Profile, ProfileData } from '../profile/profile';
@@ -28,16 +32,33 @@ interface Activity {
 })
 export class ActivitiesPage {
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update(expanded => !expanded);
+    this.sidebarExpanded.update((expanded) => !expanded);
   }
 
-  onToggleTheme() { toggleTheme(); }
+  protected onNavIconClick(event: MouseEvent, route: string): void {
+    if (this.router.url === route) {
+      event.preventDefault();
+      this.toggleSidebar();
+      return;
+    }
+  }
+
+  protected onMainContentClick(): void {
+    if (this.sidebarExpanded()) {
+      this.sidebarExpanded.set(false);
+    }
+  }
+
+  onToggleTheme() {
+    toggleTheme();
+  }
 
   // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])
@@ -52,59 +73,59 @@ export class ActivitiesPage {
 
   // --- State ---
   protected readonly activities = signal<Activity[]>([
-    { 
-      id: 'math', 
-      name: 'Study Math', 
-      icon: '📘', 
+    {
+      id: 'math',
+      name: 'Study Math',
+      icon: '📘',
       category: 'Study',
       colorTag: 'teal',
       estimatedHoursPerWeek: 5,
-      lastAccessed: '1 hr ago' 
+      lastAccessed: '1 hr ago',
     },
-    { 
-      id: 'angular', 
-      name: 'Learn Angular', 
-      icon: '{}', 
+    {
+      id: 'angular',
+      name: 'Learn Angular',
+      icon: '{}',
       category: 'Programming',
       colorTag: 'blue',
       estimatedHoursPerWeek: 8,
-      lastAccessed: '2 days ago' 
+      lastAccessed: '2 days ago',
     },
-    { 
-      id: 'design', 
-      name: 'Design Prototype', 
-      icon: '🎨', 
+    {
+      id: 'design',
+      name: 'Design Prototype',
+      icon: '🎨',
       category: 'Design',
       colorTag: 'purple',
       estimatedHoursPerWeek: 6,
-      lastAccessed: '3 days ago' 
+      lastAccessed: '3 days ago',
     },
-    { 
-      id: 'kotlin', 
-      name: 'Learn Kotlin', 
-      icon: '</>', 
+    {
+      id: 'kotlin',
+      name: 'Learn Kotlin',
+      icon: '</>',
       category: 'Programming',
       colorTag: 'orange',
       estimatedHoursPerWeek: 4,
-      lastAccessed: '1 week ago' 
+      lastAccessed: '1 week ago',
     },
-    { 
-      id: 'document', 
-      name: 'Learn Document', 
-      icon: '📄', 
+    {
+      id: 'document',
+      name: 'Learn Document',
+      icon: '📄',
       category: 'Study',
       colorTag: 'green',
       estimatedHoursPerWeek: 3,
-      lastAccessed: '5 days ago' 
+      lastAccessed: '5 days ago',
     },
-    { 
-      id: 'javascript', 
-      name: 'Learn JavaScript', 
-      icon: '</>', 
+    {
+      id: 'javascript',
+      name: 'Learn JavaScript',
+      icon: '</>',
       category: 'Programming',
       colorTag: 'yellow',
       estimatedHoursPerWeek: 7,
-      lastAccessed: '4 days ago' 
+      lastAccessed: '4 days ago',
     },
   ]);
 
@@ -115,9 +136,10 @@ export class ActivitiesPage {
     if (!query) {
       return this.activities();
     }
-    return this.activities().filter(activity =>
-      activity.name.toLowerCase().includes(query) ||
-      activity.category.toLowerCase().includes(query)
+    return this.activities().filter(
+      (activity) =>
+        activity.name.toLowerCase().includes(query) ||
+        activity.category.toLowerCase().includes(query)
     );
   });
 
@@ -179,23 +201,26 @@ export class ActivitiesPage {
   }
 
   protected openCreateActivityModal(): void {
-    this.dialog.open(CreateActivityModal).afterClosed().subscribe((result: ActivityData) => {
-      if (result) {
-        console.log('New activity created:', result);
-        const newActivity: Activity = {
-          id: this.generateId(),
-          name: result.name,
-          icon: '📝',
-          category: result.category || 'General',
-          colorTag: result.colorTag || 'teal',
-          estimatedHoursPerWeek: result.estimatedHoursPerWeek || 1,
-          lastAccessed: 'just now'
-        };
-        this.activities.update(activities => [newActivity, ...activities]);
-        // show the newly created activity on first page
-        this.currentPage.set(1);
-      }
-    });
+    this.dialog
+      .open(CreateActivityModal)
+      .afterClosed()
+      .subscribe((result: ActivityData) => {
+        if (result) {
+          console.log('New activity created:', result);
+          const newActivity: Activity = {
+            id: this.generateId(),
+            name: result.name,
+            icon: '📝',
+            category: result.category || 'General',
+            colorTag: result.colorTag || 'teal',
+            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 1,
+            lastAccessed: 'just now',
+          };
+          this.activities.update((activities) => [newActivity, ...activities]);
+          // show the newly created activity on first page
+          this.currentPage.set(1);
+        }
+      });
   }
 
   protected openEditActivityModal(activity: Activity): void {
@@ -203,33 +228,33 @@ export class ActivitiesPage {
       name: activity.name,
       category: activity.category,
       colorTag: activity.colorTag,
-      estimatedHoursPerWeek: activity.estimatedHoursPerWeek
+      estimatedHoursPerWeek: activity.estimatedHoursPerWeek,
     };
 
-    this.dialog.open(EditActivityModal, { data }).afterClosed().subscribe((updated: ActivityData) => {
-      if (updated) {
-        console.log('Updated activity:', updated);
-        this.activities.update(activities =>
-          activities.map(a => 
-            a.id === activity.id 
-              ? { ...a, ...updated }
-              : a
-          )
-        );
-      }
-    });
+    this.dialog
+      .open(EditActivityModal, { data })
+      .afterClosed()
+      .subscribe((updated: ActivityData) => {
+        if (updated) {
+          console.log('Updated activity:', updated);
+          this.activities.update((activities) =>
+            activities.map((a) => (a.id === activity.id ? { ...a, ...updated } : a))
+          );
+        }
+      });
   }
 
   protected openDeleteActivityModal(activity: Activity): void {
     const data = { id: activity.id, name: activity.name };
-    this.dialog.open(DeleteActivityModal, { data }).afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        console.log('Delete confirmed for', activity.name);
-        this.activities.update(activities =>
-          activities.filter(a => a.id !== activity.id)
-        );
-      }
-    });
+    this.dialog
+      .open(DeleteActivityModal, { data })
+      .afterClosed()
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          console.log('Delete confirmed for', activity.name);
+          this.activities.update((activities) => activities.filter((a) => a.id !== activity.id));
+        }
+      });
   }
 
   protected getColorClass(colorTag: string): string {
@@ -242,15 +267,18 @@ export class ActivitiesPage {
 
   // Profile Modal
   protected openProfileModal(): void {
-    this.dialog.open(Profile, {
-      width: '550px',
-      maxWidth: '90vw',
-      panelClass: 'profile-dialog'
-    }).afterClosed().subscribe((result: ProfileData) => {
-      if (result) {
-        console.log('Profile updated:', result);
-        // TODO: persist profile changes to backend
-      }
-    });
+    this.dialog
+      .open(Profile, {
+        width: '550px',
+        maxWidth: '90vw',
+        panelClass: 'profile-dialog',
+      })
+      .afterClosed()
+      .subscribe((result: ProfileData) => {
+        if (result) {
+          console.log('Profile updated:', result);
+          // TODO: persist profile changes to backend
+        }
+      });
   }
 }

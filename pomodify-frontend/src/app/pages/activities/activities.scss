@@ -1,3 +1,4 @@
+// activities.scss
 // Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
@@ -205,15 +206,14 @@ $color-yellow: #F39C12;
   height: 100vh;
   max-height: 100vh;
   z-index: 100;
-  overflow-y: auto;
-  overflow-x: hidden;
-  transition: width 0.3s ease, padding 0.3s ease;
-  will-change: width, padding;
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
   
   &.expanded {
     width: 250px;
     align-items: flex-start;
-    padding: 24px 16px;
+    padding: 24px 0;
   }
 }
 
@@ -222,54 +222,58 @@ $color-yellow: #F39C12;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-start;
+  position: relative;
   cursor: pointer;
-  padding: 8px 12px;
-  width: 100%;
+  padding: 8px 0;
+  width: 72px;
   box-sizing: border-box;
+  height: 52px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   img {
     display: block;
     width: 36px;
     height: 36px;
     flex-shrink: 0;
-    transition: all 0.2s ease;
-    margin: 0 auto;
+    min-width: 36px;
+    margin-left: 18px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .app-name {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: $text-dark;
     white-space: nowrap;
     opacity: 0;
+    margin-left: 12px;
     transition: opacity 0.2s ease;
-    pointer-events: none;
   }
 }
 
 .sidebar.expanded {
   .logo {
-    padding: 12px 16px;
-    
-    .app-name {
-      opacity: 1;
-      transition-delay: 0.1s;
-      font-size: 20px;
-      font-weight: 700;
-      margin-left: 8px;
-    }
+    width: 250px;
     
     img {
       width: 40px;
       height: 40px;
-      margin: 0;
+      min-width: 40px;
+      margin-left: 16px;
+    }
+    
+    .app-name {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
     }
   }
   
   .sidebar-toggle {
     opacity: 1;
+    transition: opacity 0.3s ease 0.2s;
   }
 }
 
@@ -280,7 +284,7 @@ $color-yellow: #F39C12;
   width: 24px;
   height: 24px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -289,15 +293,15 @@ $color-yellow: #F39C12;
   border-radius: 4px;
   cursor: pointer;
   color: $text-light;
-  transition: all 0.2s ease;
   
   &:hover {
     background: rgba(0, 0, 0, 0.05);
     color: $primary-teal;
+    transition: all 0.2s ease;
   }
   
   svg {
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
   }
 }
 
@@ -306,12 +310,11 @@ $color-yellow: #F39C12;
   flex-direction: column;
   gap: 16px;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   max-height: calc(100vh - 280px);
-  width: 100%;
-  padding: 0 8px;
+  width: 72px;
   box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &::-webkit-scrollbar {
     width: 4px;
@@ -323,8 +326,12 @@ $color-yellow: #F39C12;
   }
 }
 
+.sidebar.expanded .nav-icons {
+  width: 250px;
+}
+
 .nav-icon {
-  width: 100%;
+  width: 72px;
   height: 40px;
   border: none;
   background: transparent;
@@ -333,14 +340,37 @@ $color-yellow: #F39C12;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
-  transition: all 0.2s ease;
+  justify-content: flex-start;
+  padding: 0;
+  transition: background-color 0.2s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: visible;
+  margin: 0 auto;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 100%;
+    border-radius: 8px;
+    background: transparent;
+    transition: background-color 0.2s ease, left 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: -1;
+  }
   
   svg {
     flex-shrink: 0;
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    margin-left: 24px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
   }
   
   .nav-text {
@@ -350,29 +380,45 @@ $color-yellow: #F39C12;
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
-    pointer-events: none;
+    position: relative;
+    z-index: 1;
+  }
+  
+  &:hover::before {
+    background-color: rgba(95, 169, 164, 0.1);
   }
   
   &:hover {
-    background-color: rgba(95, 169, 164, 0.1);
     color: $primary-teal;
   }
   
-  &.active {
+  &.active::before {
     background-color: $primary-teal;
+  }
+  
+  &.active {
     color: $text-white;
   }
 }
 
 .sidebar.expanded {
-  .nav-icon .nav-text {
-    opacity: 1;
-    transition-delay: 0.1s;
-  }
-  
   .nav-icon {
-    justify-content: flex-start;
-    padding: 0 16px;
+    width: 250px;
+    
+    &::before {
+      left: 3%;
+      transform: translateX(0);
+      width: 90%;
+    }
+    
+    svg {
+      margin-left: 16px;
+    }
+    
+    .nav-text {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
+    }
   }
 }
 
@@ -381,99 +427,153 @@ $color-yellow: #F39C12;
   flex-direction: column;
   gap: 8px;
   margin-top: auto;
-  padding: 24px 8px;
+  padding: 24px 0;
   flex-shrink: 0;
-  width: 100%;
+  width: 72px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   .nav-icon {
     margin-bottom: 0;
   }
 }
 
-// Main Content
+.sidebar.expanded .nav-bottom {
+  width: 250px;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease, width 0.3s ease;
+    
+    &.expanded {
+      transform: translateX(0);
+      box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+
+// Main content
 .main-content {
   margin-left: 72px;
   flex: 1;
   display: flex;
   flex-direction: column;
   width: calc(100% - 72px);
-  overflow-x: hidden; /* prevent horizontal scroll from wide grids */
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
-/* When sidebar is expanded shift the main content to match dashboard behavior */
 .sidebar.expanded ~ .main-content {
   margin-left: 250px;
   width: calc(100% - 250px);
-  transition: margin-left 0.28s ease, width 0.28s ease;
 }
 
+// Header
 .header {
   display: flex;
   justify-content: flex-end;
   align-items: center;
   padding: 20px 40px;
+  background: $primary-teal;
+  border-bottom: 1px solid #E0E0E0;
   gap: 16px;
-  background-color: $primary-teal;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
-.theme-btn,
-.profile-btn {
+.theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.theme-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  color: $bg-white;
   width: 40px;
   height: 40px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $text-white;
   transition: all 0.2s ease;
   
   &:hover {
     background: rgba(255, 255, 255, 0.3);
+    color: $bg-light;
+  }
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-btn {
+ background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  color: $bg-white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: $bg-light;
   }
 }
 
 // Page Content
 .page-content {
   flex: 1;
-  padding: 0 40px;
-  box-sizing: border-box;
-  overflow-y: auto;
-  background: $bg-white;
   display: flex;
   flex-direction: column;
+  padding: 40px;
 }
 
-// Page Header Section (White)
+// Page Header Section (White Background)
 .page-header-section {
-  background: $bg-white;
-  padding: 40px;
+  padding: 0 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  padding-top: 32px;
 }
 
 .page-title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   color: $text-dark;
   margin: 0;
 }
 
 .btn-new-activity {
   padding: 12px 24px;
-  background-color: $primary-teal;
-  color: $text-white;
+  background: $primary-teal;
   border: none;
   border-radius: 8px;
+  color: $text-white;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -481,13 +581,9 @@ $color-yellow: #F39C12;
   box-shadow: $card-shadow;
   
   &:hover {
-    background-color: $primary-teal-dark;
-    box-shadow: $card-shadow-hover;
+    background: $primary-teal-dark;
     transform: translateY(-2px);
-  }
-  
-  &:active {
-    transform: translateY(0);
+    box-shadow: $card-shadow-hover;
   }
 }
 
@@ -524,7 +620,6 @@ $color-yellow: #F39C12;
 
 // Activities Container (Teal Background - centered)
 .activities-container {
-  background: $bg-white;
   padding: 32px 40px; /* horizontal padding to align with search */
   flex: 0 0 auto;
   width: 100%;
@@ -643,7 +738,6 @@ $color-yellow: #F39C12;
 
 // Status Section (White Background)
 .status-section {
-  background: $bg-white;
   padding: 40px;
   flex: 1;
   display: flex;
