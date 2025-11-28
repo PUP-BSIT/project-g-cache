@@ -79,6 +79,33 @@ $color-yellow: #F39C12;
     background: $primary-teal;
     color: $text-white;
   }
+
+  .category-title {
+    color: #e6eef2;
+  }
+
+  .category-chip {
+    background: #09121A;
+    border-color: rgba(255,255,255,0.06);
+    color: #cbd5e1;
+
+    &:hover {
+      background: rgba(95, 169, 164, 0.15);
+      border-color: $primary-teal;
+      color: $primary-teal-light;
+    }
+
+    &.active {
+      background: $primary-teal;
+      border-color: $primary-teal;
+      color: $text-white;
+
+      &:hover {
+        background: color.adjust($primary-teal, $lightness: -6%);
+        border-color: color.adjust($primary-teal, $lightness: -6%);
+      }
+    }
+  }
 }
 
 /* Additional targeted fixes requested: make activity cards match status cards, fix search input background, ensure title visible */
@@ -187,6 +214,33 @@ $color-yellow: #F39C12;
     -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
     box-shadow: 0 0 0px 1000px transparent inset !important;
     -webkit-text-fill-color: #e6eef2 !important;
+  }
+
+  .category-title {
+    color: #e6eef2 !important;
+  }
+
+  .category-chip {
+    background: #09121A !important;
+    border-color: rgba(255,255,255,0.06) !important;
+    color: #cbd5e1 !important;
+
+    &:hover {
+      background: rgba(95, 169, 164, 0.15) !important;
+      border-color: $primary-teal !important;
+      color: $primary-teal-light !important;
+    }
+
+    &.active {
+      background: $primary-teal !important;
+      border-color: $primary-teal !important;
+      color: $text-white !important;
+
+      &:hover {
+        background: color.adjust($primary-teal, $lightness: -6%) !important;
+        border-color: color.adjust($primary-teal, $lightness: -6%) !important;
+      }
+    }
   }
 }
 
@@ -598,6 +652,62 @@ $color-yellow: #F39C12;
   gap: 12px;
   max-width: 300px;
   box-shadow: $card-shadow;
+}
+
+// Category Section
+.category-section {
+  padding: 0 40px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+}
+
+.category-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-dark;
+  margin: 0;
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.category-chip {
+  padding: 8px 16px;
+  background: $bg-white;
+  border: 1px solid #E0E0E0;
+  border-radius: 20px;
+  color: $text-dark;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  
+  &:hover {
+    background: rgba(95, 169, 164, 0.1);
+    border-color: $primary-teal;
+    color: $primary-teal;
+  }
+  
+  &.active {
+    background: $primary-teal;
+    border-color: $primary-teal;
+    color: $text-white;
+    
+    &:hover {
+      background: $primary-teal-dark;
+      border-color: $primary-teal-dark;
+    }
+  }
 }
 
 .search-icon {

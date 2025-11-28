@@ -84,6 +84,31 @@
         </div>
       </div>
 
+      <!-- Category Filter Section -->
+      @if (availableCategories().length > 0) {
+        <div class="category-section">
+          <div class="category-header">
+            <h3 class="category-title">Categories</h3>
+          </div>
+          <div class="category-filters">
+            <button 
+              class="category-chip"
+              [class.active]="selectedCategory() === null"
+              (click)="selectCategory(null)">
+              All
+            </button>
+            @for (category of availableCategories(); track category) {
+              <button 
+                class="category-chip"
+                [class.active]="selectedCategory() === category"
+                (click)="selectCategory(category)">
+                {{ category }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       <!-- Activities Container (Teal Background) -->
       <div class="activities-container">
         <!-- Activities Grid -->

@@ -130,17 +130,39 @@ export class ActivitiesPage {
   ]);
 
   protected readonly searchQuery = signal('');
+  protected readonly selectedCategory = signal<string | null>(null);
+
+  // Get unique categories from activities
+  protected readonly availableCategories = computed(() => {
+    const categories = new Set<string>();
+    this.activities().forEach((activity) => {
+      if (activity.category) {
+        categories.add(activity.category);
+      }
+    });
+    return Array.from(categories).sort();
+  });
 
   protected readonly filteredActivities = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    if (!query) {
-      return this.activities();
+    let filtered = this.activities();
+    
+    // Filter by category
+    const category = this.selectedCategory();
+    if (category) {
+      filtered = filtered.filter((activity) => activity.category === category);
     }
-    return this.activities().filter(
-      (activity) =>
-        activity.name.toLowerCase().includes(query) ||
-        activity.category.toLowerCase().includes(query)
-    );
+    
+    // Filter by search query
+    const query = this.searchQuery().toLowerCase();
+    if (query) {
+      filtered = filtered.filter(
+        (activity) =>
+          activity.name.toLowerCase().includes(query) ||
+          activity.category.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
   });
 
   // --- Pagination ---
@@ -182,6 +204,12 @@ export class ActivitiesPage {
   protected onSearchChange(query: string): void {
     this.searchQuery.set(query);
     // when searching, go back to page 1
+    this.currentPage.set(1);
+  }
+
+  protected selectCategory(category: string | null): void {
+    this.selectedCategory.set(category);
+    // when filtering, go back to page 1
     this.currentPage.set(1);
   }
 
