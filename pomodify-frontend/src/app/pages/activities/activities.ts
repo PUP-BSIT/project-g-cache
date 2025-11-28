@@ -7,6 +7,7 @@ import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { Profile, ProfileData } from '../profile/profile';
 
 interface Activity {
   id: string;
@@ -237,5 +238,19 @@ export class ActivitiesPage {
 
   private generateId(): string {
     return 'activity-' + Date.now();
+  }
+
+  // Profile Modal
+  protected openProfileModal(): void {
+    this.dialog.open(Profile, {
+      width: '550px',
+      maxWidth: '90vw',
+      panelClass: 'profile-dialog'
+    }).afterClosed().subscribe((result: ProfileData) => {
+      if (result) {
+        console.log('Profile updated:', result);
+        // TODO: persist profile changes to backend
+      }
+    });
   }
 }

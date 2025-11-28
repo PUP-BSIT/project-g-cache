@@ -9,6 +9,8 @@ import { DeleteActivityModal } from '../../shared/components/delete-activity-mod
 import { CreateNoteModal, NoteData as CreateNoteData } from '../../shared/components/create-note-modal/create-note-modal';
 import { EditNoteModal, NoteData as EditNoteData } from '../../shared/components/edit-note-modal/edit-note-modal';
 import { DeleteNoteModal } from '../../shared/components/delete-note-modal/delete-note-modal';
+import { Profile, ProfileData } from '../profile/profile';
+import { Timer } from '../../shared/services/timer';
 
 interface Activity {
   id: string;
@@ -26,9 +28,20 @@ interface Activity {
 })
 export class Dashboard {
   private dialog = inject(MatDialog);
+  private timer = inject(Timer);
+
+  // Visual alert for timer completion
+  protected showCompletionAlert = signal(false);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+
+  constructor() {
+    // Set up the completion callback.
+    this.timer.setOnComplete(() => {
+      this.onTimerComplete();
+    });
+  }
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -61,9 +74,10 @@ export class Dashboard {
     this.activities().find(a => a.id === this.selectedActivityId()) ?? this.activities()[0]
   );
 
-  protected readonly focusTime = signal('25:00');
-  protected readonly isTimerRunning = signal(false);
-  protected readonly isPaused = signal(false);
+  // Timer state is provided by the Timer service.
+  protected readonly focusTime = computed(() => this.formatTime(this.timer.remainingSeconds()));
+  protected readonly isTimerRunning = this.timer.isRunning;
+  protected readonly isPaused = this.timer.isPaused;
 
   protected readonly currentStreak = signal(4);
   protected readonly todayFocusHours = signal(3);
@@ -75,20 +89,18 @@ export class Dashboard {
   }
 
   protected playTimer(): void {
-    this.isTimerRunning.set(true);
-    this.isPaused.set(false);
+    // Start or resume the countdown.
+    this.timer.start();
   }
 
   protected pauseTimer(): void {
-    if (!this.isTimerRunning()) {
-      return;
-    }
-    this.isPaused.set(true);
+    // Pause the countdown but keep the remaining time.
+    this.timer.pause();
   }
 
   protected stopTimer(): void {
-    this.isTimerRunning.set(false);
-    this.isPaused.set(false);
+    // Stop and reset the countdown back to 25:00.
+    this.timer.stop();
   }
 
   protected openCreateActivityModal(): void {
@@ -160,6 +172,72 @@ export class Dashboard {
       if (confirmed) {
         console.log('Delete confirmed for', sample);
         // TODO: remove from notes and call backend
+      }
+    });
+  }
+
+  // Format seconds as MM:SS for display in the circle.
+  private formatTime(totalSeconds: number): string {
+    const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  }
+
+  // Called when the timer reaches zero.
+  private onTimerComplete(): void {
+    // Play a completion sound.
+    this.playCompletionSound();
+
+    // Show visual alert.
+    this.showCompletionAlert.set(true);
+
+    // Hide alert after 5 seconds.
+    setTimeout(() => {
+      this.showCompletionAlert.set(false);
+    }, 5000);
+  }
+
+  // Play a simple beep sound when timer completes.
+  private playCompletionSound(): void {
+    try {
+      // Create a simple audio context beep.
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      // Pleasant notification tone.
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+
+      // Fade out.
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 1);
+    } catch (error) {
+      console.warn('Unable to play completion sound:', error);
+    }
+  }
+
+  // Dismiss the completion alert manually.
+  protected dismissAlert(): void {
+    this.showCompletionAlert.set(false);
+  }
+
+  // --- Profile Modal ---
+  protected openProfileModal(): void {
+    this.dialog.open(Profile, {
+      width: '550px',
+      maxWidth: '90vw',
+      panelClass: 'profile-dialog'
+    }).afterClosed().subscribe((result: ProfileData) => {
+      if (result) {
+        console.log('Profile updated:', result);
+        // TODO: persist profile changes to backend
       }
     });
   }

@@ -1,0 +1,292 @@
+<div class="profile-modal">
+  <!-- Header -->
+  <div class="modal-header">
+    <h2>Profile Settings</h2>
+    <button class="close-btn" (click)="onClose()" aria-label="Close profile">
+      ✕
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="modal-content">
+    <!-- Profile Picture Section -->
+    <div class="profile-picture-section">
+      <div class="avatar-container">
+        <img [src]="profileImage()" alt="Profile picture" class="avatar" />
+        <button class="edit-avatar-btn" (click)="triggerImageUpload()" aria-label="Change profile picture">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+        <input 
+          type="file" 
+          id="profile-image-input" 
+          accept="image/*" 
+          (change)="onImageUpload($event)"
+          style="display: none;"
+        />
+      </div>
+      <div class="profile-info-header">
+        <h3>{{ userName() }}</h3>
+        <p class="email-text">{{ userEmail() }}</p>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Name Section -->
+    <div class="form-section">
+      <label class="section-label">Name</label>
+      <form [formGroup]="profileForm" class="inline-form">
+        <input 
+          type="text" 
+          formControlName="name" 
+          class="form-input"
+          placeholder="Enter your name"
+        />
+        <button 
+          type="button"
+          class="btn-save-inline"
+          (click)="updateName()"
+          [disabled]="profileForm.invalid || profileForm.pristine"
+        >
+          Save
+        </button>
+      </form>
+    </div>
+
+    <!-- Email Section (Read-only) -->
+    <div class="form-section">
+      <label class="section-label">Email account</label>
+      <div class="email-display">
+        <input 
+          type="text" 
+          [value]="userEmail()" 
+          class="form-input"
+          disabled
+        />
+        <span class="info-badge">Not editable</span>
+      </div>
+    </div>
+
+    <!-- Backup Email Section -->
+    <div class="form-section">
+      <div class="section-header-row">
+        <label class="section-label">Backup Email</label>
+        @if (!backupEmail()) {
+          <button class="btn-add-link" (click)="toggleBackupEmailForm()">
+            + Add backup email
+          </button>
+        }
+      </div>
+      
+      @if (backupEmail()) {
+        <form [formGroup]="backupEmailForm" class="inline-form">
+          <input 
+            type="email" 
+            formControlName="backupEmail" 
+            [value]="backupEmail()"
+            class="form-input"
+            placeholder="Email address"
+            autocomplete="off"
+          />
+          <button 
+            type="button"
+            class="btn-save-inline"
+            (click)="updateBackupEmail()"
+            [disabled]="backupEmailForm.invalid || backupEmailForm.pristine"
+          >
+            Update
+          </button>
+        </form>
+      }
+
+      @if (showBackupEmailForm() && !backupEmail()) {
+        <form [formGroup]="backupEmailForm" class="backup-email-form">
+          <input 
+            type="email" 
+            formControlName="backupEmail" 
+            class="form-input"
+            placeholder="Email address"
+            autocomplete="off"
+          />
+          <div class="form-actions-inline">
+            <button 
+              type="button"
+              class="btn-secondary-small"
+              (click)="toggleBackupEmailForm()"
+            >
+              Cancel
+            </button>
+            <button 
+              type="button"
+              class="btn-primary-small"
+              (click)="saveBackupEmail()"
+              [disabled]="backupEmailForm.invalid"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      }
+      
+      <p class="helper-text">
+        This email will be used for account recovery if you lose access to your primary email
+      </p>
+    </div>
+
+    <!-- Password Section -->
+    <div class="form-section">
+      <label class="section-label">Password</label>
+      
+      @if (!showPasswordVerification()) {
+        <div class="password-display">
+          <input 
+            type="password" 
+            value="••••••••••••" 
+            class="form-input"
+            disabled
+          />
+          <button 
+            class="btn-change-password"
+            (click)="requestPasswordChange()"
+          >
+            Change Password
+          </button>
+        </div>
+      }
+
+      <!-- Password Verification Flow -->
+      @if (showPasswordVerification()) {
+        <div class="verification-container">
+          <!-- Step 1: Verification Code -->
+          @if (!isVerificationValid()) {
+            <div class="verification-step">
+              <div class="verification-info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4b9fa8" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <p>We've sent a verification code to <strong>{{ userEmail() }}</strong></p>
+              </div>
+              
+              <form [formGroup]="verificationForm" class="verification-form">
+                <div class="code-input-group">
+                  <input 
+                    type="text" 
+                    formControlName="code" 
+                    class="form-input code-input"
+                    placeholder="000000"
+                    maxlength="6"
+                    autocomplete="off"
+                  />
+                  <div class="timer-badge">
+                    {{ verificationTimer() }}s
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button 
+                    type="button"
+                    class="btn-secondary"
+                    (click)="cancelPasswordChange()"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    class="btn-primary"
+                    (click)="verifyCode()"
+                    [disabled]="verificationForm.invalid"
+                  >
+                    Verify Code
+                  </button>
+                </div>
+              </form>
+              
+              <p class="demo-note">
+                <strong>Demo:</strong> Use code <code>123456</code> to verify
+              </p>
+            </div>
+          }
+
+          <!-- Step 2: Change Password Form -->
+          @if (isVerificationValid()) {
+            <div class="password-change-step">
+              <div class="success-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                <span>Verified</span>
+              </div>
+              
+              <form [formGroup]="passwordForm" class="password-form">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input 
+                    type="password" 
+                    formControlName="currentPassword" 
+                    class="form-input"
+                    placeholder="Current password"
+                    autocomplete="current-password"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input 
+                    type="password" 
+                    formControlName="newPassword" 
+                    class="form-input"
+                    placeholder="New password (min 8 chars)"
+                    autocomplete="new-password"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <input 
+                    type="password" 
+                    formControlName="confirmPassword" 
+                    class="form-input"
+                    placeholder="Re-enter new password"
+                    autocomplete="new-password"
+                  />
+                </div>
+                
+                <div class="form-actions">
+                  <button 
+                    type="button"
+                    class="btn-secondary"
+                    (click)="cancelPasswordChange()"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    class="btn-primary"
+                    (click)="submitPasswordChange()"
+                    [disabled]="passwordForm.invalid"
+                  >
+                    Update Password
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="modal-footer">
+    <button class="btn-cancel-modal" (click)="onClose()">
+      Cancel
+    </button>
+    <button class="btn-save-modal" (click)="onSaveChanges()">
+      Save Changes
+    </button>
+  </div>
+</div>

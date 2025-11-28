@@ -1,8 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
+import { Profile, ProfileData } from '../profile/profile';
 
 @Component({
   selector: 'app-help',
@@ -12,6 +14,8 @@ import { toggleTheme } from '../../shared/theme';
   styleUrls: ['./help.scss'],
 })
 export class HelpPage {
+  private dialog = inject(MatDialog);
+  
   // mimic settings page sidebar behavior
   private _expanded = signal(true);
   sidebarExpanded = this._expanded.asReadonly();
@@ -135,5 +139,19 @@ export class HelpPage {
     } finally {
       this.submitting = false;
     }
+  }
+
+  // Profile Modal
+  openProfileModal(): void {
+    this.dialog.open(Profile, {
+      width: '550px',
+      maxWidth: '90vw',
+      panelClass: 'profile-dialog'
+    }).afterClosed().subscribe((result: ProfileData) => {
+      if (result) {
+        console.log('Profile updated:', result);
+        // TODO: persist profile changes to backend
+      }
+    });
   }
 }
