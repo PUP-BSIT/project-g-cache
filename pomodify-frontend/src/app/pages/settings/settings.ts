@@ -3,6 +3,7 @@ import { Component, computed, signal, HostListener, inject } from '@angular/core
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-settings',
@@ -56,5 +57,22 @@ export class Settings {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
     }
+  }
+
+  // Open profile modal using MatDialog to match other pages
+  protected openProfileModal(): void {
+    this.dialog
+      .open(Profile, {
+        width: '550px',
+        maxWidth: '90vw',
+        panelClass: 'profile-dialog',
+      })
+      .afterClosed()
+      .subscribe((result: ProfileData) => {
+        if (result) {
+          console.log('Profile updated:', result);
+          // TODO: persist profile changes to backend
+        }
+      });
   }
 }
