@@ -38,15 +38,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   height: 100vh;
   max-height: 100vh;
   z-index: 100;
-  overflow-y: auto;
-  overflow-x: hidden;
-  transition: width 0.3s ease, padding 0.3s ease;
-  will-change: width, padding;
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
   
   &.expanded {
     width: 250px;
     align-items: flex-start;
-    padding: 24px 16px;
+    padding: 24px 0;
   }
 }
 
@@ -55,54 +54,58 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  justify-content: flex-start;
+  position: relative;
   cursor: pointer;
-  padding: 8px 12px;
-  width: 100%;
+  padding: 8px 0;
+  width: 72px;
   box-sizing: border-box;
+  height: 52px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   img {
     display: block;
     width: 36px;
     height: 36px;
     flex-shrink: 0;
-    transition: all 0.2s ease;
-    margin: 0 auto;
+    min-width: 36px;
+    margin-left: 18px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .app-name {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 20px;
+    font-weight: 700;
     color: $text-dark;
     white-space: nowrap;
     opacity: 0;
+    margin-left: 12px;
     transition: opacity 0.2s ease;
-    pointer-events: none;
   }
 }
 
 .sidebar.expanded {
   .logo {
-    padding: 12px 16px;
-    
-    .app-name {
-      opacity: 1;
-      transition-delay: 0.1s;
-      font-size: 20px;
-      font-weight: 700;
-      margin-left: 8px;
-    }
+    width: 250px;
     
     img {
       width: 40px;
       height: 40px;
-      margin: 0;
+      min-width: 40px;
+      margin-left: 16px;
+    }
+    
+    .app-name {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
     }
   }
   
   .sidebar-toggle {
     opacity: 1;
+    transition: opacity 0.3s ease 0.2s;
   }
 }
 
@@ -113,7 +116,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   width: 24px;
   height: 24px;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -122,15 +125,15 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 4px;
   cursor: pointer;
   color: $text-light;
-  transition: all 0.2s ease;
   
   &:hover {
     background: rgba(0, 0, 0, 0.05);
     color: $primary-teal;
+    transition: all 0.2s ease;
   }
   
   svg {
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
   }
 }
 
@@ -139,12 +142,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 16px;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   max-height: calc(100vh - 280px);
-  width: 100%;
-  padding: 0 8px;
+  width: 72px;
   box-sizing: border-box;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &::-webkit-scrollbar {
     width: 4px;
@@ -156,8 +158,12 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
+.sidebar.expanded .nav-icons {
+  width: 250px;
+}
+
 .nav-icon {
-  width: 100%;
+  width: 72px;
   height: 40px;
   border: none;
   background: transparent;
@@ -166,14 +172,19 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
-  transition: all 0.2s ease;
+  justify-content: flex-start;
+  padding: 0;
+  transition: background-color 0.2s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  overflow: hidden;
   
   svg {
     flex-shrink: 0;
     width: 24px;
     height: 24px;
+    min-width: 24px;
+    margin-left: 24px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .nav-text {
@@ -183,7 +194,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
-    pointer-events: none;
   }
   
   &:hover {
@@ -198,14 +208,17 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .sidebar.expanded {
-  .nav-icon .nav-text {
-    opacity: 1;
-    transition-delay: 0.1s;
-  }
-  
   .nav-icon {
-    justify-content: flex-start;
-    padding: 0 16px;
+    width: 250px;
+    
+    svg {
+      margin-left: 16px;
+    }
+    
+    .nav-text {
+      opacity: 1;
+      transition: opacity 0.3s ease 0.2s;
+    }
   }
 }
 
@@ -214,15 +227,20 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 8px;
   margin-top: auto;
-  padding: 24px 8px;
+  padding: 24px 0;
   flex-shrink: 0;
-  width: 100%;
+  width: 72px;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   margin-bottom: 24px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   .nav-icon {
     margin-bottom: 0;
   }
+}
+
+.sidebar.expanded .nav-bottom {
+  width: 250px;
 }
 
 // Main content
@@ -232,11 +250,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   width: calc(100% - 72px);
-  transition: margin-left 0.3s ease;
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .sidebar.expanded ~ .main-content {
   margin-left: 250px;
+  width: calc(100% - 250px);
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .header {
