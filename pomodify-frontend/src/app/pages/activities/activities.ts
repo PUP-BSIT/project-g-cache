@@ -64,11 +64,6 @@ export class ActivitiesPage implements OnInit {
     }
   }
 
-  protected onMainContentClick(): void {
-    // Don't collapse sidebar when clicking main content
-    // Sidebar should stay expanded
-  }
-
   onToggleTheme() {
     toggleTheme();
   }

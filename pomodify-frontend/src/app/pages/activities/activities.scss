@@ -795,10 +795,24 @@ $color-yellow: #F39C12;
   gap: 12px;
   color: $text-white;
   cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
+  font-family: inherit;
   
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
   }
   
   // All cards same teal color
