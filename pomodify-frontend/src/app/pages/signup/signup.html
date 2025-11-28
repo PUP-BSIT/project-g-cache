@@ -26,6 +26,28 @@
     </div>
 
     <form class="signup-form" (ngSubmit)="onSubmit()">
+      <div *ngIf="errorMessage" class="form-error">{{ errorMessage }}</div>
+      <div class="form-group">
+        <input
+          type="text"
+          id="firstName"
+          name="firstName"
+          [(ngModel)]="firstName"
+          required
+          placeholder="First Name"
+        />
+      </div>
+
+      <div class="form-group">
+        <input
+          type="text"
+          id="lastName"
+          name="lastName"
+          [(ngModel)]="lastName"
+          required
+          placeholder="Last Name"
+        />
+      </div>
       <div class="form-group">
         <input
           type="email"
@@ -59,7 +81,7 @@
         />
       </div>
 
-      <button type="submit" class="btn-signup">Sign Up</button>
+      <button type="submit" class="btn-signup" [disabled]="isLoading">Sign Up</button>
 
       <p class="login-text">
         Already have an account?
