@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, computed, signal, HostListener, inject, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import {
@@ -35,11 +35,13 @@ interface Activity {
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
   private timer = inject(Timer);
   // Router for route-aware sidebar clicks
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private readonly STORAGE_KEY = 'pomodify-activities';
 
   // Visual alert for timer completion
   protected showCompletionAlert = signal(false);
@@ -52,6 +54,95 @@ export class Dashboard {
     this.timer.setOnComplete(() => {
       this.onTimerComplete();
     });
+  }
+
+  ngOnInit(): void {
+    // Load activities first
+    this.loadActivitiesFromStorage();
+    
+    // Check for query params to select activity
+    this.route.queryParams.subscribe(params => {
+      this.handleQueryParams(params);
+    });
+  }
+
+  private handleQueryParams(params: any): void {
+    // Set timer if session info is provided (can be done immediately)
+    if (params['focusTime']) {
+      const focusTime = parseInt(params['focusTime'], 10);
+      if (!isNaN(focusTime) && focusTime > 0) {
+        // Set timer duration (in minutes)
+        this.timer.setDuration(focusTime);
+      }
+    }
+
+    // Handle activity selection (need to wait for activities to be loaded)
+    if (params['activityId']) {
+      const activityId = params['activityId'];
+      const activities = this.activities();
+      
+      // If activities are already loaded, select immediately
+      if (activities.length > 0) {
+        const activityExists = activities.some((a: Activity) => a.id === activityId);
+        if (activityExists) {
+          this.selectActivity(activityId);
+        }
+      } else {
+        // If activities not loaded yet, wait a bit and try again
+        setTimeout(() => {
+          const loadedActivities = this.activities();
+          if (loadedActivities.length > 0) {
+            const activityExists = loadedActivities.some((a: Activity) => a.id === activityId);
+            if (activityExists) {
+              this.selectActivity(activityId);
+            }
+          }
+        }, 100);
+      }
+    }
+  }
+
+  private loadActivitiesFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Map to dashboard Activity format (simpler structure)
+        const dashboardActivities: Activity[] = parsed.map((a: any) => ({
+          id: a.id,
+          name: a.name,
+          icon: a.icon,
+          lastAccessed: a.lastAccessed
+        }));
+        this.activities.set(dashboardActivities);
+        // Set default selected if activities exist and none is selected
+        if (dashboardActivities.length > 0) {
+          const currentSelected = this.selectedActivityId();
+          if (!currentSelected || !dashboardActivities.some((a: Activity) => a.id === currentSelected)) {
+            this.selectedActivityId.set(dashboardActivities[0].id);
+          }
+        }
+      } else {
+        // Fallback to default activities if nothing in storage
+        this.activities.set([
+          { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
+          { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
+          { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
+          { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
+        ]);
+        this.selectedActivityId.set('math');
+      }
+    } catch (error) {
+      console.error('Error loading activities from storage:', error);
+      // Fallback to default activities
+      this.activities.set([
+        { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
+        { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
+        { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
+        { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
+      ]);
+      this.selectedActivityId.set('math');
+    }
   }
 
   // Toggle sidebar
@@ -74,18 +165,18 @@ export class Dashboard {
     }
   }
   // --- State ---
-  protected readonly activities = signal<Activity[]>([
-    { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
-    { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
-    { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
-    { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
-  ]);
+  protected readonly activities = signal<Activity[]>([]);
 
-  protected readonly selectedActivityId = signal('math');
+  protected readonly selectedActivityId = signal<string>('');
 
-  protected readonly currentActivity = computed(
-    () => this.activities().find((a) => a.id === this.selectedActivityId()) ?? this.activities()[0]
-  );
+  protected readonly currentActivity = computed(() => {
+    const activities = this.activities();
+    const selectedId = this.selectedActivityId();
+    if (activities.length === 0) {
+      return null;
+    }
+    return activities.find((a) => a.id === selectedId) ?? activities[0];
+  });
 
   // Timer state is provided by the Timer service.
   protected readonly focusTime = computed(() => this.formatTime(this.timer.remainingSeconds()));

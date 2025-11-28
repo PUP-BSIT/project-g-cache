@@ -1,0 +1,98 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Add Session</h2>
+    <button class="close-btn" (click)="onCancel()">✕</button>
+  </div>
+
+  <form [formGroup]="sessionForm" class="modal-form">
+    <!-- Focus Time -->
+    <div class="form-group">
+      <label for="focusTime" class="label-required">Focus Time<span class="required">*</span></label>
+      <div class="time-presets">
+        @for (preset of focusTimePresets; track preset) {
+          <button
+            type="button"
+            class="preset-btn"
+            [class.selected]="sessionForm.get('focusTimeMinutes')?.value === preset"
+            (click)="selectFocusTime(preset)">
+            {{ preset }} min
+          </button>
+        }
+      </div>
+      <div class="custom-time-input">
+        <input
+          id="focusTime"
+          type="number"
+          formControlName="focusTimeMinutes"
+          class="form-input time-input"
+          min="25"
+          max="120"
+          placeholder="Custom minutes"
+        />
+        <span class="time-label">minutes</span>
+      </div>
+      @if (sessionForm.get('focusTimeMinutes')?.invalid && sessionForm.get('focusTimeMinutes')?.touched) {
+        <div class="error-message">
+          Focus time must be between 25 and 120 minutes
+        </div>
+      }
+    </div>
+
+    <!-- Break Time -->
+    <div class="form-group">
+      <label for="breakTime" class="label-required">Break Time<span class="required">*</span></label>
+      <div class="time-presets">
+        @for (preset of breakTimePresets; track preset) {
+          <button
+            type="button"
+            class="preset-btn"
+            [class.selected]="sessionForm.get('breakTimeMinutes')?.value === preset"
+            (click)="selectBreakTime(preset)">
+            {{ preset }} min
+          </button>
+        }
+      </div>
+      <div class="custom-time-input">
+        <input
+          id="breakTime"
+          type="number"
+          formControlName="breakTimeMinutes"
+          class="form-input time-input"
+          min="5"
+          max="60"
+          placeholder="Custom minutes"
+        />
+        <span class="time-label">minutes</span>
+      </div>
+      @if (sessionForm.get('breakTimeMinutes')?.invalid && sessionForm.get('breakTimeMinutes')?.touched) {
+        <div class="error-message">
+          Break time must be between 5 and 60 minutes
+        </div>
+      }
+    </div>
+
+    <!-- Note (Optional) -->
+    <div class="form-group">
+      <label for="note">Note (Optional)</label>
+      <textarea
+        id="note"
+        formControlName="note"
+        class="form-input note-input"
+        rows="3"
+        placeholder="Add a note about this session..."
+      ></textarea>
+    </div>
+  </form>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button
+      class="btn btn-primary"
+      (click)="onAddSession()"
+      [disabled]="sessionForm.invalid"
+    >
+      Add Session
+    </button>
+  </div>
+</div>
+
