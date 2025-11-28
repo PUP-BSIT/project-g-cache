@@ -3,49 +3,65 @@ package com.pomodify.backend.domain.model;
 import com.pomodify.backend.domain.valueobject.Email;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Builder
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(
         name = "app_user",
         uniqueConstraints = {
-                @UniqueConstraint(name = "unique_username", columnNames = "username"),
-                @UniqueConstraint(name = "unique_email", columnNames = "email"),
-        })
+                @UniqueConstraint(name = "unique_email", columnNames = "email")
+        }
+)
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username", nullable = false, unique = true)
-    private String username;
+    // ──────────────── Core ────────────────
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "email"))
+            @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
     })
     private Email email;
 
-    @Builder.Default
+    // ──────────────── State ────────────────
     @Column(name = "is_email_verified", nullable = false)
+    @Builder.Default
     private boolean isEmailVerified = false;
 
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
+    // ──────────────── Relationships ────────────────
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Category> categories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Activity> activities = new ArrayList<>();
+
+    // ──────────────── Timestamps ────────────────
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -54,124 +70,82 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-     @Builder.Default
-     private List<Activity> activities = new ArrayList<>();
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private boolean isDeleted = false;
-
-    // Domain methods for managing activities (aggregate boundary)
-
-    /**
-     * Add a new activity to this user's activity list.
-     * Maintains bidirectional relationship consistency.
-     */
-    public void addActivity(Activity activity) {
-        if (activity == null) {
-            throw new IllegalArgumentException("Activity cannot be null");
-        }
-        activities.add(activity);
-        activity.setUser(this);
-    }
-
-    /**
-     * Soft delete an activity owned by this user.
-     * Marks the activity as deleted without physically removing it from the database.
-     */
-    public void deleteActivity(Activity activity) {
-        if (activity == null) {
-            throw new IllegalArgumentException("Activity cannot be null");
-        }
-        if (!activities.contains(activity)) {
-            throw new IllegalStateException("Activity does not belong to this user");
-        }
-        activity.setDeleted(true);
-    }
-
-    /**
-     * Restore a soft-deleted activity owned by this user.
-     * Marks the activity as active again.
-     */
-    public void restoreActivity(Activity activity) {
-        if (activity == null) {
-            throw new IllegalArgumentException("Activity cannot be null");
-        }
-        if (!activities.contains(activity)) {
-            throw new IllegalStateException("Activity does not belong to this user");
-        }
-        activity.setDeleted(false);
-    }
-
-    /**
-     * Get only active (non-deleted) activities.
-     * Domain query method.
-     */
-    public List<Activity> getActiveActivities() {
-        return activities.stream()
-                .filter(activity -> !activity.isDeleted())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get activities scheduled for a specific date.
-     */
-    public List<Activity> getActivitiesScheduledOn(LocalDate date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Date cannot be null");
-        }
-        return activities.stream()
-                .filter(activity -> !activity.isDeleted())
-                .filter(activity -> activity.getScheduledAt() != null && activity.getScheduledAt().toLocalDate().isEqual(date))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Count active activities for this user.
-     */
-    public long countActiveActivities() {
-        return activities.stream()
-                .filter(activity -> !activity.isDeleted())
-                .count();
-    }
-
-    /**
-     * Verify the user's email.
-     * Domain operation.
-     */
+    // ──────────────── Domain Logic ────────────────
     public void verifyEmail() {
+        ensureActive();
         this.isEmailVerified = true;
     }
 
-    /**
-     * Soft delete this user.
-     * Domain operation.
-     */
-    public void delete() {
-        this.isDeleted = true;
-        // Optionally cascade soft delete to all activities
-        activities.forEach(activity -> activity.setDeleted(true));
-    }
-
-    /**
-     * Check if user is active (not deleted).
-     */
-    public boolean isActive() {
-        return !isDeleted;
-    }
-
-    /**
-     * Update user's email.
-     * When email changes, verification should be reset.
-     */
     public void updateEmail(Email newEmail) {
-        if (newEmail == null) {
+        ensureActive();
+        if (newEmail == null)
             throw new IllegalArgumentException("Email cannot be null");
-        }
-        if (!this.email.equals(newEmail)) {
+
+        if (!newEmail.equals(this.email)) {
             this.email = newEmail;
             this.isEmailVerified = false;
         }
+    }
+
+    public void deactivate() {
+        this.isActive = false;
+    }
+
+    // ──────────────── Category Operations ────────────────
+    public Category createCategory(String name) {
+        ensureActive();
+        if (name == null || name.trim().isEmpty())
+            throw new IllegalArgumentException("Category name cannot be null or empty");
+
+        Category category = Category.create(name.trim(), this);
+        this.categories.add(category);
+        return category;
+    }
+
+    public Category deleteCategory(Category category) {
+        ensureActive();
+        if (category == null)
+            throw new IllegalArgumentException("Category cannot be null");
+
+        return category.delete();
+    }
+
+    public void changeCategoryName(String newName, Category category) {
+        ensureActive();
+        if (category == null)
+            throw new IllegalArgumentException("Category cannot be null");
+
+        category.updateName(newName);
+    }
+
+    // ──────────────── Activity Operations ────────────────
+    public Activity createActivity(String title, String description, Category category) {
+        ensureActive();
+        Activity activity = Activity.create(title, description, this, category);
+        this.activities.add(activity);
+        return activity;
+    }
+
+    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory) {
+        ensureActive();
+        if (activityToUpdate == null)
+            throw new IllegalArgumentException("Activity cannot be null");
+
+        activityToUpdate.updateDetails(newTitle, newDescription, newCategory);
+        return activityToUpdate;
+    }
+
+    public Activity deleteActivity(Activity activity) {
+        ensureActive();
+        if (activity == null)
+            throw new IllegalArgumentException("Activity cannot be null");
+
+        return activity.delete(activity.getId());
+    }
+
+    // ──────────────── Guards ────────────────
+    private void ensureActive() {
+        if (!this.isActive)
+            throw new IllegalStateException("Inactive user cannot perform operations");
     }
 }

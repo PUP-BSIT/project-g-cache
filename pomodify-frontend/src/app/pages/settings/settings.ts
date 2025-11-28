@@ -2,15 +2,18 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
+import { Profile, ProfileData } from '../profile/profile';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './settings.html',
-  styleUrl: './settings.scss',
+  styleUrls: ['./settings.scss'],
 })
 export class Settings {
+  private dialog = inject(MatDialog);
+  
   // Sidebar state
   protected sidebarExpanded = signal(true);
 

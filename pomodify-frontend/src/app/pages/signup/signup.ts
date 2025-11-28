@@ -9,7 +9,7 @@ import { Auth } from '../../core/services/auth';
   selector: 'app-signup',
   imports: [CommonModule, FormsModule],
   templateUrl: './signup.html',
-  styleUrl: './signup.scss',
+  styleUrls: ['./signup.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Signup {

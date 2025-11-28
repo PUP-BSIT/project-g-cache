@@ -7,7 +7,7 @@ import { Auth } from '../../core/services/auth';
   selector: 'app-login',
   imports: [FormsModule],
   templateUrl: './login.html',
-  styleUrl: './login.scss',
+  styleUrls: ['./login.scss'],
 })
 export class Login {
   email: string = '';

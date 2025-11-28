@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './footer.html',
-  styleUrl: './footer.scss',
+  styleUrls: ['./footer.scss'],
 })
 export class Footer {
   public get year(): number {

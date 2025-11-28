@@ -20,7 +20,7 @@
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
           <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round"/>
@@ -73,7 +73,7 @@
         </button>
       </div>
       <div class="user-profile">
-        <button class="profile-btn">
+        <button class="profile-btn" (click)="openProfileModal()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
             <path d="M6 21V19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19V21"
@@ -89,10 +89,14 @@
         <div class="section-header">
           <h2 class="section-title">Recent activities</h2>
           <div class="section-actions">
-            <button class="btn-create-activity" (click)="openCreateActivityModal()">+ New Activity</button>
-            <button class="btn-create-activity btn-edit-activity" (click)="openEditActivityModal()">Edit Activity</button>
-            <button class="btn-create-activity btn-delete-activity" (click)="openDeleteActivityModal()">Delete Activity</button>
+            <!-- Create Note button matches Activities page style -->
+            <button class="btn-new-activity" (click)="openCreateNoteModal()">Create Note</button>
+            <div class="note-actions">
+              <button class="action-btn-compact" (click)="openEditNoteModal()">Edit Note</button>
+                <button class="action-btn-compact delete-btn" (click)="openDeleteNoteModal()">Delete Note</button>
+            </div>
           </div>
+        
         </div>
         <div class="activities-list">
           @for (activity of activities(); track activity.id) {
@@ -109,6 +113,7 @@
           }
         </div>
       </section>
+      
 
       <!-- Focus Session Section -->
       <section class="focus-section">
@@ -187,4 +192,5 @@
       </section>
     </div>
   </main>
+
 </div>

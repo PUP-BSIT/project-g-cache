@@ -27,7 +27,10 @@ public class CustomJwtDecoder implements JwtDecoder {
 
     private JwtDecoder getNimbusDecoder() {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        return NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.valueOf("HS512")).build();
+        return NimbusJwtDecoder
+                .withSecretKey(key)
+                .macAlgorithm(MacAlgorithm.valueOf("HS512"))
+                .build();
     }
 
     @Override

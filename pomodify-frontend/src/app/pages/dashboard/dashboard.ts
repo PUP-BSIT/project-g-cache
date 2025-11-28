@@ -6,6 +6,11 @@ import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { CreateNoteModal, NoteData as CreateNoteData } from '../../shared/components/create-note-modal/create-note-modal';
+import { EditNoteModal, NoteData as EditNoteData } from '../../shared/components/edit-note-modal/edit-note-modal';
+import { DeleteNoteModal } from '../../shared/components/delete-note-modal/delete-note-modal';
+import { Profile, ProfileData } from '../profile/profile';
+import { Timer } from '../../shared/services/timer';
 
 interface Activity {
   id: string;
@@ -19,7 +24,7 @@ interface Activity {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard {
   private dialog = inject(MatDialog);
@@ -28,6 +33,13 @@ export class Dashboard {
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+
+  constructor() {
+    // Set up the completion callback.
+    this.timer.setOnComplete(() => {
+      this.onTimerComplete();
+    });
+  }
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -68,9 +80,10 @@ export class Dashboard {
     this.activities().find(a => a.id === this.selectedActivityId()) ?? this.activities()[0]
   );
 
-  protected readonly focusTime = signal('25:00');
-  protected readonly isTimerRunning = signal(false);
-  protected readonly isPaused = signal(false);
+  // Timer state is provided by the Timer service.
+  protected readonly focusTime = computed(() => this.formatTime(this.timer.remainingSeconds()));
+  protected readonly isTimerRunning = this.timer.isRunning;
+  protected readonly isPaused = this.timer.isPaused;
 
   protected readonly currentStreak = signal(4);
   protected readonly todayFocusHours = signal(3);
@@ -82,20 +95,18 @@ export class Dashboard {
   }
 
   protected playTimer(): void {
-    this.isTimerRunning.set(true);
-    this.isPaused.set(false);
+    // Start or resume the countdown.
+    this.timer.start();
   }
 
   protected pauseTimer(): void {
-    if (!this.isTimerRunning()) {
-      return;
-    }
-    this.isPaused.set(true);
+    // Pause the countdown but keep the remaining time.
+    this.timer.pause();
   }
 
   protected stopTimer(): void {
-    this.isTimerRunning.set(false);
-    this.isPaused.set(false);
+    // Stop and reset the countdown back to 25:00.
+    this.timer.stop();
   }
 
   protected openCreateActivityModal(): void {
