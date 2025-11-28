@@ -88,15 +88,6 @@
       <section class="activities-section">
         <div class="section-header">
           <h2 class="section-title">Recent activities</h2>
-          <div class="section-actions">
-            <!-- Create Note button matches Activities page style -->
-            <button class="btn-new-activity" (click)="openCreateNoteModal()">Create Note</button>
-            <div class="note-actions">
-              <button class="action-btn-compact" (click)="openEditNoteModal()">Edit Note</button>
-                <button class="action-btn-compact delete-btn" (click)="openDeleteNoteModal()">Delete Note</button>
-            </div>
-          </div>
-        
         </div>
         <div class="activities-list">
           @for (activity of activities(); track activity.id) {
@@ -121,7 +112,7 @@
           <h2 class="focus-title">Current Focus Session</h2>
           
           <div class="activity-selector">
-            <select [value]="selectedActivityId()" (change)="selectActivity($any($event.target).value)">
+            <select [value]="selectedActivityId()" (change)="onActivitySelectChange($event)">
               @for (activity of activities(); track activity.id) {
                 <option [value]="activity.id">{{ activity.name }}</option>
               }

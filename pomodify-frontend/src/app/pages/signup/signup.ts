@@ -1,37 +1,74 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 
 @Component({
   standalone: true,
   selector: 'app-signup',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './signup.html',
   styleUrls: ['./signup.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Signup {
-  email: string = '';
-  firstName: string = '';
-  lastName: string = '';
-  password: string = '';
-  confirmPassword: string = '';
+  private router = inject(Router);
+  private auth = inject(Auth);
+  private fb = inject(FormBuilder);
+
+  signupForm: FormGroup = this.fb.group({
+    firstName: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(2)],
+      },
+    ],
+    lastName: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(2)],
+      },
+    ],
+    email: [
+      '',
+      {
+        validators: [Validators.required, Validators.email],
+      },
+    ],
+    password: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(8)],
+      },
+    ],
+    confirmPassword: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(8)],
+      },
+    ],
+  });
 
   isLoading = false;
   errorMessage = '';
 
-  private router = inject(Router);
-  private auth = inject(Auth);
-
-  onSubmit() {
-    if (!this.email || !this.password || !this.confirmPassword) {
-      this.errorMessage = 'Please fill in all fields';
+  onSubmit(): void {
+    if (this.signupForm.invalid) {
+      this.errorMessage = 'Please fill in all fields with valid information.';
+      this.signupForm.markAllAsTouched();
       return;
     }
 
-    if (this.password !== this.confirmPassword) {
+    const { firstName, lastName, email, password, confirmPassword } = this.signupForm.getRawValue() as {
+      firstName: string;
+      lastName: string;
+      email: string;
+      password: string;
+      confirmPassword: string;
+    };
+
+    if (password !== confirmPassword) {
       this.errorMessage = 'Passwords do not match';
       return;
     }
@@ -39,15 +76,15 @@ export class Signup {
     this.isLoading = true;
     this.errorMessage = '';
 
-    console.log('Signup submit', { firstName: this.firstName, lastName: this.lastName, email: this.email });
+    console.log('Signup submit', { firstName, lastName, email });
 
     // Call the signup API
-    this.auth.signup(this.firstName, this.lastName, this.email, this.password)
+    this.auth.signup(firstName, lastName, email, password)
       .then(() => {
         // Show verify email modal
         this.auth.showVerifyEmailModal();
       })
-      .catch(error => {
+      .catch((error: Error & { message?: string }) => {
         console.error('Signup error:', error);
         this.errorMessage = error?.message || 'Failed to create account. Please try again.';
       })
@@ -56,18 +93,18 @@ export class Signup {
       });
   }
 
-  onGoogleSignIn() {
+  onGoogleSignIn(): void {
     console.log('Google sign in clicked');
   }
 
-  onLogin(event: Event) {
+  onLogin(event: Event): void {
     event.preventDefault();
     console.log('Log in clicked');
     // Navigate to login page
     this.router.navigate(['/login']);
   }
 
-  onClose() {
+  onClose(): void {
     this.router.navigate(['/']);
   }
 }

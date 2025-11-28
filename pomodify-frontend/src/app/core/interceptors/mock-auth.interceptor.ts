@@ -2,13 +2,20 @@ import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent, HttpResponse 
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
+type AuthRequestBody = {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+};
+
 export const mockAuthInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
   // Mock login endpoint
   if (request.url.includes('/api/v1/auth/login') && request.method === 'POST') {
-    const body = request.body as any;
+    const body = (request.body ?? {}) as AuthRequestBody;
     const mockResponse = {
       user: {
         firstName: 'John',
@@ -23,7 +30,7 @@ export const mockAuthInterceptor: HttpInterceptorFn = (
 
   // Mock register endpoint
   if (request.url.includes('/api/v1/auth/register') && request.method === 'POST') {
-    const body = request.body as any;
+    const body = (request.body ?? {}) as AuthRequestBody;
     const mockResponse = {
       firstName: body?.firstName || 'Jane',
       lastName: body?.lastName || 'Doe',

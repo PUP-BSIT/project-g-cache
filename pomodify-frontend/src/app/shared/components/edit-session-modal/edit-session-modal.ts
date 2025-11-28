@@ -6,6 +6,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { SessionData } from '../add-session-modal/add-session-modal';
 
+type SessionFormValue = {
+  focusTimeMinutes: number;
+  breakTimeMinutes: number;
+  note: string;
+};
+
 @Component({
   selector: 'app-edit-session-modal',
   standalone: true,
@@ -23,7 +29,7 @@ export class EditSessionModal implements OnInit {
   private dialogRef = inject(MatDialogRef<EditSessionModal>);
   private fb = inject(FormBuilder);
   private data = inject(MAT_DIALOG_DATA) as { session: SessionData } | undefined;
-
+ 
   sessionForm!: FormGroup;
 
   // Common time presets (in minutes)
@@ -33,9 +39,24 @@ export class EditSessionModal implements OnInit {
   ngOnInit(): void {
     const session = this.data?.session || { focusTimeMinutes: 25, breakTimeMinutes: 5, note: '' };
     this.sessionForm = this.fb.group({
-      focusTimeMinutes: [session.focusTimeMinutes, [Validators.required, Validators.min(25), Validators.max(120)]],
-      breakTimeMinutes: [session.breakTimeMinutes, [Validators.required, Validators.min(5), Validators.max(60)]],
-      note: [session.note || '']
+      focusTimeMinutes: [
+        session.focusTimeMinutes,
+        {
+          validators: [Validators.required, Validators.min(25), Validators.max(120)],
+        },
+      ],
+      breakTimeMinutes: [
+        session.breakTimeMinutes,
+        {
+          validators: [Validators.required, Validators.min(5), Validators.max(60)],
+        },
+      ],
+      note: [
+        session.note || '',
+        {
+          validators: [],
+        },
+      ],
     });
   }
 
@@ -53,12 +74,13 @@ export class EditSessionModal implements OnInit {
 
   onUpdateSession(): void {
     if (this.sessionForm.valid) {
-      const sessionData: SessionData = {
-        focusTimeMinutes: this.sessionForm.get('focusTimeMinutes')?.value,
-        breakTimeMinutes: this.sessionForm.get('breakTimeMinutes')?.value,
-        note: this.sessionForm.get('note')?.value?.trim() || undefined
+      const { focusTimeMinutes, breakTimeMinutes, note } = this.sessionForm.getRawValue() as SessionFormValue;
+      const updatedSession: SessionData = {
+        focusTimeMinutes,
+        breakTimeMinutes,
+        note: note.trim() || undefined,
       };
-      this.dialogRef.close(sessionData);
+      this.dialogRef.close(updatedSession);
     }
   }
 }

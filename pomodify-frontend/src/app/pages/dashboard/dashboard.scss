@@ -228,10 +228,12 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   
   &.active::before {
     background-color: $primary-teal;
+    transition: none;
   }
   
   &.active {
     color: $text-white;
+    transition: none;
   }
 }
 

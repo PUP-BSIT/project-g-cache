@@ -1,46 +1,60 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 
 @Component({
   standalone: true,
   selector: 'app-login',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
 })
 export class Login {
-  email: string = '';
-  password: string = '';
+  private router = inject(Router);
+  private auth = inject(Auth);
+  private fb = inject(FormBuilder);
+
+  loginForm: FormGroup = this.fb.group({
+    email: [
+      '',
+      {
+        validators: [Validators.required, Validators.email],
+      },
+    ],
+    password: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(6)],
+      },
+    ],
+  });
 
   isLoading = false;
   errorMessage = '';
 
-  constructor(
-    private router: Router,
-    private auth: Auth
-  ) {}
-
-  onSubmit() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both email and password';
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Please fill in a valid email and password.';
+      this.loginForm.markAllAsTouched();
       return;
     }
+
+    const { email, password } = this.loginForm.getRawValue() as { email: string; password: string };
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    console.log('Login submit', { email: this.email });
+    console.log('Login submit', { email });
 
-    this.auth.login(this.email, this.password)
-      .then(result => {
+    this.auth.login(email, password)
+      .then((result: { success: boolean; needsVerification?: boolean }) => {
         if (result.needsVerification) {
           this.auth.showVerifyEmailModal();
         }
       })
-      .catch(error => {
+      .catch((error: Error & { message?: string }) => {
         console.error('Login error:', error);
         this.errorMessage = error?.message || 'Invalid email or password';
       })
@@ -49,24 +63,24 @@ export class Login {
       });
   }
 
-  onGoogleSignIn() {
+  onGoogleSignIn(): void {
     console.log('Google sign in clicked');
   }
 
-  onForgotPassword(event: Event) {
+  onForgotPassword(event: Event): void {
     event.preventDefault();
     console.log('Forgot password clicked');
     // Navigate to forgot password page or show modal
   }
 
-  onSignUp(event: Event) {
+  onSignUp(event: Event): void {
     event.preventDefault();
     console.log('Sign up clicked');
     // Navigate to sign up page
     this.router.navigate(['/signup']);
   }
 
-  onClose() {
+  onClose(): void {
     this.router.navigate(['/']);
   }
 }

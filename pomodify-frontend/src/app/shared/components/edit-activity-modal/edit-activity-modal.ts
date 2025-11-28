@@ -6,6 +6,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ActivityData } from '../create-activity-modal/create-activity-modal';
 
+type ActivityFormValue = {
+  name: string;
+  category: string;
+  colorTag: string;
+  estimatedHoursPerWeek: number;
+};
+
 @Component({
   selector: 'app-edit-activity-modal',
   standalone: true,
@@ -40,10 +47,30 @@ export class EditActivityModal implements OnInit {
     this.selectedColor = this.data?.colorTag ?? this.selectedColor;
 
     this.activityForm = this.fb.group({
-      name: [this.data?.name ?? '', [Validators.required, Validators.minLength(1)]],
-      category: [this.data?.category ?? ''],
-      colorTag: [this.selectedColor],
-      estimatedHoursPerWeek: [this.data?.estimatedHoursPerWeek ?? 1, [Validators.min(0), Validators.max(168)]]
+      name: [
+        this.data?.name ?? '',
+        {
+          validators: [Validators.required, Validators.minLength(1)],
+        },
+      ],
+      category: [
+        this.data?.category ?? '',
+        {
+          validators: [],
+        },
+      ],
+      colorTag: [
+        this.selectedColor,
+        {
+          validators: [Validators.required],
+        },
+      ],
+      estimatedHoursPerWeek: [
+        this.data?.estimatedHoursPerWeek ?? 1,
+        {
+          validators: [Validators.min(0), Validators.max(168)],
+        },
+      ],
     });
   }
 
@@ -58,11 +85,12 @@ export class EditActivityModal implements OnInit {
 
   onSaveChanges(): void {
     if (this.activityForm.valid) {
+      const { name, category, estimatedHoursPerWeek } = this.activityForm.getRawValue() as ActivityFormValue;
       const updated: ActivityData = {
-        name: this.activityForm.get('name')?.value,
-        category: this.activityForm.get('category')?.value || undefined,
+        name,
+        category: category || undefined,
         colorTag: this.selectedColor,
-        estimatedHoursPerWeek: this.activityForm.get('estimatedHoursPerWeek')?.value || 0
+        estimatedHoursPerWeek: estimatedHoursPerWeek || 0,
       };
       this.dialogRef.close(updated);
     }

@@ -79,8 +79,8 @@
             type="text" 
             class="search-input"
             placeholder="Search Activity Name"
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange($event)">
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)">
         </div>
       </div>
 

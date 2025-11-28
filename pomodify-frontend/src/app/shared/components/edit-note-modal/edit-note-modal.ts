@@ -6,13 +6,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { CommonModule } from '@angular/common';
 
-export interface NoteData {
+export type NoteData = {
   id?: string;
   title: string;
   category?: string;
   content: string;
   colorTag: string;
-}
+};
+
+type NoteFormValue = {
+  title: string;
+  category: string;
+  content: string;
+  colorTag: string;
+};
 
 @Component({
   selector: 'app-edit-note-modal',
@@ -40,10 +47,30 @@ export class EditNoteModal implements OnInit {
 
   ngOnInit(): void {
     this.noteForm = this.fb.group({
-      title: [this.data?.title ?? '', [Validators.required, Validators.minLength(1)]],
-      category: [this.data?.category ?? ''],
-      content: [this.data?.content ?? '', [Validators.required, Validators.minLength(1)]],
-      colorTag: [this.selectedColor]
+      title: [
+        this.data?.title ?? '',
+        {
+          validators: [Validators.required, Validators.minLength(1)],
+        },
+      ],
+      category: [
+        this.data?.category ?? '',
+        {
+          validators: [],
+        },
+      ],
+      content: [
+        this.data?.content ?? '',
+        {
+          validators: [Validators.required, Validators.minLength(1)],
+        },
+      ],
+      colorTag: [
+        this.selectedColor,
+        {
+          validators: [Validators.required],
+        },
+      ],
     });
   }
 
@@ -58,12 +85,13 @@ export class EditNoteModal implements OnInit {
 
   onSaveNote(): void {
     if (this.noteForm.valid) {
+      const { title, category, content } = this.noteForm.getRawValue() as NoteFormValue;
       const noteData: NoteData = {
         id: this.data?.id,
-        title: this.noteForm.get('title')?.value,
-        category: this.noteForm.get('category')?.value || undefined,
-        content: this.noteForm.get('content')?.value,
-        colorTag: this.selectedColor
+        title,
+        category: category || undefined,
+        content,
+        colorTag: this.selectedColor,
       };
       this.dialogRef.close(noteData);
     }

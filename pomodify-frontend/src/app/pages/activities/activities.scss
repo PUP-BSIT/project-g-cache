@@ -472,10 +472,12 @@ $color-yellow: #F39C12;
   
   &.active::before {
     background-color: $primary-teal;
+    transition: none;
   }
   
   &.active {
     color: $text-white;
+    transition: none;
   }
 }
 
