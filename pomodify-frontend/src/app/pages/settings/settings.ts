@@ -23,19 +23,20 @@ export class Settings {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update(expanded => !expanded);
+    this.sidebarExpanded.update((expanded) => !expanded);
   }
 
-  onToggleTheme() { toggleTheme(); }
-
+  onToggleTheme() {
+    toggleTheme();
+  }
 
   // Toggle settings
   protected toggleNotifications(): void {
-    this.notificationsEnabled.update(enabled => !enabled);
+    this.notificationsEnabled.update((enabled) => !enabled);
   }
 
   protected toggleCalendarSync(): void {
-    this.calendarSyncEnabled.update(enabled => !enabled);
+    this.calendarSyncEnabled.update((enabled) => !enabled);
   }
 
   // Handle navigation icon click
@@ -45,10 +46,6 @@ export class Settings {
       this.toggleSidebar();
       return;
     }
-
-    // Navigate programmatically for reliability and prevent default routerLink behavior
-    event.preventDefault();
-    this.router.navigateByUrl(route).catch(err => console.error('Navigation error', err));
   }
 
   // Collapse sidebar when clicking main content
