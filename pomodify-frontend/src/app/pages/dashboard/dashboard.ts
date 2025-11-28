@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { CreateActivityModal, ActivityData } from '../../shared/components/create-activity-modal/create-activity-modal';
@@ -23,6 +23,8 @@ interface Activity {
 })
 export class Dashboard {
   private dialog = inject(MatDialog);
+  // Router used for route-aware sidebar click handling
+  private router = inject(Router);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -32,16 +34,24 @@ export class Dashboard {
     this.sidebarExpanded.update(expanded => !expanded);
   }
 
+  // Handle navigation icon click (prevents navigation when already on the same route and toggles sidebar)
+  protected onNavIconClick(event: MouseEvent, route: string): void {
+    if (this.router.url === route) {
+      event.preventDefault();
+      this.toggleSidebar();
+      return;
+    }
+
+    event.preventDefault();
+    this.router.navigateByUrl(route).catch(err => console.error('Navigation error', err));
+  }
+
   onToggleTheme() { toggleTheme(); }
 
-  // Close sidebar on mobile when clicking outside
-  @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded.set(false);
-      }
+  // Collapse sidebar when clicking main content
+  protected onMainContentClick(): void {
+    if (this.sidebarExpanded()) {
+      this.sidebarExpanded.set(false);
     }
   }
   // --- State ---

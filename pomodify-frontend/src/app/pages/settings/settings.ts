@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, computed, signal, HostListener, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
 
 @Component({
@@ -14,6 +14,9 @@ export class Settings {
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
+  // Router for route-aware sidebar clicks
+  private router = inject(Router);
+
   // Settings toggles
   protected notificationsEnabled = signal(true);
   protected calendarSyncEnabled = signal(false);
@@ -25,16 +28,6 @@ export class Settings {
 
   onToggleTheme() { toggleTheme(); }
 
-  // Close sidebar on mobile when clicking outside
-  @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded.set(false);
-      }
-    }
-  }
 
   // Toggle settings
   protected toggleNotifications(): void {
@@ -43,5 +36,25 @@ export class Settings {
 
   protected toggleCalendarSync(): void {
     this.calendarSyncEnabled.update(enabled => !enabled);
+  }
+
+  // Handle navigation icon click
+  protected onNavIconClick(event: MouseEvent, route: string): void {
+    if (this.router.url === route) {
+      event.preventDefault();
+      this.toggleSidebar();
+      return;
+    }
+
+    // Navigate programmatically for reliability and prevent default routerLink behavior
+    event.preventDefault();
+    this.router.navigateByUrl(route).catch(err => console.error('Navigation error', err));
+  }
+
+  // Collapse sidebar when clicking main content
+  protected onMainContentClick(): void {
+    if (this.sidebarExpanded()) {
+      this.sidebarExpanded.set(false);
+    }
   }
 }
