@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 
 @Component({
+  standalone: true,
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
 })
@@ -30,6 +32,8 @@ export class Login {
     this.isLoading = true;
     this.errorMessage = '';
 
+    console.log('Login submit', { email: this.email });
+
     this.auth.login(this.email, this.password)
       .then(result => {
         if (result.needsVerification) {
@@ -38,7 +42,7 @@ export class Login {
       })
       .catch(error => {
         console.error('Login error:', error);
-        this.errorMessage = 'Invalid email or password';
+        this.errorMessage = error?.message || 'Invalid email or password';
       })
       .finally(() => {
         this.isLoading = false;

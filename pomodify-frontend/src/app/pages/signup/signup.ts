@@ -14,6 +14,8 @@ import { Auth } from '../../core/services/auth';
 })
 export class Signup {
   email: string = '';
+  firstName: string = '';
+  lastName: string = '';
   password: string = '';
   confirmPassword: string = '';
 
@@ -37,16 +39,17 @@ export class Signup {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // In a real app, you would call your signup API here
-    // For now, we'll simulate a successful signup that requires email verification
-    this.auth.signup(this.email, this.password)
+    console.log('Signup submit', { firstName: this.firstName, lastName: this.lastName, email: this.email });
+
+    // Call the signup API
+    this.auth.signup(this.firstName, this.lastName, this.email, this.password)
       .then(() => {
         // Show verify email modal
         this.auth.showVerifyEmailModal();
       })
       .catch(error => {
         console.error('Signup error:', error);
-        this.errorMessage = 'Failed to create account. Please try again.';
+        this.errorMessage = error?.message || 'Failed to create account. Please try again.';
       })
       .finally(() => {
         this.isLoading = false;
