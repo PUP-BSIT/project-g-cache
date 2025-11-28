@@ -7,19 +7,6 @@
         <span class="app-name">Pomodify</span>
       }
     </div>
-    
-    <button class="sidebar-toggle" (click)="toggleSidebar()"
-            [attr.aria-expanded]="sidebarExpanded()" aria-label="Toggle sidebar">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2">
-        @if(!sidebarExpanded()) {
-          <path d="M9 18l6-6-6-6" />
-        }
-        @if(sidebarExpanded()) {
-          <path d="M15 18l-6-6 6-6" />
-        }
-      </svg>
-    </button>
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
