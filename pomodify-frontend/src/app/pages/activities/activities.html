@@ -4,32 +4,44 @@
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
-      <span class="app-name" *ngIf="sidebarExpanded()">Pomodify</span>
+      @if (sidebarExpanded()) {
+        <span class="app-name">Pomodify</span>
+      }
     </div>
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavIconClick($event, '/dashboard')">
         <i class="fa-solid fa-house"></i>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Dashboard</span>
+        @if (sidebarExpanded()) {
+          <span class="nav-text">Dashboard</span>
+        }
       </button>
       <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavIconClick($event, '/activities')">
         <i class="fa-solid fa-list-check"></i>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Activities</span>
+        @if (sidebarExpanded()) {
+          <span class="nav-text">Activities</span>
+        }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavIconClick($event, '/report')">
         <i class="fa-solid fa-chart-line"></i>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Reports</span>
+        @if (sidebarExpanded()) {
+          <span class="nav-text">Reports</span>
+        }
       </button>
       <button class="nav-icon" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="onNavIconClick($event, '/settings')">
         <i class="fa-solid fa-gear"></i>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Settings</span>
+        @if (sidebarExpanded()) {
+          <span class="nav-text">Settings</span>
+        }
       </button>
     </nav>
 
     <div class="nav-bottom">
       <button class="nav-icon" (click)="onLogout()">
         <i class="fa-solid fa-right-from-bracket"></i>
-        <span class="nav-text" *ngIf="sidebarExpanded()">Logout</span>
+        @if (sidebarExpanded()) {
+          <span class="nav-text">Logout</span>
+        }
       </button>
     </div>
   </aside>
@@ -195,7 +207,7 @@
 
         <!-- Pagination -->
         @if (totalPages() > 1) {
-          <div class="pagination-dots" style="display:flex; justify-content:center; gap:8px; margin-top:20px;">
+          <div class="pagination-dots">
             <button class="page-btn" (click)="prevPage()" aria-label="Previous page">◀</button>
             @for (p of pagesArray(); track p) {
               <button

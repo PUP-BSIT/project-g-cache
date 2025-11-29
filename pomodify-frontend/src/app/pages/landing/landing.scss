@@ -503,6 +503,26 @@
   }
 }
 
+
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 24px 24px 60px;
+  }
+  
+  .features { 
+    grid-template-columns: 1fr;
+  }
+  
+  .cta {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
 /* Scale hero slightly on wide-but-short screens to avoid awkward overflow at 100% zoom */
 @media (max-width: 1560px) {
   .hero { padding: 28px 56px 124px; gap: 52px; max-width: 1320px; }
@@ -597,23 +617,5 @@
   .feature-tail,
   .feature-connector {
     display: none !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .hero {
-    padding: 24px 24px 60px;
-  }
-  
-  .features { 
-    grid-template-columns: 1fr;
-  }
-  
-  .cta {
-    flex-direction: column;
-  }
-  
-  .btn {
-    width: 100%;
   }
 }

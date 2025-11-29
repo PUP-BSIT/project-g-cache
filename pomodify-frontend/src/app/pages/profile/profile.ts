@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
@@ -20,6 +20,8 @@ export type ProfileData = {
 export class Profile {
   private dialogRef = inject(MatDialogRef<Profile>);
   private fb = inject(FormBuilder);
+
+  @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
   // Form states
   profileForm!: FormGroup;
@@ -120,8 +122,7 @@ export class Profile {
   }
   
   protected triggerImageUpload(): void {
-    const fileInput = document.getElementById('profile-image-input') as HTMLInputElement;
-    fileInput?.click();
+    this.profileImageInput?.nativeElement.click();
   }
   
   // Name update
@@ -129,7 +130,7 @@ export class Profile {
     if (this.profileForm.valid) {
       const newName = this.profileForm.get('name')?.value;
       this.userName.set(newName);
-      // TODO: Call API to update name
+      // TODO(Delumen, Ivan): Call API to update name
     }
   }
   
@@ -137,7 +138,7 @@ export class Profile {
   protected requestPasswordChange(): void {
     this.showPasswordVerification.set(true);
     this.startVerificationTimer();
-    // TODO: Call API to send verification code to email
+    // TODO(Delumen, Ivan): Call API to send verification code to email
   }
   
   protected startVerificationTimer(): void {
@@ -180,7 +181,7 @@ export class Profile {
         return;
       }
       
-      // TODO: Call API to update password
+      // TODO(Delumen, Ivan): Call API to update password
       alert('Password updated successfully!');
       this.cancelPasswordChange();
     }
@@ -199,7 +200,7 @@ export class Profile {
   
   // Backup email handling
   protected toggleBackupEmailForm(): void {
-    this.showBackupEmailForm.update(show => !show);
+    this.showBackupEmailForm.update((show: boolean) => !show);
   }
   
   protected saveBackupEmail(): void {
@@ -207,7 +208,7 @@ export class Profile {
       const email = this.backupEmailForm.get('backupEmail')?.value;
       this.backupEmail.set(email);
       this.showBackupEmailForm.set(false);
-      // TODO: Call API to save backup email
+      // TODO(Delumen, Ivan): Call API to save backup email
     }
   }
   
@@ -215,7 +216,7 @@ export class Profile {
     if (this.backupEmailForm.valid) {
       const email = this.backupEmailForm.get('backupEmail')?.value;
       this.backupEmail.set(email);
-      // TODO: Call API to update backup email
+      // TODO(Delumen, Ivan): Call API to update backup email
     }
   }
   

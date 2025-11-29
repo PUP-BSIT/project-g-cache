@@ -50,8 +50,27 @@ export class Signup {
     ],
   });
 
+  // UI state
   isLoading = false;
   errorMessage = '';
+  passwordVisible = false;
+  confirmPasswordVisible = false;
+
+  get passwordInputType(): 'password' | 'text' {
+    return this.passwordVisible ? 'text' : 'password';
+  }
+
+  get confirmPasswordInputType(): 'password' | 'text' {
+    return this.confirmPasswordVisible ? 'text' : 'password';
+  }
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible = !this.passwordVisible;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.confirmPasswordVisible = !this.confirmPasswordVisible;
+  }
 
   onSubmit(): void {
     if (this.signupForm.invalid) {

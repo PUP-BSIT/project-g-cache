@@ -29,20 +29,20 @@ export class Settings {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update((expanded) => !expanded);
+    this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
-  onToggleTheme() {
+  onToggleTheme(): void {
     toggleTheme();
   }
 
   // Toggle settings
   protected toggleNotifications(): void {
-    this.notificationsEnabled.update((enabled) => !enabled);
+    this.notificationsEnabled.update((enabled: boolean) => !enabled);
   }
 
   protected toggleCalendarSync(): void {
-    this.calendarSyncEnabled.update((enabled) => !enabled);
+    this.calendarSyncEnabled.update((enabled: boolean) => !enabled);
   }
 
   // Handle navigation icon click
@@ -77,7 +77,7 @@ export class Settings {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO: persist profile changes to backend
+          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }

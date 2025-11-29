@@ -80,50 +80,54 @@
       <section class="help-form">
         <h1 class="form-title">Help us understand the problem</h1>
 
-        <!-- Search Section -->
-        <div class="form-section">
-          <label class="form-label">Search for a solution</label>
-          <div class="search-input-wrapper">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input 
-              type="text" 
-              class="search-input" 
-              placeholder="Trying to reset password">
+        <form [formGroup]="helpForm" (ngSubmit)="onSubmitReport()">
+          <!-- Search Section -->
+          <div class="form-section">
+            <label class="form-label">Search for a solution</label>
+            <div class="search-input-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input 
+                type="text" 
+                class="search-input" 
+                formControlName="search"
+                placeholder="Trying to reset password">
+            </div>
           </div>
-        </div>
 
-        <!-- Full Details Section -->
-        <div class="form-section">
-          <label class="form-label">Full Details</label>
-          <textarea 
-            class="details-textarea" 
-            rows="5"
-            placeholder="Please describe the steps you took and what is your expecting to happen"></textarea>
-        </div>
+          <!-- Full Details Section -->
+          <div class="form-section">
+            <label class="form-label">Full Details</label>
+            <textarea 
+              class="details-textarea" 
+              rows="5"
+              formControlName="details"
+              placeholder="Please describe the steps you took and what is your expecting to happen"></textarea>
+          </div>
 
-        <!-- Evidence Section -->
-        <div class="form-section">
-          <label class="form-label">Evidence</label>
-          <div class="evidence-container">
-            <div class="upload-area">
-              <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-              <div class="upload-text">
-                <div class="upload-title">Drag & Drop Screenshot /</div>
-                <div class="upload-subtitle">Screen Recordings</div>
+          <!-- Evidence Section -->
+          <div class="form-section">
+            <label class="form-label">Evidence</label>
+            <div class="evidence-container">
+              <div class="upload-area">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <div class="upload-text">
+                  <div class="upload-title">Drag & Drop Screenshot /</div>
+                  <div class="upload-subtitle">Screen Recordings</div>
+                </div>
+              </div>
+              
+              <div class="action-buttons">
+                <button type="button" class="btn-action btn-screenshot">Take a Screenshot Now</button>
+                <button type="button" class="btn-action btn-record">Record My Screen</button>
               </div>
             </div>
-            
-            <div class="action-buttons">
-              <button class="btn-action btn-screenshot">Take a Screenshot Now</button>
-              <button class="btn-action btn-record">Record My Screen</button>
-            </div>
           </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="submit-section">
-          <button class="btn-submit">Send Report</button>
-        </div>
+          <!-- Submit Button -->
+          <div class="submit-section">
+            <button class="btn-submit" type="submit">Send Report</button>
+          </div>
+        </form>
       </section>
     </div>
   </main>

@@ -1257,7 +1257,10 @@ $color-yellow: #F39C12;
 
   /* Pagination */
   .pagination-dots {
-    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
   }
 
   .pagination-dots .page-btn,

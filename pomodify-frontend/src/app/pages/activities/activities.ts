@@ -52,7 +52,7 @@ export class ActivitiesPage {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update((expanded) => !expanded);
+    this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
   protected onNavIconClick(event: MouseEvent, route: string): void {
@@ -188,7 +188,7 @@ export class ActivitiesPage {
   // Get unique categories from activities
   protected readonly availableCategories = computed(() => {
     const categories = new Set<string>();
-    this.activities().forEach((activity) => {
+    this.activities().forEach((activity: Activity) => {
       if (activity.category) {
         categories.add(activity.category);
       }
@@ -202,14 +202,14 @@ export class ActivitiesPage {
     // Filter by category
     const category = this.selectedCategory();
     if (category) {
-      filtered = filtered.filter((activity) => activity.category === category);
+      filtered = filtered.filter((activity: Activity) => activity.category === category);
     }
     
     // Filter by search query
     const query = this.searchQuery().toLowerCase();
     if (query) {
       filtered = filtered.filter(
-        (activity) =>
+        (activity: Activity) =>
           activity.name.toLowerCase().includes(query) ||
           activity.category.toLowerCase().includes(query)
       );
@@ -260,18 +260,18 @@ export class ActivitiesPage {
     this.currentPage.set(1);
   }
 
-  protected setPage(n: number) {
+  protected setPage(n: number): void {
     const tp = this.totalPages();
     if (n < 1) n = 1;
     if (n > tp) n = tp;
     this.currentPage.set(n);
   }
 
-  protected prevPage() {
+  protected prevPage(): void {
     this.setPage(this.currentPage() - 1);
   }
 
-  protected nextPage() {
+  protected nextPage(): void {
     this.setPage(this.currentPage() + 1);
   }
 
@@ -285,14 +285,14 @@ export class ActivitiesPage {
           const newActivity: Activity = {
             id: this.generateId(),
             name: result.name,
-            icon: '📝',
+            icon: '\ud83d\udcdd',
             category: result.category || 'General',
             colorTag: result.colorTag || 'teal',
             estimatedHoursPerWeek: result.estimatedHoursPerWeek || 1,
             lastAccessed: 'just now',
             sessions: [],
           };
-          this.activities.update((activities) => [newActivity, ...activities]);
+          this.activities.update((activities: Activity[]) => [newActivity, ...activities]);
           // show the newly created activity on first page
           this.currentPage.set(1);
         }
@@ -313,8 +313,10 @@ export class ActivitiesPage {
       .subscribe((updated: ActivityData) => {
         if (updated) {
           console.log('Updated activity:', updated);
-          this.activities.update((activities) =>
-            activities.map((a) => (a.id === activity.id ? { ...a, ...updated } : a))
+          this.activities.update((activities: Activity[]) =>
+            activities.map((existingActivity: Activity) =>
+              existingActivity.id === activity.id ? { ...existingActivity, ...updated } : existingActivity
+            )
           );
         }
       });
@@ -328,7 +330,9 @@ export class ActivitiesPage {
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           console.log('Delete confirmed for', activity.name);
-          this.activities.update((activities) => activities.filter((a) => a.id !== activity.id));
+          this.activities.update((activities: Activity[]) =>
+            activities.filter((existingActivity: Activity) => existingActivity.id !== activity.id)
+          );
           // Clear selection if deleted activity was selected
           if (this.selectedActivity()?.id === activity.id) {
             this.selectedActivity.set(null);
@@ -359,16 +363,16 @@ export class ActivitiesPage {
             note: result.note,
             createdAt: new Date().toISOString(),
           };
-          this.activities.update((activities) =>
-            activities.map((a) =>
-              a.id === activity.id
-                ? { ...a, sessions: [newSession, ...a.sessions] }
-                : a
+          this.activities.update((activities: Activity[]) =>
+            activities.map((existingActivity: Activity) =>
+              existingActivity.id === activity.id
+                ? { ...existingActivity, sessions: [newSession, ...existingActivity.sessions] }
+                : existingActivity
             )
           );
           // Update selected activity if it's the one we just added to
           if (this.selectedActivity()?.id === activity.id) {
-            const updated = this.activities().find((a) => a.id === activity.id);
+            const updated = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
             if (updated) {
               this.selectedActivity.set(updated);
             }
@@ -390,23 +394,23 @@ export class ActivitiesPage {
       .subscribe((updated: SessionData) => {
         if (updated) {
           console.log('Updated session:', updated);
-          this.activities.update((activities) =>
-            activities.map((a) =>
-              a.id === activity.id
+          this.activities.update((activities: Activity[]) =>
+            activities.map((existingActivity: Activity) =>
+              existingActivity.id === activity.id
                 ? {
-                    ...a,
-                    sessions: a.sessions.map((s) =>
-                      s.id === session.id
-                        ? { ...s, ...updated }
-                        : s
+                    ...existingActivity,
+                    sessions: existingActivity.sessions.map((existingSession: Session) =>
+                      existingSession.id === session.id
+                        ? { ...existingSession, ...updated }
+                        : existingSession
                     ),
                   }
-                : a
+                : existingActivity
             )
           );
           // Update selected activity if it's the one we just edited
           if (this.selectedActivity()?.id === activity.id) {
-            const updatedActivity = this.activities().find((a) => a.id === activity.id);
+            const updatedActivity = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
             if (updatedActivity) {
               this.selectedActivity.set(updatedActivity);
             }
@@ -417,16 +421,21 @@ export class ActivitiesPage {
 
   protected deleteSession(activity: Activity, session: Session): void {
     if (confirm(`Are you sure you want to delete this session?`)) {
-      this.activities.update((activities) =>
-        activities.map((a) =>
-          a.id === activity.id
-            ? { ...a, sessions: a.sessions.filter((s) => s.id !== session.id) }
-            : a
+      this.activities.update((activities: Activity[]) =>
+        activities.map((existingActivity: Activity) =>
+          existingActivity.id === activity.id
+            ? {
+                ...existingActivity,
+                sessions: existingActivity.sessions.filter(
+                  (existingSession: Session) => existingSession.id !== session.id
+                ),
+              }
+            : existingActivity
         )
       );
       // Update selected activity if it's the one we just deleted from
       if (this.selectedActivity()?.id === activity.id) {
-        const updated = this.activities().find((a) => a.id === activity.id);
+        const updated = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
         if (updated) {
           this.selectedActivity.set(updated);
         }
@@ -490,7 +499,7 @@ export class ActivitiesPage {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO: persist profile changes to backend
+          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }

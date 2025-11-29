@@ -153,6 +153,40 @@
   }
 }
 
+.password-group {
+  position: relative;
+
+  input {
+    padding-right: 52px; /* leave room for eye icon */
+  }
+}
+
+.password-toggle {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%); /* center relative to input height */
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(44, 95, 99, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  outline: none;
+  box-shadow: none;
+
+  i {
+    font-size: 16px;           /* Font Awesome eye icon */
+    line-height: 1;            /* avoid vertical shift on text vs placeholder */
+  }
+
+  &:hover {
+    color: #4da1a9;
+  }
+}
+
 .field-error {
   font-size: 13px;
   color: #e11d48;
