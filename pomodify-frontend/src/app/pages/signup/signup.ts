@@ -70,6 +70,7 @@ export class Signup {
 
     if (password !== confirmPassword) {
       this.errorMessage = 'Passwords do not match';
+      this.signupForm.get('confirmPassword')?.setErrors({ ...(this.signupForm.get('confirmPassword')?.errors || {}), mismatch: true });
       return;
     }
 

@@ -142,10 +142,30 @@
       background: #ffffff;
     }
 
+    &.invalid {
+      border-color: #e11d48;
+      box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.35);
+    }
+
     &::placeholder {
       color: rgba(44, 95, 99, 0.7);
     }
   }
+}
+
+.field-error {
+  font-size: 13px;
+  color: #e11d48;
+  margin-top: -4px;
+}
+
+.form-error {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
 }
 
 .btn-signup {

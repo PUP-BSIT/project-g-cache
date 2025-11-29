@@ -440,7 +440,8 @@ $color-yellow: #F39C12;
     z-index: -1;
   }
   
-  svg {
+  svg,
+  i {
     flex-shrink: 0;
     width: 24px;
     height: 24px;
@@ -449,6 +450,10 @@ $color-yellow: #F39C12;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 1;
+  }
+
+  i {
+    font-size: 18px;
   }
   
   .nav-text {
@@ -491,7 +496,8 @@ $color-yellow: #F39C12;
       width: 90%;
     }
     
-    svg {
+    svg,
+    i {
       margin-left: 16px;
     }
     
@@ -1029,7 +1035,8 @@ $color-yellow: #F39C12;
     transform: translateX(-2px);
   }
 
-  svg {
+  svg,
+  i {
     width: 20px;
     height: 20px;
   }

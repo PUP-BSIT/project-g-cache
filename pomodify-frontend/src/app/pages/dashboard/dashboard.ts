@@ -11,6 +11,7 @@ import { EditActivityModal } from '../../shared/components/edit-activity-modal/e
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
 import { Profile, ProfileData } from '../profile/profile';
 import { Timer } from '../../shared/services/timer';
+import { Auth } from '../../core/services/auth';
 
 type Activity = {
   id: string;
@@ -34,6 +35,7 @@ export class Dashboard implements OnInit {
   // Router for route-aware sidebar clicks
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private auth = inject(Auth);
   private readonly STORAGE_KEY = 'pomodify-activities';
 
   // Visual alert for timer completion
@@ -327,6 +329,10 @@ export class Dashboard implements OnInit {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
     }
+  }
+
+  protected onLogout(): void {
+    this.auth.logout();
   }
 
   // --- Profile Modal ---

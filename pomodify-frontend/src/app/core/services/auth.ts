@@ -33,6 +33,18 @@ export class Auth {
     private http: HttpClient
   ) {}
 
+  logout(): void {
+    try {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('currentUser');
+    } catch (e) {
+      console.warn('Unable to clear auth data from localStorage', e);
+    }
+
+    this.router.navigate(['/']);
+  }
+
   login(email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> {
     const url = `${environment.apiUrl}/api/v1/auth/login`;
     return lastValueFrom(this.http.post<LoginResponse>(url, { email, password }))

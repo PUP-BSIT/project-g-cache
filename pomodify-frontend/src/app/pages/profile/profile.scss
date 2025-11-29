@@ -118,8 +118,11 @@
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(75, 159, 168, 0.3);
 
-  svg {
+  svg,
+  i {
     stroke: white;
+    color: white;
+    font-size: 14px;
   }
 
   &:hover {
@@ -397,6 +400,12 @@
   border-radius: 8px;
   border-left: 4px solid #4b9fa8;
 
+  i {
+    color: #4b9fa8;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
   p {
     margin: 0;
     font-size: 14px;
@@ -483,6 +492,10 @@
   font-weight: 600;
   align-self: flex-start;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+
+  i {
+    font-size: 14px;
+  }
 }
 
 // Password form

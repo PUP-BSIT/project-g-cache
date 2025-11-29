@@ -388,18 +388,18 @@
   }
   
   .feature-2 { /* Activities (top-right) */
-    right: -270px;
-    top: -80px; /* match Custom Timers */
+    right: -240px;  /* pull slightly inward so it fits on common desktop widths */
+    top: -80px;     /* match Custom Timers */
   }
   
   .feature-3 { /* Session Notes (bottom-left) */
-    left: -280px;   /* align horizontally with Custom Timers */
-    bottom: -106px; /* raise to match Progress Reports */
+    left: -260px;    /* slightly inward to mirror top-left spacing */
+    bottom: -100px;  /* raise a bit to give more breathing room at bottom */
   }
   
   .feature-4 { /* Progress Reports (bottom-right) */
-    right: -270px; /* align horizontally with Activities */
-    bottom: -106px;
+    right: -240px;   /* align horizontally with Activities but keep inside viewport */
+    bottom: -100px;
   }
 
   .feature-card::after { display: none; }
@@ -454,13 +454,13 @@
   }
   
   .feature-3 .feature-icon { 
-    right: -82px;               /* match Custom Timers placement */
-    top: -4px;
+    right: -60px;               /* move closer to card so it sits farther from center */
+    top: 2px;
     transform: none;
   }
   
   .feature-4 .feature-icon { 
-    left: -84px;                 /* sit just outside the card's left edge */
+    left: -60px;                 /* move closer to card, away from center */
     top: 50%;                    /* vertically center to the card */
     transform: translateY(-50%); /* perfectly centered */
   }
@@ -485,7 +485,7 @@
   }
   
   .feature-3 .feature-tail { 
-    right: -42px;
+    right: -34px;                /* align with icon’s new, closer position */
     top: 50%;
     transform: translateY(-50%);
     /* show left + bottom sides (open right/top) */
@@ -494,7 +494,7 @@
   }
   
   .feature-4 .feature-tail { 
-    left: -42px;  
+    left: -34px;  
     top: 50%;
     transform: translateY(-50%);
     /* show right + bottom sides (open left/top) */
@@ -506,33 +506,33 @@
 /* Scale hero slightly on wide-but-short screens to avoid awkward overflow at 100% zoom */
 @media (max-width: 1560px) {
   .hero { padding: 28px 56px 124px; gap: 52px; max-width: 1320px; }
-  .hero-right { min-height: 640px; padding: 48px; }
-  .clock-frame { width: 390px; height: 390px; }
-  .student { width: 390px; transform: translate(0, -104px); }
-  .features { width: 390px; height: 390px; }
-  .features .feature-card { width: 210px; }
-  .features .feature-1 { left: -250px; top: -75px; }
-  .features .feature-2 { right: -240px; top: -75px; }
-  .features .feature-3 { left: -250px; bottom: -104px; }
-  .features .feature-4 { right: -240px; bottom: -104px; }
-  .features .feature-icon { width: 54px; height: 54px; }
-  .features .feature-icon img { width: 92px; height: 92px; }
+  .hero-right { min-height: 640px; padding: 44px; }
+  .clock-frame { width: 380px; height: 380px; }
+  .student { width: 380px; transform: translate(0, -96px); }
+  .features { width: 380px; height: 380px; }
+  .features .feature-card { width: 200px; }
+  .features .feature-1 { left: -230px; top: -70px; }
+  .features .feature-2 { right: -210px; top: -70px; }
+  .features .feature-3 { left: -230px; bottom: -92px; }
+  .features .feature-4 { right: -210px; bottom: -92px; }
+  .features .feature-icon { width: 52px; height: 52px; }
+  .features .feature-icon img { width: 88px; height: 88px; }
 }
 
 /* Scale hero slightly on medium-large screens to avoid overflow at 100% zoom */
 @media (max-width: 1360px) {
-  .hero { padding: 28px 48px 120px; gap: 48px; max-width: 1200px; }
-  .hero-right { min-height: 620px; padding: 40px; }
-  .clock-frame { width: 360px; height: 360px; }
-  .student { width: 360px; transform: translate(0, -96px); }
-  .features { width: 360px; height: 360px; }
-  .features .feature-card { width: 200px; }
-  .features .feature-1 { left: -230px; top: -70px; }
-  .features .feature-2 { right: -220px; top: -70px; }
-  .features .feature-3 { left: -230px; bottom: -100px; }
-  .features .feature-4 { right: -220px; bottom: -100px; }
-  .features .feature-icon { width: 50px; height: 50px; }
-  .features .feature-icon img { width: 86px; height: 86px; }
+  .hero { padding: 28px 40px 110px; gap: 44px; max-width: 1160px; }
+  .hero-right { min-height: 600px; padding: 36px; }
+  .clock-frame { width: 350px; height: 350px; }
+  .student { width: 340px; transform: translate(0, -84px); }
+  .features { width: 350px; height: 350px; }
+  .features .feature-card { width: 190px; }
+  .features .feature-1 { left: -210px; top: -64px; }
+  .features .feature-2 { right: -190px; top: -64px; }
+  .features .feature-3 { left: -210px; bottom: -86px; }
+  .features .feature-4 { right: -190px; bottom: -86px; }
+  .features .feature-icon { width: 48px; height: 48px; }
+  .features .feature-icon img { width: 82px; height: 82px; }
 }
 
 @media (max-width: 1024px) {

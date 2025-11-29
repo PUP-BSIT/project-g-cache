@@ -1,6 +1,6 @@
 // activities.ts
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
+import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
@@ -13,6 +13,7 @@ import { DeleteActivityModal } from '../../shared/components/delete-activity-mod
 import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
 import { EditSessionModal } from '../../shared/components/edit-session-modal/edit-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
+import { Auth } from '../../core/services/auth';
 
 export type Session = {
   id: string;
@@ -40,9 +41,10 @@ type Activity = {
   templateUrl: './activities.html',
   styleUrl: './activities.scss',
 })
-export class ActivitiesPage implements OnInit {
+export class ActivitiesPage {
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private auth = inject(Auth);
   private readonly STORAGE_KEY = 'pomodify-activities';
 
   // Sidebar state
@@ -73,12 +75,24 @@ export class ActivitiesPage implements OnInit {
 
   protected readonly activities = signal<Activity[]>([]);
 
-  ngOnInit(): void {
+  constructor() {
+    // Load initial activities immediately so the first render has data
     this.loadActivitiesFromStorage();
+
     // Save to localStorage whenever activities change
     effect(() => {
       const activities = this.activities();
       this.saveActivitiesToStorage(activities);
+    });
+
+    // clamp currentPage if totalPages decreases
+    effect(() => {
+      const tp = this.totalPages();
+      if (tp === 0) {
+        this.currentPage.set(1);
+      } else if (this.currentPage() > tp) {
+        this.currentPage.set(tp);
+      }
     });
   }
 
@@ -225,19 +239,6 @@ export class ActivitiesPage implements OnInit {
     const start = (page - 1) * size;
     return this.filteredActivities().slice(start, start + size);
   });
-
-  // Keep current page valid when filtered list changes
-  constructor() {
-    // clamp currentPage if totalPages decreases
-    effect(() => {
-      const tp = this.totalPages();
-      if (tp === 0) {
-        this.currentPage.set(1);
-      } else if (this.currentPage() > tp) {
-        this.currentPage.set(tp);
-      }
-    });
-  }
 
   // --- Actions ---
   protected onSearchInput(event: Event): void {
@@ -471,6 +472,10 @@ export class ActivitiesPage implements OnInit {
 
   private generateId(): string {
     return 'activity-' + Date.now();
+  }
+
+  protected onLogout(): void {
+    this.auth.logout();
   }
 
   // Profile Modal

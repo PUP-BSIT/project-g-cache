@@ -3,7 +3,7 @@
   <div class="modal-header">
     <h2>Profile Settings</h2>
     <button class="close-btn" (click)="onClose()" aria-label="Close profile">
-      ✕
+      <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
 
@@ -14,9 +14,7 @@
       <div class="avatar-container">
         <img [src]="profileImage()" alt="Profile picture" class="avatar" />
         <button class="edit-avatar-btn" (click)="triggerImageUpload()" aria-label="Change profile picture">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+          <i class="fa-solid fa-pen"></i>
         </button>
         <input 
           type="file" 
@@ -164,10 +162,7 @@
           @if (!isVerificationValid()) {
             <div class="verification-step">
               <div class="verification-info">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4b9fa8" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4M12 8h.01" />
-                </svg>
+                <i class="fa-solid fa-circle-info"></i>
                 <p>We've sent a verification code to <strong>{{ userEmail() }}</strong></p>
               </div>
               
@@ -215,9 +210,7 @@
           @if (isVerificationValid()) {
             <div class="password-change-step">
               <div class="success-badge">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
-                  <path d="M20 6L9 17l-5-5" />
-                </svg>
+                <i class="fa-solid fa-check"></i>
                 <span>Verified</span>
               </div>
               
