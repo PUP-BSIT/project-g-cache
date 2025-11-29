@@ -1,7 +1,6 @@
 // activities.ts
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
@@ -15,15 +14,15 @@ import { AddSessionModal, SessionData } from '../../shared/components/add-sessio
 import { EditSessionModal } from '../../shared/components/edit-session-modal/edit-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
 
-export interface Session {
+export type Session = {
   id: string;
   focusTimeMinutes: number;
   breakTimeMinutes: number;
   note?: string;
   createdAt: string;
-}
+};
 
-interface Activity {
+type Activity = {
   id: string;
   name: string;
   icon: string;
@@ -32,12 +31,12 @@ interface Activity {
   estimatedHoursPerWeek: number;
   lastAccessed: string;
   sessions: Session[];
-}
+};
 
 @Component({
   selector: 'app-activities',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './activities.html',
   styleUrl: './activities.scss',
 })
@@ -55,32 +54,18 @@ export class ActivitiesPage implements OnInit {
   }
 
   protected onNavIconClick(event: MouseEvent, route: string): void {
+    // Always expand sidebar when navigating
+    if (!this.sidebarExpanded()) {
+      this.sidebarExpanded.set(true);
+    }
+    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
-      this.toggleSidebar();
-      return;
-    }
-  }
-
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
     }
   }
 
   onToggleTheme() {
     toggleTheme();
-  }
-
-  // Close sidebar on mobile when clicking outside
-  @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded.set(false);
-      }
-    }
   }
 
   // --- State ---
@@ -255,6 +240,13 @@ export class ActivitiesPage implements OnInit {
   }
 
   // --- Actions ---
+  protected onSearchInput(event: Event): void {
+    const inputElement = event.target as HTMLInputElement;
+    if (inputElement) {
+      this.onSearchChange(inputElement.value);
+    }
+  }
+
   protected onSearchChange(query: string): void {
     this.searchQuery.set(query);
     // when searching, go back to page 1

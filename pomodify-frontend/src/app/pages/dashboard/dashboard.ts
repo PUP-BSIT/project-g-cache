@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router, ActivatedRoute } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router, ActivatedRoute, Params } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import {
@@ -9,24 +9,17 @@ import {
 } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
-import {
-  CreateNoteModal,
-  NoteData as CreateNoteData,
-} from '../../shared/components/create-note-modal/create-note-modal';
-import {
-  EditNoteModal,
-  NoteData as EditNoteData,
-} from '../../shared/components/edit-note-modal/edit-note-modal';
-import { DeleteNoteModal } from '../../shared/components/delete-note-modal/delete-note-modal';
 import { Profile, ProfileData } from '../profile/profile';
 import { Timer } from '../../shared/services/timer';
 
-interface Activity {
+type Activity = {
   id: string;
   name: string;
   icon: string;
   lastAccessed: string;
-}
+};
+
+type StoredActivity = Activity & Record<string, unknown>;
 
 @Component({
   selector: 'app-dashboard',
@@ -61,12 +54,12 @@ export class Dashboard implements OnInit {
     this.loadActivitiesFromStorage();
     
     // Check for query params to select activity
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params: Params) => {
       this.handleQueryParams(params);
     });
   }
 
-  private handleQueryParams(params: any): void {
+  private handleQueryParams(params: Params): void {
     // Set timer if session info is provided (can be done immediately)
     if (params['focusTime']) {
       const focusTime = parseInt(params['focusTime'], 10);
@@ -106,43 +99,40 @@ export class Dashboard implements OnInit {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        // Map to dashboard Activity format (simpler structure)
-        const dashboardActivities: Activity[] = parsed.map((a: any) => ({
-          id: a.id,
-          name: a.name,
-          icon: a.icon,
-          lastAccessed: a.lastAccessed
-        }));
-        this.activities.set(dashboardActivities);
-        // Set default selected if activities exist and none is selected
+        const parsed = JSON.parse(stored) as StoredActivity[] | null;
+        const dashboardActivities: Activity[] = Array.isArray(parsed)
+          ? parsed.map((activity) => ({
+              id: activity.id,
+              name: activity.name,
+              icon: activity.icon,
+              lastAccessed: activity.lastAccessed,
+            }))
+          : [];
         if (dashboardActivities.length > 0) {
+          this.activities.set(dashboardActivities);
           const currentSelected = this.selectedActivityId();
-          if (!currentSelected || !dashboardActivities.some((a: Activity) => a.id === currentSelected)) {
+          if (!currentSelected || !dashboardActivities.some((activity) => activity.id === currentSelected)) {
             this.selectedActivityId.set(dashboardActivities[0].id);
           }
+          return;
         }
-      } else {
-        // Fallback to default activities if nothing in storage
-        this.activities.set([
-          { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
-          { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
-          { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
-          { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
-        ]);
-        this.selectedActivityId.set('math');
       }
+      this.setDefaultActivities();
     } catch (error) {
       console.error('Error loading activities from storage:', error);
-      // Fallback to default activities
-      this.activities.set([
-        { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
-        { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
-        { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
-        { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
-      ]);
-      this.selectedActivityId.set('math');
+      this.setDefaultActivities();
     }
+  }
+
+  private setDefaultActivities(): void {
+    const defaults: Activity[] = [
+      { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
+      { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
+      { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
+      { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
+    ];
+    this.activities.set(defaults);
+    this.selectedActivityId.set(defaults[0].id);
   }
 
   // Toggle sidebar
@@ -150,13 +140,13 @@ export class Dashboard implements OnInit {
     this.sidebarExpanded.update((expanded) => !expanded);
   }
 
-  onToggleTheme() {
+  protected onToggleTheme(): void {
     toggleTheme();
   }
 
   // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent) {
+  onClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
       if (window.innerWidth < 768) {
@@ -190,6 +180,13 @@ export class Dashboard implements OnInit {
   // --- Actions ---
   protected selectActivity(activityId: string): void {
     this.selectedActivityId.set(activityId);
+  }
+
+  protected onActivitySelectChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement | null;
+    if (selectElement) {
+      this.selectActivity(selectElement.value);
+    }
   }
 
   protected playTimer(): void {
@@ -252,51 +249,6 @@ export class Dashboard implements OnInit {
       });
   }
 
-  // --- Notes Modals ---
-  protected openCreateNoteModal(): void {
-    this.dialog
-      .open(CreateNoteModal)
-      .afterClosed()
-      .subscribe((result: CreateNoteData) => {
-        if (result) {
-          console.log('New note created:', result);
-          // TODO: Send to backend and add to notes list
-        }
-      });
-  }
-
-  protected openEditNoteModal(): void {
-    const sample: EditNoteData = {
-      id: 'note-1',
-      title: 'Sample Note',
-      category: 'Personal',
-      content: 'This is a sample note for edit modal',
-      colorTag: 'blue',
-    };
-
-    this.dialog
-      .open(EditNoteModal, { data: sample })
-      .afterClosed()
-      .subscribe((updated: EditNoteData) => {
-        if (updated) {
-          console.log('Updated note:', updated);
-          // TODO: persist updated note and update UI
-        }
-      });
-  }
-
-  protected openDeleteNoteModal(): void {
-    const sample = { id: 'note-1', title: 'Sample Note' };
-    this.dialog
-      .open(DeleteNoteModal, { data: sample })
-      .afterClosed()
-      .subscribe((confirmed: boolean) => {
-        if (confirmed) {
-          console.log('Delete confirmed for', sample);
-          // TODO: remove from notes and call backend
-        }
-      });
-  }
 
   // Format seconds as MM:SS for display in the circle.
   private formatTime(totalSeconds: number): string {
@@ -325,7 +277,13 @@ export class Dashboard implements OnInit {
   private playCompletionSound(): void {
     try {
       // Create a simple audio context beep.
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const extendedWindow = window as Window & { webkitAudioContext?: typeof AudioContext };
+      const AudioContextCtor = window.AudioContext ?? extendedWindow.webkitAudioContext;
+      if (!AudioContextCtor) {
+        console.warn('AudioContext is not supported in this browser.');
+        return;
+      }
+      const audioContext = new AudioContextCtor();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -352,12 +310,15 @@ export class Dashboard implements OnInit {
     this.showCompletionAlert.set(false);
   }
 
-  // Handle navigation icon click (keeps same UX as settings page)
+  // Handle navigation icon click - expand sidebar, no bounce
   protected onNavIconClick(event: MouseEvent, route: string): void {
+    // Always expand sidebar when navigating
+    if (!this.sidebarExpanded()) {
+      this.sidebarExpanded.set(true);
+    }
+    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
-      this.toggleSidebar();
-      return;
     }
   }
 

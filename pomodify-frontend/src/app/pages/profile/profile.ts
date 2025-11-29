@@ -1,14 +1,14 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 
-export interface ProfileData {
+export type ProfileData = {
   name: string;
   email: string;
   backupEmail?: string;
   profileImage?: string;
-}
+};
 
 @Component({
   selector: 'app-profile',
@@ -40,29 +40,59 @@ export class Profile {
   protected userEmail = signal('johndoe@gmail.com');
   protected backupEmail = signal<string | null>(null);
   
-  private timerInterval: any;
+  private timerInterval?: ReturnType<typeof setInterval>;
   
   ngOnInit(): void {
     // Initialize profile form
     this.profileForm = this.fb.group({
-      name: [this.userName(), [Validators.required, Validators.minLength(2)]]
+      name: [
+        this.userName(),
+        {
+          validators: [Validators.required, Validators.minLength(2)],
+        },
+      ],
     });
     
     // Initialize backup email form
     this.backupEmailForm = this.fb.group({
-      backupEmail: ['', [Validators.required, Validators.email]]
+      backupEmail: [
+        '',
+        {
+          validators: [Validators.required, Validators.email],
+        },
+      ],
     });
     
     // Initialize password form (for verification)
     this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
+      currentPassword: [
+        '',
+        {
+          validators: [Validators.required],
+        },
+      ],
+      newPassword: [
+        '',
+        {
+          validators: [Validators.required, Validators.minLength(8)],
+        },
+      ],
+      confirmPassword: [
+        '',
+        {
+          validators: [Validators.required],
+        },
+      ],
     });
     
     // Initialize verification form
     this.verificationForm = this.fb.group({
-      code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+      code: [
+        '',
+        {
+          validators: [Validators.required, Validators.minLength(6), Validators.maxLength(6)],
+        },
+      ],
     });
   }
   

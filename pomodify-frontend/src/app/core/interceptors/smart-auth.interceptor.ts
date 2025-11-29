@@ -4,7 +4,14 @@ import { delay, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 // Mock credentials database for testing
-const MOCK_CREDENTIALS = [
+type AuthRequestBody = {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+};
+
+const MOCK_CREDENTIALS: Array<{ email: string; password: string }> = [
   { email: 'asd', password: 'asd' },
   { email: 'test@test.com', password: 'password' },
   { email: 'demo@example.com', password: 'demo123' },
@@ -33,7 +40,7 @@ export const smartAuthInterceptor: HttpInterceptorFn = (
 
   // Try real backend first
   return next(request).pipe(
-    catchError((error: any) => {
+    catchError((error: HttpErrorResponse) => {
       // If backend is unreachable or returning server errors, switch to mock mode
       const isNetworkError = error.status === 0 || (error instanceof HttpErrorResponse && !error.status);
       const isServerError = error.status >= 500;
@@ -56,7 +63,7 @@ export const smartAuthInterceptor: HttpInterceptorFn = (
 };
 
 function handleMockAuth(request: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
-  const body = request.body as any;
+  const body = (request.body ?? {}) as AuthRequestBody;
 
   if (request.url.includes('/api/v1/auth/login')) {
     // Validate against mock credentials

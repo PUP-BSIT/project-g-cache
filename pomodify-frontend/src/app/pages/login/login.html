@@ -25,15 +25,13 @@
         <button type="button" class="tab-btn" (click)="onSignUp($event)">Sign Up</button>
       </div>
 
-      <form class="login-form" (ngSubmit)="onSubmit()">
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div *ngIf="errorMessage" class="form-error">{{ errorMessage }}</div>
         <div class="form-group">
           <input
             type="email"
             id="email"
-            name="email"
-            [(ngModel)]="email"
-            required
+            formControlName="email"
             placeholder="Email"
           />
         </div>
@@ -42,9 +40,7 @@
           <input
             type="password"
             id="password"
-            name="password"
-            [(ngModel)]="password"
-            required
+            formControlName="password"
             placeholder="Password"
           />
         </div>

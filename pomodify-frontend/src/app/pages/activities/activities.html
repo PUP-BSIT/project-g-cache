@@ -40,7 +40,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" (click)="onMainContentClick()">
+  <main class="main-content">
     <!-- Header -->
     <header class="header">
       <div class="theme-toggle">
@@ -79,8 +79,8 @@
             type="text" 
             class="search-input"
             placeholder="Search Activity Name"
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange($event)">
+            [value]="searchQuery()"
+            (input)="onSearchInput($event)">
         </div>
       </div>
 

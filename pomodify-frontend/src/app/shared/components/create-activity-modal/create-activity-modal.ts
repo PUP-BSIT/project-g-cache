@@ -5,12 +5,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-export interface ActivityData {
+export type ActivityData = {
   name: string;
   category?: string;
   colorTag: string;
   estimatedHoursPerWeek?: number;
-}
+};
+
+type ActivityFormValue = {
+  name: string;
+  category: string;
+  colorTag: string;
+  estimatedHoursPerWeek: number;
+};
 
 @Component({
   selector: 'app-create-activity-modal',
@@ -43,10 +50,30 @@ export class CreateActivityModal implements OnInit {
 
   ngOnInit(): void {
     this.activityForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(1)]],
-      category: [''],
-      colorTag: [this.selectedColor],
-      estimatedHoursPerWeek: [1, [Validators.min(0), Validators.max(168)]]
+      name: [
+        '',
+        {
+          validators: [Validators.required, Validators.minLength(1)],
+        },
+      ],
+      category: [
+        '',
+        {
+          validators: [],
+        },
+      ],
+      colorTag: [
+        this.selectedColor,
+        {
+          validators: [Validators.required],
+        },
+      ],
+      estimatedHoursPerWeek: [
+        1,
+        {
+          validators: [Validators.min(0), Validators.max(168)],
+        },
+      ],
     });
   }
 
@@ -61,11 +88,12 @@ export class CreateActivityModal implements OnInit {
 
   onCreateActivity(): void {
     if (this.activityForm.valid) {
+      const { name, category, estimatedHoursPerWeek } = this.activityForm.getRawValue() as ActivityFormValue;
       const activityData: ActivityData = {
-        name: this.activityForm.get('name')?.value,
-        category: this.activityForm.get('category')?.value || undefined,
+        name,
+        category: category || undefined,
         colorTag: this.selectedColor,
-        estimatedHoursPerWeek: this.activityForm.get('estimatedHoursPerWeek')?.value || 0
+        estimatedHoursPerWeek: estimatedHoursPerWeek || 0,
       };
       this.dialogRef.close(activityData);
     }

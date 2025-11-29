@@ -5,11 +5,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
-export interface SessionData {
+export type SessionData = {
   focusTimeMinutes: number;
   breakTimeMinutes: number;
   note?: string;
-}
+};
+
+type SessionFormValue = {
+  focusTimeMinutes: number;
+  breakTimeMinutes: number;
+  note: string;
+};
 
 @Component({
   selector: 'app-add-session-modal',
@@ -36,9 +42,24 @@ export class AddSessionModal implements OnInit {
 
   ngOnInit(): void {
     this.sessionForm = this.fb.group({
-      focusTimeMinutes: [25, [Validators.required, Validators.min(25), Validators.max(120)]],
-      breakTimeMinutes: [5, [Validators.required, Validators.min(5), Validators.max(60)]],
-      note: ['']
+      focusTimeMinutes: [
+        25,
+        {
+          validators: [Validators.required, Validators.min(25), Validators.max(120)],
+        },
+      ],
+      breakTimeMinutes: [
+        5,
+        {
+          validators: [Validators.required, Validators.min(5), Validators.max(60)],
+        },
+      ],
+      note: [
+        '',
+        {
+          validators: [],
+        },
+      ],
     });
   }
 
@@ -56,10 +77,11 @@ export class AddSessionModal implements OnInit {
 
   onAddSession(): void {
     if (this.sessionForm.valid) {
+      const { focusTimeMinutes, breakTimeMinutes, note } = this.sessionForm.getRawValue() as SessionFormValue;
       const sessionData: SessionData = {
-        focusTimeMinutes: this.sessionForm.get('focusTimeMinutes')?.value,
-        breakTimeMinutes: this.sessionForm.get('breakTimeMinutes')?.value,
-        note: this.sessionForm.get('note')?.value?.trim() || undefined
+        focusTimeMinutes,
+        breakTimeMinutes,
+        note: note.trim() || undefined,
       };
       this.dialogRef.close(sessionData);
     }

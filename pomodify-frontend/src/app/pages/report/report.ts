@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, HostListener } from '@angular/core';
+import { Component, signal, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
+import { Profile, ProfileData } from '../profile/profile';
 
 @Component({
   selector: 'app-report',
@@ -11,10 +13,11 @@ import { toggleTheme } from '../../shared/theme';
   styleUrl: './report.scss',
 })
 export class Report {
+  private dialog = inject(MatDialog);
+  private router = inject(Router);
+
   // Sidebar state
   protected sidebarExpanded = signal(true);
-
-  constructor(private router: Router) {}
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -25,15 +28,16 @@ export class Report {
     toggleTheme();
   }
 
-  // Handle navigation icon click
-  onNavIconClick(event: MouseEvent, route: string): void {
-    // Check if we're already on this route
-    if (this.router.url === route) {
-      // If on the same route, just toggle the sidebar
-      event.preventDefault();
-      this.toggleSidebar();
+  // Handle navigation icon click - expand sidebar, no bounce
+  protected onNavIconClick(event: MouseEvent, route: string): void {
+    // Always expand sidebar when navigating
+    if (!this.sidebarExpanded()) {
+      this.sidebarExpanded.set(true);
     }
-    // If different route, let the navigation happen normally
+    // If already on the same route, prevent navigation but keep sidebar expanded
+    if (this.router.url === route) {
+      event.preventDefault();
+    }
   }
 
   // Collapse sidebar when clicking main content
@@ -41,5 +45,22 @@ export class Report {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
     }
+  }
+
+  // Profile Modal
+  protected openProfileModal(): void {
+    this.dialog
+      .open(Profile, {
+        width: '550px',
+        maxWidth: '90vw',
+        panelClass: 'profile-dialog',
+      })
+      .afterClosed()
+      .subscribe((result: ProfileData) => {
+        if (result) {
+          console.log('Profile updated:', result);
+          // TODO: persist profile changes to backend
+        }
+      });
   }
 }

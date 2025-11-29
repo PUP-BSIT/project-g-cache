@@ -3,10 +3,10 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
-export interface DeleteNoteData {
+export type DeleteNoteData = {
   id?: string;
   title?: string;
-}
+};
 
 @Component({
   selector: 'app-delete-note-modal',

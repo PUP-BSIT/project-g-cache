@@ -3,10 +3,10 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 
-export interface DeleteActivityData {
+export type DeleteActivityData = {
   id?: string;
   name?: string;
-}
+};
 
 @Component({
   selector: 'app-delete-activity-modal',
