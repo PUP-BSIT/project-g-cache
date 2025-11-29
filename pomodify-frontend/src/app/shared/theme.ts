@@ -13,12 +13,12 @@ export function getStoredTheme(): Theme {
   return saved === 'dark' ? 'dark' : 'light';
 }
 
-export function applyTheme(theme: Theme) {
+export function applyTheme(theme: Theme): void {
   const isDark = theme === 'dark';
   document.documentElement.classList.toggle('theme-dark', isDark);
 }
 
-export function initTheme() {
+export function initTheme(): void {
   try {
     const theme = getStoredTheme();
     applyTheme(theme);
@@ -27,14 +27,14 @@ export function initTheme() {
   }
 }
 
-export function setTheme(theme: Theme) {
+export function setTheme(theme: Theme): void {
   try {
     localStorage.setItem(THEME_KEY, theme);
   } catch {/* ignore */}
   applyTheme(theme);
 }
 
-export function toggleTheme() {
+export function toggleTheme(): void {
   const next: Theme = document.documentElement.classList.contains('theme-dark') ? 'light' : 'dark';
   setTheme(next);
 }

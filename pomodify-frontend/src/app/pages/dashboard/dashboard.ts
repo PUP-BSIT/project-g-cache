@@ -139,7 +139,7 @@ export class Dashboard implements OnInit {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update((expanded) => !expanded);
+    this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
   protected onToggleTheme(): void {
@@ -213,7 +213,7 @@ export class Dashboard implements OnInit {
       .subscribe((result: ActivityData) => {
         if (result) {
           console.log('New activity created:', result);
-          // TODO: Send to backend and add to activities list
+          // TODO(Delumen, Ivan): Send to backend and add to activities list
         }
       });
   }
@@ -233,7 +233,7 @@ export class Dashboard implements OnInit {
       .subscribe((updated: ActivityData) => {
         if (updated) {
           console.log('Updated activity:', updated);
-          // TODO: persist updated activity and update UI
+          // TODO(Delumen, Ivan): persist updated activity and update UI
         }
       });
   }
@@ -246,7 +246,7 @@ export class Dashboard implements OnInit {
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
           console.log('Delete confirmed for', sample);
-          // TODO: remove from activities and call backend
+          // TODO(Delumen, Ivan): remove from activities and call backend
         }
       });
   }
@@ -347,7 +347,7 @@ export class Dashboard implements OnInit {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO: persist profile changes to backend
+          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }

@@ -11,7 +11,7 @@ import { Router, RouterLink } from '@angular/router';
 export class Header {
   constructor(private router: Router) {}
 
-  scrollToFeature(featureId: string) {
+  scrollToFeature(featureId: string): void {
     // Navigate to landing page first if not already there
     if (this.router.url !== '/' && this.router.url !== '/landing') {
       this.router.navigate(['/']).then(() => {
@@ -22,7 +22,7 @@ export class Header {
     }
   }
 
-  private scrollToElement(featureId: string) {
+  private scrollToElement(featureId: string): void {
     const element = document.getElementById(featureId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });

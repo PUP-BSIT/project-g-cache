@@ -1,32 +1,53 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, HostListener, inject } from '@angular/core';
+import { Component, signal, HostListener, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 
+type HelpReportFormValue = {
+  search: string;
+  details: string;
+};
+
 @Component({
-  selector: 'app-report',
-  standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
-  templateUrl: './report.html',
-  styleUrl: './report.scss',
-})
-export class Report {
+  selector:export class Report implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);
+  private fb = inject(FormBuilder);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+
+  // Reactive help/report form
+  protected helpForm!: FormGroup;
+
+  ngOnInit(): void {
+    this.helpForm = this.fb.group({
+      search: [
+        '',
+        {
+          validators: [],
+        },
+      ],
+      details: [
+        '',
+        {
+          validators: [],
+        },
+      ],
+    });
+  }
 
   // Toggle sidebar
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded) => !expanded);
   }
 
-  onToggleTheme() {
+  onToggleTheme(): void {
     toggleTheme();
   }
 
@@ -53,6 +74,16 @@ export class Report {
     this.auth.logout();
   }
 
+  protected onSubmitReport(): void {
+    if (this.helpForm.invalid) {
+      this.helpForm.markAllAsTouched();
+      return;
+    }
+
+    const { search, details } = this.helpForm.getRawValue() as HelpReportFormValue;
+    console.log('Help report submitted:', { search, details });
+  }
+
   // Profile Modal
   protected openProfileModal(): void {
     this.dialog
@@ -65,7 +96,7 @@ export class Report {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO: persist profile changes to backend
+          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }

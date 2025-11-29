@@ -13,7 +13,11 @@
     </div>
 
     <form class="signup-form" [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      <div *ngIf="errorMessage" class="form-error">{{ errorMessage }}</div>
+      @if (errorMessage) {
+        <div class="form-error">
+          {{ errorMessage }}
+        </div>
+      }
       <div class="form-group">
         <input
           type="text"
@@ -22,9 +26,11 @@
           placeholder="First Name"
           [class.invalid]="signupForm.get('firstName')?.invalid && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)"
         />
-        <div class="field-error" *ngIf="signupForm.get('firstName')?.hasError('required') && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)">
-          First name is required.
-        </div>
+        @if (signupForm.get('firstName')?.hasError('required') && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)) {
+          <div class="field-error">
+            First name is required.
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -35,9 +41,11 @@
           placeholder="Last Name"
           [class.invalid]="signupForm.get('lastName')?.invalid && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)"
         />
-        <div class="field-error" *ngIf="signupForm.get('lastName')?.hasError('required') && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)">
-          Last name is required.
-        </div>
+        @if (signupForm.get('lastName')?.hasError('required') && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)) {
+          <div class="field-error">
+            Last name is required.
+          </div>
+        }
       </div>
       <div class="form-group">
         <input
@@ -47,47 +55,75 @@
           placeholder="Email"
           [class.invalid]="signupForm.get('email')?.invalid && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)"
         />
-        <div class="field-error" *ngIf="signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)">
-          Email is required.
-        </div>
-        <div class="field-error" *ngIf="signupForm.get('email')?.hasError('email') && !signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)">
-          Please enter a valid email address.
-        </div>
+        @if (signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)) {
+          <div class="field-error">
+            Email is required.
+          </div>
+        }
+        @if (signupForm.get('email')?.hasError('email') && !signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)) {
+          <div class="field-error">
+            Please enter a valid email address.
+          </div>
+        }
       </div>
 
-      <div class="form-group">
+      <div class="form-group password-group">
         <input
-          type="password"
+          [type]="passwordInputType"
           id="password"
           formControlName="password"
           placeholder="Password"
           [class.invalid]="signupForm.get('password')?.invalid && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)"
         />
-        <div class="field-error" *ngIf="signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)">
-          Password is required.
-        </div>
-        <div class="field-error" *ngIf="signupForm.get('password')?.hasError('minlength') && !signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)">
-          Password must be at least 8 characters.
-        </div>
+        <button
+          type="button"
+          class="password-toggle"
+          (click)="togglePasswordVisibility()"
+          [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+          <i class="fa-solid" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+        @if (signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)) {
+          <div class="field-error">
+            Password is required.
+          </div>
+        }
+        @if (signupForm.get('password')?.hasError('minlength') && !signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)) {
+          <div class="field-error">
+            Password must be at least 8 characters.
+          </div>
+        }
       </div>
 
-      <div class="form-group">
+      <div class="form-group password-group">
         <input
-          type="password"
+          [type]="confirmPasswordInputType"
           id="confirmPassword"
           formControlName="confirmPassword"
           placeholder="Confirm Password"
           [class.invalid]="(signupForm.get('confirmPassword')?.invalid && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) || signupForm.get('confirmPassword')?.hasError('mismatch')"
         />
-        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)">
-          Please confirm your password.
-        </div>
-        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('minlength') && !signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)">
-          Confirmation password must be at least 8 characters.
-        </div>
-        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('mismatch')">
-          Passwords do not match.
-        </div>
+        <button
+          type="button"
+          class="password-toggle"
+          (click)="toggleConfirmPasswordVisibility()"
+          [attr.aria-label]="confirmPasswordVisible ? 'Hide password' : 'Show password'">
+          <i class="fa-solid" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+        @if (signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) {
+          <div class="field-error">
+            Please confirm your password.
+          </div>
+        }
+        @if (signupForm.get('confirmPassword')?.hasError('minlength') && !signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) {
+          <div class="field-error">
+            Confirmation password must be at least 8 characters.
+          </div>
+        }
+        @if (signupForm.get('confirmPassword')?.hasError('mismatch')) {
+          <div class="field-error">
+            Passwords do not match.
+          </div>
+        }
       </div>
 
       <button type="submit" class="btn-signup" [disabled]="isLoading || signupForm.invalid">Sign Up</button>

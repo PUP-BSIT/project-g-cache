@@ -31,8 +31,18 @@ export class Login {
     ],
   });
 
+  // UI state
   isLoading = false;
   errorMessage = '';
+  passwordVisible = false;
+
+  get passwordInputType(): 'password' | 'text' {
+    return this.passwordVisible ? 'text' : 'password';
+  }
+
+  togglePasswordVisibility(): void {
+    this.passwordVisible = !this.passwordVisible;
+  }
 
   onSubmit(): void {
     // Clear any previous invalidCredentials flags so a new attempt can be made

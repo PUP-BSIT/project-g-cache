@@ -33,7 +33,7 @@ export class Auth {
     private http: HttpClient
   ) {}
 
-  logout(): void {
+  private clearAuthData(): void {
     try {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
@@ -41,12 +41,43 @@ export class Auth {
     } catch (e) {
       console.warn('Unable to clear auth data from localStorage', e);
     }
+  }
 
-    this.router.navigate(['/']);
+  logout(): void {
+    const accessToken = localStorage.getItem('accessToken');
+    const url = `${environment.apiUrl}/auth/logout`;
+
+    if (accessToken) {
+      this.http
+        .post<{ message?: string }>(
+          url,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        )
+        .subscribe({
+          next: () => {
+            this.clearAuthData();
+            this.router.navigate(['/']);
+          },
+          error: (error) => {
+            console.warn('Logout API failed, clearing client auth data anyway', error);
+            this.clearAuthData();
+            this.router.navigate(['/']);
+          },
+        });
+    } else {
+      // No token stored – just clear any stale data and navigate
+      this.clearAuthData();
+      this.router.navigate(['/']);
+    }
   }
 
   login(email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> {
-    const url = `${environment.apiUrl}/api/v1/auth/login`;
+    const url = `${environment.apiUrl}/auth/login`;
     return lastValueFrom(this.http.post<LoginResponse>(url, { email, password }))
       .then((response) => {
         // Expected response: { user, accessToken, refreshToken }
@@ -79,7 +110,7 @@ export class Auth {
   }
 
   signup(firstName: string, lastName: string, email: string, password: string): Promise<void> {
-    const url = `${environment.apiUrl}/api/v1/auth/register`;
+    const url = `${environment.apiUrl}/auth/register`;
     return lastValueFrom(this.http.post<SignupResponse>(url, { firstName, lastName, email, password }))
       .then(() => Promise.resolve())
       .catch((err: Error & { error?: { message?: string } }) => {
