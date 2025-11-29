@@ -2,20 +2,7 @@
   <div class="signup-panel">
     <div class="signup-card">
     <button class="close-btn" (click)="onClose()">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
+      <i class="fa-solid fa-arrow-left-long"></i>
     </button>
 
     <h1 class="page-title">Create an Account</h1>
@@ -33,7 +20,11 @@
           id="firstName"
           formControlName="firstName"
           placeholder="First Name"
+          [class.invalid]="signupForm.get('firstName')?.invalid && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)"
         />
+        <div class="field-error" *ngIf="signupForm.get('firstName')?.hasError('required') && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)">
+          First name is required.
+        </div>
       </div>
 
       <div class="form-group">
@@ -42,7 +33,11 @@
           id="lastName"
           formControlName="lastName"
           placeholder="Last Name"
+          [class.invalid]="signupForm.get('lastName')?.invalid && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)"
         />
+        <div class="field-error" *ngIf="signupForm.get('lastName')?.hasError('required') && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)">
+          Last name is required.
+        </div>
       </div>
       <div class="form-group">
         <input
@@ -50,7 +45,14 @@
           id="email"
           formControlName="email"
           placeholder="Email"
+          [class.invalid]="signupForm.get('email')?.invalid && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)"
         />
+        <div class="field-error" *ngIf="signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)">
+          Email is required.
+        </div>
+        <div class="field-error" *ngIf="signupForm.get('email')?.hasError('email') && !signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)">
+          Please enter a valid email address.
+        </div>
       </div>
 
       <div class="form-group">
@@ -59,7 +61,14 @@
           id="password"
           formControlName="password"
           placeholder="Password"
+          [class.invalid]="signupForm.get('password')?.invalid && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)"
         />
+        <div class="field-error" *ngIf="signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)">
+          Password is required.
+        </div>
+        <div class="field-error" *ngIf="signupForm.get('password')?.hasError('minlength') && !signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)">
+          Password must be at least 8 characters.
+        </div>
       </div>
 
       <div class="form-group">
@@ -68,10 +77,20 @@
           id="confirmPassword"
           formControlName="confirmPassword"
           placeholder="Confirm Password"
+          [class.invalid]="(signupForm.get('confirmPassword')?.invalid && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) || signupForm.get('confirmPassword')?.hasError('mismatch')"
         />
+        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)">
+          Please confirm your password.
+        </div>
+        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('minlength') && !signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)">
+          Confirmation password must be at least 8 characters.
+        </div>
+        <div class="field-error" *ngIf="signupForm.get('confirmPassword')?.hasError('mismatch')">
+          Passwords do not match.
+        </div>
       </div>
 
-      <button type="submit" class="btn-signup" [disabled]="isLoading">Sign Up</button>
+      <button type="submit" class="btn-signup" [disabled]="isLoading || signupForm.invalid">Sign Up</button>
 
       <p class="login-text">
         Already have an account?

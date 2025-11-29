@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-report',
@@ -15,6 +16,7 @@ import { Profile, ProfileData } from '../profile/profile';
 export class Report {
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private auth = inject(Auth);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -45,6 +47,10 @@ export class Report {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
     }
+  }
+
+  protected onLogout(): void {
+    this.auth.logout();
   }
 
   // Profile Modal

@@ -198,7 +198,8 @@ $toggle-bg-inactive: #D0D0D0;
     z-index: -1;
   }
   
-  svg {
+  svg,
+  i {
     flex-shrink: 0;
     width: 24px;
     height: 24px;
@@ -207,6 +208,10 @@ $toggle-bg-inactive: #D0D0D0;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     z-index: 1;
+  }
+
+  i {
+    font-size: 18px;
   }
   
   .nav-text {
@@ -247,7 +252,8 @@ $toggle-bg-inactive: #D0D0D0;
       width: 90%;
     }
     
-    svg {
+    svg,
+    i {
       margin-left: 16px;
     }
     
@@ -479,7 +485,8 @@ $toggle-bg-inactive: #D0D0D0;
   color: $text-dark;
   transition: all 0.2s ease;
   
-  svg {
+  svg,
+  i {
     width: 20px;
     height: 20px;
     color: $text-dark;

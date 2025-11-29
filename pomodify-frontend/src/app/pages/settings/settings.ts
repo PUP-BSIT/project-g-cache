@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-settings',
@@ -20,6 +21,7 @@ export class Settings {
 
   // Router for route-aware sidebar clicks
   private router = inject(Router);
+  private auth = inject(Auth);
 
   // Settings toggles
   protected notificationsEnabled = signal(true);
@@ -57,6 +59,10 @@ export class Settings {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
     }
+  }
+
+  protected onLogout(): void {
+    this.auth.logout();
   }
 
   // Open profile modal using MatDialog to match other pages
