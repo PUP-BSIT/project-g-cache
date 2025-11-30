@@ -1,31 +1,20 @@
-# Ignore build output
 target/
 
-# Git metadata
 .git/
 
-# IDE/editor files
 .idea/
 *.iml
 .vscode/
 
-# Node artifacts (if any frontend/tools present)
 node_modules/
 
-# OS files
 .DS_Store
 
-# Logs and env files
 *.log
 .env
 .env.*
 
-# Maven wrapper jar is needed if you use mvnw/.mvn in the Dockerfile
-# Do NOT ignore mvnw or .mvn because the Dockerfile copies them
-
-# Other common ignores
 out/
 build/
 
-# Exclude local configs
 local.properties

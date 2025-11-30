@@ -1,34 +1,23 @@
-# Ignore local build outputs
 /dist
 
-# Node modules and lock files that can be reinstalled
 node_modules/
 npm-debug.log
 package-lock.json
 
-# Git metadata
 .git/
 
-# IDE/editor files
 .idea/
 .vscode/
 *.iml
 
-# OS files
 .DS_Store
 
-# Environment and log files
 *.env
 .env.*
 *.log
 
-# Angular cache and temp files
 .angular/
 .cache/
 
-# Misc
 coverage/
 coverage-final.json
-
-# Keep package.json, angular.json, tsconfig*.json, src/, Dockerfile, nginx.conf so build works
-# (Do not ignore these files.)
