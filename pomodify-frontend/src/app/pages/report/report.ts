@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, HostListener, inject, OnInit } from '@angular/core';
+import { Component, signal, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -13,17 +13,25 @@ type HelpReportFormValue = {
 };
 
 @Component({
-  selector:export class Report implements OnInit {
-  private dialog = inject(MatDialog);
-  private router = inject(Router);
-  private auth = inject(Auth);
-  private fb = inject(FormBuilder);
-
+  selector: 'app-report',
+  standalone: true,
+  imports: [CommonModule, RouterLink, RouterLinkActive, ReactiveFormsModule],
+  templateUrl: './report.html',
+  styleUrls: ['./report.scss'],
+})
+export class Report implements OnInit {
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
   // Reactive help/report form
   protected helpForm!: FormGroup;
+
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private auth: Auth,
+    private fb: FormBuilder
+  ) {}
 
   ngOnInit(): void {
     this.helpForm = this.fb.group({
