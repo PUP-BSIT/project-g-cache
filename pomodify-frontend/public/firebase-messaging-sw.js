@@ -4,12 +4,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 
 // Initialize Firebase in the service worker
 firebase.initializeApp({
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID'
+  apiKey: 'AIzaSyDLBKBLDKOqfVPvq2341fnWICTKoYdq2ug',
+  authDomain: 'pomodify-6c0a2.firebaseapp.com',
+  projectId: 'pomodify-6c0a2',
+  storageBucket: 'pomodify-6c0a2.firebasestorage.app',
+  messagingSenderId: '365855742398',
+  appId: '1:365855742398:web:c18205d516663707a781ef'
 });
 
 const messaging = firebase.messaging();
@@ -21,8 +21,7 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'Pomodify';
   const notificationOptions = {
     body: payload.notification?.body || 'Timer completed!',
-    icon: '/assets/icons/icon-192x192.png',
-    badge: '/assets/icons/badge-72x72.png',
+    icon: '/assets/images/logo.png',
     tag: 'pomodify-notification',
     requireInteraction: true,
     data: payload.data

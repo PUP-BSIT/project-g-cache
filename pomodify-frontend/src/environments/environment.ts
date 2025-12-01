@@ -3,12 +3,12 @@ export const environment = {
   apiUrl: 'https://api.pomodify.site/api/v1',
   useMockBackend: false,
   firebase: {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID',
-    vapidKey: 'YOUR_VAPID_KEY'
+    apiKey: 'AIzaSyDLBKBLDKOqfVPvq2341fnWICTKoYdq2ug',
+    authDomain: 'pomodify-6c0a2.firebaseapp.com',
+    projectId: 'pomodify-6c0a2',
+    storageBucket: 'pomodify-6c0a2.firebasestorage.app',
+    messagingSenderId: '365855742398',
+    appId: '1:365855742398:web:c18205d516663707a781ef',
+    vapidKey: 'BFLL-gnI0bl-Fv7iXLNN7hBSse3d_vS0MMV0cCtUw2zHjpHHb4AoeNHnabyIbGhkG4kNQbA2LyrfnrnSvwiIVbg'
   }
 };

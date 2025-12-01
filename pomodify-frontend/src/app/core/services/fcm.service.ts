@@ -127,7 +127,7 @@ export class FcmService {
   private listenToMessages(): void {
     if (!this.messaging) return;
 
-    onMessage(this.messaging, (payload) => {
+    onMessage(this.messaging, (payload: any) => {
       console.log('Foreground message received:', payload);
       
       // Show notification when app is in foreground
@@ -135,8 +135,7 @@ export class FcmService {
         const title = payload.notification?.title || 'Pomodify';
         const options = {
           body: payload.notification?.body || 'Timer completed!',
-          icon: '/assets/icons/icon-192x192.png',
-          badge: '/assets/icons/badge-72x72.png',
+          icon: '/assets/images/logo.png',
           tag: 'pomodify-notification',
           requireInteraction: true,
           data: payload.data
@@ -164,14 +163,23 @@ export class FcmService {
 
   // Send test notification (for testing purposes)
   async sendTestNotification(): Promise<void> {
+    console.log('sendTestNotification called');
+    console.log('Notification.permission:', Notification.permission);
+    
     if (Notification.permission === 'granted') {
-      new Notification('Test Notification', {
-        body: 'This is a test notification from Pomodify!',
-        icon: '/assets/icons/icon-192x192.png',
-        tag: 'test-notification'
-      });
+      console.log('Creating notification...');
+      try {
+        const notification = new Notification('Test Notification', {
+          body: 'This is a test notification from Pomodify!',
+          icon: '/assets/images/logo.png',
+          tag: 'test-notification'
+        });
+        console.log('Notification created:', notification);
+      } catch (error) {
+        console.error('Error creating notification:', error);
+      }
     } else {
-      console.warn('Cannot send test notification: permission not granted');
+      console.warn('Cannot send test notification: permission not granted. Current permission:', Notification.permission);
     }
   }
 
