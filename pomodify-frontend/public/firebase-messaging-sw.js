@@ -4,12 +4,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 
 // Initialize Firebase in the service worker
 firebase.initializeApp({
-  apiKey: 'AIzaSyDLBKBLDKOqfVPvq2341fnWICTKoYdq2ug',
-  authDomain: 'pomodify-6c0a2.firebaseapp.com',
-  projectId: 'pomodify-6c0a2',
-  storageBucket: 'pomodify-6c0a2.firebasestorage.app',
-  messagingSenderId: '365855742398',
-  appId: '1:365855742398:web:c18205d516663707a781ef'
+  apiKey: 'AIzaSyBPye4hQJ270_aL4W9v58dM5eT30dFIwrA',
+  authDomain: 'pomodify-push.firebaseapp.com',
+  projectId: 'pomodify-push',
+  storageBucket: 'pomodify-push.firebasestorage.app',
+  messagingSenderId: '277030298544',
+  appId: '1:277030298544:web:9573252da0f3e8c5512c75'
 });
 
 const messaging = firebase.messaging();
