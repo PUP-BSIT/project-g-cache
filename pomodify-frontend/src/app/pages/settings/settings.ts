@@ -32,31 +32,24 @@ export class Settings {
     // Initialize theme state
     this.updateThemeState();
   }
-  
-  // Sound Settings
+
   protected soundEnabled = signal(this.settings().sound.enabled);
   protected soundType = signal(this.settings().sound.type);
   protected volume = signal(this.settings().sound.volume);
   protected tickSoundEnabled = signal(this.settings().sound.tickSound);
 
-  // Auto-Start Settings
   protected autoStartBreaks = signal(this.settings().autoStart.autoStartBreaks);
   protected autoStartPomodoros = signal(this.settings().autoStart.autoStartPomodoros);
 
-  // Other Settings
   protected notificationsEnabled = signal(this.settings().notifications);
-  protected calendarSyncEnabled = signal(this.settings().calendarSync);
 
-  // Modal state
   protected showDeleteModal = signal(false);
   protected showSuccessModal = signal(false);
   protected showClearSessionsModal = signal(false);
   protected showClearActivitiesModal = signal(false);
 
-  // Theme state
   protected isDarkMode = signal(false);
 
-  // Sound types for dropdown
   protected soundTypes = [
     { value: 'bell', label: 'Bell' },
     { value: 'chime', label: 'Chime' },
@@ -64,7 +57,6 @@ export class Settings {
     { value: 'soft', label: 'Soft Ding' }
   ];
 
-  // Toggle sidebar
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
@@ -125,12 +117,6 @@ export class Settings {
     this.settingsService.updateSettings({ notifications: this.notificationsEnabled() });
   }
 
-  protected toggleCalendarSync(): void {
-    this.calendarSyncEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ calendarSync: this.calendarSyncEnabled() });
-  }
-
-  // Handle navigation icon click
   protected onNavIconClick(event: MouseEvent, route: string): void {
     if (this.router.url === route) {
       event.preventDefault();
@@ -139,7 +125,6 @@ export class Settings {
     }
   }
 
-  // Collapse sidebar when clicking main content
   protected onMainContentClick(): void {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
@@ -150,7 +135,6 @@ export class Settings {
     this.auth.logout();
   }
 
-  // Open profile modal using MatDialog to match other pages
   protected openProfileModal(): void {
     this.dialog
       .open(Profile, {
@@ -178,7 +162,6 @@ export class Settings {
     this.showSuccessModal.set(false);
   }
 
-  // Delete account
   protected onDeleteAccount(): void {
     this.showDeleteModal.set(true);
   }
@@ -195,7 +178,6 @@ export class Settings {
     this.showDeleteModal.set(false);
   }
 
-  // Clear Session History
   protected onClearSessions(): void {
     this.showClearSessionsModal.set(true);
   }
@@ -211,7 +193,6 @@ export class Settings {
     this.showClearSessionsModal.set(false);
   }
 
-  // Clear Activity Data
   protected onClearActivities(): void {
     this.showClearActivitiesModal.set(true);
   }
