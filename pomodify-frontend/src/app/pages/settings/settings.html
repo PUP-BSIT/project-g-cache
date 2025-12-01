@@ -187,20 +187,58 @@
       </section>
 
       <section class="settings-section">
-        <h2 class="section-title">🔔 Notifications</h2>
+        <h2 class="section-title">🔔 Push Notifications</h2>
         
-        <div class="setting-item">
-          <div class="setting-info">
-            <h3 class="setting-label">Browser Notifications</h3>
-            <p class="setting-description">Get notified when timer completes</p>
+        @if (!fcmState().isSupported) {
+          <div class="info-box error">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <p>Push notifications are not supported in this browser.</p>
           </div>
-          <div class="toggle-switch">
-            <input type="checkbox" id="notifications-toggle" class="toggle-input" 
-                    [checked]="notificationsEnabled()" 
-                    (change)="toggleNotifications()">
-            <label for="notifications-toggle" class="toggle-label"></label>
+        } @else {
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3 class="setting-label">Enable Push Notifications</h3>
+              <p class="setting-description">Get notified when timer completes, even when browser is closed</p>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="notifications-toggle" class="toggle-input" 
+                      [checked]="notificationsEnabled()" 
+                      (change)="toggleNotifications()">
+              <label for="notifications-toggle" class="toggle-label"></label>
+            </div>
           </div>
-        </div>
+
+          @if (notificationsEnabled() && fcmState().token) {
+            <div class="setting-item">
+              <div class="setting-info">
+                <h3 class="setting-label">Test Notification</h3>
+                <p class="setting-description">Send a test notification to verify it works</p>
+              </div>
+              <button class="test-btn" (click)="testNotification()">
+                <i class="fa-solid fa-bell"></i> Send Test
+              </button>
+            </div>
+
+            <div class="info-box success">
+              <i class="fa-solid fa-check-circle"></i>
+              <p>Push notifications are enabled! You'll receive notifications even when the browser is closed.</p>
+            </div>
+          }
+
+          @if (fcmState().error) {
+            <div class="info-box error">
+              <i class="fa-solid fa-exclamation-circle"></i>
+              <p>{{ fcmState().error }}</p>
+            </div>
+          }
+
+          @if (fcmState().permission === 'denied') {
+            <div class="info-box error">
+              <i class="fa-solid fa-ban"></i>
+              <p>Notification permission denied. Please enable notifications in your browser settings.</p>
+            </div>
+          }
+        }
       </section>
 
       <!-- Privacy & Data Section -->

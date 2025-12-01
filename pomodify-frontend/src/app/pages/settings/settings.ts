@@ -7,6 +7,7 @@ import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
+import { FcmService } from '../../core/services/fcm.service';
 
 @Component({
   selector: 'app-settings',
@@ -17,12 +18,16 @@ import { SettingsService } from '../../core/services/settings.service';
 })
 export class Settings {
   private settingsService = inject(SettingsService);
+  private fcmService = inject(FcmService);
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
   // Get settings from service
   protected settings = this.settingsService.getSettingsSignal();
+  
+  // FCM state
+  protected fcmState = this.fcmService.getState();
   
   constructor(
     private dialog: MatDialog,
@@ -111,10 +116,31 @@ export class Settings {
     this.settingsService.updateAutoStartSettings({ autoStartPomodoros: this.autoStartPomodoros() });
   }
 
-  // Other Settings Methods
-  protected toggleNotifications(): void {
-    this.notificationsEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ notifications: this.notificationsEnabled() });
+  // Push Notification Methods
+  protected async toggleNotifications(): Promise<void> {
+    const currentlyEnabled = this.notificationsEnabled();
+    
+    if (!currentlyEnabled) {
+      // User wants to enable notifications
+      const token = await this.fcmService.requestPermission();
+      if (token) {
+        this.notificationsEnabled.set(true);
+        this.settingsService.updateSettings({ notifications: true });
+      } else {
+        // Permission denied or error
+        this.notificationsEnabled.set(false);
+        this.settingsService.updateSettings({ notifications: false });
+      }
+    } else {
+      // User wants to disable notifications
+      await this.fcmService.deleteToken();
+      this.notificationsEnabled.set(false);
+      this.settingsService.updateSettings({ notifications: false });
+    }
+  }
+
+  protected async testNotification(): Promise<void> {
+    await this.fcmService.sendTestNotification();
   }
 
   protected onNavIconClick(event: MouseEvent, route: string): void {
