@@ -61,6 +61,7 @@ public class User {
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
+
     // ──────────────── Timestamps ────────────────
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -143,9 +144,17 @@ public class User {
         return activity.delete(activity.getId());
     }
 
+    // ──────────────── Pomodoro Session Operations ────────────────
+/*    public PomodoroSession createPomodoroSession(Activity activity, String title, int workDurationInMinutes, int breakDurationInMinutes, int totalCycles) {
+        ensureActive();
+        return activity.createPomodoroSession(title, workDurationInMinutes, breakDurationInMinutes);
+    }*/
+
     // ──────────────── Guards ────────────────
     private void ensureActive() {
         if (!this.isActive)
             throw new IllegalStateException("Inactive user cannot perform operations");
     }
+
+
 }

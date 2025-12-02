@@ -96,21 +96,27 @@ public class Activity {
         this.category = newCategory;
     }
 
-    public void addPomodoroSession(PomodoroSession session) {
+    // ──────────────── Pomodoro Session Operations ────────────────
+   /* public PomodoroSession createPomodoroSession(String title, Integer workDurationMinutes, Integer breakDurationMinutes) {
         ensureActive();
-        if (session == null)
-            throw new IllegalArgumentException("Pomodoro session cannot be null");
-        sessions.add(session);
-        session.setActivity(this);
-    }
+        for (PomodoroSession session : sessions) {
+            if (session.getSessionTitle().equalsIgnoreCase(title) && session.isActive()) {
+                throw new IllegalArgumentException("An active Pomodoro session with the same title already exists for this activity");
+            }
+        }
 
-    public void removePomodoroSession(PomodoroSession session) {
+        PomodoroSession session = PomodoroSession.create(this, title, workDurationMinutes, breakDurationMinutes);
+        this.sessions.add(session);
+        return session;
+    }*/
+
+/*    public void removePomodoroSession(PomodoroSession session) {
         ensureActive();
         if (session == null)
             throw new IllegalArgumentException("Pomodoro session cannot be null");
         sessions.remove(session);
         session.setActivity(null);
-    }
+    }*/
 
     public Activity delete(Long id) {
         if (!this.id.equals(id))
@@ -121,11 +127,11 @@ public class Activity {
         return this;
     }
 
-    public List<PomodoroSession> getActiveSessions() {
+/*    public List<PomodoroSession> getActiveSessions() {
         return sessions.stream()
                 .filter(PomodoroSession::isActive)
                 .toList();
-    }
+    }*/
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {

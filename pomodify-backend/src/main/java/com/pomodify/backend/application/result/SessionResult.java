@@ -1,8 +1,11 @@
-package com.pomodify.backend.presentation.dto.item;
+package com.pomodify.backend.application.result;
+
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-public record SessionItem(
+@Builder
+public record SessionResult(
         Long id,
         Long activityId,
         String sessionType,
@@ -13,7 +16,7 @@ public record SessionItem(
         int cycles,
         int cyclesCompleted,
         int totalTimeInMinutes,
-        String note,  // nullable - can be added on pause, stop, completion, or edited later
+        String note,
         LocalDateTime startedAt,
         LocalDateTime completedAt,
         LocalDateTime createdAt
