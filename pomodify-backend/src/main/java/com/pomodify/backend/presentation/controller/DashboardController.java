@@ -25,6 +25,9 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public DashboardResponse getDashboard(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
         Long userId = userHelper.extractUserId(jwt);
+        if (userId == null) {
+            throw new IllegalArgumentException("Invalid user claim");
+        }
         DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.systemDefault());
         return dashboardMapper.toResponse(dashboardService.getDashboard(cmd));
     }
