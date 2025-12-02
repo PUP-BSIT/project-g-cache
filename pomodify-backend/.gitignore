@@ -6,7 +6,6 @@ target/
 .env
 request/
 
-
 ### STS ###
 .apt_generated
 .classpath

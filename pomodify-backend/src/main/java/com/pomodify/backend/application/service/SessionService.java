@@ -27,6 +27,7 @@ public class SessionService {
     private final PomodoroSessionRepository sessionRepository;
     private final DomainHelper domainHelper;
     private final UserHelper userHelper;
+    private final PushNotificationService pushNotificationService;
 
     /* -------------------- CREATE -------------------- */
     @Transactional
@@ -123,6 +124,19 @@ public class SessionService {
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         activity.completePhase(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
+        // Notify user on phase change
+        String title = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")
+            ? "Focus ended — take a break"
+            : "Break ended — back to focus";
+        String body = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("FOCUS")
+            ? "Cycles completed: " + (saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0)
+            : "Stay mindful and recharge.";
+        pushNotificationService.sendNotificationToUser(command.user(), title, body);
+        // If session just became COMPLETED (classic), send completion push
+        if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
+            int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
+            pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
+        }
         return toResult(saved);
     }
 
@@ -132,6 +146,9 @@ public class SessionService {
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         activity.finishSession(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
+        // Notify completion
+        int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
+        pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
         return toResult(saved);
     }
 
