@@ -83,6 +83,7 @@ export class Dashboard {
   protected readonly currentPage = signal(1);
   protected readonly itemsPerPage = signal(6);
   protected readonly currentStreak = signal(0);
+  protected readonly categoryDropdownOpen = signal(false);
 
   constructor() {
     this.loadActivitiesFromStorage();
@@ -130,7 +131,15 @@ export class Dashboard {
 
     return allActivities.filter((activity) => {
       const matchesQuery = activity.name.toLowerCase().includes(query);
-      const matchesCategory = !category || activity.category === category;
+      
+      // Handle category filtering including Uncategorized
+      let matchesCategory = !category; // If no category selected, show all
+      if (category === 'Uncategorized') {
+        matchesCategory = !activity.category || activity.category === '';
+      } else if (category) {
+        matchesCategory = activity.category === category;
+      }
+      
       return matchesQuery && matchesCategory;
     });
   });
@@ -368,6 +377,22 @@ export class Dashboard {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays === 1) return '1 day ago';
     return `${diffDays} days ago`;
+  }
+
+  protected toggleCategoryDropdown(): void {
+    this.categoryDropdownOpen.update((open) => !open);
+  }
+
+  protected getActivitiesByCategory(category: string): Activity[] {
+    return this.activities().filter((activity) => activity.category === category);
+  }
+
+  protected getUncategorizedActivities(): Activity[] {
+    return this.activities().filter((activity) => !activity.category || activity.category === '');
+  }
+
+  protected hasUncategorizedActivities(): boolean {
+    return this.getUncategorizedActivities().length > 0;
   }
 
   protected onNavIconClick(event: MouseEvent, route: string): void {

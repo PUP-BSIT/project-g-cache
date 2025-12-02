@@ -103,22 +103,51 @@
             (input)="updateSearchQuery($any($event).target.value)"
           />
         </div>
-        <div class="category-filters">
-          <button
-            class="filter-chip"
-            [class.active]="selectedCategory() === null"
-            (click)="toggleCategory('')"
-          >
-            All
+        
+        <!-- Category Dropdown -->
+        <div class="category-dropdown-container">
+          <button class="category-dropdown-btn" (click)="toggleCategoryDropdown()">
+            <i class="fa-solid fa-list"></i>
+            <span>Categories</span>
+            <i class="fa-solid fa-chevron-down" [class.rotated]="categoryDropdownOpen()"></i>
           </button>
-          @for (category of categories(); track category) {
-            <button
-              class="filter-chip"
-              [class.active]="selectedCategory() === category"
-              (click)="toggleCategory(category)"
-            >
-              {{ category }}
-            </button>
+          
+          @if (categoryDropdownOpen()) {
+            <div class="category-dropdown-menu">
+              <button 
+                class="category-item"
+                [class.active]="selectedCategory() === null"
+                (click)="toggleCategory(''); toggleCategoryDropdown()"
+              >
+                <i class="fa-solid fa-inbox"></i>
+                <span>All Activities</span>
+                <span class="category-count">{{ activities().length }}</span>
+              </button>
+              
+              @for (category of categories(); track category) {
+                <button 
+                  class="category-item"
+                  [class.active]="selectedCategory() === category"
+                  (click)="toggleCategory(category); toggleCategoryDropdown()"
+                >
+                  <i class="fa-solid fa-folder"></i>
+                  <span>{{ category }}</span>
+                  <span class="category-count">{{ getActivitiesByCategory(category).length }}</span>
+                </button>
+              }
+              
+              @if (hasUncategorizedActivities()) {
+                <button 
+                  class="category-item"
+                  [class.active]="selectedCategory() === 'Uncategorized'"
+                  (click)="toggleCategory('Uncategorized'); toggleCategoryDropdown()"
+                >
+                  <i class="fa-solid fa-circle-question"></i>
+                  <span>Uncategorized</span>
+                  <span class="category-count">{{ getUncategorizedActivities().length }}</span>
+                </button>
+              }
+            </div>
           }
         </div>
       </div>
