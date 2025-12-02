@@ -53,9 +53,9 @@ public class DashboardService {
 
         // Focus days for streaks
         Set<LocalDate> focusDays = sessionsAll.stream()
-                .filter(s -> s.getCompletedAt() != null)
-                .map(s -> s.getCompletedAt().atZone(ZoneId.systemDefault()).withZoneSameInstant(zone).toLocalDate())
-                .collect(Collectors.toSet());
+            .filter(s -> s.getCompletedAt() != null)
+            .map(s -> s.getCompletedAt().atZone(zone).toLocalDate())
+            .collect(Collectors.toSet());
 
         int currentStreak = user.getCurrentStreak(focusDays, today, zone);
         int bestStreak = user.getBestStreak(focusDays);
