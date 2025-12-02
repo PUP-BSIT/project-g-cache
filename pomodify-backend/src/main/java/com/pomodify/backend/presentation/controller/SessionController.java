@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/sessions")
+@RequestMapping("/api/v1/activities/{activityId}/sessions")
 public class SessionController {
 
         private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
@@ -37,12 +37,13 @@ public class SessionController {
     // ───── CRUD Operations ─────
 
     @PostMapping
-        public ResponseEntity<SessionResponse> createSession(@RequestBody @Valid SessionRequest request,
-                                 @AuthenticationPrincipal Jwt jwt) {
+        public ResponseEntity<SessionResponse> createSession(@PathVariable Long activityId,
+                                                             @RequestBody @Valid SessionRequest request,
+                                                             @AuthenticationPrincipal Jwt jwt) {
         Long userId = requireUserId(jwt);
         CreateSessionCommand command = CreateSessionCommand.builder()
                 .user(userId)
-                .activityId(request.activityId())
+                .activityId(activityId)
                 .sessionType(request.sessionType())
                 .focusTimeInMinutes(request.focusTimeInMinutes())
                 .breakTimeInMinutes(request.breakTimeInMinutes())
@@ -55,8 +56,8 @@ public class SessionController {
 
     @GetMapping
         public ResponseEntity<SessionResponse> getAllSessions(@AuthenticationPrincipal Jwt jwt,
-                                                          @RequestParam(required = false) Long activityId,
-                                                          @RequestParam(required = false) String status) {
+                                                              @PathVariable Long activityId,
+                                                              @RequestParam(required = false) String status) {
         Long userId = requireUserId(jwt);
         List<SessionItem> items = SessionMapper.toItems(
                 sessionService.getAll(GetSessionsCommand.builder()
@@ -70,7 +71,8 @@ public class SessionController {
 
         @GetMapping("/{id}")
         public ResponseEntity<SessionResponse> getSession(@AuthenticationPrincipal Jwt jwt,
-                                                                                                          @PathVariable Long id) {
+                                  @PathVariable Long activityId,
+                                  @PathVariable Long id) {
             Long userId = requireUserId(jwt);
                 SessionItem item = SessionMapper.toItem(sessionService.get(GetSessionCommand.builder().user(userId).sessionId(id).build()));
                 return ResponseEntity.ok(SessionMapper.toResponse(item, "Session retrieved successfully"));
@@ -78,7 +80,8 @@ public class SessionController {
 
         @DeleteMapping("/{id}")
         public ResponseEntity<SessionResponse> deleteSession(@AuthenticationPrincipal Jwt jwt,
-                                                                                                                 @PathVariable Long id) {
+                                     @PathVariable Long activityId,
+                                     @PathVariable Long id) {
             Long userId = requireUserId(jwt);
                 sessionService.delete(DeleteSessionCommand.builder().user(userId).sessionId(id).build());
                 return ResponseEntity.ok(new SessionResponse("Session deleted successfully", List.of(),0,0,0));
@@ -88,6 +91,7 @@ public class SessionController {
 
     @PostMapping("/{id}/start")
     public ResponseEntity<SessionResponse> startSession(@AuthenticationPrincipal Jwt jwt,
+                                                        @PathVariable Long activityId,
                                                         @PathVariable Long id) {
         Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.start(StartSessionCommand.builder().user(userId).sessionId(id).build()));
@@ -96,6 +100,7 @@ public class SessionController {
 
     @PostMapping("/{id}/pause")
     public ResponseEntity<SessionResponse> pauseSession(@AuthenticationPrincipal Jwt jwt,
+                                                        @PathVariable Long activityId,
                                                         @PathVariable Long id,
                                                         @RequestParam(required = false) String note) {
         Long userId = requireUserId(jwt);
@@ -105,6 +110,7 @@ public class SessionController {
 
     @PostMapping("/{id}/resume")
     public ResponseEntity<SessionResponse> resumeSession(@AuthenticationPrincipal Jwt jwt,
+                                                         @PathVariable Long activityId,
                                                          @PathVariable Long id) {
         Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.resume(ResumeSessionCommand.builder().user(userId).sessionId(id).build()));
@@ -113,6 +119,7 @@ public class SessionController {
 
     @PostMapping("/{id}/stop")
     public ResponseEntity<SessionResponse> stopSession(@AuthenticationPrincipal Jwt jwt,
+                                                       @PathVariable Long activityId,
                                                        @PathVariable Long id,
                                                        @RequestParam(required = false) String note) {
         Long userId = requireUserId(jwt);
@@ -122,24 +129,27 @@ public class SessionController {
 
     @PostMapping("/{id}/cancel")
     public ResponseEntity<SessionResponse> cancelSession(@AuthenticationPrincipal Jwt jwt,
+                                                         @PathVariable Long activityId,
                                                          @PathVariable Long id) {
-        Long userId = jwt.getClaim("user");
+        Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.cancel(CancelSessionCommand.builder().user(userId).sessionId(id).build()));
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Session canceled successfully (all cycles invalidated)"));
     }
 
     @PostMapping("/{id}/finish")
     public ResponseEntity<SessionResponse> finishSession(@AuthenticationPrincipal Jwt jwt,
+                                                         @PathVariable Long activityId,
                                                          @PathVariable Long id,
                                                          @RequestParam(required = false) String note) {
-        Long userId = jwt.getClaim("user");
+        Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.finish(FinishSessionCommand.builder().user(userId).sessionId(id).note(note).build()));
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Session finished successfully"));
     }
 
         @PostMapping("/{id}/complete-phase")
         public ResponseEntity<SessionResponse> completePhase(@AuthenticationPrincipal Jwt jwt,
-                                                                                                                 @PathVariable Long id,
+                                     @PathVariable Long activityId,
+                                     @PathVariable Long id,
                                                                                                                  @RequestParam(required = false) String note) {
             Long userId = requireUserId(jwt);
                 SessionItem item = SessionMapper.toItem(sessionService.completePhase(CompletePhaseCommand.builder().user(userId).sessionId(id).note(note).build()));
@@ -150,6 +160,7 @@ public class SessionController {
 
     @PutMapping("/{id}/note")
     public ResponseEntity<SessionResponse> updateNote(@AuthenticationPrincipal Jwt jwt,
+                                                      @PathVariable Long activityId,
                                                       @PathVariable Long id,
                                                       @RequestParam String note) {
         Long userId = requireUserId(jwt);
@@ -160,7 +171,8 @@ public class SessionController {
     // ───── Server-Sent Events (SSE) ─────
 
     @GetMapping(value = "/{id}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribeToSessionEvents(@PathVariable Long id) {
+    public SseEmitter subscribeToSessionEvents(@PathVariable Long activityId,
+                                               @PathVariable Long id) {
         log.info("Client subscribing to events for session: {}", id);
 
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
