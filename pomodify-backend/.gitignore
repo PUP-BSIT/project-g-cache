@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
-request/
+httprequests/
 
 ### STS ###
 .apt_generated
