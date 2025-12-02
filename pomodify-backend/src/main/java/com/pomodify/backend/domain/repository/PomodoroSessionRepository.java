@@ -1,6 +1,7 @@
 package com.pomodify.backend.domain.repository;
 
 import com.pomodify.backend.domain.model.PomodoroSession;
+import java.time.LocalDateTime;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,4 +80,13 @@ public interface PomodoroSessionRepository {
      * @return Optional containing the session if found, empty otherwise.
      */
     Optional<PomodoroSession> findByIdAndUserId(Long id, Long userId);
+
+    /** Completed sessions for user between completedAt range (inclusive) */
+    List<PomodoroSession> findCompletedByUserIdBetween(Long userId, LocalDateTime start, LocalDateTime end);
+
+    /** All completed sessions for user */
+    List<PomodoroSession> findCompletedByUserId(Long userId);
+
+    /** Last 5 completed sessions ordered by completedAt desc */
+    List<PomodoroSession> findRecentCompletedByUserId(Long userId, int limit);
 }

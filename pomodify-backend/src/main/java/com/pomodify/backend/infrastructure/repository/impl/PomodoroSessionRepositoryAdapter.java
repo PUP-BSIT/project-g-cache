@@ -5,6 +5,7 @@ import com.pomodify.backend.domain.repository.PomodoroSessionRepository;
 import com.pomodify.backend.infrastructure.repository.spring.SpringPomodoroSessionJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,5 +55,20 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
     @Override
     public Optional<PomodoroSession> findByIdAndUserId(Long id, Long userId) {
         return springRepo.findByIdAndUserId(id, userId);
+    }
+
+    @Override
+    public List<PomodoroSession> findCompletedByUserIdBetween(Long userId, java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return springRepo.findCompletedByUserIdBetween(userId, start, end);
+    }
+
+    @Override
+    public List<PomodoroSession> findCompletedByUserId(Long userId) {
+        return springRepo.findCompletedByUserId(userId);
+    }
+
+    @Override
+    public List<PomodoroSession> findRecentCompletedByUserId(Long userId, int limit) {
+        return springRepo.findRecentCompletedByUserId(userId, PageRequest.of(0, limit));
     }
 }

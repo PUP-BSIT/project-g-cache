@@ -7,6 +7,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,6 +158,40 @@ public class User {
     private void ensureActive() {
         if (!this.isActive)
             throw new IllegalStateException("Inactive user cannot perform operations");
+    }
+
+    // ──────────────── Streak Logic ────────────────
+    public int getCurrentStreak(Set<LocalDate> focusDays, LocalDate today, ZoneId zoneId) {
+        ensureActive();
+        if (focusDays == null || focusDays.isEmpty()) return 0;
+        int streak = 0;
+        LocalDate cursor = today;
+        while (focusDays.contains(cursor)) {
+            streak++;
+            cursor = cursor.minusDays(1);
+        }
+        return streak;
+    }
+
+    public int getBestStreak(Set<LocalDate> focusDays) {
+        ensureActive();
+        if (focusDays == null || focusDays.isEmpty()) return 0;
+        // Use ordered traversal to count consecutive days
+        TreeSet<LocalDate> ordered = new TreeSet<>(focusDays);
+        int best = 0;
+        int current = 0;
+        LocalDate prev = null;
+        for (LocalDate d : ordered) {
+            if (prev == null || d.equals(prev.plusDays(1))) {
+                current++;
+            } else {
+                best = Math.max(best, current);
+                current = 1;
+            }
+            prev = d;
+        }
+        best = Math.max(best, current);
+        return best;
     }
 
 

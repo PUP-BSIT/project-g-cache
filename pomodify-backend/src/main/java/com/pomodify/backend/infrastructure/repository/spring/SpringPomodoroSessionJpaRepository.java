@@ -24,4 +24,13 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
 
     @Query("select case when count(s)>0 then true else false end from PomodoroSession s where s.id=:id and s.activity.user.id=:userId")
     boolean existsByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+    @Query("select s from PomodoroSession s where s.activity.user.id=:userId and s.status = com.pomodify.backend.domain.enums.SessionStatus.COMPLETED and s.completedAt between :start and :end")
+    List<PomodoroSession> findCompletedByUserIdBetween(@Param("userId") Long userId, @Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
+
+    @Query("select s from PomodoroSession s where s.activity.user.id=:userId and s.status = com.pomodify.backend.domain.enums.SessionStatus.COMPLETED")
+    List<PomodoroSession> findCompletedByUserId(@Param("userId") Long userId);
+
+    @Query("select s from PomodoroSession s where s.activity.user.id=:userId and s.status = com.pomodify.backend.domain.enums.SessionStatus.COMPLETED order by s.completedAt desc")
+    List<PomodoroSession> findRecentCompletedByUserId(@Param("userId") Long userId, org.springframework.data.domain.Pageable pageable);
 }
