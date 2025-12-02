@@ -28,7 +28,7 @@ public class DashboardServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private ActivityRepository activityRepository;
-        @Mock private PomodoroSessionRepository sessionRepository;
+    @Mock private PomodoroSessionRepository sessionRepository;
 
     private DashboardService service;
 
