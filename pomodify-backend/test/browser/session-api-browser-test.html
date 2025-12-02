@@ -329,7 +329,7 @@
         breakTimeInMinutes: c.brk,
         cycles: c.cycles,
       };
-      const data = await req('POST', '/api/v1/sessions', { body });
+      const data = await req('POST', `/api/v1/activities/${c.activityId}/sessions`, { body });
       const id = data?.data?.id || data?.id || data?.sessionId || data?.data?.sessionId;
       if (id) $('#sessionId').value = id;
     }
@@ -337,18 +337,21 @@
     async function getSession() {
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('GET', `/api/v1/sessions/${sessionId}`);
+      const c = cfg();
+      await req('GET', `/api/v1/activities/${c.activityId}/sessions/${sessionId}`);
     }
 
     async function listSessions() {
       const { activityId } = cfg();
-      await req('GET', `/api/v1/sessions`, { query: activityId ? { activityId } : undefined });
+      if (!activityId) return alert('Set Activity ID');
+      await req('GET', `/api/v1/activities/${activityId}/sessions`);
     }
 
     async function delSession() {
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('DELETE', `/api/v1/sessions/${sessionId}`);
+      const c = cfg();
+      await req('DELETE', `/api/v1/activities/${c.activityId}/sessions/${sessionId}`);
     }
 
     // Category endpoints
@@ -423,50 +426,57 @@
     async function startSession() {
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/start`);
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/start`);
     }
 
     async function pauseSession() {
       const { sessionId, note } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/pause`, { query: note ? { note } : undefined });
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/pause`, { query: note ? { note } : undefined });
     }
 
     async function resumeSession() {
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/resume`);
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/resume`);
     }
 
     async function stopSession() {
       const { sessionId, note } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/stop`, { query: note ? { note } : undefined });
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/stop`, { query: note ? { note } : undefined });
     }
 
     async function cancelSession() {
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/cancel`);
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/cancel`);
     }
 
     async function completePhase() {
       const { sessionId, note } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/complete-phase`, { query: note ? { note } : undefined });
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/complete-phase`, { query: note ? { note } : undefined });
     }
 
     async function finishSession() {
       const { sessionId, note } = cfg();
       if (!sessionId) return alert('Set Session ID');
-      await req('POST', `/api/v1/sessions/${sessionId}/finish`, { query: note ? { note } : undefined });
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/finish`, { query: note ? { note } : undefined });
     }
 
     function subscribeSSE() {
-      const { base, sessionId } = cfg();
+      const { base, sessionId, activityId } = cfg();
       if (!sessionId) return alert('Set Session ID');
       if (es) es.close();
-      const url = `${base}/api/v1/sessions/${sessionId}/events`;
+      const url = `${base}/api/v1/activities/${activityId}/sessions/${sessionId}/events`;
       es = new EventSource(url);
       es.addEventListener('open', () => log({ sse: 'open', url }));
       es.addEventListener('error', (e) => log({ sse: 'error', message: 'Check CORS or server availability' }));

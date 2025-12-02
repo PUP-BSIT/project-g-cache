@@ -1,11 +1,14 @@
 package com.pomodify.backend.domain.model;
 
+import com.pomodify.backend.domain.enums.CyclePhase;
+import com.pomodify.backend.domain.enums.SessionType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,24 +100,95 @@ public class Activity {
     }
 
     // ──────────────── Pomodoro Session Operations ────────────────
-   /* public PomodoroSession createPomodoroSession(String title, Integer workDurationMinutes, Integer breakDurationMinutes) {
+    public PomodoroSession createSession(SessionType sessionType,
+                                         Duration focusDuration,
+                                         Duration breakDuration,
+                                         Integer totalCycles,
+                                         String note) {
         ensureActive();
-        for (PomodoroSession session : sessions) {
-            if (session.getSessionTitle().equalsIgnoreCase(title) && session.isActive()) {
-                throw new IllegalArgumentException("An active Pomodoro session with the same title already exists for this activity");
-            }
-        }
-
-        PomodoroSession session = PomodoroSession.create(this, title, workDurationMinutes, breakDurationMinutes);
+        PomodoroSession session = PomodoroSession.create(this, sessionType, focusDuration, breakDuration, totalCycles, note);
         this.sessions.add(session);
         return session;
-    }*/
+    }
 
-/*    public void removePomodoroSession(PomodoroSession session) {
+    public PomodoroSession startSession(Long sessionId) {
         ensureActive();
-        if (session == null)
-            throw new IllegalArgumentException("Pomodoro session cannot be null");
-        sessions.remove(session);
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.startSession();
+        return session;
+    }
+
+    public PomodoroSession pauseSession(Long sessionId, String note) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.pauseSession();
+        if (note != null && !note.isBlank()) {
+            session.setNote(note.trim());
+        }
+        return session;
+    }
+
+    public PomodoroSession resumeSession(Long sessionId) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.resumeSession();
+        return session;
+    }
+
+    public PomodoroSession stopSession(Long sessionId, String note) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.stopSession();
+        if (note != null && !note.isBlank()) {
+            session.setNote(note.trim());
+        }
+        return session;
+    }
+
+    public PomodoroSession cancelSession(Long sessionId) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.cancelSession();
+        return session;
+    }
+
+    public PomodoroSession completePhase(Long sessionId, String note) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.completeCyclePhase();
+        if (note != null && !note.isBlank()) {
+            session.setNote(note.trim());
+        }
+        return session;
+    }
+
+    public PomodoroSession finishSession(Long sessionId, String note) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        // Freestyle rule: finishing during BREAK counts the current cycle
+        if (SessionType.FREESTYLE.equals(session.getSessionType())) {
+            if (session.getCurrentPhase() == CyclePhase.BREAK) {
+                session.setCyclesCompleted((session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0) + 1);
+            }
+        }
+        session.completeSession();
+        if (note != null && !note.isBlank()) {
+            session.setNote(note.trim());
+        }
+        return session;
+    }
+
+    public PomodoroSession updateSessionNote(Long sessionId, String note) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.setNote(note != null && !note.isBlank() ? note.trim() : null);
+        return session;
+    }
+
+    public void removeSession(Long sessionId) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        this.sessions.remove(session);
         session.setActivity(null);
     }*/
 
@@ -127,11 +201,17 @@ public class Activity {
         return this;
     }
 
-/*    public List<PomodoroSession> getActiveSessions() {
-        return sessions.stream()
-                .filter(PomodoroSession::isActive)
-                .toList();
-    }*/
+    public List<PomodoroSession> getSessions() {
+        return this.sessions;
+    }
+
+    // ──────────────── Helpers ────────────────
+    private PomodoroSession findSessionOrThrow(Long sessionId) {
+        return this.sessions.stream()
+                .filter(s -> s.getId() != null && s.getId().equals(sessionId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Session not found for this activity"));
+    }
 
     // ──────────────── Guards ────────────────
     private void ensureActive() {

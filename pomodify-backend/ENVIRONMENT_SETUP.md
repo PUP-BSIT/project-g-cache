@@ -94,6 +94,24 @@ For production, set environment variables through your deployment platform:
 5. **Limit database user privileges** to only what's needed
 6. **Use encrypted connections** in production
 
+## Frontend Test Harness
+
+Two lightweight options exist for exercising the API during development:
+
+1. **Standalone Browser Test Page**: Opens directly in the browser and lets you manually invoke session endpoints and subscribe to SSE updates.
+2. **Angular Test Harness** (`test/angular/pomodify-test`): Minimal Angular app covering auth, categories, activities, full session lifecycle and push notification preference management (register / enable / disable / status). It also logs foreground Firebase Cloud Messaging notifications.
+
+### Angular Harness Quick Start
+```bash
+cd test/angular/pomodify-test
+npm install
+npm start
+```
+
+Configure Firebase credentials and `vapidKey` in `src/environments/environment.ts` before initializing push. Ensure the backend base URL in `ApiService` matches your running server.
+
+For background push handling you can later add a `firebase-messaging-sw.js` at project root (not included by default).
+
 ## File Structure
 
 ```

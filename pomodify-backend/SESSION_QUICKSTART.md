@@ -50,18 +50,28 @@ If CORS blocks requests, adjust your Spring CORS config to allow `http://localho
 
 ## Endpoint Summary (auth required)
 
-- `POST /api/v1/sessions` — Create session (body uses `activityId`, `sessionType`, `focusTimeInMinutes`, `breakTimeInMinutes`, `cycles`)
-- `GET /api/v1/sessions[?activityId&status]` — List sessions
-- `GET /api/v1/sessions/{id}` — Get session by ID
-- `DELETE /api/v1/sessions/{id}` — Soft delete
-- `POST /api/v1/sessions/{id}/start` — Start
-- `POST /api/v1/sessions/{id}/pause?note=...` — Pause (optional note)
-- `POST /api/v1/sessions/{id}/resume` — Resume
-- `POST /api/v1/sessions/{id}/stop?note=...` — Stop (invalidates current cycle)
-- `POST /api/v1/sessions/{id}/cancel` — Cancel (terminal)
-- `POST /api/v1/sessions/{id}/complete-phase?note=...` — Complete current phase
-- `POST /api/v1/sessions/{id}/finish?note=...` — Finish session
-- `GET /api/v1/sessions/{id}/events` — SSE (may be unauthenticated)
+All session resources are now nested under their owning activity:
+
+- `POST /api/v1/activities/{activityId}/sessions` — Create session (body provides timing & cycle config)
+- `GET /api/v1/activities/{activityId}/sessions` — List sessions for activity
+- `GET /api/v1/activities/{activityId}/sessions/{sessionId}` — Get session
+- `DELETE /api/v1/activities/{activityId}/sessions/{sessionId}` — Soft delete
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/start` — Start
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/pause` — Pause
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/resume` — Resume
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/stop` — Stop (invalidates current cycle)
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/cancel` — Cancel (terminal)
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/complete-phase` — Complete current phase
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/finish` — Finish session
+- `PUT /api/v1/activities/{activityId}/sessions/{sessionId}/note` — Update note
+- `GET /api/v1/activities/{activityId}/sessions/{sessionId}/events` — SSE (phase-change stream)
+
+Push notification preference endpoints:
+- `POST /api/v1/push/register-token` — Register/update FCM token (implicitly enabled)
+- `PUT /api/v1/push/enable` — Enable notifications
+- `PUT /api/v1/push/disable` — Disable notifications (opt-out)
+- `GET /api/v1/push/status` — Current enabled state
+- `DELETE /api/v1/push/unregister-token` — Remove token
 
 ## Freestyle finish behavior
 
@@ -73,5 +83,8 @@ Examples:
 - Completed 3 cycles; on 4th `FOCUS` → Finish → `cyclesCompleted = 3`.
 
 ---
+
+### Angular Test Harness (Optional)
+Run `npm start` in `test/angular/pomodify-test` to interact with all endpoints including push preferences and observe foreground FCM messages in console.
 
 Happy Coding! 🍅⏱️

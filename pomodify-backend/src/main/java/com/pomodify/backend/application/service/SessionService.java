@@ -27,6 +27,7 @@ public class SessionService {
     private final PomodoroSessionRepository sessionRepository;
     private final DomainHelper domainHelper;
     private final UserHelper userHelper;
+    private final PushNotificationService pushNotificationService;
 
     /* -------------------- CREATE -------------------- */
     @Transactional
@@ -39,7 +40,7 @@ public class SessionService {
         Duration brk = Duration.ofMinutes(command.breakTimeInMinutes());
         Integer cycles = command.cycles() != null ? command.cycles() : 1;
 
-        PomodoroSession session = PomodoroSession.create(activity, type, focus, brk, cycles, command.note());
+        PomodoroSession session = activity.createSession(type, focus, brk, cycles, command.note());
         PomodoroSession saved = sessionRepository.save(session);
         log.info("Created session {} for activity {}", saved.getId(), activity.getId());
         return toResult(saved);
@@ -75,7 +76,8 @@ public class SessionService {
     @Transactional
     public SessionResult start(StartSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.startSession();
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.startSession(command.sessionId());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -83,10 +85,8 @@ public class SessionService {
     @Transactional
     public SessionResult pause(PauseSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.pauseSession();
-        if (command.note() != null && !command.note().isBlank()) {
-            session.setNote(command.note().trim());
-        }
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.pauseSession(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -94,7 +94,8 @@ public class SessionService {
     @Transactional
     public SessionResult resume(ResumeSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.resumeSession();
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.resumeSession(command.sessionId());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -102,10 +103,8 @@ public class SessionService {
     @Transactional
     public SessionResult stop(StopSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.stopSession();
-        if (command.note() != null && !command.note().isBlank()) {
-            session.setNote(command.note().trim());
-        }
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.stopSession(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -113,7 +112,8 @@ public class SessionService {
     @Transactional
     public SessionResult cancel(CancelSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.cancelSession();
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.cancelSession(command.sessionId());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -121,35 +121,42 @@ public class SessionService {
     @Transactional
     public SessionResult completePhase(CompletePhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.completeCyclePhase();
-        if (command.note() != null && !command.note().isBlank()) {
-            session.setNote(command.note().trim());
-        }
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.completePhase(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
+        // Notify user on phase change
+        String title = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")
+            ? "Focus ended — take a break"
+            : "Break ended — back to focus";
+        String body = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("FOCUS")
+            ? "Cycles completed: " + (saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0)
+            : "Stay mindful and recharge.";
+        pushNotificationService.sendNotificationToUser(command.user(), title, body);
+        // If session just became COMPLETED (classic), send completion push
+        if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
+            int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
+            pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
+        }
         return toResult(saved);
     }
 
     @Transactional
     public SessionResult finish(FinishSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        // For freestyle: if currently in BREAK, count the current cycle as completed; if in FOCUS, do not.
-        if (SessionType.FREESTYLE.equals(session.getSessionType())) {
-            if (session.getCurrentPhase() != null && session.getCurrentPhase().name().equalsIgnoreCase("BREAK")) {
-                session.setCyclesCompleted((session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0) + 1);
-            }
-        }
-        session.completeSession();
-        if (command.note() != null && !command.note().isBlank()) {
-            session.setNote(command.note().trim());
-        }
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.finishSession(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
+        // Notify completion
+        int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
+        pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
         return toResult(saved);
     }
 
     @Transactional
     public SessionResult updateNote(UpdateSessionNoteCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.setNote(command.note() != null && !command.note().isBlank() ? command.note().trim() : null);
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.updateSessionNote(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -158,8 +165,9 @@ public class SessionService {
     @Transactional
     public void delete(DeleteSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        sessionRepository.delete(session);
-        log.info("Soft deleted session {}", command.sessionId());
+        session.delete();
+        sessionRepository.save(session);
+        log.info("Soft deleted session {} by setting isDeleted=true", command.sessionId());
     }
 
     /* -------------------- MAPPER -------------------- */
