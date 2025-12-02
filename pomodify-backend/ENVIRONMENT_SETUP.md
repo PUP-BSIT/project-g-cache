@@ -85,6 +85,19 @@ For production, set environment variables through your deployment platform:
 - **Kubernetes**: Use ConfigMaps and Secrets
 - **Cloud Platforms**: Use platform-specific environment variable management
 
+### JWT Secret Requirement (Prod)
+When running with `SPRING_PROFILES_ACTIVE=prod`, the application requires `JWT_SECRET` to be set. Startup will fail without it. Use a strong random value (>=32 characters).
+
+Example:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export JWT_SECRET="paste-a-strong-random-secret"
+```
+
+### Timezone Default for Dashboard
+The Dashboard API defaults to PH time (`Asia/Manila`) for daily/weekly boundaries and streaks. If you need a different timezone, pass an explicit one when invoking the dashboard command or configure accordingly.
+
 ## Security Best Practices
 
 1. **Never commit sensitive data** to version control

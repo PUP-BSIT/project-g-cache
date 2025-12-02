@@ -6,10 +6,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class PomodifyApiApplicationTests {
+class ApplicationContextTest {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads_withTestProfileAndH2() {
+        // Smoke test: verifies Spring context boots with H2
+    }
 }
