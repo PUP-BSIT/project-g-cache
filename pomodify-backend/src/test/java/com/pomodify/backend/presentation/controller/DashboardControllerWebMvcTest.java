@@ -100,7 +100,7 @@ class DashboardControllerWebMvcTest {
 
         // Act + Assert
         mockMvc.perform(get("/api/v1/dashboard")
-                        .with(jwt())
+                        .with(jwt().jwt(j -> j.claim("user", 42)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
