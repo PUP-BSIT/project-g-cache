@@ -604,3 +604,508 @@ $toggle-bg-inactive: #D0D0D0;
     font-size: 16px;
   }
 }
+
+
+// Setting Description
+.setting-description {
+  font-size: 14px;
+  color: $text-light;
+  margin: 4px 0 0 0;
+}
+
+// Setting Control (for dropdowns and buttons)
+.setting-control {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sound-select {
+  padding: 8px 16px;
+  border: 1px solid $border-light;
+  border-radius: 8px;
+  background-color: $bg-white;
+  color: $text-dark;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: $primary-teal;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $primary-teal;
+    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+  }
+}
+
+.test-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-teal;
+  color: $text-white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: $primary-teal-dark;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Volume Slider
+.volume-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: $toggle-bg-inactive;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  
+  &::-webkit-slider-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: $toggle-bg-inactive;
+  }
+  
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: $primary-teal;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 0 2px $bg-white;
+    
+    &:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(95, 169, 164, 0.2);
+    }
+  }
+  
+  &::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: $toggle-bg-inactive;
+  }
+  
+  &::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: $primary-teal;
+    cursor: pointer;
+    border: 2px solid $bg-white;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 0 4px rgba(95, 169, 164, 0.2);
+    }
+  }
+}
+
+// Info Box
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgba(95, 169, 164, 0.1);
+  border-left: 3px solid $primary-teal;
+  border-radius: 8px;
+  margin-top: 16px;
+  
+  i {
+    color: $primary-teal;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: $text-dark;
+    line-height: 1.5;
+  }
+}
+
+// Responsive adjustments for new elements
+@media (max-width: 768px) {
+  .setting-control {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .sound-select,
+  .test-btn {
+    width: 100%;
+  }
+  
+  .info-box {
+    padding: 12px;
+    
+    i {
+      font-size: 16px;
+    }
+    
+    p {
+      font-size: 13px;
+    }
+  }
+}
+
+
+// Theme Toggle Button
+.theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: $primary-teal;
+  color: $text-white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  i {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    background-color: $primary-teal-dark;
+    transform: translateY(-1px);
+    box-shadow: $card-shadow-hover;
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// Data Action Items
+.data-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid #F0F0F0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.danger {
+    .data-action-label {
+      color: $red;
+    }
+  }
+}
+
+.data-action-info {
+  flex: 1;
+}
+
+.data-action-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-dark;
+  margin: 0 0 4px 0;
+}
+
+.data-action-description {
+  font-size: 14px;
+  color: $text-light;
+  margin: 0;
+}
+
+.data-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #E0E0E0;
+  color: $text-dark;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  i {
+    font-size: 14px;
+  }
+  
+  &:hover {
+    background-color: #D0D0D0;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &.danger {
+    background-color: rgba($red, 0.1);
+    color: $red;
+    
+    &:hover {
+      background-color: rgba($red, 0.2);
+    }
+  }
+}
+
+// Responsive adjustments for new elements
+@media (max-width: 768px) {
+  .data-action-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .data-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .theme-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// Delete Account Modal
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background-color: $bg-white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.warning-icon {
+  font-size: 28px;
+  color: #F4C430;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: $text-dark;
+  margin: 0;
+}
+
+.modal-body {
+  margin-bottom: 32px;
+}
+
+.modal-text {
+  font-size: 16px;
+  color: $text-dark;
+  margin: 0 0 12px 0;
+  font-weight: 500;
+}
+
+.delete-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+  
+  li {
+    font-size: 16px;
+    color: $text-dark;
+    padding: 6px 0;
+    padding-left: 8px;
+    
+    &::before {
+      content: '• ';
+      color: $text-dark;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+  }
+}
+
+.modal-warning {
+  font-size: 16px;
+  color: $red;
+  font-weight: 700;
+  margin: 16px 0 0 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  &.btn-ok {
+    background-color: #4A5A4A;
+    color: $text-white;
+    
+    &:hover {
+      background-color: color.adjust(#4A5A4A, $lightness: -10%);
+    }
+  }
+  
+  &.btn-cancel {
+    background-color: #D8E8D8;
+    color: $text-dark;
+    
+    &:hover {
+      background-color: color.adjust(#D8E8D8, $lightness: -5%);
+    }
+  }
+}
+
+// Responsive adjustments for modal
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 24px;
+    max-width: 90%;
+  }
+  
+  .modal-title {
+    font-size: 18px;
+  }
+  
+  .modal-text,
+  .delete-list li,
+  .modal-warning {
+    font-size: 14px;
+  }
+  
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 12px;
+    
+    .modal-btn {
+      width: 100%;
+    }
+  }
+}
+
+// Success Modal
+.success-modal {
+  max-width: 400px;
+  padding: 32px;
+  text-align: center;
+  
+  .modal-body {
+    margin-bottom: 24px;
+  }
+  
+  .success-text {
+    font-size: 18px;
+    color: $text-dark;
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  .modal-actions {
+    justify-content: center;
+    
+    .modal-btn {
+      min-width: 120px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .success-modal {
+    max-width: 90%;
+    padding: 24px;
+    
+    .success-text {
+      font-size: 16px;
+    }
+  }
+}

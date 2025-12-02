@@ -190,7 +190,7 @@ public class Activity {
         PomodoroSession session = findSessionOrThrow(sessionId);
         this.sessions.remove(session);
         session.setActivity(null);
-    }
+    }*/
 
     public Activity delete(Long id) {
         if (!this.id.equals(id))
