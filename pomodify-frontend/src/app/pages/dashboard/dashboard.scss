@@ -320,29 +320,60 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  gap: 16px;
+  padding: 24px 60px;
+  gap: 32px;
   background-color: $primary-teal;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  flex: 1;
+  
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-white;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-toggle,
+.user-profile {
+  display: flex;
+  align-items: center;
 }
 
 .theme-btn,
 .profile-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: $text-white;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  font-size: 18px;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -774,6 +805,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
+  padding: 0 60px;
 }
 
 .search-bar {
@@ -849,11 +881,20 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   min-height: auto;
 }
 
+// Page Content
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 40px 0;
+}
+
 // Grid View Section
 .grid-view-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 0 60px;
 }
 
 .grid-view-header {
@@ -933,8 +974,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .activities-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 100%;
 }
 
 .activity-card {
@@ -1056,6 +1098,34 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
     }
   }
+
+  .add-session-btn {
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    color: $text-white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 4px;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    i {
+      font-size: 12px;
+    }
+  }
 }
 
 // Pagination
@@ -1145,7 +1215,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-top: 32px;
-  padding-top: 32px;
+  padding: 32px 60px;
   border-top: 1px solid #E0E0E0;
 }
 
