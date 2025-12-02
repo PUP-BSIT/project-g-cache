@@ -26,9 +26,10 @@ public class DashboardController {
     public DashboardResponse getDashboard(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
         Long userId = userHelper.extractUserId(jwt);
         if (userId == null) {
-            throw new IllegalArgumentException("Invalid user claim");
+            // Treat missing/invalid JWT claim as unauthorized
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         }
-        DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.systemDefault());
+        DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of("Asia/Manila"));
         return dashboardMapper.toResponse(dashboardService.getDashboard(cmd));
     }
 }
