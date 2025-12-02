@@ -28,7 +28,7 @@ public class DashboardServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private ActivityRepository activityRepository;
-        @Mock private PomodoroSessionRepository sessionRepository;
+    @Mock private PomodoroSessionRepository sessionRepository;
 
     private DashboardService service;
 
@@ -63,7 +63,7 @@ public class DashboardServiceTest {
                 .breakDuration(Duration.ofMinutes(5))
                 .cyclesCompleted(4)
                 .status(SessionStatus.COMPLETED)
-            .completedAt(LocalDateTime.now(zone).minusDays(1))
+                .completedAt(LocalDateTime.now(zone).minusDays(1))
                 .build();
 
         PomodoroSession sToday = PomodoroSession.builder()
@@ -73,7 +73,7 @@ public class DashboardServiceTest {
                 .breakDuration(Duration.ofMinutes(5))
                 .cyclesCompleted(2)
                 .status(SessionStatus.COMPLETED)
-            .completedAt(LocalDateTime.now(zone))
+                .completedAt(LocalDateTime.now(zone))
                 .build();
 
         // Stubs: the service computes date ranges; we return matching lists regardless of boundaries
