@@ -6,6 +6,7 @@ import com.pomodify.backend.infrastructure.repository.spring.SpringPomodoroSessi
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.PageRequest;
+import com.pomodify.backend.domain.enums.SessionStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,16 +60,19 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
 
     @Override
     public List<PomodoroSession> findCompletedByUserIdBetween(Long userId, java.time.LocalDateTime start, java.time.LocalDateTime end) {
-        return springRepo.findCompletedByUserIdBetween(userId, start, end);
+        return springRepo.findCompletedByUserIdBetween(userId, SessionStatus.COMPLETED, start, end);
     }
 
     @Override
     public List<PomodoroSession> findCompletedByUserId(Long userId) {
-        return springRepo.findCompletedByUserId(userId);
+        return springRepo.findCompletedByUserId(userId, SessionStatus.COMPLETED);
     }
 
     @Override
     public List<PomodoroSession> findRecentCompletedByUserId(Long userId, int limit) {
-        return springRepo.findRecentCompletedByUserId(userId, PageRequest.of(0, limit));
+        if (limit <= 0) {
+            throw new IllegalArgumentException("Limit must be positive");
+        }
+        return springRepo.findRecentCompletedByUserId(userId, SessionStatus.COMPLETED, PageRequest.of(0, limit));
     }
 }
