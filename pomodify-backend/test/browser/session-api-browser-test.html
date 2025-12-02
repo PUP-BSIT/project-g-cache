@@ -473,7 +473,7 @@
     }
 
     function subscribeSSE() {
-      const { base, sessionId } = cfg();
+      const { base, sessionId, activityId } = cfg();
       if (!sessionId) return alert('Set Session ID');
       if (es) es.close();
       const url = `${base}/api/v1/activities/${activityId}/sessions/${sessionId}/events`;
