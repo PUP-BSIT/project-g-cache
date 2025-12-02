@@ -13,7 +13,13 @@ type HelpReportFormValue = {
 };
 
 @Component({
-  selector:export class Report implements OnInit {
+  selector: 'app-report',
+  standalone: true,
+  imports: [CommonModule, RouterLink, RouterLinkActive, ReactiveFormsModule],
+  templateUrl: './report.html',
+  styleUrls: ['./report.scss'],
+})
+export class Report implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);

@@ -1,41 +1,59 @@
+<!-- dashboard.html - Professional Dashboard with Activities Management -->
 <div class="dashboard">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
-      <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
-      @if(sidebarExpanded()) {
+      <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32" />
+      @if (sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
       }
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/dashboard')">
-        <i class="fa-solid fa-house"></i>
-        @if(sidebarExpanded()) {
+      <button
+        class="nav-icon"
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="onNavIconClick($event, '/dashboard')"
+      >
+        <i class="fa-solid fa-layer-group"></i>
+        @if (sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button
+        class="nav-icon"
+        routerLink="/activities"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
         <i class="fa-solid fa-list-check"></i>
-        @if(sidebarExpanded()) {
+        @if (sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/report')">
+      <button
+        class="nav-icon"
+        routerLink="/report"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="onNavIconClick($event, '/report')"
+      >
         <i class="fa-solid fa-chart-line"></i>
-        @if(sidebarExpanded()) {
+        @if (sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/settings')">
+      <button
+        class="nav-icon"
+        routerLink="/settings"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="onNavIconClick($event, '/settings')"
+      >
         <i class="fa-solid fa-gear"></i>
-        @if(sidebarExpanded()) {
+        @if (sidebarExpanded()) {
           <span class="nav-text">Settings</span>
         }
       </button>
@@ -44,7 +62,7 @@
     <div class="nav-bottom">
       <button class="nav-icon" (click)="onLogout()">
         <i class="fa-solid fa-right-from-bracket"></i>
-        @if(sidebarExpanded()) {
+        @if (sidebarExpanded()) {
           <span class="nav-text">Logout</span>
         }
       </button>
@@ -55,111 +73,184 @@
   <main class="main-content" (click)="onMainContentClick()">
     <!-- Header -->
     <header class="header">
-      <div class="theme-toggle">
-        <button class="theme-btn" (click)="onToggleTheme()">
-          <i class="fa-solid fa-moon"></i>
-        </button>
+      <div class="header-left">
+        <h1 class="page-title">Dashboard</h1>
       </div>
-      <div class="user-profile">
-        <button class="profile-btn" (click)="openProfileModal()">
-          <i class="fa-solid fa-user"></i>
-        </button>
+      <div class="header-right">
+        <div class="theme-toggle">
+          <button class="theme-btn" (click)="onToggleTheme()" aria-label="Toggle theme">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+        <div class="user-profile">
+          <button class="profile-btn" (click)="openProfileModal()" aria-label="Open profile">
+            <i class="fa-solid fa-user"></i>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="content-grid">
-      <!-- Recent Activities Section -->
-      <section class="activities-section">
-        <div class="section-header">
-          <h2 class="section-title">Recent activities</h2>
+    <!-- Page Content -->
+    <div class="page-content">
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-bar">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            placeholder="Search activities..."
+            [value]="searchQuery()"
+            (input)="updateSearchQuery($any($event).target.value)"
+          />
         </div>
-        <div class="activities-list">
-          @for (activity of activities(); track activity.id) {
-            <button 
-              class="activity-card"
-              [class.active]="activity.id === selectedActivityId()"
-              (click)="selectActivity(activity.id)">
-              <span class="activity-icon">{{ activity.icon }}</span>
-              <div class="activity-info">
-                <h3 class="activity-name">{{ activity.name }}</h3>
-                <p class="activity-time">Last: {{ activity.lastAccessed }}</p>
-              </div>
+        <div class="category-filters">
+          <button
+            class="filter-chip"
+            [class.active]="selectedCategory() === null"
+            (click)="toggleCategory('')"
+          >
+            All
+          </button>
+          @for (category of categories(); track category) {
+            <button
+              class="filter-chip"
+              [class.active]="selectedCategory() === category"
+              (click)="toggleCategory(category)"
+            >
+              {{ category }}
             </button>
           }
         </div>
-      </section>
-      
+      </div>
 
-      <!-- Focus Session Section -->
-      <section class="focus-section">
-        <div class="focus-card">
-          <h2 class="focus-title">Current Focus Session</h2>
-          
-          <div class="activity-selector">
-            <select [value]="selectedActivityId()" (change)="onActivitySelectChange($event)">
-              @for (activity of activities(); track activity.id) {
-                <option [value]="activity.id">{{ activity.name }}</option>
+      <!-- Two-Column Layout (Grid + Detail View) -->
+      <div class="content-wrapper">
+        <!-- Grid View Section -->
+        <div class="grid-view-section">
+          <div class="grid-view-header">
+            <span>Activities ({{ paginatedActivities().length }})</span>
+            <button class="create-button" (click)="openCreateActivityModal()">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+
+          @if (activities().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fa-solid fa-inbox"></i>
+              </div>
+              <h3>No activities yet</h3>
+              <p>Create your first activity to get started</p>
+              <button (click)="openCreateActivityModal()">Create Activity</button>
+            </div>
+          } @else if (paginatedActivities().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fa-solid fa-search"></i>
+              </div>
+              <h3>No activities found</h3>
+              <p>Try adjusting your search or filter</p>
+            </div>
+          } @else {
+            <div class="activities-grid">
+              @for (activity of paginatedActivities(); track activity.id) {
+                <div
+                  class="activity-card"
+                  [class.selected]="selectedActivity()?.id === activity.id"
+                  (click)="selectActivity(activity)"
+                >
+                  <!-- Activity Header with Icon and Name -->
+                  <div class="activity-card-header">
+                    <div class="activity-icon-section">
+                      <i [class]="getFullIconClasses(activity)"></i>
+                    </div>
+                    <div class="activity-header-info">
+                      <h4 class="activity-name">{{ activity.name }}</h4>
+                      <p class="last-accessed">Last: {{ getLastAccessedText(activity) }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Completion Percentage -->
+                  <div class="completion-section">
+                    <span class="completion-percentage">{{ getActivityCompletionPercentage(activity) }}% Completed</span>
+                    <div class="progress-bar">
+                      <div class="progress-fill" [style.width.%]="getActivityCompletionPercentage(activity)"></div>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="card-actions">
+                    <button class="action-btn edit-btn" (click)="openEditActivityModal(activity); $event.stopPropagation()">
+                      Edit
+                    </button>
+                    <button class="action-btn delete-btn" (click)="openDeleteActivityModal(activity); $event.stopPropagation()">
+                      Delete
+                    </button>
+                  </div>
+                </div>
               }
-            </select>
-          </div>
-
-          <div class="timer-circle">
-            <div class="timer-display">
-              <div class="timer-value">{{ focusTime() }}</div>
-              <div class="timer-label">Your Focus</div>
             </div>
-          </div>
 
-          <div class="timer-controls">
-            <button 
-              class="control-btn play-btn" 
-              (click)="playTimer()"
-              [disabled]="isTimerRunning() && !isPaused()">
-              <i class="fa-solid fa-play"></i>
-            </button>
-            <button 
-              class="control-btn pause-btn" 
-              (click)="pauseTimer()"
-              [disabled]="!isTimerRunning() || isPaused()">
-              <i class="fa-solid fa-pause"></i>
-            </button>
-            <button 
-              class="control-btn stop-btn" 
-              (click)="stopTimer()"
-              [disabled]="!isTimerRunning()">
-              <i class="fa-solid fa-stop"></i>
-            </button>
+            <!-- Pagination -->
+            @if (totalPages() > 1) {
+              <div class="pagination-section">
+                <button
+                  class="pagination-button"
+                  (click)="goToPage(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span class="pagination-info">
+                  {{ currentPage() }} of {{ totalPages() }}
+                </span>
+
+                <button
+                  class="pagination-button"
+                  (click)="goToPage(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="stats-section">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Total Activities</div>
+            <div class="stat-value">{{ totalActivities() }}</div>
           </div>
         </div>
 
-        <!-- Status Section -->
-        <div class="status-section">
-          <h3 class="status-title">STATUS</h3>
-          <div class="status-cards">
-            <div class="status-card">
-              <div class="status-label">Current Streak</div>
-              <div class="status-value">
-                <span class="status-number">{{ currentStreak() }}</span>
-                <span class="status-unit">days</span>
-              </div>
-            </div>
-            <div class="status-card">
-              <div class="status-label">Today's Focus Hours</div>
-              <div class="status-value">
-                <span class="status-number">{{ todayFocusHours() }}</span>
-                <span class="status-unit">HRS</span>
-              </div>
-            </div>
-            <div class="status-card">
-              <div class="status-label">Total Sessions</div>
-              <div class="status-value">
-                <span class="status-number">{{ totalSessions() }}</span>
-              </div>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">This Week Hours</div>
+            <div class="stat-value">{{ thisWeekHours() }} <span class="stat-unit">hrs</span></div>
           </div>
         </div>
-      </section>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fa-solid fa-fire"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Streak</div>
+            <div class="stat-value">{{ currentStreak() }} <span class="stat-unit">days</span></div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
-
 </div>
