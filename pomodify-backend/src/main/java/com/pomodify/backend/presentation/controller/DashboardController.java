@@ -23,13 +23,16 @@ public class DashboardController {
     private final UserHelper userHelper;
 
     @GetMapping("/dashboard")
-    public DashboardResponse getDashboard(@AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {
+    public DashboardResponse getDashboard(
+            @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Timezone", defaultValue = "Asia/Manila") String timezone
+    ) {
         Long userId = userHelper.extractUserId(jwt);
         if (userId == null) {
             // Treat missing/invalid JWT claim as unauthorized
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         }
-        DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of("Asia/Manila"));
+        DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of(timezone));
         return dashboardMapper.toResponse(dashboardService.getDashboard(cmd));
     }
 }
