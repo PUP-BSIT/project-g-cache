@@ -161,7 +161,7 @@ public class User {
     }
 
     // ──────────────── Streak Logic ────────────────
-    public int getCurrentStreak(Set<LocalDate> focusDays, LocalDate today, ZoneId zoneId) {
+    public int getCurrentStreak(Set<LocalDate> focusDays, LocalDate today) {
         ensureActive();
         if (focusDays == null || focusDays.isEmpty()) return 0;
         int streak = 0;
