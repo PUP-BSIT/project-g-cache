@@ -37,13 +37,9 @@ jobs:
             -t $FRONTEND_IMAGE:$TAG_LATEST \
             -t $FRONTEND_IMAGE:$TAG_SHA \
             ./pomodify-frontend
-          
           docker push $FRONTEND_IMAGE:$TAG_LATEST
           docker push $FRONTEND_IMAGE:$TAG_SHA
-          
           echo "✅ Frontend image pushed to Docker Hub"
-          echo "   - $FRONTEND_IMAGE:$TAG_LATEST"
-          echo "   - $FRONTEND_IMAGE:$TAG_SHA"
 
       - name: Build and push backend image
         run: |
@@ -52,13 +48,9 @@ jobs:
             -t $BACKEND_IMAGE:$TAG_LATEST \
             -t $BACKEND_IMAGE:$TAG_SHA \
             ./pomodify-backend
-          
           docker push $BACKEND_IMAGE:$TAG_LATEST
           docker push $BACKEND_IMAGE:$TAG_SHA
-          
           echo "✅ Backend image pushed to Docker Hub"
-          echo "   - $BACKEND_IMAGE:$TAG_LATEST"
-          echo "   - $BACKEND_IMAGE:$TAG_SHA"
 
   deploy-to-ec2:
     name: Deploy to EC2 Server
@@ -75,30 +67,29 @@ jobs:
           timeout: 180s
           script: |
             set -e
-            
+
             echo "════════════════════════════════════════"
             echo "🚀 Starting deployment to production"
             echo "════════════════════════════════════════"
-            echo ""
             echo "📅 Deployment time: $(date)"
             echo "👤 Deployed by: ${{ github.actor }}"
-            echo "📝 Commit: ${{ github.sha }}"
+            echo "📝 Commit: ${{ github.sha}}"
             echo ""
-            
+
             # Stop and remove old containers
             echo "🛑 Stopping old containers..."
             sudo docker stop pomodify-frontend pomodify-backend || true
             sudo docker rm pomodify-frontend pomodify-backend || true
             echo "✅ Old containers removed"
             echo ""
-            
+
             # Pull latest images
             echo "📥 Pulling latest Docker images..."
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
             echo "✅ Images pulled successfully"
             echo ""
-            
+
             # Setup Firebase credentials
             echo "🔐 Setting up Firebase credentials..."
             sudo mkdir -p /app
@@ -111,7 +102,7 @@ jobs:
               echo "⚠️ Firebase credentials not provided"
             fi
             echo ""
-            
+
             # Start frontend container
             echo "🎨 Starting frontend container..."
             sudo docker run -d \
@@ -119,18 +110,8 @@ jobs:
               --restart unless-stopped \
               -p 8080:80 \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
-            
-            # Wait for frontend to start
-            sleep 5
-            if sudo docker ps | grep -q pomodify-frontend; then
-              echo "✅ Frontend container started successfully"
-            else
-              echo "❌ Frontend container failed to start"
-              sudo docker logs pomodify-frontend
-              exit 1
-            fi
-            echo ""
-            
+            sleep 10
+
             # Start backend container
             echo "⚙️ Starting backend container..."
             sudo docker run -d \
@@ -148,35 +129,24 @@ jobs:
               -e FCM_SERVICE_ACCOUNT="/app/firebase-key.json" \
               -v /app/firebase-key.json:/app/firebase-key.json:ro \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
-            
-            # Wait for backend to start
-            sleep 10
-            if sudo docker ps | grep -q pomodify-backend; then
-              echo "✅ Backend container started successfully"
-            else
-              echo "❌ Backend container failed to start"
-              sudo docker logs pomodify-backend
-              exit 1
-            fi
-            echo ""
-            
+            sleep 15
+
             # Restart nginx
             echo "🔄 Restarting nginx..."
             sudo systemctl restart nginx || true
             echo "✅ Nginx restarted"
             echo ""
-            
+
             # Show running containers
             echo "📊 Currently running containers:"
             sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
             echo ""
-            
+
             # Clean up old images
             echo "🧹 Cleaning up old Docker images..."
             sudo docker image prune -af --filter "until=24h" || true
             echo "✅ Cleanup completed"
             echo ""
-            
             echo "════════════════════════════════════════"
             echo "✅ Deployment completed successfully!"
             echo "════════════════════════════════════════"
@@ -188,28 +158,42 @@ jobs:
     steps:
       - name: Wait for services to stabilize
         run: |
-          echo "⏳ Waiting 30 seconds for services to stabilize..."
-          sleep 30
+          echo "⏳ Waiting 20 seconds for services to stabilize..."
+          sleep 20
 
       - name: Health check - Frontend
         run: |
           echo "🏥 Checking frontend health..."
-          if curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8080 | grep -q "200\|301\|302"; then
-            echo "✅ Frontend is healthy and responding"
-          else
-            echo "❌ Frontend health check failed"
-            exit 1
-          fi
+          retries=10
+          count=0
+          until curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8080 | grep -q "200\|301\|302"; do
+            count=$((count+1))
+            echo "⚠️ Frontend not ready yet (attempt $count/$retries)..."
+            sudo docker logs pomodify-frontend --tail 20 || true
+            if [ $count -ge $retries ]; then
+              echo "❌ Frontend health check failed after $retries attempts"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "✅ Frontend is healthy and responding"
 
       - name: Health check - Backend
         run: |
           echo "🏥 Checking backend health..."
-          if curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8081 | grep -q "200\|404"; then
-            echo "✅ Backend is healthy and responding"
-          else
-            echo "❌ Backend health check failed"
-            exit 1
-          fi
+          retries=10
+          count=0
+          until curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8081 | grep -q "200\|404"; do
+            count=$((count+1))
+            echo "⚠️ Backend not ready yet (attempt $count/$retries)..."
+            sudo docker logs pomodify-backend --tail 20 || true
+            if [ $count -ge $retries ]; then
+              echo "❌ Backend health check failed after $retries attempts"
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "✅ Backend is healthy and responding"
 
       - name: Deployment summary
         run: |
