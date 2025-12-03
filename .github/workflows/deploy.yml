@@ -65,7 +65,7 @@ jobs:
             set -e
 
             echo "🚀 Starting deployment to production..."
-            
+
             # Stop old containers
             sudo docker stop pomodify-frontend pomodify-backend || true
             sudo docker rm pomodify-frontend pomodify-backend || true
@@ -88,6 +88,19 @@ jobs:
               --restart unless-stopped \
               -p 8080:80 \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
+
+            # Wait for database to be ready before starting backend
+            echo "Waiting for database to be ready..."
+            retries=20
+            until PGPASSWORD="${{ secrets.DB_PASSWORD }}" psql -h "${{ secrets.DB_HOST }}" -U "${{ secrets.DB_USERNAME }}" -d "${{ secrets.DB_NAME }}" -p "${{ secrets.DB_PORT }}" -c '\q' >/dev/null 2>&1; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Database not reachable after multiple attempts."
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Database is ready"
 
             # Start backend container
             sudo docker run -d \
