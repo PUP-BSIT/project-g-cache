@@ -350,18 +350,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .activity-summary-section {
-  background: $bg-white;
-  border-radius: 16px;
-  padding: 24px 28px;
-  box-shadow: $card-shadow;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .section-heading {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: $text-dark;
   margin: 0;
 }
@@ -369,7 +365,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 35px;
 }
 
 .summary-card {
@@ -405,7 +401,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .summary-label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   opacity: 0.9;
 }
@@ -419,7 +415,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: grid;
   grid-template-columns: 2fr 1.1fr;
   gap: 24px;
-  align-items: flex-start;
+  align-items: start;
 }
 
 .report-left {
@@ -652,7 +648,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2px 2px;
+  padding: 0 0 2px;
 }
 
 .focus-projects-activity-title {
@@ -696,7 +692,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-size: 13px;
   background: #f9fafb;
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 6px 0;
 }
 
 .focus-project-time {
@@ -713,11 +709,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .ranking-panel {
   background: $bg-white;
   border-radius: 18px;
-  padding: 20px 20px 24px;
+  padding: 24px 24px 10px 28px;
   box-shadow: $card-shadow;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .ranking-header {
@@ -730,7 +726,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: 0;
   // Exactly 9 rows fit without scrollbar, scrollbar appears only when rows exceed 9 (10+ rows)
   // Each row: ~60px (padding 20px + content ~40px) + 8 gaps × 10px = ~620px
   // Adding buffer to ensure 9 rows fit comfortably without scrollbar
