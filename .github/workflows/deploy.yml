@@ -165,7 +165,7 @@ jobs:
       - name: Show deployment summary
         run: |
           echo "════════════════════════════════════════"
-          echo "🎉 DEPLOYMENT SUCCESSFUL!"
+          echo "🎉DEPLOYMENT SUCCESSFUL!"
           echo "════════════════════════════════════════"
           echo "Frontend: http://localhost:8080"
           echo "Backend:  http://localhost:8081"
