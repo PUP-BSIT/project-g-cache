@@ -666,6 +666,26 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   color: $text-light;
 }
 
+.focus-projects-rows {
+  // roughly 5 rows visible, then scroll
+  max-height: 190px;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
 .focus-project-row {
   display: flex;
   justify-content: space-between;
@@ -708,6 +728,22 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 10px;
   margin-top: 4px;
+  // roughly 9 rows visible, then scroll
+  max-height: 480px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 .ranking-row {

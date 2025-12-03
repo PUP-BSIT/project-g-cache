@@ -161,8 +161,7 @@ export class Report implements OnInit {
     });
 
     return ranks
-      .sort((a, b) => b.totalHours - a.totalHours)
-      .slice(0, 5);
+      .sort((a, b) => b.totalHours - a.totalHours);
   });
 
   // Projects list under the chart for the current range
@@ -251,6 +250,55 @@ export class Report implements OnInit {
         icon: '☕',
         sessions: [
           { id: 's6', focusTimeMinutes: 20, breakTimeMinutes: 5, createdAt: daysAgo(0) },
+        ],
+      },
+      {
+        id: 'writing',
+        name: 'Writing Notes',
+        icon: '📝',
+        sessions: [
+          { id: 's7', focusTimeMinutes: 35, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's8', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+        ],
+      },
+      {
+        id: 'design',
+        name: 'UI Design',
+        icon: '🎨',
+        sessions: [
+          { id: 's9', focusTimeMinutes: 50, breakTimeMinutes: 10, createdAt: daysAgo(0) },
+        ],
+      },
+      {
+        id: 'exercise',
+        name: 'Exercise',
+        icon: '🏃',
+        sessions: [
+          { id: 's10', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+        ],
+      },
+      {
+        id: 'reading',
+        name: 'Reading',
+        icon: '📚',
+        sessions: [
+          { id: 's11', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(2) },
+        ],
+      },
+      {
+        id: 'planning',
+        name: 'Planning',
+        icon: '🧠',
+        sessions: [
+          { id: 's12', focusTimeMinutes: 30, breakTimeMinutes: 10, createdAt: daysAgo(1) },
+        ],
+      },
+      {
+        id: 'research',
+        name: 'Research',
+        icon: '🔍',
+        sessions: [
+          { id: 's13', focusTimeMinutes: 40, breakTimeMinutes: 5, createdAt: daysAgo(0) },
         ],
       },
     ];

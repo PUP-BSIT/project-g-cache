@@ -219,16 +219,18 @@
               <span class="focus-projects-activity-title">Activities</span>
               <span class="focus-projects-time-title">Time (HH:MM)</span>
             </div>
-            @for (project of focusProjects(); track project.id) {
-              <div class="focus-project-row">
-                <div class="focus-project-name">
-                  {{ project.name }}
+            <div class="focus-projects-rows">
+              @for (project of focusProjects(); track project.id) {
+                <div class="focus-project-row">
+                  <div class="focus-project-name">
+                    {{ project.name }}
+                  </div>
+                  <div class="focus-project-time">
+                    {{ formatMinutes(project.totalMinutes) }}
+                  </div>
                 </div>
-                <div class="focus-project-time">
-                  {{ formatMinutes(project.totalMinutes) }}
-                </div>
-              </div>
-            }
+              }
+            </div>
           </div>
         </section>
         </div>
