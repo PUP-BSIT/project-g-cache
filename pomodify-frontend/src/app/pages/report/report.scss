@@ -729,19 +729,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .rank-main {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.rank-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: rgba(95, 169, 164, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
+  align-items: flex-start;
+  gap: 6px;
 }
 
 .rank-text {
