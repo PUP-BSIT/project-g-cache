@@ -100,12 +100,12 @@ jobs:
           echo "🧪 Testing backend container..."
           docker run -d --name test-backend \
             -p 8081:8081 \
-            -e DB_URL="jdbc:postgresql://localhost:5432/test" \
-            -e DB_USERNAME="test" \
-            -e DB_PASSWORD="test" \
-            -e JWT_SECRET="test-secret-key-minimum-32-characters-long" \
+            -e DB_URL="${{ secrets.DB_URL }}" \
+            -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+            -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+            -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             $BACKEND_IMAGE:$TAG_PR
-          sleep 10
+          sleep 15
           if docker ps | grep -q test-backend; then
             echo "✅ Backend container started successfully!"
             docker logs test-backend
