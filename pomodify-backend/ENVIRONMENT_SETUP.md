@@ -85,6 +85,19 @@ For production, set environment variables through your deployment platform:
 - **Kubernetes**: Use ConfigMaps and Secrets
 - **Cloud Platforms**: Use platform-specific environment variable management
 
+### JWT Secret Requirement (Prod)
+When running with `SPRING_PROFILES_ACTIVE=prod`, the application requires `JWT_SECRET` to be set. Startup will fail without it. Use a strong random value (>=32 characters).
+
+Example:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export JWT_SECRET="paste-a-strong-random-secret"
+```
+
+### Timezone Default for Dashboard
+The Dashboard API defaults to PH time (`Asia/Manila`) for daily/weekly boundaries and streaks. If you need a different timezone, pass an explicit one when invoking the dashboard command or configure accordingly.
+
 ## Security Best Practices
 
 1. **Never commit sensitive data** to version control
@@ -93,6 +106,24 @@ For production, set environment variables through your deployment platform:
 4. **Use different secrets** for different environments
 5. **Limit database user privileges** to only what's needed
 6. **Use encrypted connections** in production
+
+## Frontend Test Harness
+
+Two lightweight options exist for exercising the API during development:
+
+1. **Standalone Browser Test Page**: Opens directly in the browser and lets you manually invoke session endpoints and subscribe to SSE updates.
+2. **Angular Test Harness** (`test/angular/pomodify-test`): Minimal Angular app covering auth, categories, activities, full session lifecycle and push notification preference management (register / enable / disable / status). It also logs foreground Firebase Cloud Messaging notifications.
+
+### Angular Harness Quick Start
+```bash
+cd test/angular/pomodify-test
+npm install
+npm start
+```
+
+Configure Firebase credentials and `vapidKey` in `src/environments/environment.ts` before initializing push. Ensure the backend base URL in `ApiService` matches your running server.
+
+For background push handling you can later add a `firebase-messaging-sw.js` at project root (not included by default).
 
 ## File Structure
 
