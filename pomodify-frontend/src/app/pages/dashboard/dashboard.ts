@@ -1,6 +1,10 @@
+/**
+ * Dashboard Component
+ * Displays activity list, search, filtering, and management
+ */
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router, ActivatedRoute, Params } from '@angular/router';
+import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import {
@@ -9,18 +13,30 @@ import {
 } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
+import { EditSessionModal } from '../../shared/components/edit-session-modal/edit-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
-import { Timer } from '../../shared/services/timer';
 import { Auth } from '../../core/services/auth';
+import { IconMapper } from '../../core/services/icon-mapper';
+
+export type Session = {
+  id: string;
+  focusTimeMinutes: number;
+  breakTimeMinutes: number;
+  note?: string;
+  createdAt: string;
+};
 
 type Activity = {
   id: string;
   name: string;
   icon: string;
+  category: string;
+  colorTag: string;
+  estimatedHoursPerWeek: number;
   lastAccessed: string;
+  sessions: Session[];
 };
-
-type StoredActivity = Activity & Record<string, unknown>;
 
 @Component({
   selector: 'app-dashboard',
@@ -29,113 +45,15 @@ type StoredActivity = Activity & Record<string, unknown>;
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard implements OnInit {
+export class Dashboard {
   private dialog = inject(MatDialog);
-  private timer = inject(Timer);
-  // Router for route-aware sidebar clicks
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private auth = inject(Auth);
+  private iconMapper = inject(IconMapper);
   private readonly STORAGE_KEY = 'pomodify-activities';
-
-  // Visual alert for timer completion
-  protected showCompletionAlert = signal(false);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
-
-  constructor() {
-    // Set up the completion callback.
-    this.timer.setOnComplete(() => {
-      this.onTimerComplete();
-    });
-  }
-
-  ngOnInit(): void {
-    // Load activities first
-    this.loadActivitiesFromStorage();
-    
-    // Check for query params to select activity
-    this.route.queryParams.subscribe((params: Params) => {
-      this.handleQueryParams(params);
-    });
-  }
-
-  private handleQueryParams(params: Params): void {
-    // Set timer if session info is provided (can be done immediately)
-    if (params['focusTime']) {
-      const focusTime = parseInt(params['focusTime'], 10);
-      if (!isNaN(focusTime) && focusTime > 0) {
-        // Set timer duration (in minutes)
-        this.timer.setDuration(focusTime);
-      }
-    }
-
-    // Handle activity selection (need to wait for activities to be loaded)
-    if (params['activityId']) {
-      const activityId = params['activityId'];
-      const activities = this.activities();
-      
-      // If activities are already loaded, select immediately
-      if (activities.length > 0) {
-        const activityExists = activities.some((a: Activity) => a.id === activityId);
-        if (activityExists) {
-          this.selectActivity(activityId);
-        }
-      } else {
-        // If activities not loaded yet, wait a bit and try again
-        setTimeout(() => {
-          const loadedActivities = this.activities();
-          if (loadedActivities.length > 0) {
-            const activityExists = loadedActivities.some((a: Activity) => a.id === activityId);
-            if (activityExists) {
-              this.selectActivity(activityId);
-            }
-          }
-        }, 100);
-      }
-    }
-  }
-
-  private loadActivitiesFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as StoredActivity[] | null;
-        const dashboardActivities: Activity[] = Array.isArray(parsed)
-          ? parsed.map((activity) => ({
-              id: activity.id,
-              name: activity.name,
-              icon: activity.icon,
-              lastAccessed: activity.lastAccessed,
-            }))
-          : [];
-        if (dashboardActivities.length > 0) {
-          this.activities.set(dashboardActivities);
-          const currentSelected = this.selectedActivityId();
-          if (!currentSelected || !dashboardActivities.some((activity) => activity.id === currentSelected)) {
-            this.selectedActivityId.set(dashboardActivities[0].id);
-          }
-          return;
-        }
-      }
-      this.setDefaultActivities();
-    } catch (error) {
-      console.error('Error loading activities from storage:', error);
-      this.setDefaultActivities();
-    }
-  }
-
-  private setDefaultActivities(): void {
-    const defaults: Activity[] = [
-      { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
-      { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
-      { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
-      { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
-    ];
-    this.activities.set(defaults);
-    this.selectedActivityId.set(defaults[0].id);
-  }
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -156,54 +74,104 @@ export class Dashboard implements OnInit {
       }
     }
   }
+
   // --- State ---
+  protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
+  protected readonly searchQuery = signal('');
+  protected readonly selectedCategory = signal<string | null>(null);
+  protected readonly currentPage = signal(1);
+  protected readonly itemsPerPage = signal(6);
+  protected readonly currentStreak = signal(0);
+  protected readonly categoryDropdownOpen = signal(false);
 
-  protected readonly selectedActivityId = signal<string>('');
+  constructor() {
+    this.loadActivitiesFromStorage();
 
-  protected readonly currentActivity = computed(() => {
-    const activities = this.activities();
-    const selectedId = this.selectedActivityId();
-    if (activities.length === 0) {
-      return null;
+    effect(() => {
+      const activities = this.activities();
+      this.saveActivitiesToStorage(activities);
+    });
+
+    effect(() => {
+      const tp = this.totalPages();
+      if (tp === 0) {
+        this.currentPage.set(1);
+      } else if (this.currentPage() > tp) {
+        this.currentPage.set(tp);
+      }
+    });
+  }
+
+  private loadActivitiesFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Activity[];
+        this.activities.set(parsed);
+      }
+    } catch (error) {
+      console.error('Error loading activities from storage:', error);
+      this.activities.set([]);
     }
-    return activities.find((a) => a.id === selectedId) ?? activities[0];
+  }
+
+  private saveActivitiesToStorage(activities: Activity[]): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(activities));
+    } catch (error) {
+      console.error('Error saving activities to storage:', error);
+    }
+  }
+
+  protected readonly filteredActivities = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const category = this.selectedCategory();
+    const allActivities = this.activities();
+
+    return allActivities.filter((activity) => {
+      const matchesQuery = activity.name.toLowerCase().includes(query);
+      
+      // Handle category filtering including Uncategorized
+      let matchesCategory = !category; // If no category selected, show all
+      if (category === 'Uncategorized') {
+        matchesCategory = !activity.category || activity.category === '';
+      } else if (category) {
+        matchesCategory = activity.category === category;
+      }
+      
+      return matchesQuery && matchesCategory;
+    });
   });
 
-  // Timer state is provided by the Timer service.
-  protected readonly focusTime = computed(() => this.formatTime(this.timer.remainingSeconds()));
-  protected readonly isTimerRunning = this.timer.isRunning;
-  protected readonly isPaused = this.timer.isPaused;
+  protected readonly totalPages = computed(() => {
+    return Math.ceil(this.filteredActivities().length / this.itemsPerPage());
+  });
 
-  protected readonly currentStreak = signal(4);
-  protected readonly todayFocusHours = signal(3);
-  protected readonly totalSessions = signal(2);
+  protected readonly paginatedActivities = computed(() => {
+    const items = this.filteredActivities();
+    const perPage = this.itemsPerPage();
+    const page = this.currentPage();
+    const start = (page - 1) * perPage;
+    return items.slice(start, start + perPage);
+  });
+
+  protected readonly categories = computed(() => {
+    const cats = new Set(this.activities().map((a) => a.category));
+    return Array.from(cats).sort();
+  });
+
+  protected readonly totalActivities = computed(() => this.activities().length);
+
+  protected readonly thisWeekHours = computed(() => {
+    return this.activities()
+      .reduce((sum, activity) => sum + (activity.estimatedHoursPerWeek || 0), 0)
+      .toFixed(1);
+  });
 
   // --- Actions ---
-  protected selectActivity(activityId: string): void {
-    this.selectedActivityId.set(activityId);
-  }
-
-  protected onActivitySelectChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement | null;
-    if (selectElement) {
-      this.selectActivity(selectElement.value);
-    }
-  }
-
-  protected playTimer(): void {
-    // Start or resume the countdown.
-    this.timer.start();
-  }
-
-  protected pauseTimer(): void {
-    // Pause the countdown but keep the remaining time.
-    this.timer.pause();
-  }
-
-  protected stopTimer(): void {
-    // Stop and reset the countdown back to 25:00.
-    this.timer.stop();
+  protected selectActivity(activity: Activity): void {
+    this.selectedActivity.set(activity);
   }
 
   protected openCreateActivityModal(): void {
@@ -212,19 +180,28 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: ActivityData) => {
         if (result) {
-          console.log('New activity created:', result);
-          // TODO(Delumen, Ivan): Send to backend and add to activities list
+          const newActivity: Activity = {
+            id: Date.now().toString(),
+            name: result.name,
+            category: result.category || 'General',
+            colorTag: result.colorTag,
+            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0,
+            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
+            lastAccessed: new Date().toISOString(),
+            sessions: [],
+          };
+          this.activities.update((acts) => [...acts, newActivity]);
+          this.selectActivity(newActivity);
         }
       });
   }
 
-  protected openEditActivityModal(): void {
-    // Sample data to demonstrate the Edit Activity modal UI
+  protected openEditActivityModal(activity: Activity): void {
     const sample: ActivityData = {
-      name: 'Study Math',
-      category: 'Study',
-      colorTag: 'blue',
-      estimatedHoursPerWeek: 3,
+      name: activity.name,
+      category: activity.category,
+      colorTag: activity.colorTag,
+      estimatedHoursPerWeek: activity.estimatedHoursPerWeek,
     };
 
     this.dialog
@@ -232,99 +209,201 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((updated: ActivityData) => {
         if (updated) {
-          console.log('Updated activity:', updated);
-          // TODO(Delumen, Ivan): persist updated activity and update UI
+          this.activities.update((acts) =>
+            acts.map((a) =>
+              a.id === activity.id
+                ? {
+                    ...a,
+                    name: updated.name,
+                    category: updated.category || 'General',
+                    colorTag: updated.colorTag,
+                    estimatedHoursPerWeek: updated.estimatedHoursPerWeek || 0,
+                    icon: this.iconMapper.getIconClass(
+                      updated.name,
+                      updated.category || 'General'
+                    ),
+                  }
+                : a
+            )
+          );
+          if (this.selectedActivity()?.id === activity.id) {
+            this.selectedActivity.set(
+              this.activities().find((a) => a.id === activity.id) || null
+            );
+          }
         }
       });
   }
 
-  protected openDeleteActivityModal(): void {
-    const sample = { id: 'math', name: 'Study Math' };
+  protected openDeleteActivityModal(activity: Activity): void {
     this.dialog
-      .open(DeleteActivityModal, { data: sample })
+      .open(DeleteActivityModal, { data: { id: activity.id, name: activity.name } })
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          console.log('Delete confirmed for', sample);
-          // TODO(Delumen, Ivan): remove from activities and call backend
+          this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
+          if (this.selectedActivity()?.id === activity.id) {
+            this.selectedActivity.set(null);
+          }
         }
       });
   }
 
-
-  // Format seconds as MM:SS for display in the circle.
-  private formatTime(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
+  protected addSession(activity: Activity): void {
+    this.dialog
+      .open(AddSessionModal)
+      .afterClosed()
+      .subscribe((result: SessionData) => {
+        if (result) {
+          const newSession: Session = {
+            id: Date.now().toString(),
+            focusTimeMinutes: result.focusTimeMinutes,
+            breakTimeMinutes: result.breakTimeMinutes,
+            note: result.note,
+            createdAt: new Date().toISOString(),
+          };
+          this.activities.update((acts) =>
+            acts.map((a) =>
+              a.id === activity.id
+                ? { ...a, sessions: [...a.sessions, newSession] }
+                : a
+            )
+          );
+          if (this.selectedActivity()?.id === activity.id) {
+            this.selectedActivity.set(
+              this.activities().find((a) => a.id === activity.id) || null
+            );
+          }
+        }
+      });
   }
 
-  // Called when the timer reaches zero.
-  private onTimerComplete(): void {
-    // Play a completion sound.
-    this.playCompletionSound();
+  protected editSession(activity: Activity, session: Session): void {
+    const sessionData: SessionData = {
+      focusTimeMinutes: session.focusTimeMinutes,
+      breakTimeMinutes: session.breakTimeMinutes,
+      note: session.note || '',
+    };
 
-    // Show visual alert.
-    this.showCompletionAlert.set(true);
-
-    // Hide alert after 5 seconds.
-    setTimeout(() => {
-      this.showCompletionAlert.set(false);
-    }, 5000);
+    this.dialog
+      .open(EditSessionModal, { data: sessionData })
+      .afterClosed()
+      .subscribe((result: SessionData) => {
+        if (result) {
+          this.activities.update((acts) =>
+            acts.map((a) =>
+              a.id === activity.id
+                ? {
+                    ...a,
+                    sessions: a.sessions.map((s) =>
+                      s.id === session.id
+                        ? {
+                            ...s,
+                            focusTimeMinutes: result.focusTimeMinutes,
+                            breakTimeMinutes: result.breakTimeMinutes,
+                            note: result.note,
+                          }
+                        : s
+                    ),
+                  }
+                : a
+            )
+          );
+          if (this.selectedActivity()?.id === activity.id) {
+            this.selectedActivity.set(
+              this.activities().find((a) => a.id === activity.id) || null
+            );
+          }
+        }
+      });
   }
 
-  // Play a simple beep sound when timer completes.
-  private playCompletionSound(): void {
-    try {
-      // Create a simple audio context beep.
-      const extendedWindow = window as Window & { webkitAudioContext?: typeof AudioContext };
-      const AudioContextCtor = window.AudioContext ?? extendedWindow.webkitAudioContext;
-      if (!AudioContextCtor) {
-        console.warn('AudioContext is not supported in this browser.');
-        return;
-      }
-      const audioContext = new AudioContextCtor();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Pleasant notification tone.
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-
-      // Fade out.
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 1);
-    } catch (error) {
-      console.warn('Unable to play completion sound:', error);
+  protected deleteSession(activity: Activity, sessionId: string): void {
+    this.activities.update((acts) =>
+      acts.map((a) =>
+        a.id === activity.id
+          ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
+          : a
+      )
+    );
+    if (this.selectedActivity()?.id === activity.id) {
+      this.selectedActivity.set(
+        this.activities().find((a) => a.id === activity.id) || null
+      );
     }
   }
 
-  // Dismiss the completion alert manually.
-  protected dismissAlert(): void {
-    this.showCompletionAlert.set(false);
+  protected toggleCategory(category: string): void {
+    const current = this.selectedCategory();
+    this.selectedCategory.set(current === category ? null : category);
+    this.currentPage.set(1);
   }
 
-  // Handle navigation icon click - expand sidebar, no bounce
+  protected updateSearchQuery(query: string): void {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
+
+  protected goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  protected getFullIconClasses(activity: Activity): string {
+    return activity.icon || 'fa-solid fa-circle';
+  }
+
+  protected getActivityCompletionPercentage(activity: Activity): number {
+    if (!activity.estimatedHoursPerWeek || activity.estimatedHoursPerWeek <= 0) {
+      return 0;
+    }
+    const totalMinutes = activity.sessions.reduce((sum, session) => sum + session.focusTimeMinutes, 0);
+    const totalHours = totalMinutes / 60;
+    const percentage = Math.min((totalHours / activity.estimatedHoursPerWeek) * 100, 100);
+    return Math.round(percentage);
+  }
+
+  protected getLastAccessedText(activity: Activity): string {
+    const now = new Date();
+    const lastAccessed = new Date(activity.lastAccessed);
+    const diffMs = now.getTime() - lastAccessed.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
+  }
+
+  protected toggleCategoryDropdown(): void {
+    this.categoryDropdownOpen.update((open) => !open);
+  }
+
+  protected getActivitiesByCategory(category: string): Activity[] {
+    return this.activities().filter((activity) => activity.category === category);
+  }
+
+  protected getUncategorizedActivities(): Activity[] {
+    return this.activities().filter((activity) => !activity.category || activity.category === '');
+  }
+
+  protected hasUncategorizedActivities(): boolean {
+    return this.getUncategorizedActivities().length > 0;
+  }
+
   protected onNavIconClick(event: MouseEvent, route: string): void {
-    // Always expand sidebar when navigating
     if (!this.sidebarExpanded()) {
       this.sidebarExpanded.set(true);
     }
-    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
     }
   }
 
-  // Collapse sidebar when clicking main content area
   protected onMainContentClick(): void {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
@@ -335,7 +414,6 @@ export class Dashboard implements OnInit {
     this.auth.logout();
   }
 
-  // --- Profile Modal ---
   protected openProfileModal(): void {
     this.dialog
       .open(Profile, {
@@ -347,7 +425,6 @@ export class Dashboard implements OnInit {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }

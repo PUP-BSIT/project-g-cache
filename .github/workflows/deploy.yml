@@ -1,0 +1,233 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-backend
+  TAG_LATEST: latest
+  TAG_SHA: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Production Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push frontend image
+        run: |
+          echo "🔨 Building and pushing frontend image..."
+          docker build -f pomodify-frontend/Dockerfile \
+            -t $FRONTEND_IMAGE:$TAG_LATEST \
+            -t $FRONTEND_IMAGE:$TAG_SHA \
+            ./pomodify-frontend
+          
+          docker push $FRONTEND_IMAGE:$TAG_LATEST
+          docker push $FRONTEND_IMAGE:$TAG_SHA
+          
+          echo "✅ Frontend image pushed to Docker Hub"
+          echo "   - $FRONTEND_IMAGE:$TAG_LATEST"
+          echo "   - $FRONTEND_IMAGE:$TAG_SHA"
+
+      - name: Build and push backend image
+        run: |
+          echo "🔨 Building and pushing backend image..."
+          docker build -f pomodify-backend/Dockerfile \
+            -t $BACKEND_IMAGE:$TAG_LATEST \
+            -t $BACKEND_IMAGE:$TAG_SHA \
+            ./pomodify-backend
+          
+          docker push $BACKEND_IMAGE:$TAG_LATEST
+          docker push $BACKEND_IMAGE:$TAG_SHA
+          
+          echo "✅ Backend image pushed to Docker Hub"
+          echo "   - $BACKEND_IMAGE:$TAG_LATEST"
+          echo "   - $BACKEND_IMAGE:$TAG_SHA"
+
+  deploy-to-ec2:
+    name: Deploy to EC2 Server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          timeout: 180s
+          script: |
+            set -e
+            
+            echo "════════════════════════════════════════"
+            echo "🚀 Starting deployment to production"
+            echo "════════════════════════════════════════"
+            echo ""
+            echo "📅 Deployment time: $(date)"
+            echo "👤 Deployed by: ${{ github.actor }}"
+            echo "📝 Commit: ${{ github.sha }}"
+            echo ""
+            
+            # Stop and remove old containers
+            echo "🛑 Stopping old containers..."
+            sudo docker stop pomodify-frontend pomodify-backend || true
+            sudo docker rm pomodify-frontend pomodify-backend || true
+            echo "✅ Old containers removed"
+            echo ""
+            
+            # Pull latest images
+            echo "📥 Pulling latest Docker images..."
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
+            echo "✅ Images pulled successfully"
+            echo ""
+            
+            # Setup Firebase credentials
+            echo "🔐 Setting up Firebase credentials..."
+            sudo mkdir -p /app
+            if [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
+              echo "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" | base64 -d | sudo tee /app/firebase-key.json > /dev/null
+              sudo chown root:root /app/firebase-key.json
+              sudo chmod 600 /app/firebase-key.json
+              echo "✅ Firebase credentials configured"
+            else
+              echo "⚠️ Firebase credentials not provided"
+            fi
+            echo ""
+            
+            # Start frontend container
+            echo "🎨 Starting frontend container..."
+            sudo docker run -d \
+              --name pomodify-frontend \
+              --restart unless-stopped \
+              -p 8080:80 \
+              ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
+            
+            # Wait for frontend to start
+            sleep 5
+            if sudo docker ps | grep -q pomodify-frontend; then
+              echo "✅ Frontend container started successfully"
+            else
+              echo "❌ Frontend container failed to start"
+              sudo docker logs pomodify-frontend
+              exit 1
+            fi
+            echo ""
+            
+            # Start backend container
+            echo "⚙️ Starting backend container..."
+            sudo docker run -d \
+              --name pomodify-backend \
+              --restart unless-stopped \
+              -p 8081:8081 \
+              -e DB_URL="jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e DDL_AUTO="${{ secrets.DDL_AUTO }}" \
+              -e SHOW_SQL="${{ secrets.SHOW_SQL }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_ACCESS_EXPIRATION="${{ secrets.JWT_ACCESS_EXPIRATION }}" \
+              -e JWT_REFRESH_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
+              -e FCM_SERVICE_ACCOUNT="/app/firebase-key.json" \
+              -v /app/firebase-key.json:/app/firebase-key.json:ro \
+              ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
+            
+            # Wait for backend to start
+            sleep 10
+            if sudo docker ps | grep -q pomodify-backend; then
+              echo "✅ Backend container started successfully"
+            else
+              echo "❌ Backend container failed to start"
+              sudo docker logs pomodify-backend
+              exit 1
+            fi
+            echo ""
+            
+            # Restart nginx
+            echo "🔄 Restarting nginx..."
+            sudo systemctl restart nginx || true
+            echo "✅ Nginx restarted"
+            echo ""
+            
+            # Show running containers
+            echo "📊 Currently running containers:"
+            sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            echo ""
+            
+            # Clean up old images
+            echo "🧹 Cleaning up old Docker images..."
+            sudo docker image prune -af --filter "until=24h" || true
+            echo "✅ Cleanup completed"
+            echo ""
+            
+            echo "════════════════════════════════════════"
+            echo "✅ Deployment completed successfully!"
+            echo "════════════════════════════════════════"
+
+  verify-deployment:
+    name: Verify Deployment
+    needs: deploy-to-ec2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for services to stabilize
+        run: |
+          echo "⏳ Waiting 30 seconds for services to stabilize..."
+          sleep 30
+
+      - name: Health check - Frontend
+        run: |
+          echo "🏥 Checking frontend health..."
+          if curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8080 | grep -q "200\|301\|302"; then
+            echo "✅ Frontend is healthy and responding"
+          else
+            echo "❌ Frontend health check failed"
+            exit 1
+          fi
+
+      - name: Health check - Backend
+        run: |
+          echo "🏥 Checking backend health..."
+          if curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8081 | grep -q "200\|404"; then
+            echo "✅ Backend is healthy and responding"
+          else
+            echo "❌ Backend health check failed"
+            exit 1
+          fi
+
+      - name: Deployment summary
+        run: |
+          echo ""
+          echo "════════════════════════════════════════"
+          echo "🎉 DEPLOYMENT SUCCESSFUL!"
+          echo "════════════════════════════════════════"
+          echo ""
+          echo "📦 Deployed components:"
+          echo "  ✅ Frontend - Running on port 8080"
+          echo "  ✅ Backend  - Running on port 8081"
+          echo ""
+          echo "🌐 Access your application:"
+          echo "  Frontend: http://${{ secrets.SSH_HOST }}:8080"
+          echo "  Backend:  http://${{ secrets.SSH_HOST }}:8081"
+          echo ""
+          echo "👤 Deployed by: ${{ github.actor }}"
+          echo "📝 Commit SHA: ${{ github.sha }}"
+          echo "⏰ Deployed at: $(date -u)"
+          echo ""
+          echo "════════════════════════════════════════"
