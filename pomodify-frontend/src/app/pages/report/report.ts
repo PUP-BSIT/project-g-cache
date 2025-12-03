@@ -63,7 +63,7 @@ export class Report implements OnInit {
 
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
-  protected readonly daysAccessed = signal(0);
+  protected readonly dailyAverageFocusHours = signal(0);
   protected readonly streakDays = signal(0);
 
   // Chart + range state
@@ -275,7 +275,7 @@ export class Report implements OnInit {
   private computeSummaryMetrics(sessions: Session[]): void {
     if (!sessions.length) {
       this.totalFocusHours.set(0);
-      this.daysAccessed.set(0);
+      this.dailyAverageFocusHours.set(0);
       this.streakDays.set(0);
       return;
     }
@@ -284,7 +284,8 @@ export class Report implements OnInit {
       (sum, session) => sum + (session.focusTimeMinutes ?? 0),
       0,
     );
-    this.totalFocusHours.set(totalMinutes / 60);
+    const totalHours = totalMinutes / 60;
+    this.totalFocusHours.set(totalHours);
 
     const dayKeys = new Set<string>();
     sessions.forEach((session) => {
@@ -292,7 +293,9 @@ export class Report implements OnInit {
       dayKeys.add(key);
     });
 
-    this.daysAccessed.set(dayKeys.size);
+    const dayCount = dayKeys.size;
+    const averageHours = dayCount ? totalHours / dayCount : 0;
+    this.dailyAverageFocusHours.set(averageHours);
     this.streakDays.set(this.computeDayStreak(dayKeys));
   }
 

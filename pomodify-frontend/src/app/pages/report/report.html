@@ -97,13 +97,13 @@
 
               <div class="summary-card">
                 <div class="summary-main">
-                  <div class="summary-label">Days Accessed</div>
+                  <div class="summary-label">Daily Avg Focus</div>
                   <div class="summary-value">
-                    {{ daysAccessed() }}
+                    {{ dailyAverageFocusHours() | number: '1.0-1' }}h
                   </div>
                 </div>
                 <div class="summary-icon">
-                  <i class="fa-regular fa-calendar"></i>
+                  <i class="fa-regular fa-hourglass"></i>
                 </div>
               </div>
 
