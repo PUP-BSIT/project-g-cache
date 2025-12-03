@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend
@@ -32,25 +32,21 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          echo "🔨 Building and pushing frontend image..."
           docker build -f pomodify-frontend/Dockerfile \
             -t $FRONTEND_IMAGE:$TAG_LATEST \
             -t $FRONTEND_IMAGE:$TAG_SHA \
             ./pomodify-frontend
           docker push $FRONTEND_IMAGE:$TAG_LATEST
           docker push $FRONTEND_IMAGE:$TAG_SHA
-          echo "✅ Frontend image pushed to Docker Hub"
 
       - name: Build and push backend image
         run: |
-          echo "🔨 Building and pushing backend image..."
           docker build -f pomodify-backend/Dockerfile \
             -t $BACKEND_IMAGE:$TAG_LATEST \
             -t $BACKEND_IMAGE:$TAG_SHA \
             ./pomodify-backend
           docker push $BACKEND_IMAGE:$TAG_LATEST
           docker push $BACKEND_IMAGE:$TAG_SHA
-          echo "✅ Backend image pushed to Docker Hub"
 
   deploy-to-ec2:
     name: Deploy to EC2 Server
@@ -68,52 +64,32 @@ jobs:
           script: |
             set -e
 
-            echo "════════════════════════════════════════"
-            echo "🚀 Starting deployment to production"
-            echo "════════════════════════════════════════"
-            echo "📅 Deployment time: $(date)"
-            echo "👤 Deployed by: ${{ github.actor }}"
-            echo "📝 Commit: ${{ github.sha}}"
-            echo ""
-
-            # Stop and remove old containers
-            echo "🛑 Stopping old containers..."
+            echo "🚀 Starting deployment to production..."
+            
+            # Stop old containers
             sudo docker stop pomodify-frontend pomodify-backend || true
             sudo docker rm pomodify-frontend pomodify-backend || true
-            echo "✅ Old containers removed"
-            echo ""
 
             # Pull latest images
-            echo "📥 Pulling latest Docker images..."
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
-            echo "✅ Images pulled successfully"
-            echo ""
 
-            # Setup Firebase credentials
-            echo "🔐 Setting up Firebase credentials..."
+            # Setup Firebase credentials if provided
             sudo mkdir -p /app
             if [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
               echo "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" | base64 -d | sudo tee /app/firebase-key.json > /dev/null
               sudo chown root:root /app/firebase-key.json
               sudo chmod 600 /app/firebase-key.json
-              echo "✅ Firebase credentials configured"
-            else
-              echo "⚠️ Firebase credentials not provided"
             fi
-            echo ""
 
             # Start frontend container
-            echo "🎨 Starting frontend container..."
             sudo docker run -d \
               --name pomodify-frontend \
               --restart unless-stopped \
               -p 8080:80 \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
-            sleep 10
 
             # Start backend container
-            echo "⚙️ Starting backend container..."
             sudo docker run -d \
               --name pomodify-backend \
               --restart unless-stopped \
@@ -129,89 +105,58 @@ jobs:
               -e FCM_SERVICE_ACCOUNT="/app/firebase-key.json" \
               -v /app/firebase-key.json:/app/firebase-key.json:ro \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
-            sleep 15
+
+            # Wait for containers to start
+            sleep 10
+
+            # Health check with retries
+            echo "Checking frontend health..."
+            retries=5
+            until curl -f -s http://localhost:8080 >/dev/null; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Frontend health check failed"
+                sudo docker logs pomodify-frontend
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Frontend is healthy"
+
+            echo "Checking backend health..."
+            retries=5
+            until curl -f -s http://localhost:8081 >/dev/null; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Backend health check failed"
+                sudo docker logs pomodify-backend
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Backend is healthy"
 
             # Restart nginx
-            echo "🔄 Restarting nginx..."
             sudo systemctl restart nginx || true
-            echo "✅ Nginx restarted"
-            echo ""
 
-            # Show running containers
-            echo "📊 Currently running containers:"
-            sudo docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-            echo ""
-
-            # Clean up old images
-            echo "🧹 Cleaning up old Docker images..."
+            # Cleanup old images
             sudo docker image prune -af --filter "until=24h" || true
-            echo "✅ Cleanup completed"
-            echo ""
-            echo "════════════════════════════════════════"
+
             echo "✅ Deployment completed successfully!"
-            echo "════════════════════════════════════════"
 
   verify-deployment:
-    name: Verify Deployment
+    name: Deployment Summary
     needs: deploy-to-ec2
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for services to stabilize
+      - name: Show deployment summary
         run: |
-          echo "⏳ Waiting 20 seconds for services to stabilize..."
-          sleep 20
-
-      - name: Health check - Frontend
-        run: |
-          echo "🏥 Checking frontend health..."
-          retries=10
-          count=0
-          until curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8080 | grep -q "200\|301\|302"; do
-            count=$((count+1))
-            echo "⚠️ Frontend not ready yet (attempt $count/$retries)..."
-            sudo docker logs pomodify-frontend --tail 20 || true
-            if [ $count -ge $retries ]; then
-              echo "❌ Frontend health check failed after $retries attempts"
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "✅ Frontend is healthy and responding"
-
-      - name: Health check - Backend
-        run: |
-          echo "🏥 Checking backend health..."
-          retries=10
-          count=0
-          until curl -f -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:8081 | grep -q "200\|404"; do
-            count=$((count+1))
-            echo "⚠️ Backend not ready yet (attempt $count/$retries)..."
-            sudo docker logs pomodify-backend --tail 20 || true
-            if [ $count -ge $retries ]; then
-              echo "❌ Backend health check failed after $retries attempts"
-              exit 1
-            fi
-            sleep 5
-          done
-          echo "✅ Backend is healthy and responding"
-
-      - name: Deployment summary
-        run: |
-          echo ""
           echo "════════════════════════════════════════"
           echo "🎉 DEPLOYMENT SUCCESSFUL!"
           echo "════════════════════════════════════════"
-          echo ""
-          echo "📦 Deployed components:"
-          echo "  ✅ Frontend - Running on port 8080"
-          echo "  ✅ Backend  - Running on port 8081"
-          echo ""
-          echo "🌐 Access your application:"
-          echo "  Frontend: http://${{ secrets.SSH_HOST }}:8080"
-          echo "  Backend:  http://${{ secrets.SSH_HOST }}:8081"
-          echo ""
-          echo "👤 Deployed by: ${{ github.actor }}"
-          echo "📝 Commit SHA: ${{ github.sha }}"
-          echo "⏰ Deployed at: $(date -u)"
-          echo ""
+          echo "Frontend: http://localhost:8080"
+          echo "Backend:  http://localhost:8081"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Deployed by: ${{ github.actor }}"
+          echo "Deployed at: $(date -u)"
           echo "════════════════════════════════════════"
