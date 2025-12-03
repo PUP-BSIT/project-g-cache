@@ -189,25 +189,32 @@
           </div>
 
           <div class="focus-chart">
-            <div class="chart-grid">
-              <div class="chart-y-axis">
-                @for (tick of chartTicks(); track tick) {
-                  <div class="y-tick">
-                    <span class="y-label">{{ formatTickLabel(tick) }}</span>
-                    <span class="y-line"></span>
-                  </div>
-                }
-              </div>
+            <div class="chart-container">
+              <div class="chart-grid">
+                <div class="chart-y-axis">
+                  @for (tick of chartTicks(); track tick) {
+                    <div class="y-tick">
+                      <span class="y-label">{{ formatTickLabel(tick) }}</span>
+                      <span class="y-line"></span>
+                    </div>
+                  }
+                </div>
 
-              <div class="chart-bars">
+                <div class="chart-bars">
+                  @for (point of focusSeries(); track point.label) {
+                    <div class="bar-wrapper">
+                      <div
+                        class="bar"
+                        [style.height.%]="point.percentage"
+                      ></div>
+                    </div>
+                  }
+                  <div class="chart-bottom-line"></div>
+                </div>
+              </div>
+              <div class="chart-labels">
                 @for (point of focusSeries(); track point.label) {
-                  <div class="bar-wrapper">
-                    <div
-                      class="bar"
-                      [style.height.%]="point.percentage"
-                    ></div>
-                    <div class="bar-label">{{ point.label }}</div>
-                  </div>
+                  <div class="bar-label">{{ point.label }}</div>
                 }
               </div>
             </div>

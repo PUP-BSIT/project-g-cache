@@ -230,9 +230,10 @@ export class Report implements OnInit {
         name: 'App Development',
         icon: '💻',
         sessions: [
-          { id: 's1', focusTimeMinutes: 60, breakTimeMinutes: 10, createdAt: daysAgo(0) },
-          { id: 's2', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's3', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+          { id: 's1', focusTimeMinutes: 90, breakTimeMinutes: 10, createdAt: daysAgo(0) },
+          { id: 's2', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's3', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+          { id: 's16', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3) },
         ],
       },
       {
@@ -240,8 +241,9 @@ export class Report implements OnInit {
         name: 'Study',
         icon: '📘',
         sessions: [
-          { id: 's4', focusTimeMinutes: 40, breakTimeMinutes: 10, createdAt: daysAgo(0) },
-          { id: 's5', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(4) },
+          { id: 's4', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(0) },
+          { id: 's5', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's17', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(4) },
         ],
       },
       {
@@ -249,7 +251,8 @@ export class Report implements OnInit {
         name: 'Uncategory',
         icon: '☕',
         sessions: [
-          { id: 's6', focusTimeMinutes: 20, breakTimeMinutes: 5, createdAt: daysAgo(0) },
+          { id: 's6', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(0) },
+          { id: 's18', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2) },
         ],
       },
       {
@@ -257,8 +260,9 @@ export class Report implements OnInit {
         name: 'Writing Notes',
         icon: '📝',
         sessions: [
-          { id: 's7', focusTimeMinutes: 35, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's8', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+          { id: 's7', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's8', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+          { id: 's19', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(3) },
         ],
       },
       {
@@ -266,7 +270,8 @@ export class Report implements OnInit {
         name: 'UI Design',
         icon: '🎨',
         sessions: [
-          { id: 's9', focusTimeMinutes: 50, breakTimeMinutes: 10, createdAt: daysAgo(0) },
+          { id: 's9', focusTimeMinutes: 105, breakTimeMinutes: 10, createdAt: daysAgo(0) },
+          { id: 's20', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
         ],
       },
       {
@@ -274,7 +279,8 @@ export class Report implements OnInit {
         name: 'Exercise',
         icon: '🏃',
         sessions: [
-          { id: 's10', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's10', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's21', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(4) },
         ],
       },
       {
@@ -282,7 +288,8 @@ export class Report implements OnInit {
         name: 'Reading',
         icon: '📚',
         sessions: [
-          { id: 's11', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(2) },
+          { id: 's11', focusTimeMinutes: 75, breakTimeMinutes: 10, createdAt: daysAgo(2) },
+          { id: 's22', focusTimeMinutes: 50, breakTimeMinutes: 5, createdAt: daysAgo(3) },
         ],
       },
       {
@@ -290,7 +297,8 @@ export class Report implements OnInit {
         name: 'Planning',
         icon: '🧠',
         sessions: [
-          { id: 's12', focusTimeMinutes: 30, breakTimeMinutes: 10, createdAt: daysAgo(1) },
+          { id: 's12', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(1) },
+          { id: 's23', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(4) },
         ],
       },
       {
@@ -298,7 +306,8 @@ export class Report implements OnInit {
         name: 'Research',
         icon: '🔍',
         sessions: [
-          { id: 's13', focusTimeMinutes: 40, breakTimeMinutes: 5, createdAt: daysAgo(0) },
+          { id: 's13', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(0) },
+          { id: 's24', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
         ],
       },
       {
@@ -306,8 +315,9 @@ export class Report implements OnInit {
         name: 'Team Meeting',
         icon: '👥',
         sessions: [
-          { id: 's14', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's15', focusTimeMinutes: 20, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's14', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's15', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's25', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(5) },
         ],
       },
     ];
@@ -446,7 +456,7 @@ export class Report implements OnInit {
       }
 
       const maxHours = Math.max(...points.map((p) => p.hours), 1);
-      const chartMax = Math.max(Math.ceil(maxHours * 1.2), 2);
+      const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
 
       const normalized = points.map((p) => ({
         ...p,
@@ -459,7 +469,7 @@ export class Report implements OnInit {
       const ticks: number[] = [];
       const step = chartMax / 4;
       for (let i = 0; i <= 4; i++) {
-        const value = +(i * step).toFixed(0);
+        const value = +(i * step).toFixed(1);
         ticks.push(value);
       }
       this.chartTicks.set(ticks);
@@ -498,7 +508,7 @@ export class Report implements OnInit {
     });
 
     const maxYearHours = Math.max(...yearPoints.map((p) => p.hours), 1);
-    const yearChartMax = Math.max(Math.ceil(maxYearHours * 1.2), 2);
+    const yearChartMax = Math.max(Math.ceil(maxYearHours * 1.2 * 2) / 2, 1);
 
     const normalizedYears = yearPoints.map((p) => ({
       ...p,
@@ -511,7 +521,7 @@ export class Report implements OnInit {
     const yearTicks: number[] = [];
     const yearStep = yearChartMax / 4;
     for (let i = 0; i <= 4; i++) {
-      const value = +(i * yearStep).toFixed(0);
+      const value = +(i * yearStep).toFixed(1);
       yearTicks.push(value);
     }
     this.chartTicks.set(yearTicks);
@@ -583,16 +593,15 @@ export class Report implements OnInit {
     if (value <= 0) {
       return '0h';
     }
-    const totalMinutes = Math.round(value * 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-
-    if (hours === 0) {
-      return `${minutes}m`;
-    }
-    if (minutes === 0) {
+    // Always format as hours, using decimal notation when needed
+    const hours = Math.floor(value);
+    const decimalPart = value - hours;
+    
+    if (Math.abs(decimalPart) < 0.01) {
+      // Whole number - show as "1h", "2h", etc.
       return `${hours}h`;
     }
-    return `${hours}h ${minutes}m`;
+    // Show as decimal hours (e.g., 1.5h, 2.5h)
+    return `${value.toFixed(1)}h`;
   }
 }
