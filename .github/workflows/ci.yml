@@ -43,6 +43,7 @@ jobs:
             echo "✅ No conflicts with main branch"
           else
             echo "⚠️ Branch might have conflicts with main"
+          fi
 
   build-and-test:
     name: Build and Test Docker Images
@@ -91,7 +92,9 @@ jobs:
             docker rm test-frontend
           else
             echo "❌ Frontend container failed to start!"
+            docker logs test-frontend || true
             exit 1
+          fi
 
       - name: Test backend image
         run: |
@@ -116,6 +119,7 @@ jobs:
             echo "❌ Backend container failed to start!"
             docker logs test-backend || true
             exit 1
+          fi
 
   ci-summary:
     name: CI Summary
@@ -126,4 +130,13 @@ jobs:
         run: |
           echo "════════════════════════════════════════"
           echo "✅ All CI checks passed!"
-          echo "══════════════
+          echo "════════════════════════════════════════"
+          echo ""
+          echo "📋 Summary:"
+          echo "  ✅ Linting and validation - Passed"
+          echo "  ✅ Docker builds - Passed"
+          echo "  ✅ Container tests - Passed"
+          echo ""
+          echo "🎉 This PR is ready to be merged into main!"
+          echo "🚀 Deployment will start automatically after merge"
+          echo "════════════════════════════════════════"
