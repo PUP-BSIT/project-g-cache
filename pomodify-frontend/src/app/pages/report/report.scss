@@ -561,6 +561,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   grid-template-columns: auto 1fr;
   gap: 8px;
   align-items: stretch;
+  min-height: 300px;
 }
 
 .chart-y-axis {
@@ -570,6 +571,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 4px 0 0 0;
   align-self: stretch;
   position: relative;
+  height: 100%;
 }
 
 .y-tick {
@@ -601,6 +603,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex: 1;
   min-height: 0;
   align-self: stretch;
+  height: 100%;
   background-image: repeating-linear-gradient(
     to right,
     rgba(148, 163, 184, 0.18),
@@ -652,6 +655,82 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-radius: 999px;
   background: linear-gradient(180deg, $primary-teal-light, $primary-teal-dark);
   transition: height 0.25s ease-out;
+  cursor: pointer;
+}
+
+.bar-wrapper {
+  cursor: pointer;
+}
+
+.chart-tooltip {
+  position: fixed;
+  background: $bg-white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: -8px;
+  min-width: 200px;
+  max-width: 300px;
+}
+
+.tooltip-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 4px;
+}
+
+.tooltip-total {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-dark;
+  margin-bottom: 8px;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.3);
+  margin: 8px 0;
+}
+
+.tooltip-activity {
+  font-size: 11px;
+  color: $text-light;
+  margin-bottom: 4px;
+  line-height: 1.4;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.pomodoro-indicator {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  
+  &.classic {
+    background: rgba(95, 169, 164, 0.15);
+    color: $primary-teal-dark;
+  }
+  
+  &.freestyle {
+    background: rgba(244, 196, 48, 0.15);
+    color: #B8860B;
+  }
+  
+  &.both {
+    background: rgba(95, 169, 164, 0.1);
+    color: $primary-teal-dark;
+    border: 1px solid rgba(95, 169, 164, 0.3);
+  }
 }
 
 
@@ -739,6 +818,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .focus-project-name {
   color: $text-dark;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 // Ranking panel
@@ -816,6 +898,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-size: 14px;
   font-weight: 600;
   color: $text-dark;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .rank-meta {

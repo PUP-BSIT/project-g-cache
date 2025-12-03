@@ -12,6 +12,8 @@ type Session = {
   breakTimeMinutes: number;
   note?: string;
   createdAt: string;
+  type?: 'classic' | 'freestyle';
+  status?: 'completed' | 'progressing';
 };
 
 type Activity = {
@@ -21,10 +23,20 @@ type Activity = {
   sessions?: Session[];
 };
 
+type ActivityBreakdown = {
+  activityName: string;
+  classicHours: number;
+  classicSessions: number;
+  freestyleHours: number;
+  freestyleSessions: number;
+};
+
 type FocusPoint = {
   label: string;
   hours: number;
   percentage: number;
+  dateKey?: string;
+  activities?: ActivityBreakdown[];
 };
 
 type ActivityRank = {
@@ -33,6 +45,8 @@ type ActivityRank = {
   icon: string;
   totalHours: number;
   sessions: number;
+  hasClassic: boolean;
+  hasFreestyle: boolean;
 };
 
 type RangeKey = 'week' | 'month' | 'year';
@@ -41,6 +55,8 @@ type FocusProject = {
   id: string;
   name: string;
   totalMinutes: number;
+  hasClassic: boolean;
+  hasFreestyle: boolean;
 };
 
 @Component({
@@ -73,6 +89,8 @@ export class Report implements OnInit {
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
   protected readonly completedFocusChecked = signal(false);
   protected readonly progressingFocusChecked = signal(false);
+  protected readonly tooltipData = signal<FocusPoint | null>(null);
+  protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
   ngOnInit(): void {
     this.seedMockData();
@@ -151,12 +169,17 @@ export class Report implements OnInit {
 
       if (totalMinutes <= 0) return;
 
+      const hasClassic = sessions.some((s) => s.type === 'classic');
+      const hasFreestyle = sessions.some((s) => s.type === 'freestyle');
+
       ranks.push({
         id: activity.id,
         name: activity.name,
         icon: activity.icon,
         totalHours: totalMinutes / 60,
         sessions: sessions.length,
+        hasClassic,
+        hasFreestyle,
       });
     });
 
@@ -175,11 +198,15 @@ export class Report implements OnInit {
     activities.forEach((activity) => {
       const sessions = activity.sessions ?? [];
       let totalMinutes = 0;
+      let hasClassic = false;
+      let hasFreestyle = false;
 
       sessions.forEach((session) => {
         const createdAt = new Date(session.createdAt);
         if (this.isInCurrentRange(createdAt, range, now)) {
           totalMinutes += session.focusTimeMinutes ?? 0;
+          if (session.type === 'classic') hasClassic = true;
+          if (session.type === 'freestyle') hasFreestyle = true;
         }
       });
 
@@ -188,6 +215,8 @@ export class Report implements OnInit {
           id: activity.id,
           name: activity.name,
           totalMinutes,
+          hasClassic,
+          hasFreestyle,
         });
       }
     });
@@ -206,12 +235,27 @@ export class Report implements OnInit {
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
     this.completedFocusChecked.set(input.checked);
+    this.recalculateAll();
   }
 
   protected onProgressingFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
     this.progressingFocusChecked.set(input.checked);
+    this.recalculateAll();
+  }
+
+  protected onBarHover(point: FocusPoint, event: MouseEvent): void {
+    this.tooltipData.set(point);
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.tooltipPosition.set({
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10,
+    });
+  }
+
+  protected onBarLeave(): void {
+    this.tooltipData.set(null);
   }
 
   // --- Mock data & calculations ---
@@ -230,10 +274,10 @@ export class Report implements OnInit {
         name: 'App Development',
         icon: '💻',
         sessions: [
-          { id: 's1', focusTimeMinutes: 90, breakTimeMinutes: 10, createdAt: daysAgo(0) },
-          { id: 's2', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's3', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(2) },
-          { id: 's16', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's1', focusTimeMinutes: 90, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
+          { id: 's2', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
+          { id: 's3', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'completed' },
+          { id: 's16', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'classic', status: 'completed' },
         ],
       },
       {
@@ -241,9 +285,9 @@ export class Report implements OnInit {
         name: 'Study',
         icon: '📘',
         sessions: [
-          { id: 's4', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(0) },
-          { id: 's5', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's17', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(4) },
+          { id: 's4', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'freestyle', status: 'completed' },
+          { id: 's5', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
+          { id: 's17', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'classic', status: 'progressing' },
         ],
       },
       {
@@ -251,8 +295,8 @@ export class Report implements OnInit {
         name: 'Uncategory',
         icon: '☕',
         sessions: [
-          { id: 's6', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(0) },
-          { id: 's18', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2) },
+          { id: 's6', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
+          { id: 's18', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'completed' },
         ],
       },
       {
@@ -260,9 +304,9 @@ export class Report implements OnInit {
         name: 'Writing Notes',
         icon: '📝',
         sessions: [
-          { id: 's7', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's8', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(2) },
-          { id: 's19', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's7', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
+          { id: 's8', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'progressing' },
+          { id: 's19', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'classic', status: 'completed' },
         ],
       },
       {
@@ -270,8 +314,8 @@ export class Report implements OnInit {
         name: 'UI Design',
         icon: '🎨',
         sessions: [
-          { id: 's9', focusTimeMinutes: 105, breakTimeMinutes: 10, createdAt: daysAgo(0) },
-          { id: 's20', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's9', focusTimeMinutes: 105, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
+          { id: 's20', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
         ],
       },
       {
@@ -279,8 +323,8 @@ export class Report implements OnInit {
         name: 'Exercise',
         icon: '🏃',
         sessions: [
-          { id: 's10', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(3) },
-          { id: 's21', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(4) },
+          { id: 's10', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
+          { id: 's21', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'classic', status: 'completed' },
         ],
       },
       {
@@ -288,8 +332,8 @@ export class Report implements OnInit {
         name: 'Reading',
         icon: '📚',
         sessions: [
-          { id: 's11', focusTimeMinutes: 75, breakTimeMinutes: 10, createdAt: daysAgo(2) },
-          { id: 's22', focusTimeMinutes: 50, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+          { id: 's11', focusTimeMinutes: 75, breakTimeMinutes: 10, createdAt: daysAgo(2), type: 'classic', status: 'completed' },
+          { id: 's22', focusTimeMinutes: 50, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
         ],
       },
       {
@@ -297,8 +341,8 @@ export class Report implements OnInit {
         name: 'Planning',
         icon: '🧠',
         sessions: [
-          { id: 's12', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(1) },
-          { id: 's23', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(4) },
+          { id: 's12', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
+          { id: 's23', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'freestyle', status: 'completed' },
         ],
       },
       {
@@ -306,8 +350,8 @@ export class Report implements OnInit {
         name: 'Research',
         icon: '🔍',
         sessions: [
-          { id: 's13', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(0) },
-          { id: 's24', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's13', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
+          { id: 's24', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
         ],
       },
       {
@@ -315,9 +359,9 @@ export class Report implements OnInit {
         name: 'Team Meeting',
         icon: '👥',
         sessions: [
-          { id: 's14', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1) },
-          { id: 's15', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3) },
-          { id: 's25', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(5) },
+          { id: 's14', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
+          { id: 's15', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
+          { id: 's25', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(5), type: 'classic', status: 'progressing' },
         ],
       },
     ];
@@ -367,8 +411,26 @@ export class Report implements OnInit {
   }
 
   private rebuildSeries(allSessions?: Session[]): void {
-    const sessions = allSessions ?? this.collectAllSessions();
+    let sessions = allSessions ?? this.collectAllSessions();
     const range = this.selectedRange();
+    
+    // Apply filtering only for the chart
+    // If both unchecked or both checked → show all
+    // If only one checked → show only that type
+    const completed = this.completedFocusChecked();
+    const progressing = this.progressingFocusChecked();
+    
+    // Only filter if exactly one checkbox is checked
+    if (completed !== progressing) {
+      if (completed) {
+        // Only completed checked
+        sessions = sessions.filter((session) => session.status === 'completed');
+      } else {
+        // Only progressing checked
+        sessions = sessions.filter((session) => session.status === 'progressing');
+      }
+    }
+    // If both checked or both unchecked, show all (no filtering)
 
     if (!sessions.length) {
       this.focusSeries.set([]);
@@ -395,16 +457,46 @@ export class Report implements OnInit {
         const key = this.toDayKey(day);
         const label = day.toLocaleDateString(undefined, { weekday: 'short' }); // Mon, Tue ... Sun
 
-        const minutes = sessions
-          .filter((s) => this.toDayKey(new Date(s.createdAt)) === key)
-          .reduce((sum, s) => sum + (s.focusTimeMinutes ?? 0), 0);
-
+        const daySessions = sessions.filter((s) => this.toDayKey(new Date(s.createdAt)) === key);
+        const minutes = daySessions.reduce((sum, s) => sum + (s.focusTimeMinutes ?? 0), 0);
         rangeTotalMinutes += minutes;
+
+        // Calculate activity breakdown for tooltip
+        const activityMap = new Map<string, ActivityBreakdown>();
+        daySessions.forEach((session) => {
+          const activity = this.activities().find((a) => 
+            a.sessions?.some((s) => s.id === session.id)
+          );
+          if (!activity) return;
+
+          const breakdown = activityMap.get(activity.id) || {
+            activityName: activity.name,
+            classicHours: 0,
+            classicSessions: 0,
+            freestyleHours: 0,
+            freestyleSessions: 0,
+          };
+
+          const hours = session.focusTimeMinutes / 60;
+          if (session.type === 'classic') {
+            breakdown.classicHours += hours;
+            breakdown.classicSessions += 1;
+          } else if (session.type === 'freestyle') {
+            breakdown.freestyleHours += hours;
+            breakdown.freestyleSessions += 1;
+          }
+
+          activityMap.set(activity.id, breakdown);
+        });
+
+        const fullLabel = day.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
 
         points.push({
           label,
           hours: minutes / 60,
           percentage: 0, // temporary, updated below
+          dateKey: key,
+          activities: Array.from(activityMap.values()),
         });
       }
 
@@ -603,5 +695,13 @@ export class Report implements OnInit {
     }
     // Show as decimal hours (e.g., 1.5h, 2.5h)
     return `${value.toFixed(1)}h`;
+  }
+
+  protected getTooltipTitle(point: FocusPoint): string {
+    if (point.dateKey) {
+      const date = new Date(point.dateKey + 'T00:00:00');
+      return date.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+    }
+    return point.label.toUpperCase();
   }
 }

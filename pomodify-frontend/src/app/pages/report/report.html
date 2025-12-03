@@ -189,6 +189,29 @@
           </div>
 
           <div class="focus-chart">
+            @if (tooltipData()) {
+              <div 
+                class="chart-tooltip"
+                [style.left.px]="tooltipPosition().x"
+                [style.top.px]="tooltipPosition().y"
+              >
+                <div class="tooltip-title">{{ getTooltipTitle(tooltipData()!) }}</div>
+                <div class="tooltip-total">Total: {{ tooltipData()!.hours | number: '1.0-1' }} hrs</div>
+                <div class="tooltip-divider"></div>
+                @for (activity of tooltipData()!.activities; track activity.activityName) {
+                  <div class="tooltip-activity">
+                    @if (activity.classicSessions > 0 && activity.freestyleSessions > 0) {
+                      <div>• {{ activity.activityName }} (Classic): {{ activity.classicHours | number: '1.0-1' }}h ({{ activity.classicSessions }} session{{ activity.classicSessions !== 1 ? 's' : '' }})</div>
+                      <div>• {{ activity.activityName }} (Freestyle): {{ activity.freestyleHours | number: '1.0-1' }}h ({{ activity.freestyleSessions }} session{{ activity.freestyleSessions !== 1 ? 's' : '' }})</div>
+                    } @else if (activity.classicSessions > 0) {
+                      <div>• {{ activity.activityName }} (Classic): {{ activity.classicHours | number: '1.0-1' }}h ({{ activity.classicSessions }} session{{ activity.classicSessions !== 1 ? 's' : '' }})</div>
+                    } @else if (activity.freestyleSessions > 0) {
+                      <div>• {{ activity.activityName }} (Freestyle): {{ activity.freestyleHours | number: '1.0-1' }}h ({{ activity.freestyleSessions }} session{{ activity.freestyleSessions !== 1 ? 's' : '' }})</div>
+                    }
+                  </div>
+                }
+              </div>
+            }
             <div class="chart-container">
               <div class="chart-grid">
                 <div class="chart-y-axis">
@@ -202,7 +225,11 @@
 
                 <div class="chart-bars">
                   @for (point of focusSeries(); track point.label) {
-                    <div class="bar-wrapper">
+                    <div 
+                      class="bar-wrapper"
+                      (mouseenter)="onBarHover(point, $event)"
+                      (mouseleave)="onBarLeave()"
+                    >
                       <div
                         class="bar"
                         [style.height.%]="point.percentage"
@@ -231,6 +258,13 @@
                 <div class="focus-project-row">
                   <div class="focus-project-name">
                     {{ project.name }}
+                    @if (project.hasClassic && project.hasFreestyle) {
+                      <span class="pomodoro-indicator both">C+F</span>
+                    } @else if (project.hasClassic) {
+                      <span class="pomodoro-indicator classic">C</span>
+                    } @else if (project.hasFreestyle) {
+                      <span class="pomodoro-indicator freestyle">F</span>
+                    }
                   </div>
                   <div class="focus-project-time">
                     {{ formatMinutes(project.totalMinutes) }}
@@ -260,7 +294,16 @@
                   <div class="rank-number">#{{ i + 1 }}</div>
                   <div class="rank-main">
                     <div class="rank-text">
-                      <div class="rank-name">{{ item.name }}</div>
+                      <div class="rank-name">
+                        {{ item.name }}
+                        @if (item.hasClassic && item.hasFreestyle) {
+                          <span class="pomodoro-indicator both">C+F</span>
+                        } @else if (item.hasClassic) {
+                          <span class="pomodoro-indicator classic">C</span>
+                        } @else if (item.hasFreestyle) {
+                          <span class="pomodoro-indicator freestyle">F</span>
+                        }
+                      </div>
                       <div class="rank-meta">
                         {{ item.totalHours | number: '1.0-1' }} hrs ·
                         {{ item.sessions }} session{{ item.sessions !== 1 ? 's' : '' }}
