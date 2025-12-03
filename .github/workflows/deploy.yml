@@ -114,7 +114,7 @@ jobs:
               -e SHOW_SQL="${{ secrets.SHOW_SQL }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_ACCESS_EXPIRATION="${{ secrets.JWT_ACCESS_EXPIRATION }}" \
-              -e JWT_REFRESH_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
+              -e JWT_REFRESH_TOKEN_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
               -e FCM_SERVICE_ACCOUNT="/app/firebase-key.json" \
               -v /app/firebase-key.json:/app/firebase-key.json:ro \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
