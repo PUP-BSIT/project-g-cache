@@ -57,7 +57,7 @@ public class DashboardService {
             .map(s -> s.getCompletedAt().atZone(zone).toLocalDate())
             .collect(Collectors.toSet());
 
-        int currentStreak = user.getCurrentStreak(focusDays, today, zone);
+        int currentStreak = user.getCurrentStreak(focusDays, today);
         int bestStreak = user.getBestStreak(focusDays);
 
         List<DashboardResult.RecentSession> recentItems = recent.stream().map(s ->

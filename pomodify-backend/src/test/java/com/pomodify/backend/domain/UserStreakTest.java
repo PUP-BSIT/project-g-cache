@@ -20,7 +20,7 @@ public class UserStreakTest {
         days.add(today.minusDays(2));
         days.add(today.minusDays(1));
         days.add(today);
-        int streak = user.getCurrentStreak(days, today, ZoneId.systemDefault());
+        int streak = user.getCurrentStreak(days, today);
         assertEquals(3, streak);
     }
 
@@ -32,7 +32,7 @@ public class UserStreakTest {
         days.add(today.minusDays(3));
         days.add(today.minusDays(1));
         days.add(today);
-        int streak = user.getCurrentStreak(days, today, ZoneId.systemDefault());
+        int streak = user.getCurrentStreak(days, today);
         assertEquals(2, streak); // today and yesterday only
     }
 
