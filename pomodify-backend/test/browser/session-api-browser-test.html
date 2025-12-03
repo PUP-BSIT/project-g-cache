@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Session API Browser Test</title>
+  <style>
+    :root { --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8; --accent:#22c55e; --warn:#f59e0b; --err:#ef4444; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+    header { padding: 16px 20px; border-bottom: 1px solid #1f2a44; display:flex; align-items:center; gap:12px; }
+    h1 { font-size: 18px; margin: 0; }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
+    .panel { background: #0b1220; border: 1px solid #1f2a44; border-radius: 8px; }
+    .panel h2 { font-size: 14px; margin: 0; padding: 12px; border-bottom: 1px solid #1f2a44; color: var(--muted); }
+    .content { padding: 12px; }
+    label { display:block; font-size:12px; color: var(--muted); margin-top:8px; }
+    input, select { width: 100%; box-sizing: border-box; padding: 8px 10px; margin-top:6px; border-radius: 6px; border: 1px solid #26324d; background:#0a1220; color: var(--fg); }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    button { background:#111827; color: var(--fg); border:1px solid #26324d; padding:8px 10px; border-radius:6px; cursor:pointer; }
+    button.primary { background:#134e28; border-color:#1e7f43; }
+    button.warn { background:#3a2a12; border-color:#5c441c; }
+    button.err { background:#3a1414; border-color:#5c1f1f; }
+    .btns { display:flex; flex-wrap: wrap; gap:8px; margin-top:10px; }
+    pre { margin:0; white-space:pre-wrap; word-break:break-word; }
+    .log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background:#0a0f1a; border-top:1px solid #1f2a44; padding:12px; height: 46vh; overflow:auto; }
+    .status { font-size:12px; color: var(--muted); margin-left:auto; }
+    .pill { padding:2px 8px; border-radius:999px; border:1px solid #26324d; }
+    .row-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Session API Browser Test</h1>
+    <span class="status">CORS test via different origin</span>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>Config & Auth</h2>
+      <div class="content">
+        <label>Base URL
+          <input id="baseUrl" placeholder="http://localhost:8081" value="http://localhost:8081" />
+        </label>
+        <div class="row">
+          <div>
+            <label>Email
+              <input id="email" type="email" placeholder="user@example.com" />
+            </label>
+          </div>
+          <div>
+            <label>Password
+              <input id="password" type="password" placeholder="••••••••" />
+            </label>
+          </div>
+        </div>
+        <div class="btns" style="margin-top:6px">
+          <button class="primary" onclick="login()">Login</button>
+          <button onclick="refreshTokens()">Refresh Tokens</button>
+        </div>
+        <label>JWT (Authorization: Bearer ...)
+          <input id="jwt" placeholder="paste your access token" />
+        </label>
+        <div class="row">
+          <div>
+            <label>Access Token
+              <input id="accessToken" placeholder="auto-set after login" />
+            </label>
+          </div>
+          <div>
+            <label>Refresh Token
+              <input id="refreshToken" placeholder="auto-set after login" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Activity ID
+              <input id="activityId" type="number" value="1" />
+            </label>
+          </div>
+          <div>
+            <label>Session ID
+              <input id="sessionId" type="number" placeholder="set after create or via get" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Category ID
+              <input id="categoryId" type="number" placeholder="set after create or via list" />
+            </label>
+          </div>
+          <div>
+            <label>Category Name
+              <input id="categoryName" placeholder="e.g., Work" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>New Category Name (update)
+              <input id="newCategoryName" placeholder="e.g., Deep Work" />
+            </label>
+          </div>
+          <div>
+            <label>Activity Title
+              <input id="activityTitle" placeholder="e.g., Coding" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Activity Description
+              <input id="activityDescription" placeholder="optional" />
+            </label>
+          </div>
+          <div>
+            <label>New Activity Title (update)
+              <input id="newActivityTitle" placeholder="e.g., Pair Programming" />
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>New Activity Description (update)
+              <input id="newActivityDescription" placeholder="optional" />
+            </label>
+          </div>
+          <div>
+            <label>New Category ID (update activity)
+              <input id="newCategoryId" type="number" placeholder="optional" />
+            </label>
+          </div>
+        </div>
+        <div class="row-3">
+          <div>
+            <label>Type
+              <select id="sessionType">
+                <option>CLASSIC</option>
+                <option>FREESTYLE</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>Focus (min)
+              <input id="focus" type="number" value="25" />
+            </label>
+          </div>
+          <div>
+            <label>Break (min)
+              <input id="break" type="number" value="5" />
+            </label>
+          </div>
+        </div>
+        <label>Cycles
+          <input id="cycles" type="number" value="4" />
+        </label>
+        <label>Note (optional)
+          <input id="note" placeholder="Optional note for pause/stop/complete/finish" />
+        </label>
+        <div class="btns" style="margin-top:6px">
+          <span class="pill">Category CRUD</span>
+          <button class="primary" onclick="createCategory()">Create</button>
+          <button onclick="listCategories()">List</button>
+          <button onclick="updateCategory()">Update</button>
+          <button class="err" onclick="deleteCategory()">Delete</button>
+        </div>
+        <div class="btns" style="margin-top:6px">
+          <span class="pill">Activity CRUD</span>
+          <button class="primary" onclick="createActivity()">Create</button>
+          <button onclick="getActivity()">Get</button>
+          <button onclick="listActivities()">List</button>
+          <button onclick="updateActivity()">Update</button>
+          <button class="err" onclick="deleteActivity()">Delete</button>
+        </div>
+        <div class="btns" style="margin-top:6px">
+          <span class="pill">Session CRUD</span>
+          <button class="primary" onclick="createSession()">Create</button>
+          <button onclick="getSession()">Get</button>
+          <button onclick="listSessions()">List</button>
+          <button onclick="delSession()" class="err">Delete</button>
+        </div>
+        <div class="btns" style="margin-top:6px">
+          <span class="pill">Session Lifecycle</span>
+          <button onclick="startSession()">Start</button>
+          <button onclick="pauseSession()">Pause</button>
+          <button onclick="resumeSession()">Resume</button>
+          <button onclick="completePhase()">Complete Phase</button>
+          <button onclick="stopSession()" class="warn">Stop</button>
+          <button onclick="cancelSession()" class="err">Cancel</button>
+          <button onclick="finishSession()" class="primary">Finish</button>
+        </div>
+        <div class="btns" style="margin-top:6px">
+          <button onclick="subscribeSSE()">Subscribe SSE</button>
+          <button onclick="unsubscribeSSE()">Unsubscribe SSE</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Output</h2>
+      <div class="content">
+        <div class="btns">
+          <span class="pill" id="lastStatus">Ready</span>
+        </div>
+      </div>
+      <div class="log" id="log"><pre></pre></div>
+    </section>
+  </main>
+
+  <script>
+    const $ = sel => document.querySelector(sel);
+    const logEl = $('#log').querySelector('pre');
+    let es;
+    const state = { accessToken: '', refreshToken: '' };
+
+    function cfg() {
+      return {
+        base: $('#baseUrl').value.trim().replace(/\/$/, ''),
+        jwt: ($('#jwt').value.trim() || state.accessToken || ''),
+        activityId: $('#activityId').value.trim(),
+        sessionId: $('#sessionId').value.trim(),
+        categoryId: $('#categoryId').value.trim(),
+        type: $('#sessionType').value.trim(),
+        focus: parseInt($('#focus').value, 10),
+        brk: parseInt($('#break').value, 10),
+        cycles: parseInt($('#cycles').value, 10),
+        note: $('#note').value.trim(),
+        email: $('#email').value.trim(),
+        password: $('#password').value,
+        refreshToken: ($('#refreshToken').value.trim() || state.refreshToken || ''),
+        categoryName: $('#categoryName').value.trim(),
+        newCategoryName: $('#newCategoryName').value.trim(),
+        activityTitle: $('#activityTitle').value.trim(),
+        activityDescription: $('#activityDescription').value.trim(),
+        newActivityTitle: $('#newActivityTitle').value.trim(),
+        newActivityDescription: $('#newActivityDescription').value.trim(),
+        newCategoryId: $('#newCategoryId').value.trim(),
+      };
+    }
+
+    function setStatus(text) { $('#lastStatus').textContent = text; }
+    function log(...args) {
+      const msg = args.map(v => (typeof v === 'string' ? v : JSON.stringify(v, null, 2))).join(' ');
+      logEl.textContent = msg + "\n\n" + logEl.textContent;
+    }
+
+    function headers(jwt) {
+      const h = { 'Content-Type': 'application/json' };
+      if (jwt) h['Authorization'] = `Bearer ${jwt}`;
+      return h;
+    }
+
+    async function req(method, path, { query, body } = {}) {
+      const { base, jwt } = cfg();
+      const qs = query ? `?${new URLSearchParams(query)}` : '';
+      const url = `${base}${path}${qs}`;
+      setStatus(`${method} ${path}`);
+      try {
+        const skipAuth = path.startsWith('/api/v1/auth/login') || path.startsWith('/api/v1/auth/refresh');
+        if (!skipAuth && !jwt) {
+          log({ url, error: 'Missing JWT — login first or paste a token' });
+          throw new Error('Missing JWT — login first or paste a token');
+        }
+        const res = await fetch(url, {
+          method,
+          headers: skipAuth ? { 'Content-Type': 'application/json' } : headers(jwt),
+          mode: 'cors',
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        const text = await res.text();
+        let data; try { data = JSON.parse(text); } catch { data = text; }
+        log({ url, authHeaderPresent: (!skipAuth && Boolean(jwt)), status: res.status, ok: res.ok, data });
+        if (!res.ok) throw new Error(res.status + ' ' + text);
+        return data;
+      } catch (e) {
+        log('ERROR', e.message);
+        throw e;
+      }
+    }
+
+    async function login() {
+      const c = cfg();
+      if (!c.email || !c.password) return alert('Enter email and password');
+      const data = await req('POST', '/api/v1/auth/login', {
+        body: { email: c.email, password: c.password }
+      });
+      // Expecting AuthResponse shape: { accessToken, refreshToken, tokenType, expiresIn, user }
+      const access = data?.accessToken || data?.data?.accessToken;
+      const refresh = data?.refreshToken || data?.data?.refreshToken;
+      if (access) {
+        state.accessToken = access;
+        $('#accessToken').value = access;
+        $('#jwt').value = access; // for visibility
+      }
+      if (refresh) {
+        state.refreshToken = refresh;
+        $('#refreshToken').value = refresh;
+      }
+      setStatus('Logged in');
+    }
+
+    async function refreshTokens() {
+      const c = cfg();
+      const token = c.refreshToken;
+      if (!token) return alert('No refresh token set');
+      const data = await req('POST', '/api/v1/auth/refresh', {
+        body: { refreshToken: token }
+      });
+      const access = data?.accessToken || data?.data?.accessToken;
+      const refresh = data?.refreshToken || data?.data?.refreshToken;
+      if (access) {
+        state.accessToken = access;
+        $('#accessToken').value = access;
+        $('#jwt').value = access;
+      }
+      if (refresh) {
+        state.refreshToken = refresh;
+        $('#refreshToken').value = refresh;
+      }
+      setStatus('Tokens refreshed');
+    }
+
+    async function createSession() {
+      const c = cfg();
+      const body = {
+        activityId: Number(c.activityId),
+        sessionType: c.type,
+        focusTimeInMinutes: c.focus,
+        breakTimeInMinutes: c.brk,
+        cycles: c.cycles,
+      };
+      const data = await req('POST', `/api/v1/activities/${c.activityId}/sessions`, { body });
+      const id = data?.data?.id || data?.id || data?.sessionId || data?.data?.sessionId;
+      if (id) $('#sessionId').value = id;
+    }
+
+    async function getSession() {
+      const { sessionId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('GET', `/api/v1/activities/${c.activityId}/sessions/${sessionId}`);
+    }
+
+    async function listSessions() {
+      const { activityId } = cfg();
+      if (!activityId) return alert('Set Activity ID');
+      await req('GET', `/api/v1/activities/${activityId}/sessions`);
+    }
+
+    async function delSession() {
+      const { sessionId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('DELETE', `/api/v1/activities/${c.activityId}/sessions/${sessionId}`);
+    }
+
+    // Category endpoints
+    async function createCategory() {
+      const c = cfg();
+      if (!c.categoryName) return alert('Enter Category Name');
+      const body = { categoryName: c.categoryName };
+      const data = await req('POST', '/api/v1/categories', { body });
+      const id = data?.data?.id || data?.id;
+      if (id) $('#categoryId').value = id;
+    }
+
+    async function listCategories() {
+      await req('GET', '/api/v1/categories');
+    }
+
+    async function updateCategory() {
+      const c = cfg();
+      if (!c.categoryId) return alert('Set Category ID');
+      if (!c.newCategoryName) return alert('Enter New Category Name');
+      const body = { newCategoryName: c.newCategoryName };
+      await req('PUT', `/api/v1/categories/${c.categoryId}`, { body });
+    }
+
+    async function deleteCategory() {
+      const c = cfg();
+      if (!c.categoryId) return alert('Set Category ID');
+      await req('DELETE', `/api/v1/categories/${c.categoryId}`);
+    }
+
+    // Activity endpoints
+    async function createActivity() {
+      const c = cfg();
+      if (!c.activityTitle) return alert('Enter Activity Title');
+      const body = {
+        title: c.activityTitle,
+        description: c.activityDescription || undefined,
+        categoryId: c.categoryId ? Number(c.categoryId) : undefined,
+      };
+      const data = await req('POST', '/api/v1/activities', { body });
+      const id = data?.data?.id || data?.id;
+      if (id) $('#activityId').value = id;
+    }
+
+    async function listActivities() {
+      await req('GET', '/api/v1/activities');
+    }
+
+    async function getActivity() {
+      const c = cfg();
+      if (!c.activityId) return alert('Set Activity ID');
+      await req('GET', `/api/v1/activities/${c.activityId}`);
+    }
+
+    async function updateActivity() {
+      const c = cfg();
+      if (!c.activityId) return alert('Set Activity ID');
+      const body = {
+        newCategoryId: c.newCategoryId ? Number(c.newCategoryId) : undefined,
+        newActivityTitle: c.newActivityTitle || undefined,
+        newActivityDescription: c.newActivityDescription || undefined,
+      };
+      await req('PUT', `/api/v1/activities/${c.activityId}`, { body });
+    }
+
+    async function deleteActivity() {
+      const c = cfg();
+      if (!c.activityId) return alert('Set Activity ID');
+      await req('DELETE', `/api/v1/activities/${c.activityId}`);
+    }
+
+    async function startSession() {
+      const { sessionId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/start`);
+    }
+
+    async function pauseSession() {
+      const { sessionId, note } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/pause`, { query: note ? { note } : undefined });
+    }
+
+    async function resumeSession() {
+      const { sessionId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/resume`);
+    }
+
+    async function stopSession() {
+      const { sessionId, note } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/stop`, { query: note ? { note } : undefined });
+    }
+
+    async function cancelSession() {
+      const { sessionId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/cancel`);
+    }
+
+    async function completePhase() {
+      const { sessionId, note } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/complete-phase`, { query: note ? { note } : undefined });
+    }
+
+    async function finishSession() {
+      const { sessionId, note } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      const c = cfg();
+      await req('POST', `/api/v1/activities/${c.activityId}/sessions/${sessionId}/finish`, { query: note ? { note } : undefined });
+    }
+
+    function subscribeSSE() {
+      const { base, sessionId, activityId } = cfg();
+      if (!sessionId) return alert('Set Session ID');
+      if (es) es.close();
+      const url = `${base}/api/v1/activities/${activityId}/sessions/${sessionId}/events`;
+      es = new EventSource(url);
+      es.addEventListener('open', () => log({ sse: 'open', url }));
+      es.addEventListener('error', (e) => log({ sse: 'error', message: 'Check CORS or server availability' }));
+      es.addEventListener('message', (e) => log({ sse: 'message', data: e.data }));
+      es.addEventListener('phase-change', (e) => {
+        try { log({ event: 'phase-change', data: JSON.parse(e.data) }); }
+        catch { log({ event: 'phase-change', data: e.data }); }
+      });
+    }
+
+    function unsubscribeSSE() {
+      if (es) { es.close(); es = undefined; log({ sse: 'closed' }); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+### Variables
+@baseUrl = http://localhost:8081/api/v1
+@accessToken = paste_access_token_here
+@token = paste_fcm_token_here
+
+### Register push token (JWT required)
+POST {{baseUrl}}/push/register-token
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "token": "{{token}}"
+}
+
+### Unregister push token (JWT required)
+DELETE {{baseUrl}}/push/unregister-token
+Authorization: Bearer {{accessToken}}
+
+### Get push status (registered + enabled)
+GET {{baseUrl}}/push/status
+Authorization: Bearer {{accessToken}}
+
+### Disable push notifications (keep token stored)
+PUT {{baseUrl}}/push/disable
+Authorization: Bearer {{accessToken}}
+
+### Enable push notifications
+PUT {{baseUrl}}/push/enable
+Authorization: Bearer {{accessToken}}
