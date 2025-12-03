@@ -158,9 +158,17 @@
           </div>
 
           <div class="focus-meta">
-            <div class="legend-item">
-              <span class="legend-swatch"></span>
-              <span class="legend-label">Focus Time</span>
+            <div class="legend-item clickable" 
+                 [class.active]="selectedPomodoroType() === 'classic'"
+                 (click)="onPomodoroTypeClick('classic')">
+              <span class="legend-swatch classic"></span>
+              <span class="legend-label">Classic</span>
+            </div>
+            <div class="legend-item clickable"
+                 [class.active]="selectedPomodoroType() === 'freestyle'"
+                 (click)="onPomodoroTypeClick('freestyle')">
+              <span class="legend-swatch freestyle"></span>
+              <span class="legend-label">Freestyle</span>
             </div>
             <div class="total-meta">
               <div class="meta-checkboxes">
@@ -230,10 +238,33 @@
                       (mouseenter)="onBarHover(point, $event)"
                       (mouseleave)="onBarLeave()"
                     >
-                      <div
-                        class="bar"
-                        [style.height.%]="point.percentage"
-                      ></div>
+                      @if (point.classicHours && point.freestyleHours && point.classicHours > 0 && point.freestyleHours > 0) {
+                        <div class="bar-container">
+                          <div
+                            class="bar freestyle"
+                            [style.height.%]="(point.freestyleHours / (point.classicHours + point.freestyleHours)) * point.percentage"
+                          ></div>
+                          <div
+                            class="bar classic"
+                            [style.height.%]="(point.classicHours / (point.classicHours + point.freestyleHours)) * point.percentage"
+                          ></div>
+                        </div>
+                      } @else if (point.classicHours && point.classicHours > 0) {
+                        <div
+                          class="bar classic"
+                          [style.height.%]="point.percentage"
+                        ></div>
+                      } @else if (point.freestyleHours && point.freestyleHours > 0) {
+                        <div
+                          class="bar freestyle"
+                          [style.height.%]="point.percentage"
+                        ></div>
+                      } @else {
+                        <div
+                          class="bar"
+                          [style.height.%]="point.percentage"
+                        ></div>
+                      }
                     </div>
                   }
                   <div class="chart-bottom-line"></div>
@@ -259,11 +290,11 @@
                   <div class="focus-project-name">
                     {{ project.name }}
                     @if (project.hasClassic && project.hasFreestyle) {
-                      <span class="pomodoro-indicator both">C+F</span>
+                      <span class="pomodoro-indicator both"></span>
                     } @else if (project.hasClassic) {
-                      <span class="pomodoro-indicator classic">C</span>
+                      <span class="pomodoro-indicator classic"></span>
                     } @else if (project.hasFreestyle) {
-                      <span class="pomodoro-indicator freestyle">F</span>
+                      <span class="pomodoro-indicator freestyle"></span>
                     }
                   </div>
                   <div class="focus-project-time">
@@ -297,11 +328,11 @@
                       <div class="rank-name">
                         {{ item.name }}
                         @if (item.hasClassic && item.hasFreestyle) {
-                          <span class="pomodoro-indicator both">C+F</span>
+                          <span class="pomodoro-indicator both"></span>
                         } @else if (item.hasClassic) {
-                          <span class="pomodoro-indicator classic">C</span>
+                          <span class="pomodoro-indicator classic"></span>
                         } @else if (item.hasFreestyle) {
-                          <span class="pomodoro-indicator freestyle">F</span>
+                          <span class="pomodoro-indicator freestyle"></span>
                         }
                       </div>
                       <div class="rank-meta">

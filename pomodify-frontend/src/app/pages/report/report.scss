@@ -499,13 +499,41 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   align-items: center;
   gap: 8px;
   color: $text-light;
+  
+  &.clickable {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    &.active {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: $primary-teal-dark;
+      font-weight: 600;
+    }
+  }
+  
+  & + .legend-item {
+    margin-left: 4px;
+  }
 }
 
 .legend-swatch {
   width: 12px;
   height: 12px;
   border-radius: 4px;
-  background: $primary-teal-light;
+  
+  &.classic {
+    background: $primary-teal-light;
+  }
+  
+  &.freestyle {
+    background: #FF8C42;
+  }
 }
 
 .total-meta {
@@ -650,16 +678,31 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   text-align: center;
 }
 
+.bar-container {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 20px;
+  height: 100%;
+  position: relative;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+}
+
 .bar {
   width: 20px;
   border-radius: 999px;
   background: linear-gradient(180deg, $primary-teal-light, $primary-teal-dark);
   transition: height 0.25s ease-out;
   cursor: pointer;
-}
-
-.bar-wrapper {
-  cursor: pointer;
+  
+  &.classic {
+    background: linear-gradient(180deg, $primary-teal-light, $primary-teal-dark);
+  }
+  
+  &.freestyle {
+    background: linear-gradient(180deg, #FF8C42, #E6732F);
+  }
 }
 
 .chart-tooltip {
@@ -709,27 +752,43 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .pomodoro-indicator {
   display: inline-block;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 2px 5px;
-  border-radius: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   margin-left: 6px;
   vertical-align: middle;
   
   &.classic {
-    background: rgba(95, 169, 164, 0.15);
-    color: $primary-teal-dark;
+    background: $primary-teal-light;
   }
   
   &.freestyle {
-    background: rgba(244, 196, 48, 0.15);
-    color: #B8860B;
+    background: #FF8C42;
   }
   
   &.both {
-    background: rgba(95, 169, 164, 0.1);
-    color: $primary-teal-dark;
-    border: 1px solid rgba(95, 169, 164, 0.3);
+    display: inline-flex;
+    gap: 3px;
+    width: auto;
+    height: auto;
+    
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: $primary-teal-light;
+    }
+    
+    &::after {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FF8C42;
+    }
   }
 }
 
@@ -845,9 +904,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 10px;
   margin-top: 0;
-  // Exactly 9 rows fit without scrollbar, scrollbar appears only when rows exceed 9 (10+ rows)
-  // Each row: ~60px (padding 20px + content ~40px) + 8 gaps × 10px = ~620px
-  // Adding buffer to ensure 9 rows fit comfortably without scrollbar
+
   max-height: calc(9 * 60px + 8 * 10px + 10px);
   overflow-y: auto;
 

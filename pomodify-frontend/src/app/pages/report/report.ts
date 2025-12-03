@@ -37,6 +37,8 @@ type FocusPoint = {
   percentage: number;
   dateKey?: string;
   activities?: ActivityBreakdown[];
+  classicHours?: number;
+  freestyleHours?: number;
 };
 
 type ActivityRank = {
@@ -91,6 +93,7 @@ export class Report implements OnInit {
   protected readonly progressingFocusChecked = signal(false);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
+  protected readonly selectedPomodoroType = signal<'all' | 'classic' | 'freestyle'>('all');
 
   ngOnInit(): void {
     this.seedMockData();
@@ -256,6 +259,18 @@ export class Report implements OnInit {
 
   protected onBarLeave(): void {
     this.tooltipData.set(null);
+  }
+
+  protected onPomodoroTypeClick(type: 'classic' | 'freestyle'): void {
+    const current = this.selectedPomodoroType();
+    if (current === type) {
+      // Clicking the same type again shows all
+      this.selectedPomodoroType.set('all');
+    } else {
+      // Clicking a different type filters to that type
+      this.selectedPomodoroType.set(type);
+    }
+    this.rebuildSeries();
   }
 
   // --- Mock data & calculations ---
@@ -431,6 +446,12 @@ export class Report implements OnInit {
       }
     }
     // If both checked or both unchecked, show all (no filtering)
+    
+    // Filter by pomodoro type if selected
+    const pomodoroType = this.selectedPomodoroType();
+    if (pomodoroType !== 'all') {
+      sessions = sessions.filter((session) => session.type === pomodoroType);
+    }
 
     if (!sessions.length) {
       this.focusSeries.set([]);
@@ -489,7 +510,17 @@ export class Report implements OnInit {
           activityMap.set(activity.id, breakdown);
         });
 
-        const fullLabel = day.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+        // Calculate classic and freestyle hours separately
+        let classicMinutes = 0;
+        let freestyleMinutes = 0;
+        daySessions.forEach((session) => {
+          const sessionMinutes = session.focusTimeMinutes ?? 0;
+          if (session.type === 'classic') {
+            classicMinutes += sessionMinutes;
+          } else if (session.type === 'freestyle') {
+            freestyleMinutes += sessionMinutes;
+          }
+        });
 
         points.push({
           label,
@@ -497,6 +528,8 @@ export class Report implements OnInit {
           percentage: 0, // temporary, updated below
           dateKey: key,
           activities: Array.from(activityMap.values()),
+          classicHours: classicMinutes / 60,
+          freestyleHours: freestyleMinutes / 60,
         });
       }
 
