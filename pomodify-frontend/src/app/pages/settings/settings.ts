@@ -1,31 +1,68 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { toggleTheme } from '../../shared/theme';
+import { FormsModule } from '@angular/forms';
+import { toggleTheme, getStoredTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
+import { SettingsService } from '../../core/services/settings.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
 export class Settings {
-  private dialog = inject(MatDialog);
+  private settingsService = inject(SettingsService);
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
-  // Router for route-aware sidebar clicks
-  private router = inject(Router);
-  private auth = inject(Auth);
+  // Get settings from service
+  protected settings = this.settingsService.getSettingsSignal();
+  
+  constructor(
+    private dialog: MatDialog,
+    private router: Router,
+    private auth: Auth
+  ) {
+    // Initialize theme state
+    this.updateThemeState();
+  }
+  
+  // Sound Settings
+  protected soundEnabled = signal(this.settings().sound.enabled);
+  protected soundType = signal(this.settings().sound.type);
+  protected volume = signal(this.settings().sound.volume);
+  protected tickSoundEnabled = signal(this.settings().sound.tickSound);
 
-  // Settings toggles
-  protected notificationsEnabled = signal(true);
-  protected calendarSyncEnabled = signal(false);
+  // Auto-Start Settings
+  protected autoStartBreaks = signal(this.settings().autoStart.autoStartBreaks);
+  protected autoStartPomodoros = signal(this.settings().autoStart.autoStartPomodoros);
+
+  // Other Settings
+  protected notificationsEnabled = signal(this.settings().notifications);
+  protected calendarSyncEnabled = signal(this.settings().calendarSync);
+
+  // Modal state
+  protected showDeleteModal = signal(false);
+  protected showSuccessModal = signal(false);
+  protected showClearSessionsModal = signal(false);
+  protected showClearActivitiesModal = signal(false);
+
+  // Theme state
+  protected isDarkMode = signal(false);
+
+  // Sound types for dropdown
+  protected soundTypes = [
+    { value: 'bell', label: 'Bell' },
+    { value: 'chime', label: 'Chime' },
+    { value: 'digital', label: 'Digital Beep' },
+    { value: 'soft', label: 'Soft Ding' }
+  ];
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -34,15 +71,63 @@ export class Settings {
 
   onToggleTheme(): void {
     toggleTheme();
+    this.updateThemeState();
   }
 
-  // Toggle settings
+  private updateThemeState(): void {
+    this.isDarkMode.set(getStoredTheme() === 'dark');
+  }
+
+  // Sound Settings Methods
+  protected toggleSound(): void {
+    this.soundEnabled.update((enabled: boolean) => !enabled);
+    this.settingsService.updateSoundSettings({ enabled: this.soundEnabled() });
+  }
+
+  protected onSoundTypeChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const type = select.value as 'bell' | 'chime' | 'digital' | 'soft';
+    this.soundType.set(type);
+    this.settingsService.updateSoundSettings({ type });
+  }
+
+  protected onVolumeChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const volume = parseInt(input.value, 10);
+    this.volume.set(volume);
+    this.settingsService.updateSoundSettings({ volume });
+    console.log('Volume changed to:', volume);
+  }
+
+  protected toggleTickSound(): void {
+    this.tickSoundEnabled.update((enabled: boolean) => !enabled);
+    this.settingsService.updateSoundSettings({ tickSound: this.tickSoundEnabled() });
+  }
+
+  protected testSound(): void {
+    this.settingsService.playSound(this.soundType());
+  }
+
+  // Auto-Start Methods
+  protected toggleAutoStartBreaks(): void {
+    this.autoStartBreaks.update((enabled: boolean) => !enabled);
+    this.settingsService.updateAutoStartSettings({ autoStartBreaks: this.autoStartBreaks() });
+  }
+
+  protected toggleAutoStartPomodoros(): void {
+    this.autoStartPomodoros.update((enabled: boolean) => !enabled);
+    this.settingsService.updateAutoStartSettings({ autoStartPomodoros: this.autoStartPomodoros() });
+  }
+
+  // Other Settings Methods
   protected toggleNotifications(): void {
     this.notificationsEnabled.update((enabled: boolean) => !enabled);
+    this.settingsService.updateSettings({ notifications: this.notificationsEnabled() });
   }
 
   protected toggleCalendarSync(): void {
     this.calendarSyncEnabled.update((enabled: boolean) => !enabled);
+    this.settingsService.updateSettings({ calendarSync: this.calendarSyncEnabled() });
   }
 
   // Handle navigation icon click
@@ -80,5 +165,65 @@ export class Settings {
           // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
+  }
+
+  // Save changes
+  protected onSaveChanges(): void {
+    // Settings are already saved automatically via the service
+    // This button provides user feedback
+    this.showSuccessModal.set(true);
+  }
+
+  protected onCloseSuccessModal(): void {
+    this.showSuccessModal.set(false);
+  }
+
+  // Delete account
+  protected onDeleteAccount(): void {
+    this.showDeleteModal.set(true);
+  }
+
+  protected onConfirmDelete(): void {
+    this.showDeleteModal.set(false);
+    // TODO: Call backend API to delete account
+    console.log('Deleting account...');
+    alert('Account deletion requested. You will be logged out.');
+    this.auth.logout();
+  }
+
+  protected onCancelDelete(): void {
+    this.showDeleteModal.set(false);
+  }
+
+  // Clear Session History
+  protected onClearSessions(): void {
+    this.showClearSessionsModal.set(true);
+  }
+
+  protected onConfirmClearSessions(): void {
+    this.showClearSessionsModal.set(false);
+    // TODO: Call backend API to clear session history
+    console.log('Clearing session history...');
+    this.showSuccessModal.set(true);
+  }
+
+  protected onCancelClearSessions(): void {
+    this.showClearSessionsModal.set(false);
+  }
+
+  // Clear Activity Data
+  protected onClearActivities(): void {
+    this.showClearActivitiesModal.set(true);
+  }
+
+  protected onConfirmClearActivities(): void {
+    this.showClearActivitiesModal.set(false);
+    // TODO: Call backend API to clear activity data
+    console.log('Clearing activity data...');
+    this.showSuccessModal.set(true);
+  }
+
+  protected onCancelClearActivities(): void {
+    this.showClearActivitiesModal.set(false);
   }
 }

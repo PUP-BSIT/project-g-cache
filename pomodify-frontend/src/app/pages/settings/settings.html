@@ -55,11 +55,6 @@
   <main class="main-content" (click)="onMainContentClick()">
     <!-- Header -->
     <header class="header">
-      <div class="theme-toggle">
-        <button class="theme-btn" (click)="onToggleTheme()">
-          <i class="fa-solid fa-moon"></i>
-        </button>
-      </div>
       <div class="user-profile">
         <button class="profile-btn" (click)="openProfileModal()">
           <i class="fa-solid fa-user"></i>
@@ -71,14 +66,143 @@
     <div class="settings-container">
       <h1 class="settings-title">App Settings</h1>
 
+      <!-- Sound Settings Section -->
+      <section class="settings-section">
+        <h2 class="section-title">🔊 Sound Settings</h2>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Notification Sound</h3>
+            <p class="setting-description">Play sound when timer completes</p>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="sound-toggle" class="toggle-input" 
+                   [checked]="soundEnabled()" 
+                   (change)="toggleSound()">
+            <label for="sound-toggle" class="toggle-label"></label>
+          </div>
+        </div>
+
+        @if (soundEnabled()) {
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3 class="setting-label">Sound Type</h3>
+            </div>
+            <div class="setting-control">
+              <select class="sound-select" 
+                      [value]="soundType()" 
+                      (change)="onSoundTypeChange($event)">
+                @for (type of soundTypes; track type.value) {
+                  <option [value]="type.value">{{ type.label }}</option>
+                }
+              </select>
+              <button class="test-btn" (click)="testSound()">
+                <i class="fa-solid fa-volume-high"></i> Test
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3 class="setting-label">Volume</h3>
+              <p class="setting-description">{{ volume() }}%</p>
+            </div>
+            <div class="setting-control">
+              <input type="range" 
+                     min="0" 
+                     max="100" 
+                     [value]="volume()" 
+                     (input)="onVolumeChange($event)" 
+                     class="volume-slider">
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <h3 class="setting-label">Tick Sound</h3>
+              <p class="setting-description">Play ticking sound while timer runs</p>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="tick-toggle" class="toggle-input" 
+                     [checked]="tickSoundEnabled()" 
+                     (change)="toggleTickSound()">
+              <label for="tick-toggle" class="toggle-label"></label>
+            </div>
+          </div>
+        }
+      </section>
+
+      <!-- Auto-Start Settings Section -->
+      <section class="settings-section">
+        <h2 class="section-title">▶️ Auto-Start Options</h2>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Auto-start Breaks</h3>
+            <p class="setting-description">Automatically start break after pomodoro completes</p>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="auto-break-toggle" class="toggle-input" 
+                   [checked]="autoStartBreaks()" 
+                   (change)="toggleAutoStartBreaks()">
+            <label for="auto-break-toggle" class="toggle-label"></label>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Auto-start Pomodoros</h3>
+            <p class="setting-description">Automatically start next pomodoro after break</p>
+          </div>
+          <div class="toggle-switch">
+            <input type="checkbox" id="auto-pomodoro-toggle" class="toggle-input" 
+                   [checked]="autoStartPomodoros()" 
+                   (change)="toggleAutoStartPomodoros()">
+            <label for="auto-pomodoro-toggle" class="toggle-label"></label>
+          </div>
+        </div>
+
+        @if (autoStartBreaks() || autoStartPomodoros()) {
+          <div class="info-box">
+            <i class="fa-solid fa-info-circle"></i>
+            <p>You'll see a 3-second countdown before auto-start. You can cancel anytime.</p>
+          </div>
+        }
+      </section>
+
+      <!-- Appearance Section -->
+      <section class="settings-section">
+        <h2 class="section-title">🎨 Appearance</h2>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h3 class="setting-label">Theme</h3>
+            <p class="setting-description">Switch between light and dark mode</p>
+          </div>
+          <button class="theme-toggle-btn" (click)="onToggleTheme()">
+            @if (isDarkMode()) {
+              <i class="fa-solid fa-sun"></i>
+              <span>Light Mode</span>
+            } @else {
+              <i class="fa-solid fa-moon"></i>
+              <span>Dark Mode</span>
+            }
+          </button>
+        </div>
+      </section>
+
       <!-- Notifications & Calendar Sync Section -->
       <section class="settings-section">
+        <h2 class="section-title">🔔 Notifications & Integrations</h2>
+        
         <div class="setting-item">
           <div class="setting-info">
             <h3 class="setting-label">Notifications</h3>
           </div>
           <div class="toggle-switch">
-            <input type="checkbox" id="notifications-toggle" class="toggle-input" [checked]="notificationsEnabled()" (change)="toggleNotifications()">
+            <input type="checkbox" id="notifications-toggle" class="toggle-input" 
+                   [checked]="notificationsEnabled()" 
+                   (change)="toggleNotifications()">
             <label for="notifications-toggle" class="toggle-label"></label>
           </div>
         </div>
@@ -88,23 +212,37 @@
             <h3 class="setting-label">Google Calendar Sync</h3>
           </div>
           <div class="toggle-switch">
-            <input type="checkbox" id="calendar-toggle" class="toggle-input" [checked]="calendarSyncEnabled()" (change)="toggleCalendarSync()">
+            <input type="checkbox" id="calendar-toggle" class="toggle-input" 
+                   [checked]="calendarSyncEnabled()" 
+                   (change)="toggleCalendarSync()">
             <label for="calendar-toggle" class="toggle-label"></label>
           </div>
         </div>
       </section>
 
-      <!-- Data Section -->
+      <!-- Privacy & Data Section -->
       <section class="settings-section data-section">
-        <h2 class="section-title">Data</h2>
-        <div class="data-buttons">
-          <button class="data-btn export-btn">
-            <span>Export my data</span>
-            <i class="fa-solid fa-file-export"></i>
+        <h2 class="section-title">🔒 Privacy & Data</h2>
+        
+        <div class="data-action-item">
+          <div class="data-action-info">
+            <h3 class="data-action-label">Clear Session History</h3>
+            <p class="data-action-description">Delete all past sessions (with confirmation)</p>
+          </div>
+          <button class="data-action-btn" (click)="onClearSessions()">
+            <i class="fa-solid fa-trash"></i>
+            Clear
           </button>
-          <button class="data-btn import-btn">
-            <span>Import data</span>
-            <i class="fa-solid fa-file-import"></i>
+        </div>
+
+        <div class="data-action-item">
+          <div class="data-action-info">
+            <h3 class="data-action-label">Clear Activity Data</h3>
+            <p class="data-action-description">Delete all activities</p>
+          </div>
+          <button class="data-action-btn" (click)="onClearActivities()">
+            <i class="fa-solid fa-trash"></i>
+            Clear
           </button>
         </div>
       </section>
@@ -112,10 +250,103 @@
       <!-- Actions Section -->
       <section class="settings-section actions-section">
         <div class="action-buttons">
-          <button class="btn btn-delete">Delete my Account</button>
-          <button class="btn btn-save">Save changes</button>
+          <button class="btn btn-delete" (click)="onDeleteAccount()">
+            <i class="fa-solid fa-user-xmark"></i>
+            Delete my Account
+          </button>
+          <button class="btn btn-save" (click)="onSaveChanges()">
+            <i class="fa-solid fa-check"></i>
+            Save changes
+          </button>
         </div>
       </section>
     </div>
   </main>
+
+  <!-- Delete Account Confirmation Modal -->
+  @if (showDeleteModal()) {
+    <div class="modal-overlay" (click)="onCancelDelete()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <h2 class="modal-title">WARNING: Delete Account</h2>
+        </div>
+        
+        <div class="modal-body">
+          <p class="modal-text">This will permanently delete:</p>
+          <ul class="delete-list">
+            <li>Your account</li>
+            <li>All sessions</li>
+            <li>All activities</li>
+            <li>All settings</li>
+          </ul>
+          <p class="modal-warning">This action CANNOT be undone!</p>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="modal-btn btn-ok" (click)="onConfirmDelete()">OK</button>
+          <button class="modal-btn btn-cancel" (click)="onCancelDelete()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Success Modal -->
+  @if (showSuccessModal()) {
+    <div class="modal-overlay" (click)="onCloseSuccessModal()">
+      <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+        <div class="modal-body">
+          <p class="success-text">Settings saved successfully!</p>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="modal-btn btn-ok" (click)="onCloseSuccessModal()">OK</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Clear Session History Modal -->
+  @if (showClearSessionsModal()) {
+    <div class="modal-overlay" (click)="onCancelClearSessions()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <h2 class="modal-title">Clear Session History</h2>
+        </div>
+        
+        <div class="modal-body">
+          <p class="modal-text">Are you sure you want to delete all past sessions?</p>
+          <p class="modal-warning">This action cannot be undone!</p>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="modal-btn btn-ok" (click)="onConfirmClearSessions()">OK</button>
+          <button class="modal-btn btn-cancel" (click)="onCancelClearSessions()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Clear Activity Data Modal -->
+  @if (showClearActivitiesModal()) {
+    <div class="modal-overlay" (click)="onCancelClearActivities()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <h2 class="modal-title">Clear Activity Data</h2>
+        </div>
+        
+        <div class="modal-body">
+          <p class="modal-text">Are you sure you want to delete all activities?</p>
+          <p class="modal-warning">This action cannot be undone!</p>
+        </div>
+        
+        <div class="modal-actions">
+          <button class="modal-btn btn-ok" (click)="onConfirmClearActivities()">OK</button>
+          <button class="modal-btn btn-cancel" (click)="onCancelClearActivities()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
