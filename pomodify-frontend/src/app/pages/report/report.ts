@@ -301,6 +301,15 @@ export class Report implements OnInit {
           { id: 's13', focusTimeMinutes: 40, breakTimeMinutes: 5, createdAt: daysAgo(0) },
         ],
       },
+      {
+        id: 'meeting',
+        name: 'Team Meeting',
+        icon: '👥',
+        sessions: [
+          { id: 's14', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(1) },
+          { id: 's15', focusTimeMinutes: 20, breakTimeMinutes: 5, createdAt: daysAgo(3) },
+        ],
+      },
     ];
 
     this.activities.set(activities);

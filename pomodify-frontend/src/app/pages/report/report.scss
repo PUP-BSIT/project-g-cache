@@ -668,6 +668,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .focus-projects-rows {
   // roughly 5 rows visible, then scroll
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   max-height: 190px;
   overflow-y: auto;
   padding-right: 4px;
@@ -728,8 +731,10 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 10px;
   margin-top: 4px;
-  // roughly 9 rows visible, then scroll
-  max-height: 480px;
+  // Exactly 9 rows fit without scrollbar, scrollbar appears only when rows exceed 9 (10+ rows)
+  // Each row: ~60px (padding 20px + content ~40px) + 8 gaps × 10px = ~620px
+  // Adding buffer to ensure 9 rows fit comfortably without scrollbar
+  max-height: calc(9 * 60px + 8 * 10px + 10px);
   overflow-y: auto;
 
   &::-webkit-scrollbar {
