@@ -158,17 +158,19 @@
           </div>
 
           <div class="focus-meta">
-            <div class="legend-item clickable" 
-                 [class.active]="selectedPomodoroType() === 'classic'"
-                 (click)="onPomodoroTypeClick('classic')">
-              <span class="legend-swatch classic"></span>
-              <span class="legend-label">Classic</span>
-            </div>
-            <div class="legend-item clickable"
-                 [class.active]="selectedPomodoroType() === 'freestyle'"
-                 (click)="onPomodoroTypeClick('freestyle')">
-              <span class="legend-swatch freestyle"></span>
-              <span class="legend-label">Freestyle</span>
+            <div class="legend-items-group">
+              <div class="legend-item clickable" 
+                   [class.active]="selectedPomodoroType() === 'classic'"
+                   (click)="onPomodoroTypeClick('classic')">
+                <span class="legend-swatch classic"></span>
+                <span class="legend-label">Classic</span>
+              </div>
+              <div class="legend-item clickable"
+                   [class.active]="selectedPomodoroType() === 'freestyle'"
+                   (click)="onPomodoroTypeClick('freestyle')">
+                <span class="legend-swatch freestyle"></span>
+                <span class="legend-label">Freestyle</span>
+              </div>
             </div>
             <div class="total-meta">
               <div class="meta-checkboxes">

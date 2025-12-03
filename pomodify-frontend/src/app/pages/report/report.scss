@@ -492,6 +492,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   align-items: center;
   gap: 16px;
   font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.legend-items-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .legend-item {
@@ -518,7 +525,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   & + .legend-item {
-    margin-left: 4px;
+    margin-left: 8px;
   }
 }
 
@@ -680,7 +687,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .bar-container {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   width: 20px;
   height: 100%;
   position: relative;
@@ -904,7 +911,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex-direction: column;
   gap: 10px;
   margin-top: 0;
-
+  // Exactly 9 rows fit without scrollbar, scrollbar appears only when rows exceed 9 (10+ rows)
+  // Each row: ~60px (padding 20px + content ~40px) + 8 gaps × 10px = ~620px
+  // Adding buffer to ensure 9 rows fit comfortably without scrollbar
   max-height: calc(9 * 60px + 8 * 10px + 10px);
   overflow-y: auto;
 
