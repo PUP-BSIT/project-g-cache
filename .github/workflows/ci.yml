@@ -2,8 +2,8 @@ name: CI - Build and Test
 
 on:
   pull_request:
-    branches: [ "main" ]
-    types: [ opened, synchronize, reopened ]
+    branches: ["main"]
+    types: [opened, synchronize, reopened]
 
 env:
   FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend
@@ -43,7 +43,6 @@ jobs:
             echo "✅ No conflicts with main branch"
           else
             echo "⚠️ Branch might have conflicts with main"
-          fi
 
   build-and-test:
     name: Build and Test Docker Images
@@ -93,16 +92,18 @@ jobs:
           else
             echo "❌ Frontend container failed to start!"
             exit 1
-          fi
 
       - name: Test backend image
         run: |
           echo "🧪 Testing backend container..."
           docker run -d --name test-backend \
             -p 8081:8081 \
-            -e DB_URL="${{ secrets.DB_URL }}" \
+            -e DB_HOST="pomodifydb.cvwkscysw9h2.ap-southeast-2.rds.amazonaws.com" \
+            -e DB_PORT="5432" \
+            -e DB_NAME="pomodifydb" \
             -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
             -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+            -e DB_URL="jdbc:postgresql://pomodifydb.cvwkscysw9h2.ap-southeast-2.rds.amazonaws.com:5432/pomodifydb" \
             -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
             $BACKEND_IMAGE:$TAG_PR
           sleep 15
@@ -115,7 +116,6 @@ jobs:
             echo "❌ Backend container failed to start!"
             docker logs test-backend || true
             exit 1
-          fi
 
   ci-summary:
     name: CI Summary
@@ -126,13 +126,4 @@ jobs:
         run: |
           echo "════════════════════════════════════════"
           echo "✅ All CI checks passed!"
-          echo "════════════════════════════════════════"
-          echo ""
-          echo "📋 Summary:"
-          echo "  ✅ Linting and validation - Passed"
-          echo "  ✅ Docker builds - Passed"
-          echo "  ✅ Container tests - Passed"
-          echo ""
-          echo "🎉 This PR is ready to be merged into main!"
-          echo "🚀 Deployment will start automatically after merge"
-          echo "════════════════════════════════════════"
+          echo "══════════════
