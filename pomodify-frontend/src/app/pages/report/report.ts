@@ -71,6 +71,8 @@ export class Report implements OnInit {
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
+  protected readonly completedFocusChecked = signal(false);
+  protected readonly progressingFocusChecked = signal(false);
 
   ngOnInit(): void {
     this.seedMockData();
@@ -199,6 +201,18 @@ export class Report implements OnInit {
     if (this.selectedRange() === range) return;
     this.selectedRange.set(range);
     this.rebuildSeries();
+  }
+
+  protected onCompletedFocusToggle(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+    this.completedFocusChecked.set(input.checked);
+  }
+
+  protected onProgressingFocusToggle(event: Event): void {
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+    this.progressingFocusChecked.set(input.checked);
   }
 
   // --- Mock data & calculations ---
