@@ -29,7 +29,11 @@ type ActivityRank = {
   sessions: number;
 };
 
-type RangeKey = 'week' | 'month' | 'year';
+enum RangeKey {
+  WEEK = 'week',
+  MONTH = 'month',
+  YEAR = 'year',
+}
 
 type FocusProject = {
   id: string;
@@ -59,7 +63,7 @@ export class Report implements OnInit {
   protected readonly streakDays = signal(0);
 
   // Chart + range state
-  protected readonly selectedRange = signal<RangeKey>('week');
+  protected readonly selectedRange = signal<RangeKey>(RangeKey.WEEK);
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
@@ -77,7 +81,7 @@ export class Report implements OnInit {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update((expanded) => !expanded);
+    this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
   protected onToggleTheme(): void {
@@ -86,11 +90,9 @@ export class Report implements OnInit {
 
   // Handle navigation icon click - expand sidebar, no bounce
   protected onNavIconClick(event: MouseEvent, route: string): void {
-    // Always expand sidebar when navigating
     if (!this.sidebarExpanded()) {
       this.sidebarExpanded.set(true);
     }
-    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
     }
@@ -118,16 +120,15 @@ export class Report implements OnInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }
 
   // --- Derived labels ---
-  protected readonly selectedRangeLabel = computed(() => {
+  protected readonly selectedRangeLabel = computed((): string => {
     const range = this.selectedRange();
-    if (range === 'week') return 'week';
-    if (range === 'month') return 'month';
+    if (range === RangeKey.WEEK) return 'week';
+    if (range === RangeKey.MONTH) return 'month';
     return 'year';
   });
 
@@ -136,6 +137,8 @@ export class Report implements OnInit {
     this.selectedRange.set(range);
     this.loadSummary(range);
   }
+
+  protected readonly RangeKey = RangeKey;
 
   protected onCompletedFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
@@ -191,7 +194,6 @@ export class Report implements OnInit {
     const labelCount = chartData?.labels?.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
 
-    // Compute a simple "streak" based on consecutive non-zero points from the end
     let streak = 0;
     for (let i = focusHours.length - 1; i >= 0; i--) {
       const v = focusHours[i] ?? 0;
@@ -213,7 +215,6 @@ export class Report implements OnInit {
 
     this.rebuildSeries(points);
 
-    // Current range total hours (already computed from focusHours)
     this.currentRangeTotalHours.set(totalHours);
 
     // Map top activities to ranking and focus projects
@@ -287,10 +288,8 @@ export class Report implements OnInit {
     const decimalPart = value - hours;
     
     if (Math.abs(decimalPart) < 0.01) {
-      // Whole number - show as "1h", "2h", etc.
       return `${hours}h`;
     }
-    // Show as decimal hours (e.g., 1.5h, 2.5h)
     return `${value.toFixed(1)}h`;
   }
 

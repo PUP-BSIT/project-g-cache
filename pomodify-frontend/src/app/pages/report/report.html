@@ -10,32 +10,32 @@
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/dashboard')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/dashboard')">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
       <button class="nav-icon" routerLink="/activities" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/activities')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/activities')">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/report')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/report')">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
       <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/settings')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/settings')">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -126,27 +126,24 @@
 
             <div class="range-tabs">
               <button
-                type="button"
-                class="range-tab"
-                [class.active]="selectedRange() === 'week'"
-                (click)="setRange('week')"
-              >
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === RangeKey.WEEK"
+                      (click)="setRange(RangeKey.WEEK)">
                 Week
               </button>
               <button
-                type="button"
-                class="range-tab"
-                [class.active]="selectedRange() === 'month'"
-                (click)="setRange('month')"
-              >
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === RangeKey.MONTH"
+                      (click)="setRange(RangeKey.MONTH)">
                 Month
               </button>
               <button
-                type="button"
-                class="range-tab"
-                [class.active]="selectedRange() === 'year'"
-                (click)="setRange('year')"
-              >
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === RangeKey.YEAR"
+                      (click)="setRange(RangeKey.YEAR)">
                 Year
               </button>
             </div>
@@ -188,16 +185,22 @@
           <div class="focus-chart">
             @if (tooltipData()) {
               <div 
-                class="chart-tooltip"
-                [style.left.px]="tooltipPosition().x"
-                [style.top.px]="tooltipPosition().y"
+                      class="chart-tooltip"
+                      [style.--tooltip-left.px]="tooltipPosition().x"
+                      [style.--tooltip-top.px]="tooltipPosition().y"
               >
-                <div class="tooltip-title">{{ getTooltipTitle(tooltipData()!) }}</div>
-                <div class="tooltip-total">Total: {{ tooltipData()!.hours | number: '1.0-1' }} hrs</div>
+                <div class="tooltip-title">
+                  {{ getTooltipTitle(tooltipData()!) }}
+                </div>
+                <div class="tooltip-total">
+                  Total: {{ tooltipData()!.hours | number: '1.0-1' }} hrs
+                </div>
                 <div class="tooltip-divider"></div>
                 @for (activity of tooltipData()!.activities; track activity.activityName) {
                   <div class="tooltip-activity">
-                    <div>• {{ activity.activityName }}: {{ activity.hours | number: '1.0-1' }}h ({{ activity.sessions }} session{{ activity.sessions !== 1 ? 's' : '' }})</div>
+                    <div>• {{ activity.activityName }}: {{ activity.hours | 
+                      number: '1.0-1' }}h ({{ activity.sessions }} session{{ 
+                        activity.sessions !== 1 ? 's' : '' }})</div>
                   </div>
                 }
               </div>
@@ -216,13 +219,13 @@
                 <div class="chart-bars">
                   @for (point of focusSeries(); track point.label) {
                     <div 
-                      class="bar-wrapper"
-                      (mouseenter)="onBarHover(point, $event)"
-                      (mouseleave)="onBarLeave()"
+                            class="bar-wrapper"
+                            (mouseenter)="onBarHover(point, $event)"
+                            (mouseleave)="onBarLeave()"
                     >
                       <div
-                        class="bar"
-                        [style.height.%]="point.percentage"
+                              class="bar"
+                              [style.--bar-height.%]="point.percentage"
                       ></div>
                     </div>
                   }
