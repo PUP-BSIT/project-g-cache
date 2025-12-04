@@ -53,7 +53,7 @@ export class ReportService {
   private readonly baseUrl: string;
 
   constructor(private http: HttpClient) {
-    this.baseUrl = environment.apiUrl.replace('/api/v1', '/api/reports');
+    this.baseUrl = environment.apiUrl.replace('/api/v1/report/summary', '/api/reports');
   }
 
   getSummary(range: ReportRange): Observable<SummaryItem> {
