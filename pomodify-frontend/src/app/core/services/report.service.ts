@@ -4,47 +4,61 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
-export type ReportRange = 'week' | 'month' | 'year';
-
-export interface SummaryItem {
-  meta: {
-    range: string;
-    startDate: string;
-    endDate: string;
-  };
-  metrics: {
-    totalFocusedHours: number;
-    completionRate: number;
-    avgSessionMinutes: number;
-  };
-  chartData: {
-    labels: string[];
-    datasets: {
-      focus: number[];
-      breakHours: number[];
-    };
-  };
-  recentSessions: {
-    id: number;
-    activityName: string;
-    date: string;
-    focusDurationMinutes: number;
-    breakDurationMinutes: number;
-    status: string;
-    mode: string;
-  }[];
-  topActivities: {
-    rank: number;
-    name: string;
-    totalDurationMinutes: number;
-    sessionCount: number;
-  }[];
+export enum ReportRange {
+  WEEK = 'week',
+  MONTH = 'month',
+  YEAR = 'year',
 }
 
-interface SummaryResponse {
+type SummaryItemMeta = {
+  range: string;
+  startDate: string;
+  endDate: string;
+};
+
+type SummaryItemMetrics = {
+  totalFocusedHours: number;
+  completionRate: number;
+  avgSessionMinutes: number;
+};
+
+type SummaryItemChartData = {
+  labels: string[];
+  datasets: {
+    focus: number[];
+    breakHours: number[];
+  };
+};
+
+type RecentSession = {
+  id: number;
+  activityName: string;
+  date: string;
+  focusDurationMinutes: number;
+  breakDurationMinutes: number;
+  status: string;
+  mode: string;
+};
+
+type TopActivity = {
+  rank: number;
+  name: string;
+  totalDurationMinutes: number;
+  sessionCount: number;
+};
+
+export type SummaryItem = {
+  meta: SummaryItemMeta;
+  metrics: SummaryItemMetrics;
+  chartData: SummaryItemChartData;
+  recentSessions: RecentSession[];
+  topActivities: TopActivity[];
+};
+
+type SummaryResponse = {
   message: string;
   item: SummaryItem;
-}
+};
 
 @Injectable({
   providedIn: 'root',
@@ -68,8 +82,6 @@ export class ReportService {
     const params = new HttpParams().set('range', range);
     return this.http
       .get<SummaryResponse>(`${this.baseUrl}/summary`, { params, headers })
-      .pipe(map((response) => response.item));
+      .pipe(map((response: SummaryResponse) => response.item));
   }
 }
-
-
