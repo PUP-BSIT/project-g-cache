@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
-import { ReportService, SummaryItem } from '../../core/services/report.service';
+import { ReportRange, ReportService, SummaryItem } from '../../core/services/report.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -28,12 +28,6 @@ type ActivityRank = {
   totalHours: number;
   sessions: number;
 };
-
-enum RangeKey {
-  WEEK = 'week',
-  MONTH = 'month',
-  YEAR = 'year',
-}
 
 type FocusProject = {
   id: string;
@@ -63,7 +57,7 @@ export class Report implements OnInit {
   protected readonly streakDays = signal(0);
 
   // Chart + range state
-  protected readonly selectedRange = signal<RangeKey>(RangeKey.WEEK);
+  protected readonly selectedRange = signal<ReportRange>(ReportRange.WEEK);
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
@@ -127,18 +121,18 @@ export class Report implements OnInit {
   // --- Derived labels ---
   protected readonly selectedRangeLabel = computed((): string => {
     const range = this.selectedRange();
-    if (range === RangeKey.WEEK) return 'week';
-    if (range === RangeKey.MONTH) return 'month';
+    if (range === ReportRange.WEEK) return 'week';
+    if (range === ReportRange.MONTH) return 'month';
     return 'year';
   });
 
-  protected setRange(range: RangeKey): void {
+  protected setRange(range: ReportRange): void {
     if (this.selectedRange() === range) return;
     this.selectedRange.set(range);
     this.loadSummary(range);
   }
 
-  protected readonly RangeKey = RangeKey;
+  protected readonly ReportRange = ReportRange;
 
   protected onCompletedFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
@@ -165,7 +159,7 @@ export class Report implements OnInit {
     this.tooltipData.set(null);
   }
 
-  private loadSummary(range: RangeKey): void {
+  private loadSummary(range: ReportRange): void {
     this.reportService.getSummary(range).subscribe({
       next: (summary) => this.updateFromSummary(summary),
       error: () => {

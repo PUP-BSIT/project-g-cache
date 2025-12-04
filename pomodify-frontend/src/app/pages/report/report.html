@@ -128,22 +128,22 @@
               <button
                       type="button"
                       class="range-tab"
-                      [class.active]="selectedRange() === RangeKey.WEEK"
-                      (click)="setRange(RangeKey.WEEK)">
+                      [class.active]="selectedRange() === ReportRange.WEEK"
+                      (click)="setRange(ReportRange.WEEK)">
                 Week
               </button>
               <button
                       type="button"
                       class="range-tab"
-                      [class.active]="selectedRange() === RangeKey.MONTH"
-                      (click)="setRange(RangeKey.MONTH)">
+                      [class.active]="selectedRange() === ReportRange.MONTH"
+                      (click)="setRange(ReportRange.MONTH)">
                 Month
               </button>
               <button
                       type="button"
                       class="range-tab"
-                      [class.active]="selectedRange() === RangeKey.YEAR"
-                      (click)="setRange(RangeKey.YEAR)">
+                      [class.active]="selectedRange() === ReportRange.YEAR"
+                      (click)="setRange(ReportRange.YEAR)">
                 Year
               </button>
             </div>
