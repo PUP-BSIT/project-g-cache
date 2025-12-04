@@ -82,7 +82,7 @@
                 <div class="summary-main">
                   <div class="summary-label">Total Hours Focused</div>
                   <div class="summary-value">
-                    {{ totalFocusHours() | number: '1.0-1' }}
+                    {{ formatHours(totalFocusHours()) }}
                   </div>
                 </div>
                 <div class="summary-icon">
@@ -94,7 +94,7 @@
                 <div class="summary-main">
                   <div class="summary-label">Daily Avg Focus</div>
                   <div class="summary-value">
-                    {{ dailyAverageFocusHours() | number: '1.0-1' }}h
+                    {{ formatHours(dailyAverageFocusHours()) }}
                   </div>
                 </div>
                 <div class="summary-icon">

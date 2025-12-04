@@ -293,6 +293,14 @@ export class Report implements OnInit {
     return `${value.toFixed(1)}h`;
   }
 
+  protected formatHours(hours: number): string {
+    const formatted = hours % 1 === 0 ? hours.toString() : hours.toFixed(1);
+    if (hours >= 1) {
+      return `${formatted}hrs`;
+    }
+    return `${formatted}h`;
+  }
+
   protected getTooltipTitle(point: FocusPoint): string {
     if (point.dateKey) {
       const date = new Date(point.dateKey + 'T00:00:00');
