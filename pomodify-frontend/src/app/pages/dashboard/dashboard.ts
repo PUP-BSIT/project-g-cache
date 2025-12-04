@@ -1,9 +1,10 @@
 /**
  * Dashboard Component
- * Displays activity list, search, filtering, and management
+ * Displays dashboard metrics from API with activity management
+ * Matches API structure from /api/v1/dashboard
  */
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
+import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
@@ -18,6 +19,26 @@ import { EditSessionModal } from '../../shared/components/edit-session-modal/edi
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { IconMapper } from '../../core/services/icon-mapper';
+import { DashboardService } from '../../core/services/dashboard.service';
+
+// API Response Types
+export type DashboardMetrics = {
+  totalCompletedSessions: number;
+  totalFocusTime: number; // in seconds
+  weeklyFocusDistribution: Record<string, number>; // day -> seconds
+  recentActivities: RecentActivity[];
+};
+
+export type RecentActivity = {
+  activityId: number;
+  activityTitle: string;
+  lastSession: {
+    sessionId: number;
+    startTime: string;
+    endTime: string;
+    status: string;
+  };
+};
 
 export type Session = {
   id: string;
@@ -45,15 +66,20 @@ type Activity = {
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);
   private iconMapper = inject(IconMapper);
-  private readonly STORAGE_KEY = 'pomodify-activities';
+  private dashboardService = inject(DashboardService);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+
+  // Dashboard API data
+  protected dashboardMetrics = signal<DashboardMetrics | null>(null);
+  protected isLoadingDashboard = signal(false);
+  protected dashboardError = signal<string | null>(null);
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -75,6 +101,30 @@ export class Dashboard {
     }
   }
 
+  ngOnInit(): void {
+    this.loadDashboardMetrics();
+  }
+
+  // Load dashboard metrics from API
+  private loadDashboardMetrics(): void {
+    this.isLoadingDashboard.set(true);
+    this.dashboardError.set(null);
+
+    const timezone = this.dashboardService.getUserTimezone();
+
+    this.dashboardService.getDashboard(timezone).subscribe({
+      next: (data) => {
+        this.dashboardMetrics.set(data);
+        this.isLoadingDashboard.set(false);
+      },
+      error: (err) => {
+        console.error('Dashboard metrics error:', err);
+        this.dashboardError.set('Failed to load dashboard metrics. Please refresh the page.');
+        this.isLoadingDashboard.set(false);
+      }
+    });
+  }
+
   // --- State ---
   protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
@@ -82,17 +132,12 @@ export class Dashboard {
   protected readonly selectedCategory = signal<string | null>(null);
   protected readonly currentPage = signal(1);
   protected readonly itemsPerPage = signal(6);
-  protected readonly currentStreak = signal(0);
   protected readonly categoryDropdownOpen = signal(false);
 
   constructor() {
-    this.loadActivitiesFromStorage();
-
-    effect(() => {
-      const activities = this.activities();
-      this.saveActivitiesToStorage(activities);
-    });
-
+    // Activities will be loaded from API in the future
+    // Remove localStorage dependency for production readiness
+    
     effect(() => {
       const tp = this.totalPages();
       if (tp === 0) {
@@ -101,27 +146,6 @@ export class Dashboard {
         this.currentPage.set(tp);
       }
     });
-  }
-
-  private loadActivitiesFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Activity[];
-        this.activities.set(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading activities from storage:', error);
-      this.activities.set([]);
-    }
-  }
-
-  private saveActivitiesToStorage(activities: Activity[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(activities));
-    } catch (error) {
-      console.error('Error saving activities to storage:', error);
-    }
   }
 
   protected readonly filteredActivities = computed(() => {
@@ -167,6 +191,40 @@ export class Dashboard {
     return this.activities()
       .reduce((sum, activity) => sum + (activity.estimatedHoursPerWeek || 0), 0)
       .toFixed(1);
+  });
+
+  // Computed values from API data
+  protected readonly totalCompletedSessions = computed(() => {
+    return this.dashboardMetrics()?.totalCompletedSessions || 0;
+  });
+
+  protected readonly totalFocusTimeHours = computed(() => {
+    const seconds = this.dashboardMetrics()?.totalFocusTime || 0;
+    const hours = seconds / 3600;
+    return hours.toFixed(1);
+  });
+
+  protected readonly weeklyDistributionDays = computed(() => {
+    const distribution = this.dashboardMetrics()?.weeklyFocusDistribution;
+    if (!distribution) return [];
+    
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    return days.map(day => ({
+      day: day.substring(0, 3),
+      seconds: distribution[day] || 0,
+      hours: ((distribution[day] || 0) / 3600).toFixed(1),
+      percentage: this.calculateDayPercentage(distribution, day)
+    }));
+  });
+
+  private calculateDayPercentage(distribution: Record<string, number>, day: string): number {
+    const total = Object.values(distribution).reduce((sum, val) => sum + val, 0);
+    if (total === 0) return 0;
+    return Math.round(((distribution[day] || 0) / total) * 100);
+  }
+
+  protected readonly recentActivities = computed(() => {
+    return this.dashboardMetrics()?.recentActivities || [];
   });
 
   // --- Actions ---
@@ -427,5 +485,32 @@ export class Dashboard {
           console.log('Profile updated:', result);
         }
       });
+  }
+
+  protected formatSessionTime(startTime: string, endTime: string): string {
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      const durationMs = end.getTime() - start.getTime();
+      const durationMins = Math.round(durationMs / 60000);
+      return `${durationMins} min`;
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  protected getRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
   }
 }
