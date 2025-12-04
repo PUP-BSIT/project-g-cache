@@ -4,12 +4,12 @@ This document describes the Summary Reports endpoint, its inputs, outputs, secur
 
 ## Overview
 - Purpose: Provide aggregated metrics, charts, recent sessions, and top activities for a user across a selected time range.
-- Endpoint: `GET /api/reports/summary`
+- Endpoint: `GET /api/v1/reports/summary`
 - Auth: JWT (OAuth2 Resource Server). Requires a valid token with a `user` claim. Missing/invalid credentials return `401`.
 
 ## Request
 - Method: `GET`
-- Path: `/api/reports/summary`
+- Path: `/api/v1/reports/summary`
 - Query Parameters:
   - `range`: one of `week` (default), `month`, `year`.
 
@@ -105,7 +105,7 @@ curl -H "Authorization: Bearer <jwt>" \
 
 HTTP Client (VS Code `request/http/session.http` style):
 ```
-GET {{host}}/api/reports/summary?range=year
+GET {{host}}/api/v1/reports/summary?range=year
 Authorization: Bearer {{token}}
 ```
 
