@@ -1,5 +1,10 @@
 <!-- dashboard.html - Professional Dashboard with Activities Management -->
 <div class="dashboard">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
@@ -74,6 +79,9 @@
     <!-- Header -->
     <header class="header">
       <div class="header-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1 class="page-title">Dashboard</h1>
       </div>
       <div class="header-right">

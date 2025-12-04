@@ -58,7 +58,11 @@ type Activity = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+  ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })

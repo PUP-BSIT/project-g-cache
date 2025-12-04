@@ -22,6 +22,34 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   background-color: $bg-light;
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  animation: fadeIn 0.3s ease;
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-overlay {
+    display: block;
+  }
 }
 
 // Sidebar
@@ -330,6 +358,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .header-left {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   
   .page-title {
     font-size: 28px;
@@ -337,6 +368,49 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     color: $text-white;
     margin: 0;
     letter-spacing: -0.5px;
+  }
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: $text-white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  &:active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  i {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .header {
+    padding: 16px 24px;
+    gap: 16px;
+  }
+  
+  .header-left {
+    .page-title {
+      font-size: 20px;
+    }
   }
 }
 
