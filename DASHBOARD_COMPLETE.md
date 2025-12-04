@@ -106,7 +106,7 @@ export type Session = {
 type Activity = {
   id: string;
   name: string;
-  icon: string;               // Font Awesome class (e.g., 'fa-solid fa-book')
+  icon: string; 
   category: string;
   colorTag: string;
   estimatedHoursPerWeek: number;
@@ -118,7 +118,6 @@ type Activity = {
 ---
 
 ## Key Features Implemented
-
 ### 1. Activity CRUD
 - **Create**: Modal to add new activity, auto-generate icon
 - **Read**: Display in grid with search/filter

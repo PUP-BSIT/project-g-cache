@@ -5,6 +5,7 @@ import { VerifyEmailModal } from '../../shared/components/verify-email-modal/ver
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { HistoryService } from './history.service';
 
 type LoginResponse = {
   user?: {
@@ -30,7 +31,8 @@ export class Auth {
   constructor(
     private router: Router,
     private dialog: MatDialog,
-    private http: HttpClient
+    private http: HttpClient,
+    private historyService: HistoryService
   ) {}
 
   private clearAuthData(): void {
@@ -38,6 +40,7 @@ export class Auth {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('currentUser');
+      this.historyService.clearHistory();
     } catch (e) {
       console.warn('Unable to clear auth data from localStorage', e);
     }
