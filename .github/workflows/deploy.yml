@@ -123,6 +123,7 @@ jobs:
               --name pomodify-backend \
               --restart unless-stopped \
               -p 8081:8081 \
+              -e SPRING_PROFILES_ACTIVE='prod' \
               -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' \
               -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
               -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
