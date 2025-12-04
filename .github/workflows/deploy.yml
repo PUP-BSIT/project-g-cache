@@ -136,14 +136,13 @@ jobs:
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
 
             # Wait for backend to fully start
-            echo "Waiting for backend to initialize (60 seconds)..."
-            sleep 60  # give Spring Boot enough time for JPA initialization
+            echo "Waiting for backend to initialize (90 seconds)..."
+            sleep 90  # give Spring Boot enough time for JPA initialization and servlet initialization
 
             # Health check with retries for frontend
             echo "Checking frontend health..."
             retries=10
-            health_ok=false
-            until curl -f -s http://localhost:8080 >/dev/null 2>&1; do
+            until curl -f -s -m 5 http://localhost:8080 >/dev/null 2>&1; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
                 echo "❌ Frontend health check failed after 10 retries"
@@ -158,28 +157,30 @@ jobs:
 
             # Health check with retries for backend - with detailed diagnostics
             echo "Checking backend health at http://localhost:8081/actuator/health..."
-            retries=15
-            health_ok=false
-            until curl -f -s http://localhost:8081/actuator/health >/dev/null 2>&1 || wget --quiet --tries=1 --timeout=3 -O- http://localhost:8081/actuator/health >/dev/null 2>&1; do
+            retries=20
+            until curl -f -s -m 5 http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up" || wget --quiet --timeout=5 -O- http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up"; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Backend health check failed after 15 retries"
+                echo "❌ Backend health check failed after 20 retries"
                 echo "Backend is still not responding to health checks."
-                echo "Backend container logs (last 60 lines):"
-                sudo docker logs pomodify-backend | tail -60
+                echo "Backend container logs (last 80 lines):"
+                sudo docker logs pomodify-backend | tail -80
                 echo ""
                 echo "Checking if backend container is still running..."
                 if sudo docker ps | grep -q pomodify-backend; then
                   echo "✓ Backend container is running"
+                  echo ""
+                  echo "Attempting direct HTTP request to backend:"
+                  curl -v http://localhost:8081/actuator/health 2>&1 || echo "curl failed"
                 else
                   echo "✗ Backend container is NOT running!"
                 fi
                 exit 1
               fi
               echo "⏳ Backend not ready, retrying... ($retries retries left)"
-              sleep 4
+              sleep 3
             done
-            echo "✅ Backend is healthy"
+            echo "✅ Backend is healthy and responding"
 
             # Restart nginx
             echo "Restarting nginx..."
