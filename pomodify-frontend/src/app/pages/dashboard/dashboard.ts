@@ -1,8 +1,3 @@
-/**
- * Dashboard Component
- * Displays dashboard metrics from API with activity management
- * Matches API structure from /api/v1/dashboard
- */
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
@@ -25,8 +20,8 @@ import { ActivityService } from '../../core/services/activity.service';
 // API Response Types
 export type DashboardMetrics = {
   totalCompletedSessions: number;
-  totalFocusTime: number; // in seconds
-  weeklyFocusDistribution: Record<string, number>; // day -> seconds
+  totalFocusTime: number;
+  weeklyFocusDistribution: Record<string, number>;
   recentActivities: RecentActivity[];
 };
 
@@ -75,15 +70,12 @@ export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private activityService = inject(ActivityService);
 
-  // Sidebar state
   protected sidebarExpanded = signal(true);
 
-  // Dashboard API data
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
   protected dashboardError = signal<string | null>(null);
 
-  // Toggle sidebar
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
@@ -92,7 +84,6 @@ export class Dashboard implements OnInit {
     toggleTheme();
   }
 
-  // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -108,7 +99,6 @@ export class Dashboard implements OnInit {
     this.loadActivities();
   }
 
-  // Load dashboard metrics from API
   private loadDashboardMetrics(): void {
     this.isLoadingDashboard.set(true);
     this.dashboardError.set(null);
@@ -128,7 +118,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // Load activities from API
   private loadActivities(): void {
     this.isLoadingActivities.set(true);
     this.activitiesError.set(null);
@@ -147,7 +136,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  // --- State ---
   protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
   protected readonly isLoadingActivities = signal(false);
@@ -159,9 +147,6 @@ export class Dashboard implements OnInit {
   protected readonly categoryDropdownOpen = signal(false);
 
   constructor() {
-    // Activities will be loaded from API in the future
-    // Remove localStorage dependency for production readiness
-    
     effect(() => {
       const tp = this.totalPages();
       if (tp === 0) {
@@ -179,9 +164,7 @@ export class Dashboard implements OnInit {
 
     return allActivities.filter((activity) => {
       const matchesQuery = activity.name.toLowerCase().includes(query);
-      
-      // Handle category filtering including Uncategorized
-      let matchesCategory = !category; // If no category selected, show all
+      let matchesCategory = !category;
       if (category === 'Uncategorized') {
         matchesCategory = !activity.category || activity.category === '';
       } else if (category) {
@@ -217,7 +200,6 @@ export class Dashboard implements OnInit {
       .toFixed(1);
   });
 
-  // Computed values from API data
   protected readonly totalCompletedSessions = computed(() => {
     return this.dashboardMetrics()?.totalCompletedSessions || 0;
   });
@@ -251,7 +233,6 @@ export class Dashboard implements OnInit {
     return this.dashboardMetrics()?.recentActivities || [];
   });
 
-  // --- Actions ---
   protected selectActivity(activity: Activity): void {
     this.selectedActivity.set(activity);
   }
