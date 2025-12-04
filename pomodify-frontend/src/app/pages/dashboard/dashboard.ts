@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router, ActivatedRoute, Params } from '@angular/router';
+import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import {
@@ -9,135 +9,77 @@ import {
 } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
+import { EditSessionModal } from '../../shared/components/edit-session-modal/edit-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
-import { Timer } from '../../shared/services/timer';
 import { Auth } from '../../core/services/auth';
+import { IconMapper } from '../../core/services/icon-mapper';
+import { DashboardService } from '../../core/services/dashboard.service';
+import { ActivityService } from '../../core/services/activity.service';
+
+// API Response Types
+export type DashboardMetrics = {
+  totalCompletedSessions: number;
+  totalFocusTime: number;
+  weeklyFocusDistribution: Record<string, number>;
+  recentActivities: RecentActivity[];
+};
+
+export type RecentActivity = {
+  activityId: number;
+  activityTitle: string;
+  lastSession: {
+    sessionId: number;
+    startTime: string;
+    endTime: string;
+    status: string;
+  };
+};
+
+export type Session = {
+  id: string;
+  focusTimeMinutes: number;
+  breakTimeMinutes: number;
+  note?: string;
+  createdAt: string;
+};
 
 type Activity = {
   id: string;
   name: string;
   icon: string;
+  category: string;
+  colorTag: string;
+  estimatedHoursPerWeek: number;
   lastAccessed: string;
+  sessions: Session[];
 };
-
-type StoredActivity = Activity & Record<string, unknown>;
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+  ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
-  private timer = inject(Timer);
-  // Router for route-aware sidebar clicks
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private auth = inject(Auth);
-  private readonly STORAGE_KEY = 'pomodify-activities';
+  private iconMapper = inject(IconMapper);
+  private dashboardService = inject(DashboardService);
+  private activityService = inject(ActivityService);
 
-  // Visual alert for timer completion
-  protected showCompletionAlert = signal(false);
-
-  // Sidebar state
   protected sidebarExpanded = signal(true);
 
-  constructor() {
-    // Set up the completion callback.
-    this.timer.setOnComplete(() => {
-      this.onTimerComplete();
-    });
-  }
+  protected dashboardMetrics = signal<DashboardMetrics | null>(null);
+  protected isLoadingDashboard = signal(false);
+  protected dashboardError = signal<string | null>(null);
 
-  ngOnInit(): void {
-    // Load activities first
-    this.loadActivitiesFromStorage();
-    
-    // Check for query params to select activity
-    this.route.queryParams.subscribe((params: Params) => {
-      this.handleQueryParams(params);
-    });
-  }
-
-  private handleQueryParams(params: Params): void {
-    // Set timer if session info is provided (can be done immediately)
-    if (params['focusTime']) {
-      const focusTime = parseInt(params['focusTime'], 10);
-      if (!isNaN(focusTime) && focusTime > 0) {
-        // Set timer duration (in minutes)
-        this.timer.setDuration(focusTime);
-      }
-    }
-
-    // Handle activity selection (need to wait for activities to be loaded)
-    if (params['activityId']) {
-      const activityId = params['activityId'];
-      const activities = this.activities();
-      
-      // If activities are already loaded, select immediately
-      if (activities.length > 0) {
-        const activityExists = activities.some((a: Activity) => a.id === activityId);
-        if (activityExists) {
-          this.selectActivity(activityId);
-        }
-      } else {
-        // If activities not loaded yet, wait a bit and try again
-        setTimeout(() => {
-          const loadedActivities = this.activities();
-          if (loadedActivities.length > 0) {
-            const activityExists = loadedActivities.some((a: Activity) => a.id === activityId);
-            if (activityExists) {
-              this.selectActivity(activityId);
-            }
-          }
-        }, 100);
-      }
-    }
-  }
-
-  private loadActivitiesFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as StoredActivity[] | null;
-        const dashboardActivities: Activity[] = Array.isArray(parsed)
-          ? parsed.map((activity) => ({
-              id: activity.id,
-              name: activity.name,
-              icon: activity.icon,
-              lastAccessed: activity.lastAccessed,
-            }))
-          : [];
-        if (dashboardActivities.length > 0) {
-          this.activities.set(dashboardActivities);
-          const currentSelected = this.selectedActivityId();
-          if (!currentSelected || !dashboardActivities.some((activity) => activity.id === currentSelected)) {
-            this.selectedActivityId.set(dashboardActivities[0].id);
-          }
-          return;
-        }
-      }
-      this.setDefaultActivities();
-    } catch (error) {
-      console.error('Error loading activities from storage:', error);
-      this.setDefaultActivities();
-    }
-  }
-
-  private setDefaultActivities(): void {
-    const defaults: Activity[] = [
-      { id: 'math', name: 'Study Math', icon: '📘', lastAccessed: '1 hr ago' },
-      { id: 'angular', name: 'Learn Angular', icon: '{}', lastAccessed: '2 days ago' },
-      { id: 'design', name: 'Design Prototype', icon: '🎨', lastAccessed: '3 days ago' },
-      { id: 'kotlin', name: 'Learn Kotlin', icon: '</>', lastAccessed: '1 week ago' },
-    ];
-    this.activities.set(defaults);
-    this.selectedActivityId.set(defaults[0].id);
-  }
-
-  // Toggle sidebar
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
@@ -146,7 +88,6 @@ export class Dashboard implements OnInit {
     toggleTheme();
   }
 
-  // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -156,54 +97,148 @@ export class Dashboard implements OnInit {
       }
     }
   }
-  // --- State ---
+
+  ngOnInit(): void {
+    this.loadDashboardMetrics();
+    this.loadActivities();
+  }
+
+  private loadDashboardMetrics(): void {
+    this.isLoadingDashboard.set(true);
+    this.dashboardError.set(null);
+
+    const timezone = this.dashboardService.getUserTimezone();
+
+    this.dashboardService.getDashboard(timezone).subscribe({
+      next: (data) => {
+        this.dashboardMetrics.set(data);
+        this.isLoadingDashboard.set(false);
+      },
+      error: (err) => {
+        console.error('Dashboard metrics error:', err);
+        this.dashboardError.set('Failed to load dashboard metrics. Please refresh the page.');
+        this.isLoadingDashboard.set(false);
+      }
+    });
+  }
+
+  private loadActivities(): void {
+    this.isLoadingActivities.set(true);
+    this.activitiesError.set(null);
+
+    this.activityService.getAllActivities().subscribe({
+      next: (data) => {
+        this.activities.set(data);
+        this.isLoadingActivities.set(false);
+      },
+      error: (err) => {
+        console.error('Activities loading error:', err);
+        this.activitiesError.set('Failed to load activities.');
+        this.isLoadingActivities.set(false);
+        this.activities.set([]);
+      }
+    });
+  }
+
+  protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
+  protected readonly isLoadingActivities = signal(false);
+  protected readonly activitiesError = signal<string | null>(null);
+  protected readonly searchQuery = signal('');
+  protected readonly selectedCategory = signal<string | null>(null);
+  protected readonly currentPage = signal(1);
+  protected readonly itemsPerPage = signal(6);
+  protected readonly categoryDropdownOpen = signal(false);
 
-  protected readonly selectedActivityId = signal<string>('');
+  constructor() {
+    effect(() => {
+      const tp = this.totalPages();
+      if (tp === 0) {
+        this.currentPage.set(1);
+      } else if (this.currentPage() > tp) {
+        this.currentPage.set(tp);
+      }
+    });
+  }
 
-  protected readonly currentActivity = computed(() => {
-    const activities = this.activities();
-    const selectedId = this.selectedActivityId();
-    if (activities.length === 0) {
-      return null;
-    }
-    return activities.find((a) => a.id === selectedId) ?? activities[0];
+  protected readonly filteredActivities = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const category = this.selectedCategory();
+    const allActivities = this.activities();
+
+    return allActivities.filter((activity) => {
+      const matchesQuery = activity.name.toLowerCase().includes(query);
+      let matchesCategory = !category;
+      if (category === 'Uncategorized') {
+        matchesCategory = !activity.category || activity.category === '';
+      } else if (category) {
+        matchesCategory = activity.category === category;
+      }
+      
+      return matchesQuery && matchesCategory;
+    });
   });
 
-  // Timer state is provided by the Timer service.
-  protected readonly focusTime = computed(() => this.formatTime(this.timer.remainingSeconds()));
-  protected readonly isTimerRunning = this.timer.isRunning;
-  protected readonly isPaused = this.timer.isPaused;
+  protected readonly totalPages = computed(() => {
+    return Math.ceil(this.filteredActivities().length / this.itemsPerPage());
+  });
 
-  protected readonly currentStreak = signal(4);
-  protected readonly todayFocusHours = signal(3);
-  protected readonly totalSessions = signal(2);
+  protected readonly paginatedActivities = computed(() => {
+    const items = this.filteredActivities();
+    const perPage = this.itemsPerPage();
+    const page = this.currentPage();
+    const start = (page - 1) * perPage;
+    return items.slice(start, start + perPage);
+  });
 
-  // --- Actions ---
-  protected selectActivity(activityId: string): void {
-    this.selectedActivityId.set(activityId);
+  protected readonly categories = computed(() => {
+    const cats = new Set(this.activities().map((a) => a.category));
+    return Array.from(cats).sort();
+  });
+
+  protected readonly totalActivities = computed(() => this.activities().length);
+
+  protected readonly thisWeekHours = computed(() => {
+    return this.activities()
+      .reduce((sum, activity) => sum + (activity.estimatedHoursPerWeek || 0), 0)
+      .toFixed(1);
+  });
+
+  protected readonly totalCompletedSessions = computed(() => {
+    return this.dashboardMetrics()?.totalCompletedSessions || 0;
+  });
+
+  protected readonly totalFocusTimeHours = computed(() => {
+    const seconds = this.dashboardMetrics()?.totalFocusTime || 0;
+    const hours = seconds / 3600;
+    return hours.toFixed(1);
+  });
+
+  protected readonly weeklyDistributionDays = computed(() => {
+    const distribution = this.dashboardMetrics()?.weeklyFocusDistribution;
+    if (!distribution) return [];
+    
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    return days.map(day => ({
+      day: day.substring(0, 3),
+      seconds: distribution[day] || 0,
+      hours: ((distribution[day] || 0) / 3600).toFixed(1),
+      percentage: this.calculateDayPercentage(distribution, day)
+    }));
+  });
+
+  private calculateDayPercentage(distribution: Record<string, number>, day: string): number {
+    const total = Object.values(distribution).reduce((sum, val) => sum + val, 0);
+    if (total === 0) return 0;
+    return Math.round(((distribution[day] || 0) / total) * 100);
   }
 
-  protected onActivitySelectChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement | null;
-    if (selectElement) {
-      this.selectActivity(selectElement.value);
-    }
-  }
+  protected readonly recentActivities = computed(() => {
+    return this.dashboardMetrics()?.recentActivities || [];
+  });
 
-  protected playTimer(): void {
-    // Start or resume the countdown.
-    this.timer.start();
-  }
-
-  protected pauseTimer(): void {
-    // Pause the countdown but keep the remaining time.
-    this.timer.pause();
-  }
-
-  protected stopTimer(): void {
-    // Stop and reset the countdown back to 25:00.
-    this.timer.stop();
+  protected selectActivity(activity: Activity): void {
+    this.selectedActivity.set(activity);
   }
 
   protected openCreateActivityModal(): void {
@@ -212,19 +247,32 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: ActivityData) => {
         if (result) {
-          console.log('New activity created:', result);
-          // TODO(Delumen, Ivan): Send to backend and add to activities list
+          this.activityService.createActivity({
+            name: result.name,
+            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
+            category: result.category,
+            colorTag: result.colorTag,
+            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0,
+          }).subscribe({
+            next: (newActivity) => {
+              this.activities.update((acts) => [...acts, newActivity]);
+              this.selectActivity(newActivity);
+            },
+            error: (err) => {
+              console.error('Error creating activity:', err);
+              alert('Failed to create activity. Please try again.');
+            }
+          });
         }
       });
   }
 
-  protected openEditActivityModal(): void {
-    // Sample data to demonstrate the Edit Activity modal UI
+  protected openEditActivityModal(activity: Activity): void {
     const sample: ActivityData = {
-      name: 'Study Math',
-      category: 'Study',
-      colorTag: 'blue',
-      estimatedHoursPerWeek: 3,
+      name: activity.name,
+      category: activity.category,
+      colorTag: activity.colorTag,
+      estimatedHoursPerWeek: activity.estimatedHoursPerWeek,
     };
 
     this.dialog
@@ -232,99 +280,225 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((updated: ActivityData) => {
         if (updated) {
-          console.log('Updated activity:', updated);
-          // TODO(Delumen, Ivan): persist updated activity and update UI
+          this.activityService.updateActivity(activity.id, {
+            name: updated.name,
+            category: updated.category,
+            colorTag: updated.colorTag,
+            estimatedHoursPerWeek: updated.estimatedHoursPerWeek,
+            icon: this.iconMapper.getIconClass(updated.name, updated.category || 'General'),
+          }).subscribe({
+            next: (updatedActivity) => {
+              this.activities.update((acts) =>
+                acts.map((a) => a.id === activity.id ? updatedActivity : a)
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(updatedActivity);
+              }
+            },
+            error: (err) => {
+              console.error('Error updating activity:', err);
+              alert('Failed to update activity. Please try again.');
+            }
+          });
         }
       });
   }
 
-  protected openDeleteActivityModal(): void {
-    const sample = { id: 'math', name: 'Study Math' };
+  protected openDeleteActivityModal(activity: Activity): void {
     this.dialog
-      .open(DeleteActivityModal, { data: sample })
+      .open(DeleteActivityModal, { data: { id: activity.id, name: activity.name } })
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          console.log('Delete confirmed for', sample);
-          // TODO(Delumen, Ivan): remove from activities and call backend
+          this.activityService.deleteActivity(activity.id).subscribe({
+            next: () => {
+              this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(null);
+              }
+            },
+            error: (err) => {
+              console.error('Error deleting activity:', err);
+              alert('Failed to delete activity. Please try again.');
+            }
+          });
         }
       });
   }
 
-
-  // Format seconds as MM:SS for display in the circle.
-  private formatTime(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
+  protected addSession(activity: Activity): void {
+    this.dialog
+      .open(AddSessionModal)
+      .afterClosed()
+      .subscribe((result: SessionData) => {
+        if (result) {
+          this.activityService.addSession(activity.id, {
+            focusTimeMinutes: result.focusTimeMinutes,
+            breakTimeMinutes: result.breakTimeMinutes,
+            note: result.note,
+          }).subscribe({
+            next: (newSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? { ...a, sessions: [...a.sessions, newSession as any] }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error adding session:', err);
+              alert('Failed to add session. Please try again.');
+            }
+          });
+        }
+      });
   }
 
-  // Called when the timer reaches zero.
-  private onTimerComplete(): void {
-    // Play a completion sound.
-    this.playCompletionSound();
+  protected editSession(activity: Activity, session: Session): void {
+    const sessionData: SessionData = {
+      focusTimeMinutes: session.focusTimeMinutes,
+      breakTimeMinutes: session.breakTimeMinutes,
+      note: session.note || '',
+    };
 
-    // Show visual alert.
-    this.showCompletionAlert.set(true);
-
-    // Hide alert after 5 seconds.
-    setTimeout(() => {
-      this.showCompletionAlert.set(false);
-    }, 5000);
+    this.dialog
+      .open(EditSessionModal, { data: sessionData })
+      .afterClosed()
+      .subscribe((result: SessionData) => {
+        if (result) {
+          this.activityService.updateSession(activity.id, session.id, {
+            focusTimeMinutes: result.focusTimeMinutes,
+            breakTimeMinutes: result.breakTimeMinutes,
+            note: result.note,
+          }).subscribe({
+            next: (updatedSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? {
+                        ...a,
+                        sessions: a.sessions.map((s) =>
+                          s.id === session.id ? (updatedSession as any) : s
+                        ),
+                      }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error updating session:', err);
+              alert('Failed to update session. Please try again.');
+            }
+          });
+        }
+      });
   }
 
-  // Play a simple beep sound when timer completes.
-  private playCompletionSound(): void {
-    try {
-      // Create a simple audio context beep.
-      const extendedWindow = window as Window & { webkitAudioContext?: typeof AudioContext };
-      const AudioContextCtor = window.AudioContext ?? extendedWindow.webkitAudioContext;
-      if (!AudioContextCtor) {
-        console.warn('AudioContext is not supported in this browser.');
-        return;
+  protected deleteSession(activity: Activity, sessionId: string): void {
+    this.activityService.deleteSession(activity.id, sessionId).subscribe({
+      next: () => {
+        this.activities.update((acts) =>
+          acts.map((a) =>
+            a.id === activity.id
+              ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
+              : a
+          )
+        );
+        if (this.selectedActivity()?.id === activity.id) {
+          this.selectedActivity.set(
+            this.activities().find((a) => a.id === activity.id) || null
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting session:', err);
+        alert('Failed to delete session. Please try again.');
       }
-      const audioContext = new AudioContextCtor();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+    });
+  }
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+  protected toggleCategory(category: string): void {
+    const current = this.selectedCategory();
+    this.selectedCategory.set(current === category ? null : category);
+    this.currentPage.set(1);
+  }
 
-      // Pleasant notification tone.
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
+  protected updateSearchQuery(query: string): void {
+    this.searchQuery.set(query);
+    this.currentPage.set(1);
+  }
 
-      // Fade out.
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 1);
-    } catch (error) {
-      console.warn('Unable to play completion sound:', error);
+  protected goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
     }
   }
 
-  // Dismiss the completion alert manually.
-  protected dismissAlert(): void {
-    this.showCompletionAlert.set(false);
+  protected getFullIconClasses(activity: Activity): string {
+    return activity.icon || 'fa-solid fa-circle';
   }
 
-  // Handle navigation icon click - expand sidebar, no bounce
+  protected getActivityCompletionPercentage(activity: Activity): number {
+    if (!activity.estimatedHoursPerWeek || activity.estimatedHoursPerWeek <= 0) {
+      return 0;
+    }
+    const totalMinutes = activity.sessions.reduce((sum, session) => sum + session.focusTimeMinutes, 0);
+    const totalHours = totalMinutes / 60;
+    const percentage = Math.min((totalHours / activity.estimatedHoursPerWeek) * 100, 100);
+    return Math.round(percentage);
+  }
+
+  protected getLastAccessedText(activity: Activity): string {
+    const now = new Date();
+    const lastAccessed = new Date(activity.lastAccessed);
+    const diffMs = now.getTime() - lastAccessed.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
+  }
+
+  protected toggleCategoryDropdown(): void {
+    this.categoryDropdownOpen.update((open) => !open);
+  }
+
+  protected getActivitiesByCategory(category: string): Activity[] {
+    return this.activities().filter((activity) => activity.category === category);
+  }
+
+  protected getUncategorizedActivities(): Activity[] {
+    return this.activities().filter((activity) => !activity.category || activity.category === '');
+  }
+
+  protected hasUncategorizedActivities(): boolean {
+    return this.getUncategorizedActivities().length > 0;
+  }
+
   protected onNavIconClick(event: MouseEvent, route: string): void {
-    // Always expand sidebar when navigating
     if (!this.sidebarExpanded()) {
       this.sidebarExpanded.set(true);
     }
-    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
     }
   }
 
-  // Collapse sidebar when clicking main content area
   protected onMainContentClick(): void {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
@@ -335,7 +509,6 @@ export class Dashboard implements OnInit {
     this.auth.logout();
   }
 
-  // --- Profile Modal ---
   protected openProfileModal(): void {
     this.dialog
       .open(Profile, {
@@ -347,8 +520,34 @@ export class Dashboard implements OnInit {
       .subscribe((result: ProfileData) => {
         if (result) {
           console.log('Profile updated:', result);
-          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
+  }
+
+  protected formatSessionTime(startTime: string, endTime: string): string {
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      const durationMs = end.getTime() - start.getTime();
+      const durationMins = Math.round(durationMs / 60000);
+      return `${durationMins} min`;
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  protected getRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
   }
 }

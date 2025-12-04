@@ -1,0 +1,175 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-backend
+  TAG_LATEST: latest
+  TAG_SHA: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Production Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push frontend image
+        run: |
+          docker build -f pomodify-frontend/Dockerfile \
+            -t $FRONTEND_IMAGE:$TAG_LATEST \
+            -t $FRONTEND_IMAGE:$TAG_SHA \
+            ./pomodify-frontend
+          docker push $FRONTEND_IMAGE:$TAG_LATEST
+          docker push $FRONTEND_IMAGE:$TAG_SHA
+
+      - name: Build and push backend image
+        run: |
+          docker build -f pomodify-backend/Dockerfile \
+            -t $BACKEND_IMAGE:$TAG_LATEST \
+            -t $BACKEND_IMAGE:$TAG_SHA \
+            ./pomodify-backend
+          docker push $BACKEND_IMAGE:$TAG_LATEST
+          docker push $BACKEND_IMAGE:$TAG_SHA
+
+  deploy-to-ec2:
+    name: Deploy to EC2 Server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          timeout: 180s
+          script: |
+            set -e
+
+            echo "🚀 Starting deployment to production..."
+
+            # Stop old containers
+            sudo docker stop pomodify-frontend pomodify-backend || true
+            sudo docker rm pomodify-frontend pomodify-backend || true
+
+            # Pull latest images
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
+
+            # Setup Firebase credentials if provided
+            sudo mkdir -p /app
+            if [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
+              echo "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" | base64 -d | sudo tee /app/firebase-key.json > /dev/null
+              sudo chown root:root /app/firebase-key.json
+              sudo chmod 600 /app/firebase-key.json
+            fi
+
+            # Start frontend container
+            sudo docker run -d \
+              --name pomodify-frontend \
+              --restart unless-stopped \
+              -p 8080:80 \
+              ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest
+
+            # Wait for database to be ready before starting backend
+            echo "Waiting for database to be ready..."
+            retries=20
+            until PGPASSWORD="${{ secrets.DB_PASSWORD }}" psql -h "${{ secrets.DB_HOST }}" -U "${{ secrets.DB_USERNAME }}" -d "${{ secrets.DB_NAME }}" -p "${{ secrets.DB_PORT }}" -c '\q' >/dev/null 2>&1; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Database not reachable after multiple attempts."
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Database is ready"
+
+            # Start backend container
+            sudo docker run -d \
+              --name pomodify-backend \
+              --restart unless-stopped \
+              -p 8081:8081 \
+              -e DB_URL="jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e DDL_AUTO="${{ secrets.DDL_AUTO }}" \
+              -e SHOW_SQL="${{ secrets.SHOW_SQL }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_ACCESS_EXPIRATION="${{ secrets.JWT_ACCESS_EXPIRATION }}" \
+              -e JWT_REFRESH_TOKEN_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}" \
+              -e FCM_SERVICE_ACCOUNT="/app/firebase-key.json" \
+              -v /app/firebase-key.json:/app/firebase-key.json:ro \
+              ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
+
+            # Wait for containers to start
+            sleep 10
+
+            # Health check with retries
+            echo "Checking frontend health..."
+            retries=5
+            until curl -f -s http://localhost:8080 >/dev/null; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Frontend health check failed"
+                sudo docker logs pomodify-frontend
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Frontend is healthy"
+
+            echo "Checking backend health..."
+            retries=5
+            until curl -f -s http://localhost:8081/actuator/health >/dev/null; do
+              retries=$((retries-1))
+              if [ $retries -le 0 ]; then
+                echo "❌ Backend health check failed"
+                sudo docker logs pomodify-backend
+                exit 1
+              fi
+              sleep 5
+            done
+            echo "✅ Backend is healthy"
+
+            # Restart nginx
+            sudo systemctl restart nginx || true
+
+            # Cleanup old images
+            sudo docker image prune -af --filter "until=24h" || true
+
+            echo "✅ Deployment completed successfully!"
+
+  verify-deployment:
+    name: Deployment Summary
+    needs: deploy-to-ec2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show deployment summary
+        run: |
+          echo "════════════════════════════════════════"
+          echo "🎉DEPLOYMENT SUCCESSFUL!"
+          echo "════════════════════════════════════════"
+          echo "Frontend: http://localhost:8080"
+          echo "Backend:  http://localhost:8081"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Deployed by: ${{ github.actor }}"
+          echo "Deployed at: $(date -u)"
+          echo "════════════════════════════════════════"
