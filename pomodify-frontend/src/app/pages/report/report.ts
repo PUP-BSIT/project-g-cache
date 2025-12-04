@@ -5,23 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
-
-type Session = {
-  id: string;
-  focusTimeMinutes: number;
-  breakTimeMinutes: number;
-  note?: string;
-  createdAt: string;
-  type?: 'classic' | 'freestyle';
-  status?: 'completed' | 'progressing';
-};
-
-type Activity = {
-  id: string;
-  name: string;
-  icon: string;
-  sessions?: Session[];
-};
+import { ReportService, SummaryItem } from '../../core/services/report.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -34,7 +18,7 @@ type FocusPoint = {
   hours: number;
   percentage: number;
   dateKey?: string;
-  activities?: ActivityBreakdown[];
+  activities: ActivityBreakdown[];
 };
 
 type ActivityRank = {
@@ -64,12 +48,10 @@ export class Report implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);
+  private reportService = inject(ReportService);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
-
-  // Mock activities and sessions (no persistence)
-  private readonly activities = signal<Activity[]>([]);
 
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
@@ -86,9 +68,11 @@ export class Report implements OnInit {
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  protected readonly activityRanking = signal<ActivityRank[]>([]);
+  protected readonly focusProjects = signal<FocusProject[]>([]);
+
   ngOnInit(): void {
-    this.seedMockData();
-    this.recalculateAll();
+    this.loadSummary(this.selectedRange());
   }
 
   // Toggle sidebar
@@ -134,7 +118,6 @@ export class Report implements OnInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          console.log('Profile updated:', result);
           // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
@@ -148,84 +131,22 @@ export class Report implements OnInit {
     return 'year';
   });
 
-  protected readonly activityRanking = computed<ActivityRank[]>(() => {
-    const all = this.activities();
-    const ranks: ActivityRank[] = [];
-
-    all.forEach((activity) => {
-      const sessions = activity.sessions ?? [];
-      if (!sessions.length) return;
-
-      const totalMinutes = sessions.reduce(
-        (sum, session) => sum + (session.focusTimeMinutes ?? 0),
-        0,
-      );
-
-      if (totalMinutes <= 0) return;
-
-      ranks.push({
-        id: activity.id,
-        name: activity.name,
-        icon: activity.icon,
-        totalHours: totalMinutes / 60,
-        sessions: sessions.length,
-      });
-    });
-
-    return ranks
-      .sort((a, b) => b.totalHours - a.totalHours);
-  });
-
-  // Projects list under the chart for the current range
-  protected readonly focusProjects = computed<FocusProject[]>(() => {
-    const activities = this.activities();
-    const range = this.selectedRange();
-    const now = new Date();
-
-    const result: FocusProject[] = [];
-
-    activities.forEach((activity) => {
-      const sessions = activity.sessions ?? [];
-      let totalMinutes = 0;
-
-      sessions.forEach((session) => {
-        const createdAt = new Date(session.createdAt);
-        if (this.isInCurrentRange(createdAt, range, now)) {
-          totalMinutes += session.focusTimeMinutes ?? 0;
-        }
-      });
-
-      if (totalMinutes > 0) {
-        result.push({
-          id: activity.id,
-          name: activity.name,
-          totalMinutes,
-        });
-      }
-    });
-
-    // Sort by total minutes descending
-    return result.sort((a, b) => b.totalMinutes - a.totalMinutes);
-  });
-
   protected setRange(range: RangeKey): void {
     if (this.selectedRange() === range) return;
     this.selectedRange.set(range);
-    this.rebuildSeries();
+    this.loadSummary(range);
   }
 
   protected onCompletedFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
     this.completedFocusChecked.set(input.checked);
-    this.recalculateAll();
   }
 
   protected onProgressingFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
     this.progressingFocusChecked.set(input.checked);
-    this.recalculateAll();
   }
 
   protected onBarHover(point: FocusPoint, event: MouseEvent): void {
@@ -241,420 +162,104 @@ export class Report implements OnInit {
     this.tooltipData.set(null);
   }
 
-  // --- Mock data & calculations ---
-  private seedMockData(): void {
-    const today = new Date();
-
-    const daysAgo = (n: number) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - n);
-      return d.toISOString();
-    };
-
-    const activities: Activity[] = [
-      {
-        id: 'app-dev',
-        name: 'App Development',
-        icon: '💻',
-        sessions: [
-          { id: 's1', focusTimeMinutes: 90, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
-          { id: 's2', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
-          { id: 's3', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'completed' },
-          { id: 's16', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'classic', status: 'completed' },
-        ],
+  private loadSummary(range: RangeKey): void {
+    this.reportService.getSummary(range).subscribe({
+      next: (summary) => this.updateFromSummary(summary),
+      error: () => {
+        this.totalFocusHours.set(0);
+        this.dailyAverageFocusHours.set(0);
+        this.streakDays.set(0);
+        this.focusSeries.set([]);
+        this.currentRangeTotalHours.set(0);
+        this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
+        this.activityRanking.set([]);
+        this.focusProjects.set([]);
       },
-      {
-        id: 'study',
-        name: 'Study',
-        icon: '📘',
-        sessions: [
-          { id: 's4', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'freestyle', status: 'completed' },
-          { id: 's5', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
-          { id: 's17', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'classic', status: 'progressing' },
-        ],
-      },
-      {
-        id: 'uncategories',
-        name: 'Uncategory',
-        icon: '☕',
-        sessions: [
-          { id: 's6', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
-          { id: 's18', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'writing',
-        name: 'Writing Notes',
-        icon: '📝',
-        sessions: [
-          { id: 's7', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
-          { id: 's8', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(2), type: 'freestyle', status: 'progressing' },
-          { id: 's19', focusTimeMinutes: 25, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'classic', status: 'completed' },
-        ],
-      },
-      {
-        id: 'design',
-        name: 'UI Design',
-        icon: '🎨',
-        sessions: [
-          { id: 's9', focusTimeMinutes: 105, breakTimeMinutes: 10, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
-          { id: 's20', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'exercise',
-        name: 'Exercise',
-        icon: '🏃',
-        sessions: [
-          { id: 's10', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
-          { id: 's21', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'classic', status: 'completed' },
-        ],
-      },
-      {
-        id: 'reading',
-        name: 'Reading',
-        icon: '📚',
-        sessions: [
-          { id: 's11', focusTimeMinutes: 75, breakTimeMinutes: 10, createdAt: daysAgo(2), type: 'classic', status: 'completed' },
-          { id: 's22', focusTimeMinutes: 50, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'planning',
-        name: 'Planning',
-        icon: '🧠',
-        sessions: [
-          { id: 's12', focusTimeMinutes: 45, breakTimeMinutes: 10, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
-          { id: 's23', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'research',
-        name: 'Research',
-        icon: '🔍',
-        sessions: [
-          { id: 's13', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
-          { id: 's24', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'meeting',
-        name: 'Team Meeting',
-        icon: '👥',
-        sessions: [
-          { id: 's14', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(1), type: 'classic', status: 'completed' },
-          { id: 's15', focusTimeMinutes: 45, breakTimeMinutes: 5, createdAt: daysAgo(3), type: 'freestyle', status: 'completed' },
-          { id: 's25', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(5), type: 'classic', status: 'progressing' },
-        ],
-      },
-      {
-        id: 'deep-work',
-        name: 'Deep Work',
-        icon: '🧩',
-        sessions: [
-          { id: 's26', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(2), type: 'classic', status: 'completed' },
-          { id: 's27', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'freestyle', status: 'completed' },
-        ],
-      },
-      {
-        id: 'learning',
-        name: 'Learning & Courses',
-        icon: '🎓',
-        sessions: [
-          { id: 's28', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
-          { id: 's29', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(6), type: 'freestyle', status: 'completed' },
-        ],
-      },
-    ];
-
-    this.activities.set(activities);
-  }
-
-  private recalculateAll(): void {
-    const allSessions = this.collectAllSessions();
-    this.computeSummaryMetrics(allSessions);
-    this.rebuildSeries(allSessions);
-  }
-
-  private collectAllSessions(): Session[] {
-    const list: Session[] = [];
-    this.activities().forEach((activity) => {
-      (activity.sessions ?? []).forEach((session) => list.push(session));
     });
-    return list;
   }
 
-  private computeSummaryMetrics(sessions: Session[]): void {
-    if (!sessions.length) {
-      this.totalFocusHours.set(0);
-      this.dailyAverageFocusHours.set(0);
-      this.streakDays.set(0);
-      return;
-    }
+  private updateFromSummary(summary: SummaryItem): void {
+    const metrics = summary.metrics;
+    const chartData = summary.chartData;
+    const topActivities = summary.topActivities ?? [];
 
-    const totalMinutes = sessions.reduce(
-      (sum, session) => sum + (session.focusTimeMinutes ?? 0),
-      0,
-    );
-    const totalHours = totalMinutes / 60;
-    this.totalFocusHours.set(totalHours);
+    const focusHours = chartData?.datasets?.focus ?? [];
+    const totalHours = focusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
-    const dayKeys = new Set<string>();
-    sessions.forEach((session) => {
-      const key = this.toDayKey(new Date(session.createdAt));
-      dayKeys.add(key);
-    });
+    this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
 
-    const dayCount = dayKeys.size;
-    const averageHours = dayCount ? totalHours / dayCount : 0;
-    this.dailyAverageFocusHours.set(averageHours);
-    this.streakDays.set(this.computeDayStreak(dayKeys));
-  }
+    const labelCount = chartData?.labels?.length || 1;
+    this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
 
-  private rebuildSeries(allSessions?: Session[]): void {
-    let sessions = allSessions ?? this.collectAllSessions();
-    const range = this.selectedRange();
-    
-    // Apply filtering only for the chart
-    // If both unchecked or both checked → show all
-    // If only one checked → show only that type
-    const completed = this.completedFocusChecked();
-    const progressing = this.progressingFocusChecked();
-    
-    // Only filter if exactly one checkbox is checked
-    if (completed !== progressing) {
-      if (completed) {
-        // Only completed checked
-        sessions = sessions.filter((session) => session.status === 'completed');
-      } else {
-        // Only progressing checked
-        sessions = sessions.filter((session) => session.status === 'progressing');
+    // Compute a simple "streak" based on consecutive non-zero points from the end
+    let streak = 0;
+    for (let i = focusHours.length - 1; i >= 0; i--) {
+      const v = focusHours[i] ?? 0;
+      if (v > 0) {
+        streak += 1;
+      } else if (streak > 0) {
+        break;
       }
     }
-    // If both checked or both unchecked, show all (no filtering)
+    this.streakDays.set(streak);
 
-    if (!sessions.length) {
+    const points: FocusPoint[] =
+      (chartData?.labels ?? []).map((label, index) => ({
+        label,
+        hours: focusHours[index] ?? 0,
+        percentage: 0,
+        activities: [],
+      })) ?? [];
+
+    this.rebuildSeries(points);
+
+    // Current range total hours (already computed from focusHours)
+    this.currentRangeTotalHours.set(totalHours);
+
+    // Map top activities to ranking and focus projects
+    const ranking: ActivityRank[] = topActivities.map((activity) => ({
+      id: activity.name,
+      name: activity.name,
+      icon: '',
+      totalHours: (activity.totalDurationMinutes ?? 0) / 60,
+      sessions: activity.sessionCount ?? 0,
+    }));
+
+    const projects: FocusProject[] = topActivities.map((activity) => ({
+      id: activity.name,
+      name: activity.name,
+      totalMinutes: activity.totalDurationMinutes ?? 0,
+    }));
+
+    this.activityRanking.set(ranking);
+    this.focusProjects.set(projects);
+  }
+
+  private rebuildSeries(points: FocusPoint[]): void {
+    if (!points.length) {
       this.focusSeries.set([]);
       this.currentRangeTotalHours.set(0);
       this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
       return;
     }
 
-    const now = new Date();
+    const maxHours = Math.max(...points.map((p) => p.hours), 0.5);
+    const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
 
-    if (range === 'week') {
-      const points: FocusPoint[] = [];
-      let rangeTotalMinutes = 0;
-
-      // Current week: Monday -> Sunday
-      const startOfWeek = new Date(now);
-      const dayOfWeek = startOfWeek.getDay(); // 0 (Sun) - 6 (Sat)
-      const diffToMonday = (dayOfWeek + 6) % 7; // converts so Monday is 0
-      startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
-
-      for (let offset = 0; offset < 7; offset++) {
-        const day = new Date(startOfWeek);
-        day.setDate(startOfWeek.getDate() + offset);
-        const key = this.toDayKey(day);
-        const label = day.toLocaleDateString(undefined, { weekday: 'short' }); // Mon, Tue ... Sun
-
-        const daySessions = sessions.filter((s) => this.toDayKey(new Date(s.createdAt)) === key);
-        const minutes = daySessions.reduce((sum, s) => sum + (s.focusTimeMinutes ?? 0), 0);
-        rangeTotalMinutes += minutes;
-
-        // Calculate activity breakdown for tooltip
-        const activityMap = new Map<string, ActivityBreakdown>();
-        daySessions.forEach((session) => {
-          const activity = this.activities().find((a) => 
-            a.sessions?.some((s) => s.id === session.id)
-          );
-          if (!activity) return;
-
-          const breakdown = activityMap.get(activity.id) || {
-            activityName: activity.name,
-            hours: 0,
-            sessions: 0,
-          };
-
-          const hours = (session.focusTimeMinutes ?? 0) / 60;
-          breakdown.hours += hours;
-          breakdown.sessions += 1;
-
-          activityMap.set(activity.id, breakdown);
-        });
-
-        points.push({
-          label,
-          hours: minutes / 60,
-          percentage: 0, // temporary, updated below
-          dateKey: key,
-          activities: Array.from(activityMap.values()),
-        });
-      }
-
-      const maxHours = Math.max(...points.map((p) => p.hours), 0.5);
-      const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
-
-      const normalized = points.map((p) => ({
-        ...p,
-        percentage: p.hours <= 0 ? 4 : Math.max((p.hours / chartMax) * 100, 6),
-      }));
-
-      this.focusSeries.set(normalized);
-      this.currentRangeTotalHours.set(rangeTotalMinutes / 60);
-
-      const ticks: number[] = [];
-      const step = chartMax / 4;
-      for (let i = 0; i <= 4; i++) {
-        const value = +(i * step).toFixed(1);
-        ticks.push(value);
-      }
-      this.chartTicks.set(ticks);
-      return;
-    }
-
-    if (range === 'month') {
-      // Months of the current year: Jan -> Dec
-      const currentYear = now.getFullYear();
-      const points: FocusPoint[] = [];
-      let rangeTotalMinutes = 0;
-
-      for (let month = 0; month < 12; month++) {
-        const start = new Date(currentYear, month, 1);
-        const end = new Date(currentYear, month + 1, 0);
-
-        const minutes = sessions
-          .filter((s) => {
-            const d = new Date(s.createdAt);
-            return d >= start && d <= end;
-          })
-          .reduce((sum, s) => sum + (s.focusTimeMinutes ?? 0), 0);
-
-        rangeTotalMinutes += minutes;
-
-        points.push({
-          label: start.toLocaleDateString(undefined, { month: 'short' }),
-          hours: minutes / 60,
-          percentage: 0,
-        });
-      }
-
-      const maxHours = Math.max(...points.map((p) => p.hours), 1);
-      const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
-
-      const normalized = points.map((p) => ({
-        ...p,
-        percentage: p.hours <= 0 ? 4 : Math.max((p.hours / chartMax) * 100, 8),
-      }));
-
-      this.focusSeries.set(normalized);
-      this.currentRangeTotalHours.set(rangeTotalMinutes / 60);
-
-      const ticks: number[] = [];
-      const step = chartMax / 4;
-      for (let i = 0; i <= 4; i++) {
-        const value = +(i * step).toFixed(1);
-        ticks.push(value);
-      }
-      this.chartTicks.set(ticks);
-      return;
-    }
-
-    // year range - group by year (e.g. 2023, 2024)
-    const yearsSet = new Set<number>();
-    sessions.forEach((s) => {
-      const d = new Date(s.createdAt);
-      yearsSet.add(d.getFullYear());
-    });
-
-    const years = Array.from(yearsSet.values()).sort((a, b) => a - b);
-    const yearPoints: FocusPoint[] = [];
-    let totalMinutesAllYears = 0;
-
-    years.forEach((year) => {
-      const start = new Date(year, 0, 1);
-      const end = new Date(year, 11, 31, 23, 59, 59, 999);
-
-      const minutes = sessions
-        .filter((s) => {
-          const d = new Date(s.createdAt);
-          return d >= start && d <= end;
-        })
-        .reduce((sum, s) => sum + (s.focusTimeMinutes ?? 0), 0);
-
-      totalMinutesAllYears += minutes;
-
-      yearPoints.push({
-        label: year.toString(),
-        hours: minutes / 60,
-        percentage: 0,
-      });
-    });
-
-    const maxYearHours = Math.max(...yearPoints.map((p) => p.hours), 1);
-    const yearChartMax = Math.max(Math.ceil(maxYearHours * 1.2 * 2) / 2, 1);
-
-    const normalizedYears = yearPoints.map((p) => ({
+    const normalized = points.map((p) => ({
       ...p,
-      percentage: p.hours <= 0 ? 4 : Math.max((p.hours / yearChartMax) * 100, 8),
+      percentage: p.hours <= 0 ? 4 : Math.max((p.hours / chartMax) * 100, 6),
     }));
 
-    this.focusSeries.set(normalizedYears);
-    this.currentRangeTotalHours.set(totalMinutesAllYears / 60);
+    this.focusSeries.set(normalized);
 
-    const yearTicks: number[] = [];
-    const yearStep = yearChartMax / 4;
+    const ticks: number[] = [];
+    const step = chartMax / 4;
     for (let i = 0; i <= 4; i++) {
-      const value = +(i * yearStep).toFixed(1);
-      yearTicks.push(value);
+      const value = +(i * step).toFixed(1);
+      ticks.push(value);
     }
-    this.chartTicks.set(yearTicks);
-  }
-
-  private toDayKey(date: Date): string {
-    return `${date.getFullYear()}-${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-  }
-
-  private computeDayStreak(dayKeys: Set<string>): number {
-    if (!dayKeys.size) return 0;
-
-    // start from the most recent day that has a session
-    const sorted = Array.from(dayKeys.values()).sort();
-    let current = sorted[sorted.length - 1];
-
-    let streak = 0;
-    // Walk backwards while consecutive days exist in the set
-    while (dayKeys.has(current)) {
-      streak += 1;
-      const [year, month, day] = current.split('-').map((v) => parseInt(v, 10));
-      const d = new Date(year, month - 1, day);
-      d.setDate(d.getDate() - 1);
-      current = this.toDayKey(d);
-    }
-
-    return streak;
-  }
-
-  private isInCurrentRange(date: Date, range: RangeKey, now: Date): boolean {
-    if (range === 'week') {
-      const startOfWeek = new Date(now);
-      const dayOfWeek = startOfWeek.getDay();
-      const diffToMonday = (dayOfWeek + 6) % 7;
-      startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      return date >= startOfWeek && date <= endOfWeek;
-    }
-
-    if (range === 'month') {
-      const year = now.getFullYear();
-      return date.getFullYear() === year;
-    }
-
-    // year range: include all sessions across all years
-    return true;
+    this.chartTicks.set(ticks);
   }
 
   protected formatMinutes(totalMinutes: number): string {
