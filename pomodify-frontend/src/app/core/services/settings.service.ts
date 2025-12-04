@@ -17,7 +17,6 @@ export interface AppSettings {
   sound: SoundSettings;
   autoStart: AutoStartSettings;
   notifications: boolean;
-  calendarSync: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -32,8 +31,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoStartPomodoros: false,
     countdownSeconds: 3
   },
-  notifications: true,
-  calendarSync: false
+  notifications: true
 };
 
 @Injectable({
@@ -52,7 +50,6 @@ export class SettingsService {
     }
   }
   
-  // Get current settings
   getSettings() {
     return this.settingsSignal();
   }
@@ -62,7 +59,6 @@ export class SettingsService {
     return this.settingsSignal.asReadonly();
   }
   
-  // Update sound settings
   updateSoundSettings(settings: Partial<SoundSettings>) {
     const current = this.settingsSignal();
     const updated = {
@@ -73,7 +69,6 @@ export class SettingsService {
     this.saveSettings(updated);
   }
   
-  // Update auto-start settings
   updateAutoStartSettings(settings: Partial<AutoStartSettings>) {
     const current = this.settingsSignal();
     const updated = {
@@ -83,8 +78,7 @@ export class SettingsService {
     this.settingsSignal.set(updated);
     this.saveSettings(updated);
   }
-  
-  // Update general settings
+
   updateSettings(settings: Partial<AppSettings>) {
     const current = this.settingsSignal();
     const updated = { ...current, ...settings };
@@ -92,7 +86,6 @@ export class SettingsService {
     this.saveSettings(updated);
   }
   
-  // Play notification sound
   playSound(type?: 'bell' | 'chime' | 'digital' | 'soft') {
     const settings = this.settingsSignal();
     if (!settings.sound.enabled) return;
@@ -104,7 +97,6 @@ export class SettingsService {
     audio.play().catch(err => console.warn('Could not play sound:', err));
   }
   
-  // Play tick sound (for timer)
   playTickSound() {
     const settings = this.settingsSignal();
     if (!settings.sound.enabled || !settings.sound.tickSound) return;
@@ -120,7 +112,6 @@ export class SettingsService {
     this.saveSettings(DEFAULT_SETTINGS);
   }
   
-  // Private methods
   private loadSettings(): AppSettings {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
       return DEFAULT_SETTINGS;

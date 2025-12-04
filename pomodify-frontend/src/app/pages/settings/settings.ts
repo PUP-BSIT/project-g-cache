@@ -7,6 +7,7 @@ import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
+import { FcmService } from '../../core/services/fcm.service';
 
 @Component({
   selector: 'app-settings',
@@ -17,12 +18,16 @@ import { SettingsService } from '../../core/services/settings.service';
 })
 export class Settings {
   private settingsService = inject(SettingsService);
+  private fcmService = inject(FcmService);
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
   // Get settings from service
   protected settings = this.settingsService.getSettingsSignal();
+  
+  // FCM state
+  protected fcmState = this.fcmService.getState();
   
   constructor(
     private dialog: MatDialog,
@@ -32,31 +37,24 @@ export class Settings {
     // Initialize theme state
     this.updateThemeState();
   }
-  
-  // Sound Settings
+
   protected soundEnabled = signal(this.settings().sound.enabled);
   protected soundType = signal(this.settings().sound.type);
   protected volume = signal(this.settings().sound.volume);
   protected tickSoundEnabled = signal(this.settings().sound.tickSound);
 
-  // Auto-Start Settings
   protected autoStartBreaks = signal(this.settings().autoStart.autoStartBreaks);
   protected autoStartPomodoros = signal(this.settings().autoStart.autoStartPomodoros);
 
-  // Other Settings
   protected notificationsEnabled = signal(this.settings().notifications);
-  protected calendarSyncEnabled = signal(this.settings().calendarSync);
 
-  // Modal state
   protected showDeleteModal = signal(false);
   protected showSuccessModal = signal(false);
   protected showClearSessionsModal = signal(false);
   protected showClearActivitiesModal = signal(false);
 
-  // Theme state
   protected isDarkMode = signal(false);
 
-  // Sound types for dropdown
   protected soundTypes = [
     { value: 'bell', label: 'Bell' },
     { value: 'chime', label: 'Chime' },
@@ -64,7 +62,6 @@ export class Settings {
     { value: 'soft', label: 'Soft Ding' }
   ];
 
-  // Toggle sidebar
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
@@ -119,18 +116,33 @@ export class Settings {
     this.settingsService.updateAutoStartSettings({ autoStartPomodoros: this.autoStartPomodoros() });
   }
 
-  // Other Settings Methods
-  protected toggleNotifications(): void {
-    this.notificationsEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ notifications: this.notificationsEnabled() });
+  // Push Notification Methods
+  protected async toggleNotifications(): Promise<void> {
+    const currentlyEnabled = this.notificationsEnabled();
+    
+    if (!currentlyEnabled) {
+      // User wants to enable notifications
+      const token = await this.fcmService.requestPermission();
+      if (token) {
+        this.notificationsEnabled.set(true);
+        this.settingsService.updateSettings({ notifications: true });
+      } else {
+        // Permission denied or error
+        this.notificationsEnabled.set(false);
+        this.settingsService.updateSettings({ notifications: false });
+      }
+    } else {
+      // User wants to disable notifications
+      await this.fcmService.deleteToken();
+      this.notificationsEnabled.set(false);
+      this.settingsService.updateSettings({ notifications: false });
+    }
   }
 
-  protected toggleCalendarSync(): void {
-    this.calendarSyncEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ calendarSync: this.calendarSyncEnabled() });
+  protected async testNotification(): Promise<void> {
+    await this.fcmService.sendTestNotification();
   }
 
-  // Handle navigation icon click
   protected onNavIconClick(event: MouseEvent, route: string): void {
     if (this.router.url === route) {
       event.preventDefault();
@@ -139,7 +151,6 @@ export class Settings {
     }
   }
 
-  // Collapse sidebar when clicking main content
   protected onMainContentClick(): void {
     if (this.sidebarExpanded()) {
       this.sidebarExpanded.set(false);
@@ -150,7 +161,6 @@ export class Settings {
     this.auth.logout();
   }
 
-  // Open profile modal using MatDialog to match other pages
   protected openProfileModal(): void {
     this.dialog
       .open(Profile, {
@@ -178,7 +188,6 @@ export class Settings {
     this.showSuccessModal.set(false);
   }
 
-  // Delete account
   protected onDeleteAccount(): void {
     this.showDeleteModal.set(true);
   }
@@ -195,7 +204,6 @@ export class Settings {
     this.showDeleteModal.set(false);
   }
 
-  // Clear Session History
   protected onClearSessions(): void {
     this.showClearSessionsModal.set(true);
   }
@@ -211,7 +219,6 @@ export class Settings {
     this.showClearSessionsModal.set(false);
   }
 
-  // Clear Activity Data
   protected onClearActivities(): void {
     this.showClearActivitiesModal.set(true);
   }

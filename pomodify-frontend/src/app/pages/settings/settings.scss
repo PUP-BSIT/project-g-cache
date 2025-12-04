@@ -1109,3 +1109,44 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
 }
+
+// Info boxes for notifications
+.info-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+
+  i {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  &.success {
+    background-color: rgba($green, 0.1);
+    color: darken($green, 10%);
+    border: 1px solid rgba($green, 0.3);
+
+    i {
+      color: $green;
+    }
+  }
+
+  &.error {
+    background-color: rgba($red, 0.1);
+    color: darken($red, 10%);
+    border: 1px solid rgba($red, 0.3);
+
+    i {
+      color: $red;
+    }
+  }
+}

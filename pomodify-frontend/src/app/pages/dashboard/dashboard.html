@@ -78,6 +78,10 @@
   <main class="main-content" (click)="onMainContentClick()">
     <!-- Header -->
     <header class="header">
+      <div class="user-profile">
+        <button class="profile-btn" (click)="openProfileModal()">
+          <i class="fa-solid fa-user"></i>
+        </button>
       <div class="header-left">
         <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
           <i class="fa-solid fa-bars"></i>
