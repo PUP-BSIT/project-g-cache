@@ -25,10 +25,8 @@ type Activity = {
 
 type ActivityBreakdown = {
   activityName: string;
-  classicHours: number;
-  classicSessions: number;
-  freestyleHours: number;
-  freestyleSessions: number;
+  hours: number;
+  sessions: number;
 };
 
 type FocusPoint = {
@@ -37,8 +35,6 @@ type FocusPoint = {
   percentage: number;
   dateKey?: string;
   activities?: ActivityBreakdown[];
-  classicHours?: number;
-  freestyleHours?: number;
 };
 
 type ActivityRank = {
@@ -47,8 +43,6 @@ type ActivityRank = {
   icon: string;
   totalHours: number;
   sessions: number;
-  hasClassic: boolean;
-  hasFreestyle: boolean;
 };
 
 type RangeKey = 'week' | 'month' | 'year';
@@ -57,8 +51,6 @@ type FocusProject = {
   id: string;
   name: string;
   totalMinutes: number;
-  hasClassic: boolean;
-  hasFreestyle: boolean;
 };
 
 @Component({
@@ -93,7 +85,6 @@ export class Report implements OnInit {
   protected readonly progressingFocusChecked = signal(false);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
-  protected readonly selectedPomodoroType = signal<'all' | 'classic' | 'freestyle'>('all');
 
   ngOnInit(): void {
     this.seedMockData();
@@ -172,17 +163,12 @@ export class Report implements OnInit {
 
       if (totalMinutes <= 0) return;
 
-      const hasClassic = sessions.some((s) => s.type === 'classic');
-      const hasFreestyle = sessions.some((s) => s.type === 'freestyle');
-
       ranks.push({
         id: activity.id,
         name: activity.name,
         icon: activity.icon,
         totalHours: totalMinutes / 60,
         sessions: sessions.length,
-        hasClassic,
-        hasFreestyle,
       });
     });
 
@@ -201,15 +187,11 @@ export class Report implements OnInit {
     activities.forEach((activity) => {
       const sessions = activity.sessions ?? [];
       let totalMinutes = 0;
-      let hasClassic = false;
-      let hasFreestyle = false;
 
       sessions.forEach((session) => {
         const createdAt = new Date(session.createdAt);
         if (this.isInCurrentRange(createdAt, range, now)) {
           totalMinutes += session.focusTimeMinutes ?? 0;
-          if (session.type === 'classic') hasClassic = true;
-          if (session.type === 'freestyle') hasFreestyle = true;
         }
       });
 
@@ -218,8 +200,6 @@ export class Report implements OnInit {
           id: activity.id,
           name: activity.name,
           totalMinutes,
-          hasClassic,
-          hasFreestyle,
         });
       }
     });
@@ -259,18 +239,6 @@ export class Report implements OnInit {
 
   protected onBarLeave(): void {
     this.tooltipData.set(null);
-  }
-
-  protected onPomodoroTypeClick(type: 'classic' | 'freestyle'): void {
-    const current = this.selectedPomodoroType();
-    if (current === type) {
-      // Clicking the same type again shows all
-      this.selectedPomodoroType.set('all');
-    } else {
-      // Clicking a different type filters to that type
-      this.selectedPomodoroType.set(type);
-    }
-    this.rebuildSeries();
   }
 
   // --- Mock data & calculations ---
@@ -379,6 +347,24 @@ export class Report implements OnInit {
           { id: 's25', focusTimeMinutes: 30, breakTimeMinutes: 5, createdAt: daysAgo(5), type: 'classic', status: 'progressing' },
         ],
       },
+      {
+        id: 'deep-work',
+        name: 'Deep Work',
+        icon: '🧩',
+        sessions: [
+          { id: 's26', focusTimeMinutes: 120, breakTimeMinutes: 10, createdAt: daysAgo(2), type: 'classic', status: 'completed' },
+          { id: 's27', focusTimeMinutes: 90, breakTimeMinutes: 5, createdAt: daysAgo(4), type: 'freestyle', status: 'completed' },
+        ],
+      },
+      {
+        id: 'learning',
+        name: 'Learning & Courses',
+        icon: '🎓',
+        sessions: [
+          { id: 's28', focusTimeMinutes: 75, breakTimeMinutes: 5, createdAt: daysAgo(0), type: 'classic', status: 'completed' },
+          { id: 's29', focusTimeMinutes: 60, breakTimeMinutes: 5, createdAt: daysAgo(6), type: 'freestyle', status: 'completed' },
+        ],
+      },
     ];
 
     this.activities.set(activities);
@@ -446,12 +432,6 @@ export class Report implements OnInit {
       }
     }
     // If both checked or both unchecked, show all (no filtering)
-    
-    // Filter by pomodoro type if selected
-    const pomodoroType = this.selectedPomodoroType();
-    if (pomodoroType !== 'all') {
-      sessions = sessions.filter((session) => session.type === pomodoroType);
-    }
 
     if (!sessions.length) {
       this.focusSeries.set([]);
@@ -492,34 +472,15 @@ export class Report implements OnInit {
 
           const breakdown = activityMap.get(activity.id) || {
             activityName: activity.name,
-            classicHours: 0,
-            classicSessions: 0,
-            freestyleHours: 0,
-            freestyleSessions: 0,
+            hours: 0,
+            sessions: 0,
           };
 
-          const hours = session.focusTimeMinutes / 60;
-          if (session.type === 'classic') {
-            breakdown.classicHours += hours;
-            breakdown.classicSessions += 1;
-          } else if (session.type === 'freestyle') {
-            breakdown.freestyleHours += hours;
-            breakdown.freestyleSessions += 1;
-          }
+          const hours = (session.focusTimeMinutes ?? 0) / 60;
+          breakdown.hours += hours;
+          breakdown.sessions += 1;
 
           activityMap.set(activity.id, breakdown);
-        });
-
-        // Calculate classic and freestyle hours separately
-        let classicMinutes = 0;
-        let freestyleMinutes = 0;
-        daySessions.forEach((session) => {
-          const sessionMinutes = session.focusTimeMinutes ?? 0;
-          if (session.type === 'classic') {
-            classicMinutes += sessionMinutes;
-          } else if (session.type === 'freestyle') {
-            freestyleMinutes += sessionMinutes;
-          }
         });
 
         points.push({
@@ -528,8 +489,6 @@ export class Report implements OnInit {
           percentage: 0, // temporary, updated below
           dateKey: key,
           activities: Array.from(activityMap.values()),
-          classicHours: classicMinutes / 60,
-          freestyleHours: freestyleMinutes / 60,
         });
       }
 

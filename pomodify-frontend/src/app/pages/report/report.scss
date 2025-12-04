@@ -343,7 +343,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 // Report Content / Layout
 .report-content {
-  padding: 32px 40px 40px;
+  padding: 32px 40px 25px;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -539,7 +539,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   &.freestyle {
-    background: #FF8C42;
+    background: $primary-teal-dark;
   }
 }
 
@@ -708,7 +708,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   &.freestyle {
-    background: linear-gradient(180deg, #FF8C42, #E6732F);
+    background: linear-gradient(180deg, $primary-teal-light, $primary-teal-dark);
   }
 }
 
@@ -770,7 +770,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   &.freestyle {
-    background: #FF8C42;
+    background: $primary-teal-dark;
   }
   
   &.both {
@@ -794,7 +794,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #FF8C42;
+      background: $primary-teal-dark;
     }
   }
 }
@@ -893,7 +893,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .ranking-panel {
   background: $bg-white;
   border-radius: 18px;
-  padding: 24px 24px 10px 28px;
+  padding: 24px 24px 25px 28px;
   box-shadow: $card-shadow;
   display: flex;
   flex-direction: column;
@@ -909,12 +909,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .ranking-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   margin-top: 0;
-  // Exactly 9 rows fit without scrollbar, scrollbar appears only when rows exceed 9 (10+ rows)
-  // Each row: ~60px (padding 20px + content ~40px) + 8 gaps × 10px = ~620px
-  // Adding buffer to ensure 9 rows fit comfortably without scrollbar
-  max-height: calc(9 * 60px + 8 * 10px + 10px);
+  max-height: calc(11 * 60px + 10 * 10px + 10px);
   overflow-y: auto;
 
   &::-webkit-scrollbar {

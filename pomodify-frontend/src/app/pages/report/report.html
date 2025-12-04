@@ -159,17 +159,9 @@
 
           <div class="focus-meta">
             <div class="legend-items-group">
-              <div class="legend-item clickable" 
-                   [class.active]="selectedPomodoroType() === 'classic'"
-                   (click)="onPomodoroTypeClick('classic')">
+              <div class="legend-item">
                 <span class="legend-swatch classic"></span>
-                <span class="legend-label">Classic</span>
-              </div>
-              <div class="legend-item clickable"
-                   [class.active]="selectedPomodoroType() === 'freestyle'"
-                   (click)="onPomodoroTypeClick('freestyle')">
-                <span class="legend-swatch freestyle"></span>
-                <span class="legend-label">Freestyle</span>
+                <span class="legend-label">Focus time</span>
               </div>
             </div>
             <div class="total-meta">
@@ -210,14 +202,7 @@
                 <div class="tooltip-divider"></div>
                 @for (activity of tooltipData()!.activities; track activity.activityName) {
                   <div class="tooltip-activity">
-                    @if (activity.classicSessions > 0 && activity.freestyleSessions > 0) {
-                      <div>• {{ activity.activityName }} (Classic): {{ activity.classicHours | number: '1.0-1' }}h ({{ activity.classicSessions }} session{{ activity.classicSessions !== 1 ? 's' : '' }})</div>
-                      <div>• {{ activity.activityName }} (Freestyle): {{ activity.freestyleHours | number: '1.0-1' }}h ({{ activity.freestyleSessions }} session{{ activity.freestyleSessions !== 1 ? 's' : '' }})</div>
-                    } @else if (activity.classicSessions > 0) {
-                      <div>• {{ activity.activityName }} (Classic): {{ activity.classicHours | number: '1.0-1' }}h ({{ activity.classicSessions }} session{{ activity.classicSessions !== 1 ? 's' : '' }})</div>
-                    } @else if (activity.freestyleSessions > 0) {
-                      <div>• {{ activity.activityName }} (Freestyle): {{ activity.freestyleHours | number: '1.0-1' }}h ({{ activity.freestyleSessions }} session{{ activity.freestyleSessions !== 1 ? 's' : '' }})</div>
-                    }
+                    <div>• {{ activity.activityName }}: {{ activity.hours | number: '1.0-1' }}h ({{ activity.sessions }} session{{ activity.sessions !== 1 ? 's' : '' }})</div>
                   </div>
                 }
               </div>
@@ -240,33 +225,10 @@
                       (mouseenter)="onBarHover(point, $event)"
                       (mouseleave)="onBarLeave()"
                     >
-                      @if (point.classicHours && point.freestyleHours && point.classicHours > 0 && point.freestyleHours > 0) {
-                        <div class="bar-container">
-                          <div
-                            class="bar freestyle"
-                            [style.height.%]="(point.freestyleHours / (point.classicHours + point.freestyleHours)) * point.percentage"
-                          ></div>
-                          <div
-                            class="bar classic"
-                            [style.height.%]="(point.classicHours / (point.classicHours + point.freestyleHours)) * point.percentage"
-                          ></div>
-                        </div>
-                      } @else if (point.classicHours && point.classicHours > 0) {
-                        <div
-                          class="bar classic"
-                          [style.height.%]="point.percentage"
-                        ></div>
-                      } @else if (point.freestyleHours && point.freestyleHours > 0) {
-                        <div
-                          class="bar freestyle"
-                          [style.height.%]="point.percentage"
-                        ></div>
-                      } @else {
-                        <div
-                          class="bar"
-                          [style.height.%]="point.percentage"
-                        ></div>
-                      }
+                      <div
+                        class="bar"
+                        [style.height.%]="point.percentage"
+                      ></div>
                     </div>
                   }
                   <div class="chart-bottom-line"></div>
@@ -291,13 +253,6 @@
                 <div class="focus-project-row">
                   <div class="focus-project-name">
                     {{ project.name }}
-                    @if (project.hasClassic && project.hasFreestyle) {
-                      <span class="pomodoro-indicator both"></span>
-                    } @else if (project.hasClassic) {
-                      <span class="pomodoro-indicator classic"></span>
-                    } @else if (project.hasFreestyle) {
-                      <span class="pomodoro-indicator freestyle"></span>
-                    }
                   </div>
                   <div class="focus-project-time">
                     {{ formatMinutes(project.totalMinutes) }}
@@ -329,13 +284,6 @@
                     <div class="rank-text">
                       <div class="rank-name">
                         {{ item.name }}
-                        @if (item.hasClassic && item.hasFreestyle) {
-                          <span class="pomodoro-indicator both"></span>
-                        } @else if (item.hasClassic) {
-                          <span class="pomodoro-indicator classic"></span>
-                        } @else if (item.hasFreestyle) {
-                          <span class="pomodoro-indicator freestyle"></span>
-                        }
                       </div>
                       <div class="rank-meta">
                         {{ item.totalHours | number: '1.0-1' }} hrs ·
