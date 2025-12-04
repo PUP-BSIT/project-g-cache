@@ -96,8 +96,13 @@ jobs:
 
             # Start frontend container
             echo "Starting frontend container..."
+            # Ensure a user-defined network so containers can resolve each other by name
+            sudo docker network create pomodify-net || true
+
+            echo "Starting frontend container..."
             sudo docker run -d \
               --name pomodify-frontend \
+              --network pomodify-net \
               --restart unless-stopped \
               -p 8080:80 \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest || { echo "❌ Failed to start frontend container"; exit 1; }
@@ -121,6 +126,7 @@ jobs:
             echo "Starting backend container..."
             sudo docker run -d \
               --name pomodify-backend \
+              --network pomodify-net \
               --restart unless-stopped \
               -p 8081:8081 \
               -e SPRING_PROFILES_ACTIVE='prod' \
