@@ -103,7 +103,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // ──────────────── Current User ────────────────
+    // ──────────────── Current User ──────────────q──
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

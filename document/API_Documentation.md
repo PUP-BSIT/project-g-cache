@@ -471,6 +471,519 @@ Status: 200 OK (empty)
 
 ---
 
+# **DASHBOARD**
+
+---
+
+## **16. GET — `/api/v1/dashboard`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+- Header optional: `X-Timezone` (e.g., "Asia/Manila", "UTC"). Defaults to "Asia/Manila".
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "totalCompletedSessions": 10,
+    "totalFocusTime": 36000,
+    "weeklyFocusDistribution": {
+        "MONDAY": 7200,
+        "TUESDAY": 5400,
+        "WEDNESDAY": 9000,
+        "THURSDAY": 3600,
+        "FRIDAY": 10800,
+        "SATURDAY": 0,
+        "SUNDAY": 0
+    },
+    "recentActivities": [
+        {
+            "activityId": 1,
+            "activityTitle": "Develop new feature",
+            "lastSession": {
+                "sessionId": 101,
+                "startTime": "2023-10-27T10:00:00Z",
+                "endTime": "2023-10-27T11:00:00Z",
+                "status": "COMPLETED"
+            }
+        }
+    ]
+}
+```
+
+### **Fail Response**
+
+Status: 401 Unauthorized
+```json
+{ "message": "Unauthorized: invalid user claim" }
+```
+---
+
+# **PUSH NOTIFICATIONS**
+
+---
+
+## **17. POST — `/api/v1/push/register-token`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+- Body:
+```json
+{
+  "token": "<push-notification-token>"
+}
+```
+
+### **Success Response**
+
+Status: 200 OK
+```json
+"Token registered"
+```
+
+### **Fail Response**
+
+Status: 400 Bad Request
+```json
+"Missing token"
+```
+Status: 401 Unauthorized
+```json
+"Unauthorized"
+```
+---
+
+## **18. DELETE — `/api/v1/push/unregister-token`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+"Token unregistered"
+```
+
+### **Fail Response**
+
+Status: 401 Unauthorized
+```json
+"Unauthorized"
+```
+
+---
+
+## **19. GET — `/api/v1/push/status`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "registered": true,
+    "enabled": true
+}
+```
+
+### **Fail Response**
+
+Status: 401 Unauthorized
+```json
+"Unauthorized"
+```
+
+---
+
+## **20. PUT — `/api/v1/push/enable`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+"Push enabled"
+```
+
+### **Fail Response**
+
+Status: 400 Bad Request
+```json
+"No token registered"
+```
+
+---
+
+## **21. PUT — `/api/v1/push/disable`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+"Push disabled"
+```
+
+### **Fail Response**
+
+Status: 400 Bad Request
+```json
+"No token registered"
+```
+
+---
+
+# **SESSIONS**
+
+---
+
+## **22. POST — `/api/v1/activities/{activityId}/sessions`**
+
+### **Request Params**
+
+- Path Param: `activityId`
+- Header required: `Authorization: Bearer <accessToken>`
+- Body:
+```json
+{
+    "sessionType": "POMODORO",
+    "focusTimeInMinutes": 25,
+    "breakTimeInMinutes": 5,
+    "cycles": 4
+}
+```
+
+### **Success Response**
+
+Status: 201 Created
+```json
+{
+    "message": "Session created successfully",
+    "sessions": [
+        {
+            "id": 1,
+            "activityId": 1,
+            "sessionType": "POMODORO",
+            "status": "PENDING",
+            "focusTimeInMinutes": 25,
+            "breakTimeInMinutes": 5,
+            "cycles": 4,
+            "currentPhase": null,
+            "cyclesCompleted": 0,
+            "note": null
+        }
+    ],
+    "currentPage": 0,
+    "totalPages": 1,
+    "totalItems": 1
+}
+```
+
+---
+
+## **23. GET — `/api/v1/activities/{activityId}/sessions`**
+
+### **Request Params**
+
+- Path Param: `activityId`
+- Query Param: `status` (optional)
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Sessions retrieved successfully",
+    "sessions": [ ... ],
+    "currentPage": 0,
+    "totalPages": 1,
+    "totalItems": 2
+}
+```
+---
+
+## **24. GET — `/api/v1/activities/{activityId}/sessions/{id}`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session retrieved successfully",
+    "sessions": [ ... ],
+    "currentPage": 0,
+    "totalPages": 1,
+    "totalItems": 1
+}
+```
+---
+
+## **25. DELETE — `/api/v1/activities/{activityId}/sessions/{id}`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session deleted successfully",
+    "sessions": [],
+    "currentPage": 0,
+    "totalPages": 0,
+    "totalItems": 0
+}
+```
+---
+
+## **26. POST — `/api/v1/activities/{activityId}/sessions/{id}/start`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session started successfully",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **27. POST — `/api/v1/activities/{activityId}/sessions/{id}/pause`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Query Param: `note` (optional)
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session paused successfully",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **28. POST — `/api/v1/activities/{activityId}/sessions/{id}/resume`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session resumed successfully",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **29. POST — `/api/v1/activities/{activityId}/sessions/{id}/stop`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Query Param: `note` (optional)
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session stopped successfully (current cycle invalidated)",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **30. POST — `/api/v1/activities/{activityId}/sessions/{id}/cancel`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session canceled successfully (all cycles invalidated)",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **31. POST — `/api/v1/activities/{activityId}/sessions/{id}/finish`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Query Param: `note` (optional)
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Session finished successfully",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **32. POST — `/api/v1/activities/{activityId}/sessions/{id}/complete-phase`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Query Param: `note` (optional)
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Phase completed: BREAK",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **33. PUT — `/api/v1/activities/{activityId}/sessions/{id}/note`**
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+- Query Param: `note`
+- Header required: `Authorization: Bearer <accessToken>`
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+    "message": "Note updated successfully",
+    "sessions": [ ... ]
+}
+```
+---
+
+## **34. GET — `/api/v1/activities/{activityId}/sessions/{id}/events`**
+
+This endpoint uses Server-Sent Events (SSE) to stream session updates.
+
+### **Request Params**
+
+- Path Params: `activityId`, `id`
+
+### **Events**
+
+- **`connected`**: Sent upon successful connection.
+- **`phase-change`**: Sent when a session's phase changes (e.g., from FOCUS to BREAK).
+
+### **Event Data**
+```json
+{
+    "sessionId": 1,
+    "currentPhase": "BREAK",
+    "cyclesCompleted": 1,
+    "totalCycles": 4,
+    "status": "IN_PROGRESS",
+    "timestamp": "2023-10-27T10:25:00Z"
+}
+```
+
+---
+
+# **REPORTS**
+
+---
+
+## **GET — `/api/reports/summary`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+- Query Param: `range` (optional) — values: `week` (default), `month`/`monthly`, `year`/`yearly`
+
+This endpoint returns aggregated summary data (weekly/monthly/yearly) for the authenticated user. The controller expects a valid JWT with a `user` claim (user id).
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+  "totalCompletedSessions": 42,
+  "totalFocusTime": 123456,
+  "startDate": "2025-11-24",
+  "endDate": "2025-11-30",
+  "distribution": {
+    "MONDAY": 3600,
+    "TUESDAY": 5400,
+    "WEDNESDAY": 7200,
+    "THURSDAY": 1800,
+    "FRIDAY": 9000,
+    "SATURDAY": 0,
+    "SUNDAY": 0
+  },
+  "activities": [
+    {
+      "activityId": 1,
+      "activityTitle": "Study Math",
+      "totalFocusTime": 7200
+    }
+  ]
+}
+```
+
+### **Fail Response**
+
+Status: 401 Unauthorized
+```json
+{ "message": "Unauthorized: invalid user claim" }
+```
+
+
 # **ERROR / FAILURE RESPONSES (GLOBAL)**
 
 The application uses `GlobalExceptionHandler` to standardize errors. Examples:
@@ -495,26 +1008,3 @@ The application uses `GlobalExceptionHandler` to standardize errors. Examples:
 ```json
 { "message": "Unexpected error message" }
 ```
-
----
-
-# **ENDPOINTS LISTED IN ORIGINAL PDF BUT NOT IMPLEMENTED IN THIS REPOSITORY**
-
-(These were present in your PDF spec but there are no matching controllers/DTOs under `pomodify-backend/src/main/java`.)
-
-- Sessions
-  - POST `/start-session`
-  - GET `/get-sessions`
-
-- Notes
-  - POST `/add-note`
-  - PUT `/update-note`
-  - DELETE `/delete-note`
-
-- Reports
-  - GET `/reports-summary`
-  - GET `/reports-activity`
-
-- User profile endpoints from original spec:
-  - PUT `/update-profile`
-  - DELETE `/delete-account`
