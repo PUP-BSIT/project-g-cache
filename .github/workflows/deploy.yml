@@ -121,7 +121,7 @@ jobs:
 
             # Wait for backend to fully start
             echo "Waiting for backend to initialize..."
-            sleep 20  # give Spring Boot enough time
+            sleep 45  # give Spring Boot enough time
 
             # Health check with retries
             echo "Checking frontend health..."
