@@ -119,8 +119,9 @@ jobs:
               -v /app/firebase-key.json:/app/firebase-key.json:ro \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest
 
-            # Wait for containers to start
-            sleep 10
+            # Wait for backend to fully start
+            echo "Waiting for backend to initialize..."
+            sleep 20  # give Spring Boot enough time
 
             # Health check with retries
             echo "Checking frontend health..."
@@ -137,8 +138,8 @@ jobs:
             echo "✅ Frontend is healthy"
 
             echo "Checking backend health..."
-            retries=5
-            until curl -f -s http://localhost:8081/actuator/health >/dev/null; do
+            retries=10
+            until sudo docker exec pomodify-backend curl -f -s http://localhost:8081/actuator/health >/dev/null; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
                 echo "❌ Backend health check failed"
