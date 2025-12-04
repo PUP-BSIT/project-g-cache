@@ -166,9 +166,18 @@ export class Report implements OnInit {
         this.totalFocusHours.set(0);
         this.dailyAverageFocusHours.set(0);
         this.streakDays.set(0);
-        this.focusSeries.set([]);
+        
+        // Generate default labels even when there's an error
+        const labels = this.generateDefaultLabels(range);
+        const points: FocusPoint[] = labels.map((label) => ({
+          label,
+          hours: 0,
+          percentage: 0,
+          activities: [],
+        }));
+        this.rebuildSeries(points);
+        
         this.currentRangeTotalHours.set(0);
-        this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
         this.activityRanking.set([]);
         this.focusProjects.set([]);
       },
@@ -180,17 +189,28 @@ export class Report implements OnInit {
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
 
+    // Generate labels if not provided or empty
+    const labels = chartData?.labels && chartData.labels.length > 0
+      ? chartData.labels
+      : this.generateDefaultLabels(this.selectedRange());
+
     const focusHours = chartData?.datasets?.focus ?? [];
-    const totalHours = focusHours.reduce((sum, value) => sum + (value ?? 0), 0);
+    // Ensure focusHours array matches labels length
+    const paddedFocusHours = [...focusHours];
+    while (paddedFocusHours.length < labels.length) {
+      paddedFocusHours.push(0);
+    }
+    
+    const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
     this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
 
-    const labelCount = chartData?.labels?.length || 1;
+    const labelCount = labels.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
 
     let streak = 0;
-    for (let i = focusHours.length - 1; i >= 0; i--) {
-      const v = focusHours[i] ?? 0;
+    for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
+      const v = paddedFocusHours[i] ?? 0;
       if (v > 0) {
         streak += 1;
       } else if (streak > 0) {
@@ -199,13 +219,12 @@ export class Report implements OnInit {
     }
     this.streakDays.set(streak);
 
-    const points: FocusPoint[] =
-      (chartData?.labels ?? []).map((label, index) => ({
-        label,
-        hours: focusHours[index] ?? 0,
-        percentage: 0,
-        activities: [],
-      })) ?? [];
+    const points: FocusPoint[] = labels.map((label, index) => ({
+      label,
+      hours: paddedFocusHours[index] ?? 0,
+      percentage: 0,
+      activities: [],
+    }));
 
     this.rebuildSeries(points);
 
@@ -301,5 +320,37 @@ export class Report implements OnInit {
       return date.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
     }
     return point.label.toUpperCase();
+  }
+
+  private generateDefaultLabels(range: ReportRange): string[] {
+    if (range === ReportRange.WEEK) {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      
+      const labels: string[] = [];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        labels.push(dayNames[date.getDay()]);
+      }
+      
+      return labels;
+    } else if (range === ReportRange.MONTH) {
+      return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    } else {
+      const startingYear = 2025;
+      const currentYear = new Date().getFullYear();
+      const labels: string[] = [];
+      
+      for (let year = startingYear; year <= currentYear; year++) {
+        labels.push(year.toString());
+      }
+      
+      return labels;
+    }
   }
 }
