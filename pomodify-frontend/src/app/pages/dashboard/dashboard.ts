@@ -20,6 +20,7 @@ import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { IconMapper } from '../../core/services/icon-mapper';
 import { DashboardService } from '../../core/services/dashboard.service';
+import { ActivityService } from '../../core/services/activity.service';
 
 // API Response Types
 export type DashboardMetrics = {
@@ -72,6 +73,7 @@ export class Dashboard implements OnInit {
   private auth = inject(Auth);
   private iconMapper = inject(IconMapper);
   private dashboardService = inject(DashboardService);
+  private activityService = inject(ActivityService);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -103,6 +105,7 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardMetrics();
+    this.loadActivities();
   }
 
   // Load dashboard metrics from API
@@ -125,9 +128,30 @@ export class Dashboard implements OnInit {
     });
   }
 
+  // Load activities from API
+  private loadActivities(): void {
+    this.isLoadingActivities.set(true);
+    this.activitiesError.set(null);
+
+    this.activityService.getAllActivities().subscribe({
+      next: (data) => {
+        this.activities.set(data);
+        this.isLoadingActivities.set(false);
+      },
+      error: (err) => {
+        console.error('Activities loading error:', err);
+        this.activitiesError.set('Failed to load activities.');
+        this.isLoadingActivities.set(false);
+        this.activities.set([]);
+      }
+    });
+  }
+
   // --- State ---
   protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
+  protected readonly isLoadingActivities = signal(false);
+  protected readonly activitiesError = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly selectedCategory = signal<string | null>(null);
   protected readonly currentPage = signal(1);
@@ -238,18 +262,22 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: ActivityData) => {
         if (result) {
-          const newActivity: Activity = {
-            id: Date.now().toString(),
+          this.activityService.createActivity({
             name: result.name,
-            category: result.category || 'General',
+            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
+            category: result.category,
             colorTag: result.colorTag,
             estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0,
-            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
-            lastAccessed: new Date().toISOString(),
-            sessions: [],
-          };
-          this.activities.update((acts) => [...acts, newActivity]);
-          this.selectActivity(newActivity);
+          }).subscribe({
+            next: (newActivity) => {
+              this.activities.update((acts) => [...acts, newActivity]);
+              this.selectActivity(newActivity);
+            },
+            error: (err) => {
+              console.error('Error creating activity:', err);
+              alert('Failed to create activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -267,28 +295,26 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((updated: ActivityData) => {
         if (updated) {
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? {
-                    ...a,
-                    name: updated.name,
-                    category: updated.category || 'General',
-                    colorTag: updated.colorTag,
-                    estimatedHoursPerWeek: updated.estimatedHoursPerWeek || 0,
-                    icon: this.iconMapper.getIconClass(
-                      updated.name,
-                      updated.category || 'General'
-                    ),
-                  }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          this.activityService.updateActivity(activity.id, {
+            name: updated.name,
+            category: updated.category,
+            colorTag: updated.colorTag,
+            estimatedHoursPerWeek: updated.estimatedHoursPerWeek,
+            icon: this.iconMapper.getIconClass(updated.name, updated.category || 'General'),
+          }).subscribe({
+            next: (updatedActivity) => {
+              this.activities.update((acts) =>
+                acts.map((a) => a.id === activity.id ? updatedActivity : a)
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(updatedActivity);
+              }
+            },
+            error: (err) => {
+              console.error('Error updating activity:', err);
+              alert('Failed to update activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -299,10 +325,18 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(null);
-          }
+          this.activityService.deleteActivity(activity.id).subscribe({
+            next: () => {
+              this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(null);
+              }
+            },
+            error: (err) => {
+              console.error('Error deleting activity:', err);
+              alert('Failed to delete activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -313,25 +347,30 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          const newSession: Session = {
-            id: Date.now().toString(),
+          this.activityService.addSession(activity.id, {
             focusTimeMinutes: result.focusTimeMinutes,
             breakTimeMinutes: result.breakTimeMinutes,
             note: result.note,
-            createdAt: new Date().toISOString(),
-          };
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? { ...a, sessions: [...a.sessions, newSession] }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          }).subscribe({
+            next: (newSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? { ...a, sessions: [...a.sessions, newSession as any] }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error adding session:', err);
+              alert('Failed to add session. Please try again.');
+            }
+          });
         }
       });
   }
@@ -348,47 +387,60 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? {
-                    ...a,
-                    sessions: a.sessions.map((s) =>
-                      s.id === session.id
-                        ? {
-                            ...s,
-                            focusTimeMinutes: result.focusTimeMinutes,
-                            breakTimeMinutes: result.breakTimeMinutes,
-                            note: result.note,
-                          }
-                        : s
-                    ),
-                  }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          this.activityService.updateSession(activity.id, session.id, {
+            focusTimeMinutes: result.focusTimeMinutes,
+            breakTimeMinutes: result.breakTimeMinutes,
+            note: result.note,
+          }).subscribe({
+            next: (updatedSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? {
+                        ...a,
+                        sessions: a.sessions.map((s) =>
+                          s.id === session.id ? (updatedSession as any) : s
+                        ),
+                      }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error updating session:', err);
+              alert('Failed to update session. Please try again.');
+            }
+          });
         }
       });
   }
 
   protected deleteSession(activity: Activity, sessionId: string): void {
-    this.activities.update((acts) =>
-      acts.map((a) =>
-        a.id === activity.id
-          ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
-          : a
-      )
-    );
-    if (this.selectedActivity()?.id === activity.id) {
-      this.selectedActivity.set(
-        this.activities().find((a) => a.id === activity.id) || null
-      );
-    }
+    this.activityService.deleteSession(activity.id, sessionId).subscribe({
+      next: () => {
+        this.activities.update((acts) =>
+          acts.map((a) =>
+            a.id === activity.id
+              ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
+              : a
+          )
+        );
+        if (this.selectedActivity()?.id === activity.id) {
+          this.selectedActivity.set(
+            this.activities().find((a) => a.id === activity.id) || null
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting session:', err);
+        alert('Failed to delete session. Please try again.');
+      }
+    });
   }
 
   protected toggleCategory(category: string): void {
