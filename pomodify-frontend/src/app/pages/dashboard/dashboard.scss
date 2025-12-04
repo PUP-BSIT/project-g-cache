@@ -20,8 +20,36 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   min-height: 100vh;
   background-color: $bg-light;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
+  position: relative;
+}
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  animation: fadeIn 0.3s ease;
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-overlay {
+    display: block;
+  }
 }
 
 // Sidebar
@@ -330,6 +358,9 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .header-left {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   
   .page-title {
     font-size: 28px;
@@ -337,6 +368,49 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     color: $text-white;
     margin: 0;
     letter-spacing: -0.5px;
+  }
+}
+
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: $text-white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  &:active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  i {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .header {
+    padding: 16px 24px;
+    gap: 16px;
+  }
+  
+  .header-left {
+    .page-title {
+      font-size: 20px;
+    }
   }
 }
 
@@ -1003,6 +1077,293 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 40px 0;
 }
 
+// Loading and Error States
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  margin: 0 60px;
+  background: $bg-white;
+  border-radius: 12px;
+  box-shadow: $card-shadow;
+  gap: 16px;
+  color: $text-light;
+  min-height: 200px;
+
+  i {
+    font-size: 48px;
+    color: $primary-teal;
+  }
+
+  p {
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.error-container {
+  i {
+    color: $red;
+  }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(95, 169, 164, 0.2);
+  border-top-color: $primary-teal;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Metrics Section
+.metrics-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 0 60px;
+  margin-bottom: 16px;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-light 100%);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: $card-shadow;
+  transition: all 0.3s ease;
+  color: $text-white;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &.primary {
+    background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+      opacity: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    i {
+      font-size: 24px;
+      opacity: 0.8;
+    }
+  }
+
+  .metric-value {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1;
+
+    .unit {
+      font-size: 18px;
+      font-weight: 600;
+      margin-left: 6px;
+      opacity: 0.9;
+    }
+  }
+
+  .metric-subtitle {
+    font-size: 13px;
+    opacity: 0.85;
+    margin: 0;
+  }
+}
+
+// Weekly Distribution Section
+.weekly-distribution-section {
+  padding: 0 60px;
+  margin-bottom: 24px;
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-dark;
+    margin: 0 0 20px 0;
+  }
+}
+
+.weekly-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  background: $bg-white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: $card-shadow;
+  min-height: 240px;
+
+  .chart-bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .chart-bar {
+    width: 100%;
+    height: 180px;
+    background: rgba(95, 169, 164, 0.1);
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, $primary-teal-light 0%, $primary-teal 100%);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    min-height: 4px;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+
+  .bar-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $text-dark;
+  }
+
+  .bar-value {
+    font-size: 12px;
+    color: $text-light;
+    font-weight: 500;
+  }
+}
+
+// Recent Activities Section
+.recent-activities-section {
+  padding: 0 60px;
+  margin-bottom: 24px;
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-dark;
+    margin: 0 0 20px 0;
+  }
+}
+
+.empty-recent {
+  background: $bg-white;
+  padding: 40px 24px;
+  border-radius: 12px;
+  box-shadow: $card-shadow;
+  text-align: center;
+  color: $text-light;
+
+  i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.recent-activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.recent-activity-item {
+  background: $bg-white;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: $card-shadow;
+
+  &:hover {
+    border-color: $primary-teal;
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.1);
+  }
+
+  .activity-info {
+    flex: 1;
+
+    h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: $text-dark;
+      margin: 0 0 6px 0;
+    }
+
+    .session-details {
+      font-size: 13px;
+      color: $text-light;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .session-status {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: rgba(82, 201, 124, 0.15);
+    color: $green;
+
+    &.completed {
+      background: rgba(82, 201, 124, 0.15);
+      color: $green;
+    }
+
+    &.in_progress,
+    &.pending {
+      background: rgba(244, 196, 48, 0.15);
+      color: $yellow;
+    }
+
+    &.paused {
+      background: rgba(231, 76, 60, 0.15);
+      color: $red;
+    }
+  }
+}
+
 // Grid View Section
 .grid-view-section {
   display: flex;
@@ -1323,62 +1684,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Stats Section
+// Stats Section (Removed - Replaced with API metrics)
 .stats-section {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  margin-top: 32px;
-  padding: 32px 60px;
-  border-top: 1px solid #E0E0E0;
-}
-
-.stat-card {
-  background: $primary-teal;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: $card-shadow;
-  transition: all 0.2s ease;
-  color: $text-white;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: $card-shadow-hover;
-  }
-  
-  .stat-icon {
-    font-size: 28px;
-    margin-bottom: 12px;
-    opacity: 0.9;
-  }
-  
-  .stat-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .stat-label {
-    font-size: 14px;
-    font-weight: 500;
-    opacity: 0.95;
-  }
-  
-  .stat-value {
-    font-size: 36px;
-    font-weight: 700;
-    line-height: 1;
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 6px;
-    
-    .stat-unit {
-      font-size: 14px;
-      font-weight: 600;
-      opacity: 0.8;
-    }
-  }
+  display: none;
 }

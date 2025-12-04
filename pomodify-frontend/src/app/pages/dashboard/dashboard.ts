@@ -1,9 +1,5 @@
-/**
- * Dashboard Component
- * Displays activity list, search, filtering, and management
- */
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
+import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
@@ -18,6 +14,27 @@ import { EditSessionModal } from '../../shared/components/edit-session-modal/edi
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { IconMapper } from '../../core/services/icon-mapper';
+import { DashboardService } from '../../core/services/dashboard.service';
+import { ActivityService } from '../../core/services/activity.service';
+
+// API Response Types
+export type DashboardMetrics = {
+  totalCompletedSessions: number;
+  totalFocusTime: number;
+  weeklyFocusDistribution: Record<string, number>;
+  recentActivities: RecentActivity[];
+};
+
+export type RecentActivity = {
+  activityId: number;
+  activityTitle: string;
+  lastSession: {
+    sessionId: number;
+    startTime: string;
+    endTime: string;
+    status: string;
+  };
+};
 
 export type Session = {
   id: string;
@@ -41,21 +58,28 @@ type Activity = {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+  ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);
   private iconMapper = inject(IconMapper);
-  private readonly STORAGE_KEY = 'pomodify-activities';
+  private dashboardService = inject(DashboardService);
+  private activityService = inject(ActivityService);
 
-  // Sidebar state
   protected sidebarExpanded = signal(true);
 
-  // Toggle sidebar
+  protected dashboardMetrics = signal<DashboardMetrics | null>(null);
+  protected isLoadingDashboard = signal(false);
+  protected dashboardError = signal<string | null>(null);
+
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
@@ -64,7 +88,6 @@ export class Dashboard {
     toggleTheme();
   }
 
-  // Close sidebar on mobile when clicking outside
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -75,24 +98,59 @@ export class Dashboard {
     }
   }
 
-  // --- State ---
+  ngOnInit(): void {
+    this.loadDashboardMetrics();
+    this.loadActivities();
+  }
+
+  private loadDashboardMetrics(): void {
+    this.isLoadingDashboard.set(true);
+    this.dashboardError.set(null);
+
+    const timezone = this.dashboardService.getUserTimezone();
+
+    this.dashboardService.getDashboard(timezone).subscribe({
+      next: (data) => {
+        this.dashboardMetrics.set(data);
+        this.isLoadingDashboard.set(false);
+      },
+      error: (err) => {
+        console.error('Dashboard metrics error:', err);
+        this.dashboardError.set('Failed to load dashboard metrics. Please refresh the page.');
+        this.isLoadingDashboard.set(false);
+      }
+    });
+  }
+
+  private loadActivities(): void {
+    this.isLoadingActivities.set(true);
+    this.activitiesError.set(null);
+
+    this.activityService.getAllActivities().subscribe({
+      next: (data) => {
+        this.activities.set(data);
+        this.isLoadingActivities.set(false);
+      },
+      error: (err) => {
+        console.error('Activities loading error:', err);
+        this.activitiesError.set('Failed to load activities.');
+        this.isLoadingActivities.set(false);
+        this.activities.set([]);
+      }
+    });
+  }
+
   protected readonly selectedActivity = signal<Activity | null>(null);
   protected readonly activities = signal<Activity[]>([]);
+  protected readonly isLoadingActivities = signal(false);
+  protected readonly activitiesError = signal<string | null>(null);
   protected readonly searchQuery = signal('');
   protected readonly selectedCategory = signal<string | null>(null);
   protected readonly currentPage = signal(1);
   protected readonly itemsPerPage = signal(6);
-  protected readonly currentStreak = signal(0);
   protected readonly categoryDropdownOpen = signal(false);
 
   constructor() {
-    this.loadActivitiesFromStorage();
-
-    effect(() => {
-      const activities = this.activities();
-      this.saveActivitiesToStorage(activities);
-    });
-
     effect(() => {
       const tp = this.totalPages();
       if (tp === 0) {
@@ -103,27 +161,6 @@ export class Dashboard {
     });
   }
 
-  private loadActivitiesFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Activity[];
-        this.activities.set(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading activities from storage:', error);
-      this.activities.set([]);
-    }
-  }
-
-  private saveActivitiesToStorage(activities: Activity[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(activities));
-    } catch (error) {
-      console.error('Error saving activities to storage:', error);
-    }
-  }
-
   protected readonly filteredActivities = computed(() => {
     const query = this.searchQuery().toLowerCase();
     const category = this.selectedCategory();
@@ -131,9 +168,7 @@ export class Dashboard {
 
     return allActivities.filter((activity) => {
       const matchesQuery = activity.name.toLowerCase().includes(query);
-      
-      // Handle category filtering including Uncategorized
-      let matchesCategory = !category; // If no category selected, show all
+      let matchesCategory = !category;
       if (category === 'Uncategorized') {
         matchesCategory = !activity.category || activity.category === '';
       } else if (category) {
@@ -169,7 +204,39 @@ export class Dashboard {
       .toFixed(1);
   });
 
-  // --- Actions ---
+  protected readonly totalCompletedSessions = computed(() => {
+    return this.dashboardMetrics()?.totalCompletedSessions || 0;
+  });
+
+  protected readonly totalFocusTimeHours = computed(() => {
+    const seconds = this.dashboardMetrics()?.totalFocusTime || 0;
+    const hours = seconds / 3600;
+    return hours.toFixed(1);
+  });
+
+  protected readonly weeklyDistributionDays = computed(() => {
+    const distribution = this.dashboardMetrics()?.weeklyFocusDistribution;
+    if (!distribution) return [];
+    
+    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    return days.map(day => ({
+      day: day.substring(0, 3),
+      seconds: distribution[day] || 0,
+      hours: ((distribution[day] || 0) / 3600).toFixed(1),
+      percentage: this.calculateDayPercentage(distribution, day)
+    }));
+  });
+
+  private calculateDayPercentage(distribution: Record<string, number>, day: string): number {
+    const total = Object.values(distribution).reduce((sum, val) => sum + val, 0);
+    if (total === 0) return 0;
+    return Math.round(((distribution[day] || 0) / total) * 100);
+  }
+
+  protected readonly recentActivities = computed(() => {
+    return this.dashboardMetrics()?.recentActivities || [];
+  });
+
   protected selectActivity(activity: Activity): void {
     this.selectedActivity.set(activity);
   }
@@ -180,18 +247,22 @@ export class Dashboard {
       .afterClosed()
       .subscribe((result: ActivityData) => {
         if (result) {
-          const newActivity: Activity = {
-            id: Date.now().toString(),
+          this.activityService.createActivity({
             name: result.name,
-            category: result.category || 'General',
+            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
+            category: result.category,
             colorTag: result.colorTag,
             estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0,
-            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
-            lastAccessed: new Date().toISOString(),
-            sessions: [],
-          };
-          this.activities.update((acts) => [...acts, newActivity]);
-          this.selectActivity(newActivity);
+          }).subscribe({
+            next: (newActivity) => {
+              this.activities.update((acts) => [...acts, newActivity]);
+              this.selectActivity(newActivity);
+            },
+            error: (err) => {
+              console.error('Error creating activity:', err);
+              alert('Failed to create activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -209,28 +280,26 @@ export class Dashboard {
       .afterClosed()
       .subscribe((updated: ActivityData) => {
         if (updated) {
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? {
-                    ...a,
-                    name: updated.name,
-                    category: updated.category || 'General',
-                    colorTag: updated.colorTag,
-                    estimatedHoursPerWeek: updated.estimatedHoursPerWeek || 0,
-                    icon: this.iconMapper.getIconClass(
-                      updated.name,
-                      updated.category || 'General'
-                    ),
-                  }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          this.activityService.updateActivity(activity.id, {
+            name: updated.name,
+            category: updated.category,
+            colorTag: updated.colorTag,
+            estimatedHoursPerWeek: updated.estimatedHoursPerWeek,
+            icon: this.iconMapper.getIconClass(updated.name, updated.category || 'General'),
+          }).subscribe({
+            next: (updatedActivity) => {
+              this.activities.update((acts) =>
+                acts.map((a) => a.id === activity.id ? updatedActivity : a)
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(updatedActivity);
+              }
+            },
+            error: (err) => {
+              console.error('Error updating activity:', err);
+              alert('Failed to update activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -241,10 +310,18 @@ export class Dashboard {
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(null);
-          }
+          this.activityService.deleteActivity(activity.id).subscribe({
+            next: () => {
+              this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(null);
+              }
+            },
+            error: (err) => {
+              console.error('Error deleting activity:', err);
+              alert('Failed to delete activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -255,25 +332,30 @@ export class Dashboard {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          const newSession: Session = {
-            id: Date.now().toString(),
+          this.activityService.addSession(activity.id, {
             focusTimeMinutes: result.focusTimeMinutes,
             breakTimeMinutes: result.breakTimeMinutes,
             note: result.note,
-            createdAt: new Date().toISOString(),
-          };
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? { ...a, sessions: [...a.sessions, newSession] }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          }).subscribe({
+            next: (newSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? { ...a, sessions: [...a.sessions, newSession as any] }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error adding session:', err);
+              alert('Failed to add session. Please try again.');
+            }
+          });
         }
       });
   }
@@ -290,47 +372,60 @@ export class Dashboard {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          this.activities.update((acts) =>
-            acts.map((a) =>
-              a.id === activity.id
-                ? {
-                    ...a,
-                    sessions: a.sessions.map((s) =>
-                      s.id === session.id
-                        ? {
-                            ...s,
-                            focusTimeMinutes: result.focusTimeMinutes,
-                            breakTimeMinutes: result.breakTimeMinutes,
-                            note: result.note,
-                          }
-                        : s
-                    ),
-                  }
-                : a
-            )
-          );
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(
-              this.activities().find((a) => a.id === activity.id) || null
-            );
-          }
+          this.activityService.updateSession(activity.id, session.id, {
+            focusTimeMinutes: result.focusTimeMinutes,
+            breakTimeMinutes: result.breakTimeMinutes,
+            note: result.note,
+          }).subscribe({
+            next: (updatedSession) => {
+              this.activities.update((acts) =>
+                acts.map((a) =>
+                  a.id === activity.id
+                    ? {
+                        ...a,
+                        sessions: a.sessions.map((s) =>
+                          s.id === session.id ? (updatedSession as any) : s
+                        ),
+                      }
+                    : a
+                )
+              );
+              if (this.selectedActivity()?.id === activity.id) {
+                this.selectedActivity.set(
+                  this.activities().find((a) => a.id === activity.id) || null
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Error updating session:', err);
+              alert('Failed to update session. Please try again.');
+            }
+          });
         }
       });
   }
 
   protected deleteSession(activity: Activity, sessionId: string): void {
-    this.activities.update((acts) =>
-      acts.map((a) =>
-        a.id === activity.id
-          ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
-          : a
-      )
-    );
-    if (this.selectedActivity()?.id === activity.id) {
-      this.selectedActivity.set(
-        this.activities().find((a) => a.id === activity.id) || null
-      );
-    }
+    this.activityService.deleteSession(activity.id, sessionId).subscribe({
+      next: () => {
+        this.activities.update((acts) =>
+          acts.map((a) =>
+            a.id === activity.id
+              ? { ...a, sessions: a.sessions.filter((s) => s.id !== sessionId) }
+              : a
+          )
+        );
+        if (this.selectedActivity()?.id === activity.id) {
+          this.selectedActivity.set(
+            this.activities().find((a) => a.id === activity.id) || null
+          );
+        }
+      },
+      error: (err) => {
+        console.error('Error deleting session:', err);
+        alert('Failed to delete session. Please try again.');
+      }
+    });
   }
 
   protected toggleCategory(category: string): void {
@@ -427,5 +522,32 @@ export class Dashboard {
           console.log('Profile updated:', result);
         }
       });
+  }
+
+  protected formatSessionTime(startTime: string, endTime: string): string {
+    try {
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      const durationMs = end.getTime() - start.getTime();
+      const durationMins = Math.round(durationMs / 60000);
+      return `${durationMins} min`;
+    } catch {
+      return 'N/A';
+    }
+  }
+
+  protected getRelativeTime(timestamp: string): string {
+    const now = new Date();
+    const date = new Date(timestamp);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return '1 day ago';
+    return `${diffDays} days ago`;
   }
 }

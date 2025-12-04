@@ -935,6 +935,55 @@ This endpoint uses Server-Sent Events (SSE) to stream session updates.
 
 ---
 
+# **REPORTS**
+
+---
+
+## **GET — `/api/reports/summary`**
+
+### **Request Params**
+
+- Header required: `Authorization: Bearer <accessToken>`
+- Query Param: `range` (optional) — values: `week` (default), `month`/`monthly`, `year`/`yearly`
+
+This endpoint returns aggregated summary data (weekly/monthly/yearly) for the authenticated user. The controller expects a valid JWT with a `user` claim (user id).
+
+### **Success Response**
+
+Status: 200 OK
+```json
+{
+  "totalCompletedSessions": 42,
+  "totalFocusTime": 123456,
+  "startDate": "2025-11-24",
+  "endDate": "2025-11-30",
+  "distribution": {
+    "MONDAY": 3600,
+    "TUESDAY": 5400,
+    "WEDNESDAY": 7200,
+    "THURSDAY": 1800,
+    "FRIDAY": 9000,
+    "SATURDAY": 0,
+    "SUNDAY": 0
+  },
+  "activities": [
+    {
+      "activityId": 1,
+      "activityTitle": "Study Math",
+      "totalFocusTime": 7200
+    }
+  ]
+}
+```
+
+### **Fail Response**
+
+Status: 401 Unauthorized
+```json
+{ "message": "Unauthorized: invalid user claim" }
+```
+
+
 # **ERROR / FAILURE RESPONSES (GLOBAL)**
 
 The application uses `GlobalExceptionHandler` to standardize errors. Examples:
