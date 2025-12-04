@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
@@ -456,7 +458,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   
   &:hover {
     border-color: $primary-teal;
-    background: lighten($primary-teal, 45%);
+    background: color.adjust($primary-teal, $lightness: 45%);
   }
 }
 

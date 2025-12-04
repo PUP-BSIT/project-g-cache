@@ -6,6 +6,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { smartAuthInterceptor } from './core/interceptors/smart-auth.interceptor';
+import { mockActivityInterceptor } from './core/interceptors/mock-activity.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideAnimations(),
     provideAnimationsAsync(),
-    provideHttpClient(withFetch(), withInterceptors([smartAuthInterceptor]))
+    provideHttpClient(withFetch(), withInterceptors([mockActivityInterceptor, smartAuthInterceptor]))
   ]
 };

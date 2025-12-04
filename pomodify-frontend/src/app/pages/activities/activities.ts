@@ -1,8 +1,9 @@
 // activities.ts
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, HostListener, inject, effect } from '@angular/core';
+import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
 import { toggleTheme } from '../../shared/theme';
 import {
   CreateActivityModal,
@@ -14,6 +15,7 @@ import { AddSessionModal, SessionData } from '../../shared/components/add-sessio
 import { EditSessionModal } from '../../shared/components/edit-session-modal/edit-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
+import { ActivityService } from '../../core/services/activity.service';
 
 export type Session = {
   id: string;
@@ -24,31 +26,51 @@ export type Session = {
 };
 
 type Activity = {
-  id: string;
-  name: string;
-  icon: string;
-  category: string;
-  colorTag: string;
-  estimatedHoursPerWeek: number;
-  lastAccessed: string;
-  sessions: Session[];
+  activityId: number;
+  activityTitle: string;
+  activityDescription: string;
+  categoryId?: number;
+  categoryName?: string;
+  createdAt?: string;
+  sessions?: Session[];
+  colorTag: string; // Required: color theme for the activity
+};
+
+export type TimerMode = 'classic' | 'freestyle';
+
+export type SessionState = {
+  mode: TimerMode;
+  focusMinutes: number;
+  breakMinutes: number;
+  cycles?: number;
+  cyclesCompleted: number;
+  isRunning: boolean;
+  isPaused: boolean;
+  currentPhase: 'focus' | 'break';
+  timeRemaining: number;
+  totalSessionTime: number;
 };
 
 @Component({
   selector: 'app-activities',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './activities.html',
   styleUrl: './activities.scss',
 })
-export class ActivitiesPage {
+export class ActivitiesPage implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(Auth);
-  private readonly STORAGE_KEY = 'pomodify-activities';
+  private activityService = inject(ActivityService);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+
+  // Timer states
+  protected activeSession = signal<SessionState | null>(null);
+  protected selectedActivityForTimer = signal<Activity | null>(null);
+  protected timerInterval = signal<any>(null);
 
   // Toggle sidebar
   protected toggleSidebar(): void {
@@ -72,137 +94,64 @@ export class ActivitiesPage {
 
   // --- State ---
   protected readonly selectedActivity = signal<Activity | null>(null);
-
   protected readonly activities = signal<Activity[]>([]);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
-  constructor() {
-    // Load initial activities immediately so the first render has data
-    this.loadActivitiesFromStorage();
-
-    // Save to localStorage whenever activities change
-    effect(() => {
-      const activities = this.activities();
-      this.saveActivitiesToStorage(activities);
-    });
-
-    // clamp currentPage if totalPages decreases
-    effect(() => {
-      const tp = this.totalPages();
-      if (tp === 0) {
-        this.currentPage.set(1);
-      } else if (this.currentPage() > tp) {
-        this.currentPage.set(tp);
-      }
-    });
+  ngOnInit() {
+    this.loadActivities();
   }
 
-  private loadActivitiesFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        this.activities.set(parsed);
-      } else {
-        // Initialize with default activities if nothing stored
-        this.activities.set([
-          {
-            id: 'math',
-            name: 'Study Math',
-            icon: '📘',
-            category: 'Study',
-            colorTag: 'teal',
-            estimatedHoursPerWeek: 5,
-            lastAccessed: '1 hr ago',
-            sessions: [],
-          },
-          {
-            id: 'angular',
-            name: 'Learn Angular',
-            icon: '{}',
-            category: 'Programming',
-            colorTag: 'blue',
-            estimatedHoursPerWeek: 8,
-            lastAccessed: '2 days ago',
-            sessions: [],
-          },
-          {
-            id: 'design',
-            name: 'Design Prototype',
-            icon: '🎨',
-            category: 'Design',
-            colorTag: 'purple',
-            estimatedHoursPerWeek: 6,
-            lastAccessed: '3 days ago',
-            sessions: [],
-          },
-          {
-            id: 'kotlin',
-            name: 'Learn Kotlin',
-            icon: '</>',
-            category: 'Programming',
-            colorTag: 'orange',
-            estimatedHoursPerWeek: 4,
-            lastAccessed: '1 week ago',
-            sessions: [],
-          },
-          {
-            id: 'document',
-            name: 'Learn Document',
-            icon: '📄',
-            category: 'Study',
-            colorTag: 'green',
-            estimatedHoursPerWeek: 3,
-            lastAccessed: '5 days ago',
-            sessions: [],
-          },
-          {
-            id: 'javascript',
-            name: 'Learn JavaScript',
-            icon: '</>',
-            category: 'Programming',
-            colorTag: 'yellow',
-            estimatedHoursPerWeek: 7,
-            lastAccessed: '4 days ago',
-            sessions: [],
-          },
-        ]);
+  private loadActivities(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+    
+    this.activityService.getAllActivities().subscribe({
+      next: (response: any) => {
+        // Handle the API response format from the backend
+        const activitiesList = response.activities || response || [];
+        const mapped = activitiesList.map((activity: any) => ({
+          activityId: activity.activityId || activity.id,
+          activityTitle: activity.activityTitle || activity.name,
+          activityDescription: activity.activityDescription || '',
+          categoryId: activity.categoryId,
+          categoryName: activity.categoryName || activity.category,
+          createdAt: activity.createdAt || new Date().toISOString(),
+          sessions: activity.sessions || [],
+          colorTag: activity.colorTag || 'teal' // Default to teal if not provided
+        }));
+        this.activities.set(mapped);
+        this.isLoading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading activities:', error);
+        this.errorMessage.set('Failed to load activities. Please try again.');
+        this.isLoading.set(false);
       }
-    } catch (error) {
-      console.error('Error loading activities from storage:', error);
-      // Fallback to default activities
-      this.activities.set([]);
-    }
-  }
-
-  private saveActivitiesToStorage(activities: Activity[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(activities));
-    } catch (error) {
-      console.error('Error saving activities to storage:', error);
-    }
+    });
   }
 
   protected readonly searchQuery = signal('');
-  protected readonly selectedCategory = signal<string | null>(null);
+  protected readonly selectedCategory = signal<number | null>(null);
 
   // Get unique categories from activities
   protected readonly availableCategories = computed(() => {
-    const categories = new Set<string>();
+    const categories = new Map<number, string>();
     this.activities().forEach((activity: Activity) => {
-      if (activity.category) {
-        categories.add(activity.category);
+      if (activity.categoryId && activity.categoryName) {
+        categories.set(activity.categoryId, activity.categoryName);
       }
     });
-    return Array.from(categories).sort();
+    return Array.from(categories.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   });
 
   protected readonly filteredActivities = computed(() => {
     let filtered = this.activities();
     
     // Filter by category
-    const category = this.selectedCategory();
-    if (category) {
-      filtered = filtered.filter((activity: Activity) => activity.category === category);
+    const categoryId = this.selectedCategory();
+    if (categoryId !== null) {
+      filtered = filtered.filter((activity: Activity) => activity.categoryId === categoryId);
     }
     
     // Filter by search query
@@ -210,8 +159,9 @@ export class ActivitiesPage {
     if (query) {
       filtered = filtered.filter(
         (activity: Activity) =>
-          activity.name.toLowerCase().includes(query) ||
-          activity.category.toLowerCase().includes(query)
+          activity.activityTitle.toLowerCase().includes(query) ||
+          activity.activityDescription.toLowerCase().includes(query) ||
+          (activity.categoryName && activity.categoryName.toLowerCase().includes(query))
       );
     }
     
@@ -254,8 +204,8 @@ export class ActivitiesPage {
     this.currentPage.set(1);
   }
 
-  protected selectCategory(category: string | null): void {
-    this.selectedCategory.set(category);
+  protected selectCategory(categoryId: number | null): void {
+    this.selectedCategory.set(categoryId);
     // when filtering, go back to page 1
     this.currentPage.set(1);
   }
@@ -281,30 +231,51 @@ export class ActivitiesPage {
       .afterClosed()
       .subscribe((result: ActivityData) => {
         if (result) {
-          console.log('New activity created:', result);
-          const newActivity: Activity = {
-            id: this.generateId(),
+          console.log('New activity data from modal:', result);
+          
+          // Create activity via API
+          const createRequest = {
             name: result.name,
-            icon: '\ud83d\udcdd',
+            icon: '📌', // Default icon, can be customized later
             category: result.category || 'General',
-            colorTag: result.colorTag || 'teal',
-            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 1,
-            lastAccessed: 'just now',
-            sessions: [],
+            colorTag: result.colorTag,
+            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0
           };
-          this.activities.update((activities: Activity[]) => [newActivity, ...activities]);
-          // show the newly created activity on first page
-          this.currentPage.set(1);
+
+          this.activityService.createActivity(createRequest).subscribe({
+            next: (createdActivity: any) => {
+              console.log('Activity created successfully:', createdActivity);
+              
+              // Map the response to our Activity type
+              const newActivity: Activity = {
+                activityId: createdActivity.activityId || createdActivity.id,
+                activityTitle: createdActivity.activityTitle || createdActivity.name,
+                activityDescription: createdActivity.activityDescription || '',
+                categoryId: createdActivity.categoryId,
+                categoryName: createdActivity.categoryName || createdActivity.category,
+                colorTag: createdActivity.colorTag || result.colorTag,
+                sessions: createdActivity.sessions || [],
+                createdAt: createdActivity.createdAt || new Date().toISOString()
+              };
+
+              // Automatically redirect to timer page with the new activity
+              this.initializeTimer(newActivity, 'classic', 25, 5, 4);
+            },
+            error: (error) => {
+              console.error('Error creating activity:', error);
+              this.errorMessage.set('Failed to create activity. Please try again.');
+            }
+          });
         }
       });
   }
 
   protected openEditActivityModal(activity: Activity): void {
     const data: ActivityData = {
-      name: activity.name,
-      category: activity.category,
-      colorTag: activity.colorTag,
-      estimatedHoursPerWeek: activity.estimatedHoursPerWeek,
+      name: activity.activityTitle,
+      category: activity.categoryName || '',
+      colorTag: 'teal',
+      estimatedHoursPerWeek: 1,
     };
 
     this.dialog
@@ -313,30 +284,32 @@ export class ActivitiesPage {
       .subscribe((updated: ActivityData) => {
         if (updated) {
           console.log('Updated activity:', updated);
-          this.activities.update((activities: Activity[]) =>
-            activities.map((existingActivity: Activity) =>
-              existingActivity.id === activity.id ? { ...existingActivity, ...updated } : existingActivity
-            )
-          );
+          this.loadActivities(); // Reload activities from API
         }
       });
   }
 
   protected openDeleteActivityModal(activity: Activity): void {
-    const data = { id: activity.id, name: activity.name };
+    const data = { id: activity.activityId, name: activity.activityTitle };
     this.dialog
       .open(DeleteActivityModal, { data })
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          console.log('Delete confirmed for', activity.name);
-          this.activities.update((activities: Activity[]) =>
-            activities.filter((existingActivity: Activity) => existingActivity.id !== activity.id)
-          );
-          // Clear selection if deleted activity was selected
-          if (this.selectedActivity()?.id === activity.id) {
-            this.selectedActivity.set(null);
-          }
+          console.log('Delete confirmed for', activity.activityTitle);
+          this.activityService.deleteActivity(activity.activityId.toString()).subscribe({
+            next: () => {
+              this.loadActivities(); // Reload activities from API
+              // Clear selection if deleted activity was selected
+              if (this.selectedActivity()?.activityId === activity.activityId) {
+                this.selectedActivity.set(null);
+              }
+            },
+            error: (error) => {
+              console.error('Error deleting activity:', error);
+              this.errorMessage.set('Failed to delete activity. Please try again.');
+            }
+          });
         }
       });
   }
@@ -356,27 +329,7 @@ export class ActivitiesPage {
       .subscribe((result: SessionData) => {
         if (result) {
           console.log('New session created:', result);
-          const newSession: Session = {
-            id: this.generateSessionId(),
-            focusTimeMinutes: result.focusTimeMinutes,
-            breakTimeMinutes: result.breakTimeMinutes,
-            note: result.note,
-            createdAt: new Date().toISOString(),
-          };
-          this.activities.update((activities: Activity[]) =>
-            activities.map((existingActivity: Activity) =>
-              existingActivity.id === activity.id
-                ? { ...existingActivity, sessions: [newSession, ...existingActivity.sessions] }
-                : existingActivity
-            )
-          );
-          // Update selected activity if it's the one we just added to
-          if (this.selectedActivity()?.id === activity.id) {
-            const updated = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
-            if (updated) {
-              this.selectedActivity.set(updated);
-            }
-          }
+          this.loadActivities(); // Reload activities from API
         }
       });
   }
@@ -394,52 +347,22 @@ export class ActivitiesPage {
       .subscribe((updated: SessionData) => {
         if (updated) {
           console.log('Updated session:', updated);
-          this.activities.update((activities: Activity[]) =>
-            activities.map((existingActivity: Activity) =>
-              existingActivity.id === activity.id
-                ? {
-                    ...existingActivity,
-                    sessions: existingActivity.sessions.map((existingSession: Session) =>
-                      existingSession.id === session.id
-                        ? { ...existingSession, ...updated }
-                        : existingSession
-                    ),
-                  }
-                : existingActivity
-            )
-          );
-          // Update selected activity if it's the one we just edited
-          if (this.selectedActivity()?.id === activity.id) {
-            const updatedActivity = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
-            if (updatedActivity) {
-              this.selectedActivity.set(updatedActivity);
-            }
-          }
+          this.loadActivities(); // Reload activities from API
         }
       });
   }
 
   protected deleteSession(activity: Activity, session: Session): void {
     if (confirm(`Are you sure you want to delete this session?`)) {
-      this.activities.update((activities: Activity[]) =>
-        activities.map((existingActivity: Activity) =>
-          existingActivity.id === activity.id
-            ? {
-                ...existingActivity,
-                sessions: existingActivity.sessions.filter(
-                  (existingSession: Session) => existingSession.id !== session.id
-                ),
-              }
-            : existingActivity
-        )
-      );
-      // Update selected activity if it's the one we just deleted from
-      if (this.selectedActivity()?.id === activity.id) {
-        const updated = this.activities().find((activityItem: Activity) => activityItem.id === activity.id);
-        if (updated) {
-          this.selectedActivity.set(updated);
+      this.activityService.deleteSession(activity.activityId.toString(), session.id).subscribe({
+        next: () => {
+          this.loadActivities(); // Reload activities from API
+        },
+        error: (error) => {
+          console.error('Error deleting session:', error);
+          this.errorMessage.set('Failed to delete session. Please try again.');
         }
-      }
+      });
     }
   }
 
@@ -447,7 +370,7 @@ export class ActivitiesPage {
     // Navigate to dashboard with activity and session info
     this.router.navigate(['/dashboard'], {
       queryParams: {
-        activityId: activity.id,
+        activityId: activity.activityId,
         sessionId: session.id,
         focusTime: session.focusTimeMinutes,
         breakTime: session.breakTimeMinutes
@@ -455,8 +378,219 @@ export class ActivitiesPage {
     });
   }
 
-  private generateSessionId(): string {
-    return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  // --- Timer Methods ---
+  protected initializeTimer(activity: Activity, mode: TimerMode = 'classic', focusMinutes: number = 25, breakMinutes: number = 5, cycles: number = 4): void {
+    this.selectedActivityForTimer.set(activity);
+    
+    const sessionState: SessionState = {
+      mode,
+      focusMinutes,
+      breakMinutes,
+      cycles: mode === 'classic' ? cycles : undefined,
+      cyclesCompleted: 0,
+      isRunning: false,
+      isPaused: false,
+      currentPhase: 'focus',
+      timeRemaining: focusMinutes * 60, // in seconds
+      totalSessionTime: mode === 'classic' ? (focusMinutes + breakMinutes) * cycles * 60 : 0
+    };
+    
+    this.activeSession.set(sessionState);
+  }
+
+  protected getTimerDisplay(): string {
+    const session = this.activeSession();
+    if (!session) return '00:00';
+    
+    const minutes = Math.floor(session.timeRemaining / 60);
+    const seconds = session.timeRemaining % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }
+
+  protected getCycleDuration(): number {
+    const session = this.activeSession();
+    if (!session) return 0;
+    return session.focusMinutes + session.breakMinutes;
+  }
+
+  protected getTotalSessionMinutes(): number {
+    const session = this.activeSession();
+    if (!session) return 0;
+    
+    if (session.mode === 'freestyle') {
+      return 0; // Unlimited
+    }
+    
+    return (session.focusMinutes + session.breakMinutes) * (session.cycles || 1);
+  }
+
+  protected startTimer(): void {
+    const session = this.activeSession();
+    if (!session) return;
+    
+    session.isRunning = true;
+    session.isPaused = false;
+    
+    const interval = setInterval(() => {
+      const current = this.activeSession();
+      if (!current || !current.isRunning) {
+        clearInterval(interval);
+        return;
+      }
+      
+      current.timeRemaining--;
+      
+      // Check if phase is complete
+      if (current.timeRemaining <= 0) {
+        this.completePhase();
+      }
+    }, 1000);
+    
+    this.timerInterval.set(interval);
+    this.activeSession.set(session);
+  }
+
+  protected pauseTimer(): void {
+    const session = this.activeSession();
+    if (!session) return;
+    
+    session.isRunning = false;
+    session.isPaused = true;
+    
+    const interval = this.timerInterval();
+    if (interval) clearInterval(interval);
+    
+    this.activeSession.set(session);
+  }
+
+  protected resumeTimer(): void {
+    this.startTimer();
+  }
+
+  protected resetCurrentPhase(): void {
+    const session = this.activeSession();
+    if (!session) return;
+    
+    session.isRunning = false;
+    session.isPaused = false;
+    
+    // Reset time for current phase
+    if (session.currentPhase === 'focus') {
+      session.timeRemaining = session.focusMinutes * 60;
+    } else {
+      session.timeRemaining = session.breakMinutes * 60;
+    }
+    
+    const interval = this.timerInterval();
+    if (interval) clearInterval(interval);
+    
+    this.activeSession.set(session);
+  }
+
+  protected stopCurrentCycle(): void {
+    const session = this.activeSession();
+    if (!session) return;
+    
+    session.isRunning = false;
+    session.isPaused = false;
+    session.currentPhase = 'focus';
+    session.timeRemaining = session.focusMinutes * 60;
+    
+    const interval = this.timerInterval();
+    if (interval) clearInterval(interval);
+    
+    this.activeSession.set(session);
+  }
+
+  protected cancelSession(): void {
+    const interval = this.timerInterval();
+    if (interval) clearInterval(interval);
+    
+    this.activeSession.set(null);
+    this.selectedActivityForTimer.set(null);
+  }
+
+  private completePhase(): void {
+    const session = this.activeSession();
+    if (!session) return;
+    
+    if (session.currentPhase === 'focus') {
+      // Switch to break
+      session.currentPhase = 'break';
+      session.timeRemaining = session.breakMinutes * 60;
+    } else {
+      // Switch to focus and increment cycle
+      session.cyclesCompleted++;
+      
+      // Check if session is complete
+      if (session.mode === 'classic' && session.cycles && session.cyclesCompleted >= session.cycles) {
+        this.finishSession();
+        return;
+      }
+      
+      // Restart focus phase
+      session.currentPhase = 'focus';
+      session.timeRemaining = session.focusMinutes * 60;
+    }
+    
+    session.isRunning = true;
+    this.activeSession.set(session);
+  }
+
+  private finishSession(): void {
+    const interval = this.timerInterval();
+    if (interval) clearInterval(interval);
+    
+    this.activeSession.set(null);
+    this.selectedActivityForTimer.set(null);
+  }
+
+  protected updateFocusTime(minutes: number): void {
+    const session = this.activeSession();
+    if (!session || session.isRunning || session.isPaused) return;
+    
+    session.focusMinutes = Math.max(1, minutes);
+    if (session.currentPhase === 'focus') {
+      session.timeRemaining = session.focusMinutes * 60;
+    }
+    this.activeSession.set(session);
+  }
+
+  protected updateBreakTime(minutes: number): void {
+    const session = this.activeSession();
+    if (!session || session.isRunning || session.isPaused) return;
+    
+    session.breakMinutes = Math.max(1, minutes);
+    if (session.currentPhase === 'break') {
+      session.timeRemaining = session.breakMinutes * 60;
+    }
+    this.activeSession.set(session);
+  }
+
+  protected updateCycles(cycles: number): void {
+    const session = this.activeSession();
+    if (!session || session.isRunning || session.isPaused || session.mode !== 'classic') return;
+    
+    session.cycles = Math.max(1, cycles);
+    session.totalSessionTime = (session.focusMinutes + session.breakMinutes) * session.cycles * 60;
+    this.activeSession.set(session);
+  }
+
+  protected switchMode(mode: TimerMode): void {
+    const session = this.activeSession();
+    if (!session || session.isRunning || session.isPaused) return;
+    
+    session.mode = mode;
+    
+    if (mode === 'classic') {
+      session.cycles = 4;
+      session.totalSessionTime = (session.focusMinutes + session.breakMinutes) * 4 * 60;
+    } else {
+      session.cycles = undefined;
+      session.totalSessionTime = 0;
+    }
+    
+    this.activeSession.set(session);
   }
 
   protected formatDate(dateString: string): string {
@@ -475,12 +609,61 @@ export class ActivitiesPage {
     return date.toLocaleDateString();
   }
 
-  protected getColorClass(colorTag: string): string {
-    return `color-${colorTag}`;
+  private getActivityIcon(title: string): string {
+    const icons: { [key: string]: string } = {
+      'math': '📘',
+      'angular': '{}',
+      'design': '🎨',
+      'kotlin': '</>',
+      'document': '📄',
+      'javascript': '</>',
+      'study': '📚',
+      'work': '💼',
+      'programming': '💻',
+      'dev': '👨‍💻',
+    };
+    
+    const lowerTitle = title.toLowerCase();
+    for (const [key, icon] of Object.entries(icons)) {
+      if (lowerTitle.includes(key)) {
+        return icon;
+      }
+    }
+    return '📌'; // default icon
   }
 
-  private generateId(): string {
-    return 'activity-' + Date.now();
+  protected getActivityIconForCard(activity: Activity): string {
+    return this.getActivityIcon(activity.activityTitle);
+  }
+
+  protected getColorClass(colorTag: string): string {
+    // Map color tags to CSS classes
+    const colorMap: { [key: string]: string } = {
+      'red': 'color-red',
+      'orange': 'color-orange',
+      'yellow': 'color-yellow',
+      'green': 'color-green',
+      'blue': 'color-blue',
+      'purple': 'color-purple',
+      'teal': 'color-teal'
+    };
+    
+    return colorMap[colorTag] || 'color-teal';
+  }
+
+  protected getColorHex(colorTag: string): string {
+    // Map color tags to hex values for timer theming
+    const colorHexMap: { [key: string]: string } = {
+      'red': '#EF4444',
+      'orange': '#F97316',
+      'yellow': '#FBBF24',
+      'green': '#10B981',
+      'blue': '#3B82F6',
+      'purple': '#8B5CF6',
+      'teal': '#5FA9A4'
+    };
+    
+    return colorHexMap[colorTag] || '#5FA9A4';
   }
 
   protected onLogout(): void {

@@ -37,10 +37,6 @@ export class HistoryService {
       });
   }
 
-  /**
-   * Check if the user is trying to navigate back to a public page (login/signup)
-   * from an authenticated page (dashboard, activities, etc.)
-   */
   isAttemptingToGoBackToPublicPage(): boolean {
     if (this.navigationHistory.length < 2) {
       return false;
@@ -58,29 +54,19 @@ export class HistoryService {
     return isCurrentlyOnProtected && wasOnPublicPage && this.isNavigatingBack;
   }
 
-  /**
-   * Clear history when user logs out
-   */
   clearHistory(): void {
     this.navigationHistory = [];
   }
 
-  /**
-   * Get navigation history for debugging
-   */
   getHistory(): string[] {
     return [...this.navigationHistory];
   }
 
-  /**
-   * Prevent back navigation by replacing history
-   */
   preventBack(): void {
     // Remove the current URL from history
     if (this.navigationHistory.length > 0) {
       this.navigationHistory.pop();
     }
-    // This doesn't prevent back button but logs the attempt
     console.warn('User attempted to navigate back to a public page from protected area');
   }
 }
