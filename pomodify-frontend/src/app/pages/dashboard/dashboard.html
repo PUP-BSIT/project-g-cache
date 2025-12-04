@@ -1,5 +1,10 @@
 <!-- dashboard.html - Professional Dashboard with Activities Management -->
 <div class="dashboard">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <div class="logo" (click)="toggleSidebar()">
@@ -74,6 +79,9 @@
     <!-- Header -->
     <header class="header">
       <div class="header-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1 class="page-title">Dashboard</h1>
       </div>
       <div class="header-right">
@@ -92,6 +100,85 @@
 
     <!-- Page Content -->
     <div class="page-content">
+      <!-- Dashboard Metrics Section -->
+      @if (isLoadingDashboard()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      } @else if (dashboardError()) {
+        <div class="error-container">
+          <i class="fa-solid fa-exclamation-triangle"></i>
+          <p>{{ dashboardError() }}</p>
+        </div>
+      } @else {
+        <!-- Primary Metrics -->
+        <div class="metrics-section">
+          <div class="metric-card primary">
+            <div class="metric-header">
+              <h3>Total Completed Sessions</h3>
+              <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <div class="metric-value">{{ totalCompletedSessions() }}</div>
+            <p class="metric-subtitle">sessions completed</p>
+          </div>
+
+          <div class="metric-card primary">
+            <div class="metric-header">
+              <h3>Total Focus Time</h3>
+              <i class="fa-solid fa-hourglass-end"></i>
+            </div>
+            <div class="metric-value">{{ totalFocusTimeHours() }} <span class="unit">hrs</span></div>
+            <p class="metric-subtitle">focus time tracked</p>
+          </div>
+        </div>
+
+        <!-- Weekly Distribution Chart -->
+        <div class="weekly-distribution-section">
+          <h3 class="section-title">Weekly Focus Distribution</h3>
+          <div class="weekly-chart">
+            @for (day of weeklyDistributionDays(); track day.day) {
+              <div class="chart-bar-container">
+                <div class="chart-bar">
+                  <div class="bar-fill" [style.height.%]="day.percentage"></div>
+                </div>
+                <div class="bar-label">{{ day.day }}</div>
+                <div class="bar-value">{{ day.hours }}h</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Recent Activities Section -->
+        <div class="recent-activities-section">
+          <h3 class="section-title">Recent Activities</h3>
+          @if (recentActivities().length === 0) {
+            <div class="empty-recent">
+              <i class="fa-solid fa-inbox"></i>
+              <p>No recent activities</p>
+            </div>
+          } @else {
+            <div class="recent-activities-list">
+              @for (activity of recentActivities(); track activity.activityId) {
+                <div class="recent-activity-item">
+                  <div class="activity-info">
+                    <h4>{{ activity.activityTitle }}</h4>
+                    <p class="session-details">
+                      <i class="fa-solid fa-clock"></i>
+                      {{ formatSessionTime(activity.lastSession.startTime, activity.lastSession.endTime) }}
+                      • {{ getRelativeTime(activity.lastSession.startTime) }}
+                    </p>
+                  </div>
+                  <div class="session-status" [class]="activity.lastSession.status.toLowerCase()">
+                    {{ activity.lastSession.status }}
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <!-- Search and Filter Section -->
       <div class="search-section">
         <div class="search-bar">
@@ -251,39 +338,6 @@
               </div>
             }
           }
-        </div>
-      </div>
-
-      <!-- Stats Section -->
-      <div class="stats-section">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fa-solid fa-list-check"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Total Activities</div>
-            <div class="stat-value">{{ totalActivities() }}</div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fa-solid fa-clock"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">This Week Hours</div>
-            <div class="stat-value">{{ thisWeekHours() }} <span class="stat-unit">hrs</span></div>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fa-solid fa-fire"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-label">Streak</div>
-            <div class="stat-value">{{ currentStreak() }} <span class="stat-unit">days</span></div>
-          </div>
         </div>
       </div>
     </div>
