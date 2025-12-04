@@ -36,8 +36,7 @@
             ],
             "styles": [
               "src/styles.scss"
-            ],
-            "outputMode": "static"
+            ]
           },
           "configurations": {
             "production": {
@@ -53,11 +52,7 @@
                   "maximumError": "20kB"
                 }
               ],
-              "outputHashing": "all",
-              "outputMode": "server",
-              "ssr": {
-                "entry": "src/server.ts"
-              }
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
@@ -74,8 +69,7 @@
               "buildTarget": "pomodify-frontend:build:production"
             },
             "development": {
-              "buildTarget": "pomodify-frontend:build:development",
-              "proxyConfig": "proxy.conf.json"
+              "buildTarget": "pomodify-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
