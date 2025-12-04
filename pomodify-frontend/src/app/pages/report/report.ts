@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
-import { ReportService, SummaryItem } from '../../core/services/report.service';
+import { ReportRange, ReportService, SummaryItem } from '../../core/services/report.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -28,8 +28,6 @@ type ActivityRank = {
   totalHours: number;
   sessions: number;
 };
-
-type RangeKey = 'week' | 'month' | 'year';
 
 type FocusProject = {
   id: string;
@@ -59,7 +57,7 @@ export class Report implements OnInit {
   protected readonly streakDays = signal(0);
 
   // Chart + range state
-  protected readonly selectedRange = signal<RangeKey>('week');
+  protected readonly selectedRange = signal<ReportRange>(ReportRange.WEEK);
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
@@ -77,7 +75,7 @@ export class Report implements OnInit {
 
   // Toggle sidebar
   protected toggleSidebar(): void {
-    this.sidebarExpanded.update((expanded) => !expanded);
+    this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
   protected onToggleTheme(): void {
@@ -86,11 +84,9 @@ export class Report implements OnInit {
 
   // Handle navigation icon click - expand sidebar, no bounce
   protected onNavIconClick(event: MouseEvent, route: string): void {
-    // Always expand sidebar when navigating
     if (!this.sidebarExpanded()) {
       this.sidebarExpanded.set(true);
     }
-    // If already on the same route, prevent navigation but keep sidebar expanded
     if (this.router.url === route) {
       event.preventDefault();
     }
@@ -118,24 +114,25 @@ export class Report implements OnInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
   }
 
   // --- Derived labels ---
-  protected readonly selectedRangeLabel = computed(() => {
+  protected readonly selectedRangeLabel = computed((): string => {
     const range = this.selectedRange();
-    if (range === 'week') return 'week';
-    if (range === 'month') return 'month';
+    if (range === ReportRange.WEEK) return 'week';
+    if (range === ReportRange.MONTH) return 'month';
     return 'year';
   });
 
-  protected setRange(range: RangeKey): void {
+  protected setRange(range: ReportRange): void {
     if (this.selectedRange() === range) return;
     this.selectedRange.set(range);
     this.loadSummary(range);
   }
+
+  protected readonly ReportRange = ReportRange;
 
   protected onCompletedFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
@@ -162,16 +159,25 @@ export class Report implements OnInit {
     this.tooltipData.set(null);
   }
 
-  private loadSummary(range: RangeKey): void {
+  private loadSummary(range: ReportRange): void {
     this.reportService.getSummary(range).subscribe({
       next: (summary) => this.updateFromSummary(summary),
       error: () => {
         this.totalFocusHours.set(0);
         this.dailyAverageFocusHours.set(0);
         this.streakDays.set(0);
-        this.focusSeries.set([]);
+        
+        // Generate default labels even when there's an error
+        const labels = this.generateDefaultLabels(range);
+        const points: FocusPoint[] = labels.map((label) => ({
+          label,
+          hours: 0,
+          percentage: 0,
+          activities: [],
+        }));
+        this.rebuildSeries(points);
+        
         this.currentRangeTotalHours.set(0);
-        this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
         this.activityRanking.set([]);
         this.focusProjects.set([]);
       },
@@ -183,18 +189,28 @@ export class Report implements OnInit {
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
 
+    // Generate labels if not provided or empty
+    const labels = chartData?.labels && chartData.labels.length > 0
+      ? chartData.labels
+      : this.generateDefaultLabels(this.selectedRange());
+
     const focusHours = chartData?.datasets?.focus ?? [];
-    const totalHours = focusHours.reduce((sum, value) => sum + (value ?? 0), 0);
+    // Ensure focusHours array matches labels length
+    const paddedFocusHours = [...focusHours];
+    while (paddedFocusHours.length < labels.length) {
+      paddedFocusHours.push(0);
+    }
+    
+    const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
     this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
 
-    const labelCount = chartData?.labels?.length || 1;
+    const labelCount = labels.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
 
-    // Compute a simple "streak" based on consecutive non-zero points from the end
     let streak = 0;
-    for (let i = focusHours.length - 1; i >= 0; i--) {
-      const v = focusHours[i] ?? 0;
+    for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
+      const v = paddedFocusHours[i] ?? 0;
       if (v > 0) {
         streak += 1;
       } else if (streak > 0) {
@@ -203,17 +219,15 @@ export class Report implements OnInit {
     }
     this.streakDays.set(streak);
 
-    const points: FocusPoint[] =
-      (chartData?.labels ?? []).map((label, index) => ({
-        label,
-        hours: focusHours[index] ?? 0,
-        percentage: 0,
-        activities: [],
-      })) ?? [];
+    const points: FocusPoint[] = labels.map((label, index) => ({
+      label,
+      hours: paddedFocusHours[index] ?? 0,
+      percentage: 0,
+      activities: [],
+    }));
 
     this.rebuildSeries(points);
 
-    // Current range total hours (already computed from focusHours)
     this.currentRangeTotalHours.set(totalHours);
 
     // Map top activities to ranking and focus projects
@@ -287,11 +301,17 @@ export class Report implements OnInit {
     const decimalPart = value - hours;
     
     if (Math.abs(decimalPart) < 0.01) {
-      // Whole number - show as "1h", "2h", etc.
       return `${hours}h`;
     }
-    // Show as decimal hours (e.g., 1.5h, 2.5h)
     return `${value.toFixed(1)}h`;
+  }
+
+  protected formatHours(hours: number): string {
+    const formatted = hours % 1 === 0 ? hours.toString() : hours.toFixed(1);
+    if (hours >= 1) {
+      return `${formatted}hrs`;
+    }
+    return `${formatted}h`;
   }
 
   protected getTooltipTitle(point: FocusPoint): string {
@@ -300,5 +320,37 @@ export class Report implements OnInit {
       return date.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
     }
     return point.label.toUpperCase();
+  }
+
+  private generateDefaultLabels(range: ReportRange): string[] {
+    if (range === ReportRange.WEEK) {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const monday = new Date(today);
+      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+      
+      const labels: string[] = [];
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        labels.push(dayNames[date.getDay()]);
+      }
+      
+      return labels;
+    } else if (range === ReportRange.MONTH) {
+      return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    } else {
+      const startingYear = 2025;
+      const currentYear = new Date().getFullYear();
+      const labels: string[] = [];
+      
+      for (let year = startingYear; year <= currentYear; year++) {
+        labels.push(year.toString());
+      }
+      
+      return labels;
+    }
   }
 }
