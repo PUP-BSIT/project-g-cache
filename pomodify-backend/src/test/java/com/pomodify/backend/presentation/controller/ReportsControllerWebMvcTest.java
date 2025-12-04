@@ -80,7 +80,7 @@ class ReportsControllerWebMvcTest {
                     j.subject("sub-123");
                 });
 
-        mockMvc.perform(get("/api/reports/summary")
+        mockMvc.perform(get("/api/v1/reports/summary")
                         .param("range", "week")
                         .with(jwt)
                         .accept(MediaType.APPLICATION_JSON))
@@ -102,7 +102,7 @@ class ReportsControllerWebMvcTest {
                     j.subject("sub-unauth");
                 });
 
-        mockMvc.perform(get("/api/reports/summary")
+        mockMvc.perform(get("/api/v1/reports/summary")
                 .param("range", "week")
                 .with(jwt))
             .andExpect(status().isUnauthorized())
@@ -111,7 +111,7 @@ class ReportsControllerWebMvcTest {
 
     @Test
     void getSummary_unauthorized_when_jwt_missing() throws Exception {
-        mockMvc.perform(get("/api/reports/summary")
+        mockMvc.perform(get("/api/v1/reports/summary")
                         .param("range", "week"))
                 .andExpect(status().isUnauthorized());
     }
