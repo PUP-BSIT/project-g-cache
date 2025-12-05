@@ -110,15 +110,22 @@ export class Dashboard implements OnInit {
     this.dashboardError.set(null);
 
     const timezone = this.dashboardService.getUserTimezone();
+    console.log('[Dashboard] Loading dashboard metrics with timezone:', timezone);
 
     this.dashboardService.getDashboard(timezone).subscribe({
       next: (data) => {
+        console.log('[Dashboard] Metrics loaded successfully:', {
+          sessions: data.totalCompletedSessions,
+          focusTime: data.totalFocusTime,
+          recentActivitiesCount: data.recentActivities?.length || 0
+        });
         this.dashboardMetrics.set(data);
         this.isLoadingDashboard.set(false);
       },
       error: (err) => {
-        console.error('Dashboard metrics error:', err);
-        this.dashboardError.set('Failed to load dashboard metrics. Please refresh the page.');
+        console.error('[Dashboard] Metrics loading error:', err);
+        const errorMsg = err?.error?.message || err?.message || 'Failed to load dashboard metrics';
+        this.dashboardError.set(`${errorMsg}. Please refresh the page or try logging in again.`);
         this.isLoadingDashboard.set(false);
       }
     });
@@ -128,16 +135,20 @@ export class Dashboard implements OnInit {
     this.isLoadingActivities.set(true);
     this.activitiesError.set(null);
 
+    console.log('[Dashboard] Loading activities...');
+
     this.activityService.getAllActivities().subscribe({
       next: (resp: ActivityResponse) => {
         const list = Array.isArray((resp as any).activities) ? (resp as any).activities : [];
         const mapped = list.map((a: ActivityApiData) => this.mapActivityDataToView(a));
+        console.log('[Dashboard] Activities loaded:', mapped.length);
         this.activities.set(mapped);
         this.isLoadingActivities.set(false);
       },
       error: (err) => {
-        console.error('Activities loading error:', err);
-        this.activitiesError.set('Failed to load activities.');
+        console.error('[Dashboard] Activities loading error:', err);
+        const errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
+        this.activitiesError.set(errorMsg);
         this.isLoadingActivities.set(false);
         this.activities.set([]);
       }
@@ -238,7 +249,9 @@ export class Dashboard implements OnInit {
   }
 
   protected readonly recentActivities = computed(() => {
-    return this.dashboardMetrics()?.recentActivities || [];
+    const activities = this.dashboardMetrics()?.recentActivities || [];
+    // Limit to maximum 4 recent activities for dashboard display
+    return activities.slice(0, 4);
   });
 
   protected selectActivity(activity: Activity): void {
@@ -246,11 +259,13 @@ export class Dashboard implements OnInit {
   }
 
   protected openCreateActivityModal(): void {
+    console.log('[Dashboard] Opening create activity modal');
     this.dialog
       .open(CreateActivityModal)
       .afterClosed()
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
+          console.log('[Dashboard] Creating new activity:', result.name);
           const req: CreateActivityRequest = {
             activityTitle: result.name,
             activityDescription: '',
@@ -258,19 +273,24 @@ export class Dashboard implements OnInit {
           };
           this.activityService.createActivity(req).subscribe({
             next: (created) => {
+              console.log('[Dashboard] Activity created successfully');
               const mapped = this.mapActivityDataToView(created);
               const isValid = mapped && mapped.id && mapped.name;
               if (isValid) {
                 this.activities.update((acts) => [...acts, mapped]);
                 this.selectActivity(mapped);
+                // Refresh dashboard metrics after creating activity
+                this.loadDashboardMetrics();
               } else {
                 // Fallback: backend didn't return the created item; refresh list
                 this.loadActivities();
+                this.loadDashboardMetrics();
               }
             },
             error: (err) => {
-              console.error('Error creating activity:', err);
-              alert('Failed to create activity. Please try again.');
+              console.error('[Dashboard] Error creating activity:', err);
+              const errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
+              alert(`Error: ${errorMsg}. Please try again.`);
             }
           });
         }

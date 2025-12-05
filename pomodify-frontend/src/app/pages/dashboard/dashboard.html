@@ -151,11 +151,15 @@
 
         <!-- Recent Activities Section -->
         <div class="recent-activities-section">
-          <h3 class="section-title">Recent Activities</h3>
+          <div class="section-header">
+            <h3 class="section-title">Recent Activities</h3>
+            <span class="section-subtitle">Last 4 activities</span>
+          </div>
           @if (recentActivities().length === 0) {
             <div class="empty-recent">
               <i class="fa-solid fa-inbox"></i>
-              <p>No recent activities</p>
+              <p>No recent activities yet</p>
+              <p class="empty-hint">Complete some activity sessions to see them here</p>
             </div>
           } @else {
             <div class="recent-activities-list">
@@ -253,11 +257,14 @@
           @if (activities().length === 0) {
             <div class="empty-state">
               <div class="empty-icon">
-                <i class="fa-solid fa-inbox"></i>
+                <i class="fa-solid fa-calendar-plus"></i>
               </div>
               <h3>No activities yet</h3>
-              <p>Create your first activity to get started</p>
-              <button (click)="openCreateActivityModal()">Create Activity</button>
+              <p>Start tracking your productivity by creating your first activity</p>
+              <button class="create-activity-btn" (click)="openCreateActivityModal()">
+                <i class="fa-solid fa-plus"></i>
+                Create Your First Activity
+              </button>
             </div>
           } @else if (paginatedActivities().length === 0) {
             <div class="empty-state">

@@ -25,24 +25,36 @@ export interface DashboardMetrics {
 export class DashboardService {
   private readonly API_URL = `${environment.apiUrl}/dashboard`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    console.log('[DashboardService] Initialized with API URL:', this.API_URL);
+  }
 
   /**
    * Fetch dashboard metrics from API
-   * @param timezone - User's timezone (e.g., "Asia/Manila")
+   * GET /api/v1/dashboard
+   * Required headers:
+   * - Authorization: Bearer <accessToken> (added by auth-token interceptor)
+   * - X-Timezone: User's timezone for proper date calculations
+   * 
+   * @param timezone - User's timezone (e.g., "Asia/Manila", "UTC")
    * @returns Observable of DashboardMetrics
    */
   getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
-    // Live API expects X-Timezone header; send it and rely on proxy for CORS
     const headers = new HttpHeaders({ 'X-Timezone': timezone });
+    console.log('[DashboardService] Fetching dashboard with timezone:', timezone);
     return this.http.get<DashboardMetrics>(this.API_URL, { headers });
   }
 
   /**
-   * Get user's system timezone
-   * @returns Timezone string (e.g., "Asia/Manila")
+   * Get user's system timezone using Intl API
+   * @returns Timezone string (e.g., "Asia/Manila", "America/New_York")
    */
   getUserTimezone(): string {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (error) {
+      console.warn('[DashboardService] Failed to get system timezone, using default:', error);
+      return 'Asia/Manila';
+    }
   }
 }
