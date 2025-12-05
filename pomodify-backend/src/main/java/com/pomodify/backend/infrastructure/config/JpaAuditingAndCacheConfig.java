@@ -13,6 +13,11 @@ public class JpaAuditingAndCacheConfig {
 
     @Bean
     public ConcurrentMapCacheManager cacheManager() {
-        return new ConcurrentMapCacheManager("userSettings");
+        return new ConcurrentMapCacheManager(
+                "userSettings",
+                "activities",
+                "activity",
+                "categories"
+        );
     }
 }
