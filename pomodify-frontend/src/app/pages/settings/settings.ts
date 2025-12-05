@@ -49,7 +49,6 @@ export class Settings {
 
   // Modal state
   protected showDeleteModal = signal(false);
-  protected showSuccessModal = signal(false);
   protected showClearSessionsModal = signal(false);
   protected showClearActivitiesModal = signal(false);
 
@@ -167,17 +166,6 @@ export class Settings {
       });
   }
 
-  // Save changes
-  protected onSaveChanges(): void {
-    // Settings are already saved automatically via the service
-    // This button provides user feedback
-    this.showSuccessModal.set(true);
-  }
-
-  protected onCloseSuccessModal(): void {
-    this.showSuccessModal.set(false);
-  }
-
   // Delete account
   protected onDeleteAccount(): void {
     this.showDeleteModal.set(true);
@@ -204,7 +192,7 @@ export class Settings {
     this.showClearSessionsModal.set(false);
     // TODO: Call backend API to clear session history
     console.log('Clearing session history...');
-    this.showSuccessModal.set(true);
+    alert('Session history cleared successfully!');
   }
 
   protected onCancelClearSessions(): void {
@@ -220,7 +208,7 @@ export class Settings {
     this.showClearActivitiesModal.set(false);
     // TODO: Call backend API to clear activity data
     console.log('Clearing activity data...');
-    this.showSuccessModal.set(true);
+    alert('Activity data cleared successfully!');
   }
 
   protected onCancelClearActivities(): void {
