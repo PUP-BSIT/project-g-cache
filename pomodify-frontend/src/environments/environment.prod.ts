@@ -1,8 +1,6 @@
-// Production environment - use deployed backend
+// Production environment - point to live API
 export const environment = {
   production: true,
-  apiUrl: typeof window !== 'undefined' 
-    ? `${window.location.protocol}//${window.location.host}` 
-    : 'https://your-deployed-backend.com',
+  apiUrl: 'https://api.pomodify.site/api/v1',
   useMockBackend: false,
 };

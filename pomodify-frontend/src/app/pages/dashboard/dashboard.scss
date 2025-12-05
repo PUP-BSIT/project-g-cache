@@ -1261,11 +1261,24 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 0 60px;
   margin-bottom: 24px;
 
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
   .section-title {
     font-size: 18px;
     font-weight: 600;
     color: $text-dark;
-    margin: 0 0 20px 0;
+    margin: 0;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: $text-light;
+    font-weight: 400;
   }
 }
 
@@ -1284,8 +1297,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 
   p {
-    margin: 0;
+    margin: 0 0 8px 0;
     font-size: 14px;
+
+    &.empty-hint {
+      font-size: 12px;
+      color: color.adjust($text-light, $lightness: 10%);
+      margin-top: 4px;
+    }
   }
 }
 
@@ -1413,6 +1432,10 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     font-size: 48px;
     color: $text-light;
     margin-bottom: 16px;
+    
+    i {
+      opacity: 0.5;
+    }
   }
   
   h3 {
@@ -1428,19 +1451,33 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     margin-bottom: 24px;
   }
   
-  button {
-    padding: 10px 24px;
+  button,
+  .create-activity-btn {
+    padding: 12px 28px;
     background: $primary-teal;
     color: $text-white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    
+    i {
+      font-size: 14px;
+    }
     
     &:hover {
       background: $primary-teal-dark;
       transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 }

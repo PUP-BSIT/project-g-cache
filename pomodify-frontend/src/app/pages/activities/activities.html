@@ -1,4 +1,4 @@
-<!-- activities.html -->
+<!-- activities.html - Activities List Page -->
 <div class="activities-page">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
@@ -59,190 +59,166 @@
 
     <!-- Page Content -->
     <div class="page-content">
-      <!-- Page Header Section (White Background) -->
-      <div class="page-header-section">
-        <div class="page-header">
-          <h2 class="page-title">My Activities</h2>
-          <button class="btn-new-activity" (click)="openCreateActivityModal()">+ New Activity</button>
-        </div>
+      <!-- Page Header with Search and Filter -->
+      <div class="page-header">
+        <p class="page-subtitle">Manage and track all your activities</p>
+        <button class="btn-primary" (click)="openCreateActivityModal()">
+          <i class="fa-solid fa-plus"></i>
+          Create Activity
+        </button>
+      </div>
 
-        <!-- Search Bar -->
-        <div class="search-container">
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-bar">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input 
-            type="text" 
-            class="search-input"
-            placeholder="Search Activity Name"
+          <input
+            type="text"
+            placeholder="Search activities..."
             [value]="searchQuery()"
-            (input)="onSearchInput($event)">
+            (input)="updateSearchQuery($any($event.target).value)"
+          />
+        </div>
+        
+        <!-- Category Dropdown -->
+        <div class="category-dropdown-container">
+          <button class="category-dropdown-btn" (click)="toggleCategoryDropdown()">
+            <i class="fa-solid fa-list"></i>
+            <span>{{ selectedCategory() || 'All Categories' }}</span>
+            <i class="fa-solid fa-chevron-down" [class.rotated]="categoryDropdownOpen()"></i>
+          </button>
+          
+          @if (categoryDropdownOpen()) {
+            <div class="category-dropdown-menu">
+              <button 
+                class="category-item"
+                [class.active]="!selectedCategory()"
+                (click)="selectCategory(null); toggleCategoryDropdown()"
+              >
+                <i class="fa-solid fa-inbox"></i>
+                <span>All Activities</span>
+              </button>
+              
+              @for (category of categories(); track category) {
+                <button 
+                  class="category-item"
+                  [class.active]="selectedCategoryName() === category"
+                  (click)="selectCategory(category)"
+                >
+                  <i class="fa-solid fa-folder"></i>
+                  <span>{{ category }}</span>
+                </button>
+              }
+            </div>
+          }
         </div>
       </div>
 
-      <!-- Category Filter Section -->
-      @if (availableCategories().length > 0) {
-        <div class="category-section">
-          <div class="category-header">
-            <h3 class="category-title">Categories</h3>
-          </div>
-          <div class="category-filters">
-            <button 
-              class="category-chip"
-              [class.active]="selectedCategory() === null"
-              (click)="selectCategory(null)">
-              All
-            </button>
-            @for (category of availableCategories(); track category) {
-              <button 
-                class="category-chip"
-                [class.active]="selectedCategory() === category"
-                (click)="selectCategory(category)">
-                {{ category }}
-              </button>
-            }
-          </div>
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading activities...</p>
         </div>
       }
 
-      <!-- Activities Container (Teal Background) -->
-      <div class="activities-container">
-        @if (selectedActivity()) {
-          <!-- Session View -->
-          <div class="session-view">
-            <div class="session-view-header">
-              <button class="back-btn" (click)="closeActivityView()">
-                <i class="fa-solid fa-arrow-left-long"></i>
-                Back
-              </button>
-              <div class="session-view-title">
-                <span class="session-activity-icon">{{ selectedActivity()!.icon }}</span>
-                <h2>{{ selectedActivity()!.name }}</h2>
-              </div>
-              <button class="btn-add-session-header" (click)="openAddSessionModal(selectedActivity()!)">
-                + Add Session
-              </button>
-            </div>
-
-            <div class="sessions-list">
-              @if (selectedActivity()!.sessions.length > 0) {
-                @for (session of selectedActivity()!.sessions; track session.id) {
-                  <div class="session-card">
-                    <div class="session-info">
-                      <div class="session-time-info">
-                        <div class="time-item">
-                          <span class="time-label">Focus:</span>
-                          <span class="time-value">{{ session.focusTimeMinutes }} min</span>
-                        </div>
-                        <div class="time-item">
-                          <span class="time-label">Break:</span>
-                          <span class="time-value">{{ session.breakTimeMinutes }} min</span>
-                        </div>
-                      </div>
-                      @if (session.note) {
-                        <div class="session-note">
-                          <span class="note-label">Note:</span>
-                          <span class="note-text">{{ session.note }}</span>
-                        </div>
-                      }
-                      <div class="session-date">
-                        Created: {{ formatDate(session.createdAt) }}
-                      </div>
-                    </div>
-                    <div class="session-actions">
-                      <button class="session-action-btn start-btn" (click)="startSession(selectedActivity()!, session)">
-                        Start
-                      </button>
-                      <button class="session-action-btn edit-btn" (click)="openEditSessionModal(selectedActivity()!, session)">
-                        Edit
-                      </button>
-                      <button class="session-action-btn delete-btn" (click)="deleteSession(selectedActivity()!, session)">
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                }
-              } @else {
-                <div class="no-sessions">
-                  <p>No sessions yet. Click "Add Session" to create one.</p>
-                </div>
-              }
-            </div>
+      <!-- Error State -->
+      @else if (error()) {
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fa-solid fa-exclamation-circle"></i>
           </div>
-        } @else {
-          <!-- Activities Grid -->
-          <div class="activities-grid">
-            @if (pagedActivities().length > 0) {
-              @for (activity of pagedActivities(); track activity.id) {
-                <div class="activity-card-compact" [ngClass]="getColorClass(activity.colorTag)" (click)="selectActivity(activity)">
-                  <div class="card-header-compact">
-                    <span class="activity-icon">{{ activity.icon }}</span>
-                  </div>
-                  <h3 class="activity-title-compact">{{ activity.name }}</h3>
-                  <p class="activity-meta-compact">Last: {{ activity.lastAccessed }}</p>
-                  <p class="activity-sessions-count">{{ activity.sessions.length }} session{{ activity.sessions.length !== 1 ? 's' : '' }}</p>
-                  <div class="card-actions-compact" (click)="$event.stopPropagation()">
-                    <button class="action-btn-compact add-session-btn" (click)="openAddSessionModal(activity)">
-                      Add Session
-                    </button>
-                    <button class="action-btn-compact" (click)="openEditActivityModal(activity)">
-                      Edit
-                    </button>
-                    <button class="action-btn-compact delete-btn" (click)="openDeleteActivityModal(activity)">
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              }
-            } @else {
-              <div class="no-activities">
-                <p>No activities found matching your search.</p>
-              </div>
-            }
-          </div>
-        }
-
-        <!-- Pagination -->
-        @if (totalPages() > 1) {
-          <div class="pagination-dots">
-            <button class="page-btn" (click)="prevPage()" aria-label="Previous page">◀</button>
-            @for (p of pagesArray(); track p) {
-              <button
-                class="page-number"
-                [class.active]="p === currentPage()"
-                (click)="setPage(p)">
-                {{ p }}
-              </button>
-            }
-            <button class="page-btn" (click)="nextPage()" aria-label="Next page">▶</button>
-          </div>
-        }
-      </div>
-
-      <!-- Status Section (White Background) -->
-      <div class="status-section">
-        <h3 class="status-title">STATUS</h3>
-        <div class="status-cards">
-          <div class="status-card">
-            <div class="status-label">Total Activities</div>
-            <div class="status-value">
-              <span class="status-number">{{ activities().length }}</span>
-            </div>
-          </div>
-          <div class="status-card">
-            <div class="status-label">This Week</div>
-            <div class="status-value">
-              <span class="status-number">3</span>
-              <span class="status-unit">HRS</span>
-            </div>
-          </div>
-          <div class="status-card">
-            <div class="status-label">Streak</div>
-            <div class="status-value">
-              <span class="status-number">2</span>
-              <span class="status-unit">Days</span>
-            </div>
-          </div>
+          <h3 class="error-title">Error Loading Activities</h3>
+          <p class="error-message">{{ error() }}</p>
+          <button class="btn-retry" (click)="loadActivities()">
+            <i class="fa-solid fa-refresh"></i>
+            Retry
+          </button>
         </div>
-      </div>
+      }
+
+      <!-- Empty State (No Activities) -->
+      @else if (filteredActivities().length === 0 && totalItems() === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <h2 class="empty-title">No Activities Yet</h2>
+          <p class="empty-subtitle">Create your first activity to get started with Pomodoro tracking</p>
+          <button class="btn-create-first" (click)="openCreateActivityModal()">
+            <i class="fa-solid fa-plus"></i>
+            Create Your First Activity
+          </button>
+        </div>
+      }
+
+      <!-- Activities Grid -->
+      @else {
+        <div class="activities-content">
+          <!-- Activities Grid (4 columns) -->
+          <div class="activities-grid">
+            @for (activity of filteredActivities(); track activity.activityId) {
+              <div class="activity-card" [style.--card-color]="activity.colorTag || 'teal'">
+                <div class="card-header">
+                  <div class="activity-icon" [style.color]="activity.colorTag || 'teal'">
+                    <i [class]="getIconClass(activity)"></i>
+                  </div>
+                  <div class="card-actions">
+                    <button class="icon-btn" (click)="openEditActivityModal(activity)" title="Edit">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="icon-btn delete" (click)="openDeleteActivityModal(activity)" title="Delete">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="card-body">
+                  <h3 class="activity-name">{{ activity.activityTitle }}</h3>
+                  @if (activity.activityDescription) {
+                    <p class="activity-desc">{{ activity.activityDescription }}</p>
+                  }
+                  @if (activity.categoryName) {
+                    <span class="activity-category">{{ activity.categoryName }}</span>
+                  }
+                </div>
+
+                <div class="card-footer">
+                  <button class="btn-add-session" (click)="openAddSessionModal(activity)">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Session
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <div class="pagination">
+              <button class="page-btn" 
+                      [disabled]="currentPage() === 1"
+                      (click)="previousPage()">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+              </button>
+
+              <div class="page-numbers">
+                <span class="page-info">
+                  Page {{ currentPage() }} of {{ totalPages() }}
+                </span>
+              </div>
+
+              <button class="page-btn" 
+                      [disabled]="currentPage() === totalPages()"
+                      (click)="nextPage()">
+                Next
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          }
+        </div>
+      }
     </div>
   </main>
 </div>
