@@ -8,6 +8,7 @@ import com.google.firebase.messaging.WebpushNotification;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.pomodify.backend.domain.model.UserPushToken;
 import com.pomodify.backend.domain.repository.UserPushTokenRepository;
+import com.pomodify.backend.domain.repository.SettingsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,16 @@ import java.util.Optional;
 public class PushNotificationService {
 
     private final UserPushTokenRepository tokenRepository;
+    private final SettingsRepository settingsRepository;
 
     public void sendNotificationToUser(Long userId, String title, String body) {
+        // Global settings guard: respect notificationsEnabled
+        settingsRepository.findById(userId).ifPresent(settings -> {
+            if (!settings.isNotificationsEnabled()) {
+                log.debug("Notifications disabled in settings for user {} — skipping push", userId);
+                throw new IllegalStateException("Notifications disabled");
+            }
+        });
         Optional<UserPushToken> opt = tokenRepository.findByUserId(userId);
         if (opt.isEmpty()) {
             log.debug("No push token for user {} — skipping push", userId);

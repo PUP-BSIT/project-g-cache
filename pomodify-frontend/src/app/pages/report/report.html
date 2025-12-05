@@ -10,32 +10,32 @@
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/dashboard')">
-        <i class="fa-solid fa-house"></i>
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/dashboard')">
+        <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
       <button class="nav-icon" routerLink="/activities" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/activities')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/activities')">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/report')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/report')">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
       <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/settings')">
+                      [routerLinkActiveOptions]="{ exact: true }"
+                      (click)="onNavIconClick($event, '/settings')">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -61,11 +61,6 @@
         <h1>Reports</h1>
       </div>
       <div class="header-actions">
-        <div class="theme-toggle">
-          <button class="theme-btn" (click)="onToggleTheme()">
-            <i class="fa-solid fa-moon"></i>
-          </button>
-        </div>
         <div class="user-profile">
           <button class="profile-btn" (click)="openProfileModal()">
             <i class="fa-solid fa-user"></i>
@@ -76,58 +71,232 @@
 
     <!-- Report Content -->
     <div class="report-content">
-      <!-- Help Form -->
-      <section class="help-form">
-        <h1 class="form-title">Help us understand the problem</h1>
+      <section class="report-main-grid">
+        <!-- LEFT: Activity summary + Focus hours -->
+        <div class="report-left">
+          <section class="activity-summary-section">
+            <h2 class="section-heading">Activity Summary</h2>
 
-        <form [formGroup]="helpForm" (ngSubmit)="onSubmitReport()">
-          <!-- Search Section -->
-          <div class="form-section">
-            <label class="form-label">Search for a solution</label>
-            <div class="search-input-wrapper">
-              <i class="fa-solid fa-magnifying-glass search-icon"></i>
-              <input 
-                type="text" 
-                class="search-input" 
-                formControlName="search"
-                placeholder="Trying to reset password">
-            </div>
-          </div>
-
-          <!-- Full Details Section -->
-          <div class="form-section">
-            <label class="form-label">Full Details</label>
-            <textarea 
-              class="details-textarea" 
-              rows="5"
-              formControlName="details"
-              placeholder="Please describe the steps you took and what is your expecting to happen"></textarea>
-          </div>
-
-          <!-- Evidence Section -->
-          <div class="form-section">
-            <label class="form-label">Evidence</label>
-            <div class="evidence-container">
-              <div class="upload-area">
-                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                <div class="upload-text">
-                  <div class="upload-title">Drag & Drop Screenshot /</div>
-                  <div class="upload-subtitle">Screen Recordings</div>
+            <div class="summary-cards">
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Total Hours Focused</div>
+                  <div class="summary-value">
+                    {{ formatHours(totalFocusHours()) }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-regular fa-clock"></i>
                 </div>
               </div>
-              
-              <div class="action-buttons">
-                <button type="button" class="btn-action btn-screenshot">Take a Screenshot Now</button>
-                <button type="button" class="btn-action btn-record">Record My Screen</button>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Daily Avg Focus</div>
+                  <div class="summary-value">
+                    {{ formatHours(dailyAverageFocusHours()) }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-regular fa-hourglass"></i>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Day Streak</div>
+                  <div class="summary-value">
+                    {{ streakDays() }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-fire"></i>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Focus Hours -->
+          <section class="focus-panel">
+          <div class="focus-header">
+            <div class="focus-title-group">
+              <h2 class="panel-title">Focus Hours</h2>
+              <div class="panel-subtitle">Based on your logged sessions</div>
+            </div>
+
+            <div class="range-tabs">
+              <button
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === ReportRange.WEEK"
+                      (click)="setRange(ReportRange.WEEK)">
+                Week
+              </button>
+              <button
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === ReportRange.MONTH"
+                      (click)="setRange(ReportRange.MONTH)">
+                Month
+              </button>
+              <button
+                      type="button"
+                      class="range-tab"
+                      [class.active]="selectedRange() === ReportRange.YEAR"
+                      (click)="setRange(ReportRange.YEAR)">
+                Year
+              </button>
+            </div>
+          </div>
+
+          <div class="focus-meta">
+            <div class="legend-items-group">
+              <div class="legend-item">
+                <span class="legend-swatch classic"></span>
+                <span class="legend-label">Focus time</span>
+              </div>
+            </div>
+            <div class="total-meta">
+              <div class="meta-checkboxes">
+                <label class="meta-checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="completedFocusChecked()"
+                    (change)="onCompletedFocusToggle($event)"
+                  />
+                  <span>Completed</span>
+                </label>
+                <label class="meta-checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="progressingFocusChecked()"
+                    (change)="onProgressingFocusToggle($event)"
+                  />
+                  <span>Progressing</span>
+                </label>
+              </div>
+              <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
+              <span class="meta-value">
+                {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
+              </span>
+            </div>
+          </div>
+
+          <div class="focus-chart">
+            @if (tooltipData()) {
+              <div 
+                      class="chart-tooltip"
+                      [style.--tooltip-left.px]="tooltipPosition().x"
+                      [style.--tooltip-top.px]="tooltipPosition().y"
+              >
+                <div class="tooltip-title">
+                  {{ getTooltipTitle(tooltipData()!) }}
+                </div>
+                <div class="tooltip-total">
+                  Total: {{ tooltipData()!.hours | number: '1.0-1' }} hrs
+                </div>
+                <div class="tooltip-divider"></div>
+                @for (activity of tooltipData()!.activities; track activity.activityName) {
+                  <div class="tooltip-activity">
+                    <div>• {{ activity.activityName }}: {{ activity.hours | 
+                      number: '1.0-1' }}h ({{ activity.sessions }} session{{ 
+                        activity.sessions !== 1 ? 's' : '' }})</div>
+                  </div>
+                }
+              </div>
+            }
+            <div class="chart-container">
+              <div class="chart-grid">
+                <div class="chart-y-axis">
+                  @for (tick of chartTicks(); track tick) {
+                    <div class="y-tick">
+                      <span class="y-label">{{ formatTickLabel(tick) }}</span>
+                      <span class="y-line"></span>
+                    </div>
+                  }
+                </div>
+
+                <div class="chart-bars">
+                  @for (point of focusSeries(); track point.label) {
+                    <div 
+                            class="bar-wrapper"
+                            (mouseenter)="onBarHover(point, $event)"
+                            (mouseleave)="onBarLeave()"
+                    >
+                      <div
+                              class="bar"
+                              [style.--bar-height.%]="point.percentage"
+                      ></div>
+                    </div>
+                  }
+                  <div class="chart-bottom-line"></div>
+                </div>
+              </div>
+              <div class="chart-labels">
+                @for (point of focusSeries(); track point.label) {
+                  <div class="bar-label">{{ point.label }}</div>
+                }
               </div>
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <div class="submit-section">
-            <button class="btn-submit" type="submit">Send Report</button>
+          <!-- Projects summary under the graph -->
+          <div class="focus-projects">
+            <div class="focus-projects-header">
+              <span class="focus-projects-activity-title">Activities</span>
+              <span class="focus-projects-time-title">Time (HH:MM)</span>
+            </div>
+            <div class="focus-projects-rows">
+              @for (project of focusProjects(); track project.id) {
+                <div class="focus-project-row">
+                  <div class="focus-project-name">
+                    {{ project.name }}
+                  </div>
+                  <div class="focus-project-time">
+                    {{ formatMinutes(project.totalMinutes) }}
+                  </div>
+                </div>
+              }
+            </div>
           </div>
-        </form>
+        </section>
+        </div>
+
+        <!-- RIGHT: Ranking -->
+        <div class="ranking-panel">
+          <div class="ranking-header">
+            <h2 class="panel-title">Ranking</h2>
+            <div class="panel-subtitle">Most focused activities</div>
+          </div>
+
+          <div class="ranking-list">
+            @if (activityRanking().length === 0) {
+              <div class="empty-state">
+                No sessions yet. Start a focus session to see your rankings here.
+              </div>
+            } @else {
+              @for (item of activityRanking(); track item.id; let i = $index) {
+                <div class="ranking-row">
+                  <div class="rank-number">#{{ i + 1 }}</div>
+                  <div class="rank-main">
+                    <div class="rank-text">
+                      <div class="rank-name">
+                        {{ item.name }}
+                      </div>
+                      <div class="rank-meta">
+                        {{ item.totalHours | number: '1.0-1' }} hrs ·
+                        {{ item.sessions }} session{{ item.sessions !== 1 ? 's' : '' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="rank-hours">
+                    {{ item.totalHours | number: '1.0-1' }}h
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
       </section>
     </div>
   </main>
