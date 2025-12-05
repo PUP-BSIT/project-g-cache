@@ -1,25 +1,42 @@
-# POMODIFY APP — FULL API DOCUMENTATION (UPDATED)
+# POMODIFY APP — FULL API DOCUMENTATION
+
+**Last Updated:** December 6, 2025  
+**Base URL:** `/api/v1`  
+**Authentication:** JWT Token-based (Bearer token in Authorization header)
 
 ---
 
 # **USER MANAGEMENT / AUTH**
 
+All auth endpoints return JWT tokens and user information.
+
 ---
 
 ## **1. POST — `/api/v1/auth/register`**
 
-### **Request Params**
+Register a new user account.
 
-| Field     | Type   | Description                 |
-| --------- | ------ | --------------------------- |
-| firstName | string | User's first name           |
-| lastName  | string | User's last name            |
-| email     | string | User's email                |
-| password  | string | Password                    |
+### **Request Body**
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "password": "securePassword123"
+}
+```
+
+| Field     | Type   | Required | Description        |
+| --------- | ------ | -------- | ------------------ |
+| firstName | string | Yes      | User's first name  |
+| lastName  | string | Yes      | User's last name   |
+| email     | string | Yes      | User's email       |
+| password  | string | Yes      | User's password    |
 
 ### **Success Response**
 
-Status: 201 Created
+Status: **201 Created**
 ```json
 {
   "firstName": "Jane",
@@ -30,7 +47,7 @@ Status: 201 Created
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 { "message": "Email already exists" }
 ```
@@ -39,19 +56,32 @@ Status: 400 Bad Request
 
 ## **2. POST — `/api/v1/auth/login`**
 
-### **Request Params**
+Authenticate user and receive access and refresh tokens.
 
-| Field    | Type   |
-| -------- | ------ |
-| email    | string |
-| password | string |
+### **Request Body**
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "securePassword123"
+}
+```
+
+| Field    | Type   | Required | Description |
+| -------- | ------ | -------- | ----------- |
+| email    | string | Yes      | User's email    |
+| password | string | Yes      | User's password |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-  "user": { "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com" },
+  "user": {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane@example.com"
+  },
   "accessToken": "<jwt_token>",
   "refreshToken": "<refresh_token>"
 }
@@ -59,7 +89,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **401 Unauthorized**
 ```json
 { "message": "Invalid credentials" }
 ```
@@ -68,18 +98,30 @@ Status: 400 Bad Request
 
 ## **3. POST — `/api/v1/auth/refresh`**
 
-### **Request Params**
+Refresh expired access token using refresh token.
 
-| Field        | Type   |
-| ------------ | ------ |
-| refreshToken | string |
+### **Request Body**
+
+```json
+{
+  "refreshToken": "<refresh_token>"
+}
+```
+
+| Field        | Type   | Required | Description    |
+| ------------ | ------ | -------- | --------------- |
+| refreshToken | string | Yes      | Valid refresh token |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-  "user": { "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com" },
+  "user": {
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane@example.com"
+  },
   "accessToken": "<new_jwt_token>",
   "refreshToken": "<new_refresh_token>"
 }
@@ -87,7 +129,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 { "message": "Invalid or expired refresh token" }
 ```
@@ -96,20 +138,22 @@ Status: 401 Unauthorized
 
 ## **4. POST — `/api/v1/auth/logout`**
 
-### **Request Params**
+Logout user and invalidate current token.
 
-- Header required: `Authorization: Bearer <accessToken>`
+### **Request**
+
+- **Header required:** `Authorization: Bearer <accessToken>`
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 { "message": "Logged out successfully" }
 ```
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 { "message": "Missing or invalid Authorization header" }
 ```
@@ -118,13 +162,15 @@ Status: 400 Bad Request
 
 ## **5. GET — `/api/v1/auth/me`**
 
-### **Request Params**
+Get current authenticated user information.
 
-- Header required: `Authorization: Bearer <accessToken>`
+### **Request**
+
+- **Header required:** `Authorization: Bearer <accessToken>`
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "firstName": "Jane",
@@ -135,7 +181,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 { "message": "Missing token" }
 ```
@@ -144,23 +190,33 @@ Status: 401 Unauthorized
 
 # **ACTIVITIES**
 
-(All activity endpoints require: Header `Authorization: Bearer <accessToken>`; controllers expect JWT with a `user` claim (Long user id).)
+All activity endpoints require `Authorization: Bearer <accessToken>` header.
 
 ---
 
 ## **6. POST — `/api/v1/activities`**
 
-### **Request Params**
+Create a new activity.
 
-| Field      | Type   | Description            |
-| ---------- | ------ | ---------------------- |
-| title      | string | Activity title         |
-| description| string | Activity description   |
-| categoryId | number | Category id (optional) |
+### **Request Body**
+
+```json
+{
+  "title": "Study Math",
+  "description": "Learn algebra",
+  "categoryId": 5
+}
+```
+
+| Field       | Type   | Required | Description          |
+| ----------- | ------ | -------- | -------------------- |
+| title       | string | Yes      | Activity title       |
+| description | string | No       | Activity description |
+| categoryId  | number | No       | Category id          |
 
 ### **Success Response**
 
-Status: 201 Created
+Status: **201 Created**
 ```json
 {
   "message": "Activity created successfully",
@@ -169,7 +225,7 @@ Status: 201 Created
       "activityId": 123,
       "categoryId": 5,
       "activityTitle": "Study Math",
-      "activityDescription": "Completed chapter 1"
+      "activityDescription": "Learn algebra"
     }
   ],
   "currentPage": 0,
@@ -180,7 +236,7 @@ Status: 201 Created
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 { "message": "Activity title is required" }
 ```
@@ -189,35 +245,41 @@ Status: 400 Bad Request
 
 ## **7. GET — `/api/v1/activities`**
 
-### **Request Params (Query)**
+Retrieve active activities with pagination and filtering.
 
-| Field     | Type   | Description |
-| --------- | ------ | ----------- |
-| page      | number | Page index (default 0) |
-| size      | number | Page size (default 10) |
-| sortOrder | string | `asc` or `desc` (default `desc`) |
-| sortBy    | string | Field to sort by (default `title`) |
-| categoryId| number | Optional category filter |
+### **Query Parameters**
+
+| Parameter | Type   | Default | Description       |
+| --------- | ------ | ------- | ----------------- |
+| page      | number | 0       | Page index        |
+| size      | number | 10      | Page size         |
+| sortOrder | string | desc    | `asc` or `desc`   |
+| sortBy    | string | title   | Field to sort by  |
+| categoryId| number | -       | Category filter   |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Active activities fetched successfully.",
   "activities": [
-    { "activityId": 123, "categoryId": 5, "activityTitle": "Study Math", "activityDescription": "..." },
-    { "activityId": 124, "categoryId": 7, "activityTitle": "Learn Angular", "activityDescription": "..." }
+    {
+      "activityId": 123,
+      "categoryId": 5,
+      "activityTitle": "Study Math",
+      "activityDescription": "Learn algebra"
+    }
   ],
   "currentPage": 0,
   "totalPages": 1,
-  "totalItems": 2
+  "totalItems": 1
 }
 ```
 
 ### **Fail Response**
 
-Status: 200 OK (empty result message)
+Status: **200 OK** (empty response)
 ```json
 { "message": "No active activities found." }
 ```
@@ -226,18 +288,25 @@ Status: 200 OK (empty result message)
 
 ## **8. GET — `/api/v1/activities/deleted`**
 
-### **Request Params (Query)**
+Retrieve soft-deleted activities with pagination and filtering.
 
-Same as `/api/v1/activities` (pagination + filters). Returns deleted activities.
+### **Query Parameters**
+
+Same as `/api/v1/activities`.
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Deleted activities fetched successfully.",
   "activities": [
-    { "activityId": 200, "categoryId": 3, "activityTitle": "Old Activity", "activityDescription": "deleted" }
+    {
+      "activityId": 200,
+      "categoryId": 3,
+      "activityTitle": "Old Activity",
+      "activityDescription": "Archived"
+    }
   ],
   "currentPage": 0,
   "totalPages": 1,
@@ -247,7 +316,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 200 OK (empty result message)
+Status: **200 OK** (empty response)
 ```json
 { "message": "No deleted activities found." }
 ```
@@ -256,20 +325,27 @@ Status: 200 OK (empty result message)
 
 ## **9. GET — `/api/v1/activities/{id}`**
 
-### **Request Params**
+Retrieve a specific activity by ID.
 
-| Field | Type   |
-| ----- | ------ |
-| id    | number | Activity id (path param) |
+### **Path Parameters**
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| id        | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Activity fetched successfully",
   "activities": [
-    { "activityId": 123, "categoryId": 5, "activityTitle": "Study Math", "activityDescription": "Completed chapter 1" }
+    {
+      "activityId": 123,
+      "categoryId": 5,
+      "activityTitle": "Study Math",
+      "activityDescription": "Learn algebra"
+    }
   ],
   "currentPage": 0,
   "totalPages": 1,
@@ -279,7 +355,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 400 Bad Request / 401 / 404 (depending on service)
+Status: **404 Not Found**
 ```json
 { "message": "Activity not found" }
 ```
@@ -288,25 +364,43 @@ Status: 400 Bad Request / 401 / 404 (depending on service)
 
 ## **10. PUT — `/api/v1/activities/{id}`**
 
-### **Request Params**
+Update an existing activity.
 
-| Field                 | Type   | Description |
-| --------------------- | ------ | ----------- |
-| id                    | number | Activity id (path param) |
-| newActivityTitle      | string | New title (in body) |
-| newActivityDescription| string | New description (in body) |
-| newCategoryId         | number | New category id (in body) |
+### **Path Parameters**
 
-Body uses `UpdateActivityRequest`.
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| id        | number | Yes      |
+
+### **Request Body**
+
+```json
+{
+  "newActivityTitle": "Study Physics",
+  "newActivityDescription": "Learn mechanics",
+  "newCategoryId": 6
+}
+```
+
+| Field                      | Type   | Required | Description          |
+| -------------------------- | ------ | -------- | -------------------- |
+| newActivityTitle           | string | No       | Updated title        |
+| newActivityDescription     | string | No       | Updated description  |
+| newCategoryId              | number | No       | Updated category id  |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Activity updated successfully",
   "activities": [
-    { "activityId": 123, "categoryId": 6, "activityTitle": "Study Physics", "activityDescription": "Updated description" }
+    {
+      "activityId": 123,
+      "categoryId": 6,
+      "activityTitle": "Study Physics",
+      "activityDescription": "Learn mechanics"
+    }
   ],
   "currentPage": 0,
   "totalPages": 1,
@@ -316,7 +410,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 400 Bad Request / 404 Not Found
+Status: **404 Not Found**
 ```json
 { "message": "Activity not found" }
 ```
@@ -325,20 +419,27 @@ Status: 400 Bad Request / 404 Not Found
 
 ## **11. DELETE — `/api/v1/activities/{id}`**
 
-### **Request Params**
+Soft delete an activity (marks as deleted).
 
-| Field | Type   |
-| ----- | ------ |
-| id    | number |
+### **Path Parameters**
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| id        | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Activity deleted successfully",
   "activities": [
-    { "activityId": 123, "categoryId": 5, "activityTitle": "Study Math", "activityDescription": "..." }
+    {
+      "activityId": 123,
+      "categoryId": 5,
+      "activityTitle": "Study Math",
+      "activityDescription": "Learn algebra"
+    }
   ],
   "currentPage": 0,
   "totalPages": 1,
@@ -348,7 +449,7 @@ Status: 200 OK
 
 ### **Fail Response**
 
-Status: 404 Not Found
+Status: **404 Not Found**
 ```json
 { "message": "Activity not found" }
 ```
@@ -357,31 +458,45 @@ Status: 404 Not Found
 
 # **CATEGORIES**
 
+All category endpoints require `Authorization: Bearer <accessToken>` header.
+
 ---
 
 ## **12. POST — `/api/v1/categories`**
 
-### **Request Params**
+Create a new category.
 
-| Field        | Type   |
-| ------------ | ------ |
-| categoryName | string |
+### **Request Body**
+
+```json
+{
+  "categoryName": "Study"
+}
+```
+
+| Field        | Type   | Required |
+| ------------ | ------ | -------- |
+| categoryName | string | Yes      |
 
 ### **Success Response**
 
-Status: 201 Created
+Status: **201 Created**
 ```json
 {
   "message": "Category created successfully",
   "categories": [
-    { "categoryId": 1, "categoryName": "Study", "activitiesCount": 0 }
+    {
+      "categoryId": 1,
+      "categoryName": "Study",
+      "activitiesCount": 0
+    }
   ]
 }
 ```
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 { "message": "Invalid input" }
 ```
@@ -390,28 +505,45 @@ Status: 400 Bad Request
 
 ## **13. PUT — `/api/v1/categories/{id}`**
 
-### **Request Params**
+Update an existing category.
 
-| Field           | Type   |
-| --------------- | ------ |
-| id              | number |
-| newCategoryName | string |
+### **Path Parameters**
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| id        | number | Yes      |
+
+### **Request Body**
+
+```json
+{
+  "newCategoryName": "Learning"
+}
+```
+
+| Field              | Type   | Required |
+| ------------------ | ------ | -------- |
+| newCategoryName    | string | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Category updated successfully",
   "categories": [
-    { "categoryId": 1, "categoryName": "New Name", "activitiesCount": 2 }
+    {
+      "categoryId": 1,
+      "categoryName": "Learning",
+      "activitiesCount": 2
+    }
   ]
 }
 ```
 
 ### **Fail Response**
 
-Status: 404 Not Found
+Status: **404 Not Found**
 ```json
 { "message": "Category not found" }
 ```
@@ -420,27 +552,33 @@ Status: 404 Not Found
 
 ## **14. DELETE — `/api/v1/categories/{id}`**
 
-### **Request Params**
+Delete a category.
 
-| Field | Type   |
-| ----- | ------ |
-| id    | number |
+### **Path Parameters**
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| id        | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Category deleted successfully",
   "categories": [
-    { "categoryId": 1, "categoryName": "Study", "activitiesCount": 0 }
+    {
+      "categoryId": 1,
+      "categoryName": "Study",
+      "activitiesCount": 0
+    }
   ]
 }
 ```
 
 ### **Fail Response**
 
-Status: 404 Not Found
+Status: **404 Not Found**
 ```json
 { "message": "Category not found" }
 ```
@@ -449,22 +587,32 @@ Status: 404 Not Found
 
 ## **15. GET — `/api/v1/categories`**
 
+Retrieve all categories for the authenticated user.
+
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
   "message": "Categories retrieved successfully: 2",
   "categories": [
-    { "categoryId": 1, "categoryName": "Study", "activitiesCount": 3 },
-    { "categoryId": 2, "categoryName": "Work", "activitiesCount": 1 }
+    {
+      "categoryId": 1,
+      "categoryName": "Study",
+      "activitiesCount": 3
+    },
+    {
+      "categoryId": 2,
+      "categoryName": "Work",
+      "activitiesCount": 1
+    }
   ]
 }
 ```
 
 ### **Fail Response**
 
-Status: 200 OK (empty)
+Status: **200 OK** (empty response)
 ```json
 { "message": "No categories found" }
 ```
@@ -477,101 +625,106 @@ Status: 200 OK (empty)
 
 ## **16. GET — `/api/v1/dashboard`**
 
-### **Request Params**
+Retrieve dashboard statistics for the authenticated user.
 
-- Header required: `Authorization: Bearer <accessToken>`
-- Header optional: `X-Timezone` (e.g., "Asia/Manila", "UTC"). Defaults to "Asia/Manila".
+### **Request Headers**
+
+| Header      | Type   | Default      | Description                      |
+| ----------- | ------ | ------------ | -------------------------------- |
+| Authorization | string | Required     | Bearer token                    |
+| X-Timezone  | string | Asia/Manila  | Timezone for data calculation    |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "totalCompletedSessions": 10,
-    "totalFocusTime": 36000,
-    "weeklyFocusDistribution": {
-        "MONDAY": 7200,
-        "TUESDAY": 5400,
-        "WEDNESDAY": 9000,
-        "THURSDAY": 3600,
-        "FRIDAY": 10800,
-        "SATURDAY": 0,
-        "SUNDAY": 0
-    },
-    "recentActivities": [
-        {
-            "activityId": 1,
-            "activityTitle": "Develop new feature",
-            "lastSession": {
-                "sessionId": 101,
-                "startTime": "2023-10-27T10:00:00Z",
-                "endTime": "2023-10-27T11:00:00Z",
-                "status": "COMPLETED"
-            }
-        }
-    ]
+  "currentStreak": 5,
+  "bestStreak": 10,
+  "totalActivities": 12,
+  "totalSessions": 45,
+  "focusHoursToday": 3.5,
+  "focusHoursThisWeek": 22.75,
+  "focusHoursAllTime": 156.25,
+  "recentSessions": [
+    {
+      "id": 101,
+      "activityId": 5,
+      "activityName": "Study Math",
+      "completedAt": "2025-12-06T15:30:00",
+      "cyclesCompleted": 3,
+      "focusHours": 1.25
+    }
+  ]
 }
 ```
 
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 { "message": "Unauthorized: invalid user claim" }
 ```
+
 ---
 
 # **PUSH NOTIFICATIONS**
+
+All push endpoints require `Authorization: Bearer <accessToken>` header.
 
 ---
 
 ## **17. POST — `/api/v1/push/register-token`**
 
-### **Request Params**
+Register a push notification token.
 
-- Header required: `Authorization: Bearer <accessToken>`
-- Body:
+### **Request Body**
+
 ```json
 {
-  "token": "<push-notification-token>"
+  "token": "<firebase-push-notification-token>"
 }
 ```
 
+| Field | Type   | Required | Description           |
+| ----- | ------ | -------- | --------------------- |
+| token | string | Yes      | Push notification token |
+
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 "Token registered"
 ```
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 "Missing token"
 ```
-Status: 401 Unauthorized
+
+Status: **401 Unauthorized**
 ```json
 "Unauthorized"
 ```
+
 ---
 
 ## **18. DELETE — `/api/v1/push/unregister-token`**
 
-### **Request Params**
-
-- Header required: `Authorization: Bearer <accessToken>`
+Unregister and remove push notification token.
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 "Token unregistered"
 ```
 
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 "Unauthorized"
 ```
@@ -580,23 +733,21 @@ Status: 401 Unauthorized
 
 ## **19. GET — `/api/v1/push/status`**
 
-### **Request Params**
-
-- Header required: `Authorization: Bearer <accessToken>`
+Check push notification status.
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "registered": true,
-    "enabled": true
+  "registered": true,
+  "enabled": true
 }
 ```
 
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 "Unauthorized"
 ```
@@ -605,91 +756,115 @@ Status: 401 Unauthorized
 
 ## **20. PUT — `/api/v1/push/enable`**
 
-### **Request Params**
-
-- Header required: `Authorization: Bearer <accessToken>`
+Enable push notifications.
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 "Push enabled"
 ```
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 "No token registered"
+```
+
+Status: **401 Unauthorized**
+```json
+"Unauthorized"
 ```
 
 ---
 
 ## **21. PUT — `/api/v1/push/disable`**
 
-### **Request Params**
-
-- Header required: `Authorization: Bearer <accessToken>`
+Disable push notifications.
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 "Push disabled"
 ```
 
 ### **Fail Response**
 
-Status: 400 Bad Request
+Status: **400 Bad Request**
 ```json
 "No token registered"
+```
+
+Status: **401 Unauthorized**
+```json
+"Unauthorized"
 ```
 
 ---
 
 # **SESSIONS**
 
+All session endpoints require `Authorization: Bearer <accessToken>` header.
+
 ---
 
 ## **22. POST — `/api/v1/activities/{activityId}/sessions`**
 
-### **Request Params**
+Create a new session for an activity.
 
-- Path Param: `activityId`
-- Header required: `Authorization: Bearer <accessToken>`
-- Body:
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+
+### **Request Body**
+
 ```json
 {
-    "sessionType": "POMODORO",
-    "focusTimeInMinutes": 25,
-    "breakTimeInMinutes": 5,
-    "cycles": 4
+  "sessionType": "POMODORO",
+  "focusTimeInMinutes": 25,
+  "breakTimeInMinutes": 5,
+  "cycles": 4
 }
 ```
 
+| Field                | Type   | Required | Description               |
+| -------------------- | ------ | -------- | ------------------------- |
+| sessionType          | string | Yes      | Type of session (e.g. POMODORO) |
+| focusTimeInMinutes   | number | Yes      | Focus duration in minutes |
+| breakTimeInMinutes   | number | Yes      | Break duration in minutes |
+| cycles               | number | Yes      | Number of cycles         |
+
 ### **Success Response**
 
-Status: 201 Created
+Status: **201 Created**
 ```json
 {
-    "message": "Session created successfully",
-    "sessions": [
-        {
-            "id": 1,
-            "activityId": 1,
-            "sessionType": "POMODORO",
-            "status": "PENDING",
-            "focusTimeInMinutes": 25,
-            "breakTimeInMinutes": 5,
-            "cycles": 4,
-            "currentPhase": null,
-            "cyclesCompleted": 0,
-            "note": null
-        }
-    ],
-    "currentPage": 0,
-    "totalPages": 1,
-    "totalItems": 1
+  "message": "Session created successfully",
+  "sessions": [
+    {
+      "id": 3,
+      "activityId": 5,
+      "sessionType": "POMODORO",
+      "status": "NOT_STARTED",
+      "currentPhase": "FOCUS",
+      "focusTimeInMinutes": 25,
+      "breakTimeInMinutes": 5,
+      "cycles": 4,
+      "cyclesCompleted": 0,
+      "totalTimeInMinutes": 120,
+      "note": null,
+      "startedAt": null,
+      "completedAt": null,
+      "createdAt": "2025-12-05T15:26:29.592753"
+    }
+  ],
+  "currentPage": 0,
+  "totalPages": 0,
+  "totalItems": 1
 }
 ```
 
@@ -697,314 +872,655 @@ Status: 201 Created
 
 ## **23. GET — `/api/v1/activities/{activityId}/sessions`**
 
-### **Request Params**
+Retrieve all sessions for an activity.
 
-- Path Param: `activityId`
-- Query Param: `status` (optional)
-- Header required: `Authorization: Bearer <accessToken>`
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description               |
+| --------- | ------ | -------- | ------------------------- |
+| status    | string | No       | Filter by session status  |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "message": "Sessions retrieved successfully",
-    "sessions": [ ... ],
-    "currentPage": 0,
-    "totalPages": 1,
-    "totalItems": 2
+  "message": "Sessions retrieved successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "activityId": 1,
+      "sessionType": "POMODORO",
+      "status": "NOT_STARTED",
+      "currentPhase": "FOCUS",
+      "focusTimeInMinutes": 25,
+      "breakTimeInMinutes": 5,
+      "cycles": 4,
+      "cyclesCompleted": 0,
+      "totalTimeInMinutes": 120,
+      "note": null,
+      "startedAt": null,
+      "completedAt": null,
+      "createdAt": "2025-12-05T15:26:29.592753"
+    }
+  ],
+  "currentPage": 0,
+  "totalPages": 1,
+  "totalItems": 1
 }
 ```
+
 ---
 
 ## **24. GET — `/api/v1/activities/{activityId}/sessions/{id}`**
 
-### **Request Params**
+Retrieve a specific session.
 
-- Path Params: `activityId`, `id`
-- Header required: `Authorization: Bearer <accessToken>`
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "message": "Session retrieved successfully",
-    "sessions": [ ... ],
-    "currentPage": 0,
-    "totalPages": 1,
-    "totalItems": 1
+  "message": "Session retrieved successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "activityId": 1,
+      "sessionType": "POMODORO",
+      "status": "NOT_STARTED",
+      "currentPhase": "FOCUS",
+      "focusTimeInMinutes": 25,
+      "breakTimeInMinutes": 5,
+      "cycles": 4,
+      "cyclesCompleted": 0,
+      "totalTimeInMinutes": 120,
+      "note": null,
+      "startedAt": null,
+      "completedAt": null,
+      "createdAt": "2025-12-05T15:26:29.592753"
+    }
+  ],
+  "currentPage": 0,
+  "totalPages": 1,
+  "totalItems": 1
 }
 ```
+
 ---
 
 ## **25. DELETE — `/api/v1/activities/{activityId}/sessions/{id}`**
 
-### **Request Params**
+Delete a session.
 
-- Path Params: `activityId`, `id`
-- Header required: `Authorization: Bearer <accessToken>`
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "message": "Session deleted successfully",
-    "sessions": [],
-    "currentPage": 0,
-    "totalPages": 0,
-    "totalItems": 0
+  "message": "Session deleted successfully",
+  "sessions": [],
+  "currentPage": 0,
+  "totalPages": 0,
+  "totalItems": 0
 }
 ```
+
 ---
 
 ## **26. POST — `/api/v1/activities/{activityId}/sessions/{id}/start`**
 
-### **Request Params**
+Start a session.
 
-- Path Params: `activityId`, `id`
-- Header required: `Authorization: Bearer <accessToken>`
+### **Path Parameters**
 
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Session started successfully",
-    "sessions": [ ... ]
-}
-```
----
-
-## **27. POST — `/api/v1/activities/{activityId}/sessions/{id}/pause`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Query Param: `note` (optional)
-- Header required: `Authorization: Bearer <accessToken>`
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
 
 ### **Success Response**
 
-Status: 200 OK
+Status: **200 OK**
 ```json
 {
-    "message": "Session paused successfully",
-    "sessions": [ ... ]
-}
-```
----
-
-## **28. POST — `/api/v1/activities/{activityId}/sessions/{id}/resume`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Session resumed successfully",
-    "sessions": [ ... ]
-}
-```
----
-
-## **29. POST — `/api/v1/activities/{activityId}/sessions/{id}/stop`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Query Param: `note` (optional)
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Session stopped successfully (current cycle invalidated)",
-    "sessions": [ ... ]
-}
-```
----
-
-## **30. POST — `/api/v1/activities/{activityId}/sessions/{id}/cancel`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Session canceled successfully (all cycles invalidated)",
-    "sessions": [ ... ]
-}
-```
----
-
-## **31. POST — `/api/v1/activities/{activityId}/sessions/{id}/finish`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Query Param: `note` (optional)
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Session finished successfully",
-    "sessions": [ ... ]
-}
-```
----
-
-## **32. POST — `/api/v1/activities/{activityId}/sessions/{id}/complete-phase`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Query Param: `note` (optional)
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Phase completed: BREAK",
-    "sessions": [ ... ]
-}
-```
----
-
-## **33. PUT — `/api/v1/activities/{activityId}/sessions/{id}/note`**
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-- Query Param: `note`
-- Header required: `Authorization: Bearer <accessToken>`
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-    "message": "Note updated successfully",
-    "sessions": [ ... ]
-}
-```
----
-
-## **34. GET — `/api/v1/activities/{activityId}/sessions/{id}/events`**
-
-This endpoint uses Server-Sent Events (SSE) to stream session updates.
-
-### **Request Params**
-
-- Path Params: `activityId`, `id`
-
-### **Events**
-
-- **`connected`**: Sent upon successful connection.
-- **`phase-change`**: Sent when a session's phase changes (e.g., from FOCUS to BREAK).
-
-### **Event Data**
-```json
-{
-    "sessionId": 1,
-    "currentPhase": "BREAK",
-    "cyclesCompleted": 1,
-    "totalCycles": 4,
-    "status": "IN_PROGRESS",
-    "timestamp": "2023-10-27T10:25:00Z"
-}
-```
-
----
-
-# **REPORTS**
-
----
-
-## **GET — `/api/reports/summary`**
-
-### **Request Params**
-
-- Header required: `Authorization: Bearer <accessToken>`
-- Query Param: `range` (optional) — values: `week` (default), `month`/`monthly`, `year`/`yearly`
-
-This endpoint returns aggregated summary data (weekly/monthly/yearly) for the authenticated user. The controller expects a valid JWT with a `user` claim (user id).
-
-### **Success Response**
-
-Status: 200 OK
-```json
-{
-  "totalCompletedSessions": 42,
-  "totalFocusTime": 123456,
-  "startDate": "2025-11-24",
-  "endDate": "2025-11-30",
-  "distribution": {
-    "MONDAY": 3600,
-    "TUESDAY": 5400,
-    "WEDNESDAY": 7200,
-    "THURSDAY": 1800,
-    "FRIDAY": 9000,
-    "SATURDAY": 0,
-    "SUNDAY": 0
-  },
-  "activities": [
+  "message": "Session started successfully",
+  "sessions": [
     {
-      "activityId": 1,
-      "activityTitle": "Study Math",
-      "totalFocusTime": 7200
+      "id": 1,
+      "status": "IN_PROGRESS",
+      "currentPhase": "FOCUS"
     }
   ]
 }
 ```
 
+---
+
+## **27. POST — `/api/v1/activities/{activityId}/sessions/{id}/pause`**
+
+Pause a session.
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| note      | string | No       | Session note |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Session paused successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "status": "PAUSED"
+    }
+  ]
+}
+```
+
+---
+
+## **28. POST — `/api/v1/activities/{activityId}/sessions/{id}/resume`**
+
+Resume a paused session.
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Session resumed successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "status": "IN_PROGRESS"
+    }
+  ]
+}
+```
+
+---
+
+## **29. POST — `/api/v1/activities/{activityId}/sessions/{id}/stop`**
+
+Stop a session (current cycle invalidated).
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| note      | string | No       | Session note |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Session stopped successfully (current cycle invalidated)",
+  "sessions": [
+    {
+      "id": 1,
+      "status": "STOPPED"
+    }
+  ]
+}
+```
+
+---
+
+## **30. POST — `/api/v1/activities/{activityId}/sessions/{id}/cancel`**
+
+Cancel a session (all cycles invalidated).
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Session canceled successfully (all cycles invalidated)",
+  "sessions": [
+    {
+      "id": 1,
+      "status": "CANCELED"
+    }
+  ]
+}
+```
+
+---
+
+## **31. POST — `/api/v1/activities/{activityId}/sessions/{id}/finish`**
+
+Finish a session.
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| note      | string | No       | Session note |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Session finished successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "status": "COMPLETED"
+    }
+  ]
+}
+```
+
+---
+
+## **32. POST — `/api/v1/activities/{activityId}/sessions/{id}/complete-phase`**
+
+Complete current phase and move to next.
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| note      | string | No       | Session note |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Phase completed: BREAK",
+  "sessions": [
+    {
+      "id": 1,
+      "currentPhase": "BREAK",
+      "cyclesCompleted": 1
+    }
+  ]
+}
+```
+
+---
+
+## **33. PUT — `/api/v1/activities/{activityId}/sessions/{id}/note`**
+
+Update session note.
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Required | Description |
+| --------- | ------ | -------- | ----------- |
+| note      | string | Yes      | Note text   |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Note updated successfully",
+  "sessions": [
+    {
+      "id": 1,
+      "note": "Updated note"
+    }
+  ]
+}
+```
+
+---
+
+## **34. GET — `/api/v1/activities/{activityId}/sessions/{id}/events`**
+
+Subscribe to real-time session updates using Server-Sent Events (SSE).
+
+### **Path Parameters**
+
+| Parameter  | Type   | Required |
+| ---------- | ------ | -------- |
+| activityId | number | Yes      |
+| id         | number | Yes      |
+
+### **Request Header**
+
+| Header | Value |
+| ------ | ----- |
+| Accept | text/event-stream |
+
+### **Events**
+
+- **`connected`**: Sent upon successful connection
+- **`phase-change`**: Sent when session phase changes (e.g., FOCUS → BREAK)
+
+### **Event Data Example**
+```json
+{
+  "sessionId": 1,
+  "currentPhase": "BREAK",
+  "cyclesCompleted": 1,
+  "totalCycles": 4,
+  "status": "IN_PROGRESS",
+  "timestamp": "2023-10-27T10:25:00Z"
+}
+```
+
+---
+
+# **REPORTS & ANALYTICS**
+
+---
+
+## **35. GET — `/api/v1/reports/summary`**
+
+Retrieve aggregated summary statistics for a specified date range.
+
+### **Request Headers**
+
+| Header        | Type   | Required |
+| ------------- | ------ | -------- |
+| Authorization | string | Yes      |
+
+### **Query Parameters**
+
+| Parameter | Type   | Default | Description                              |
+| --------- | ------ | ------- | ---------------------------------------- |
+| range     | string | week    | Summary range: `week`, `month`, `year`   |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "message": "Summary retrieved successfully",
+  "item": {
+    "meta": {
+      "range": "WEEKLY",
+      "startDate": "2025-11-24",
+      "endDate": "2025-11-30"
+    },
+    "metrics": {
+      "totalFocusedHours": 22.75,
+      "completionRate": 85,
+      "avgSessionMinutes": 45
+    },
+    "chartData": {
+      "labels": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      "datasets": {
+        "focus": [3.5, 4.25, 5.0, 2.75, 7.25, 0, 0],
+        "breakHours": [0.7, 0.85, 1.0, 0.55, 1.45, 0, 0]
+      }
+    },
+    "recentSessions": [
+      {
+        "id": 101,
+        "activityName": "Study Math",
+        "date": "2025-12-05T15:30:00",
+        "focusDurationMinutes": 75,
+        "breakDurationMinutes": 15,
+        "status": "COMPLETED",
+        "mode": "POMODORO"
+      }
+    ],
+    "topActivities": [
+      {
+        "rank": 1,
+        "name": "Study Math",
+        "totalDurationMinutes": 450,
+        "sessionCount": 10
+      }
+    ]
+  }
+}
+```
+
 ### **Fail Response**
 
-Status: 401 Unauthorized
+Status: **401 Unauthorized**
 ```json
 { "message": "Unauthorized: invalid user claim" }
 ```
 
+---
 
-# **ERROR / FAILURE RESPONSES (GLOBAL)**
+# **SETTINGS**
 
-The application uses `GlobalExceptionHandler` to standardize errors. Examples:
+---
 
-- Token expired / auth issues
-  - Status: 401 Unauthorized
-  - Body:
+## **36. GET — `/api/v1/settings`**
+
+Retrieve user settings.
+
+### **Request Headers**
+
+| Header        | Type   | Required |
+| ------------- | ------ | -------- |
+| Authorization | string | Yes      |
+
+### **Success Response**
+
+Status: **200 OK**
 ```json
-{ "message": "JWT expired", "code": "TOKEN_EXPIRED" }
+{
+  "userId": 1,
+  "soundType": "DEFAULT",
+  "notificationSound": true,
+  "volume": 80,
+  "tickSound": true,
+  "autoStartBreaks": true,
+  "autoStartPomodoros": false,
+  "theme": "LIGHT",
+  "notificationsEnabled": true,
+  "googleCalendarSync": false
+}
 ```
 
-- Invalid arguments / validation
-  - Status: 400 Bad Request
-  - Body:
+### **Fail Response**
+
+Status: **401 Unauthorized**
 ```json
-{ "message": "fieldName: must not be blank" }
+{ "message": "Unauthorized: invalid user claim" }
 ```
 
-- Generic server error
-  - Status: 500 Internal Server Error
-  - Body:
+---
+
+## **37. PATCH — `/api/v1/settings`**
+
+Update user settings.
+
+### **Request Headers**
+
+| Header        | Type   | Required |
+| ------------- | ------ | -------- |
+| Authorization | string | Yes      |
+
+### **Request Body**
+
 ```json
-{ "message": "Unexpected error message" }
+{
+  "soundType": "NATURE",
+  "notificationSound": true,
+  "volume": 75,
+  "tickSound": false,
+  "autoStartBreaks": true,
+  "autoStartPomodoros": true,
+  "theme": "DARK",
+  "notificationsEnabled": true,
+  "googleCalendarSync": false
+}
 ```
+
+| Field                  | Type    | Required | Description                    |
+| ---------------------- | ------- | -------- | ------------------------------ |
+| soundType              | string  | No       | Sound type preference          |
+| notificationSound      | boolean | No       | Enable notification sounds     |
+| volume                 | number  | No       | Volume level (0-100)           |
+| tickSound              | boolean | No       | Enable tick sounds             |
+| autoStartBreaks        | boolean | No       | Auto start break timer         |
+| autoStartPomodoros     | boolean | No       | Auto start pomodoro timer      |
+| theme                  | string  | No       | Theme (LIGHT/DARK)             |
+| notificationsEnabled   | boolean | No       | Enable notifications           |
+| googleCalendarSync     | boolean | No       | Enable Google Calendar sync    |
+
+### **Success Response**
+
+Status: **200 OK**
+```json
+{
+  "userId": 1,
+  "soundType": "NATURE",
+  "notificationSound": true,
+  "volume": 75,
+  "tickSound": false,
+  "autoStartBreaks": true,
+  "autoStartPomodoros": true,
+  "theme": "DARK",
+  "notificationsEnabled": true,
+  "googleCalendarSync": false
+}
+```
+
+### **Fail Response**
+
+Status: **400 Bad Request**
+```json
+{ "message": "Invalid settings" }
+```
+
+Status: **401 Unauthorized**
+```json
+{ "message": "Unauthorized: invalid user claim" }
+```
+
+---
+
+# **ERROR RESPONSES**
+
+The API uses standardized error responses with appropriate HTTP status codes and error messages.
+
+---
+
+## **Common Error Codes**
+
+| Status Code | Description | Example Response |
+| ----------- | ----------- | --------------- |
+| 400 | Bad Request | `{ "message": "fieldName: must not be blank" }` |
+| 401 | Unauthorized | `{ "message": "JWT expired", "code": "TOKEN_EXPIRED" }` |
+| 404 | Not Found | `{ "message": "Resource not found" }` |
+| 500 | Internal Server Error | `{ "message": "Unexpected error message" }` |
+
+---
+
+## **Authentication Errors**
+
+```json
+{
+  "message": "JWT expired",
+  "code": "TOKEN_EXPIRED",
+  "timestamp": "2025-12-06T10:30:00Z"
+}
+```
+
+---
+
+## **Validation Errors**
+
+```json
+{
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "email",
+      "message": "must be a valid email"
+    },
+    {
+      "field": "password",
+      "message": "must be at least 8 characters"
+    }
+  ]
+}
+```
+
+---
+
+# **NOTES**
+
+- **Base URL:** All endpoints use `/api/v1` as the base
+- **Authentication:** All endpoints except registration and login require a valid JWT token in the `Authorization: Bearer <token>` header
+- **Time Format:** All times are in ISO 8601 format (UTC)
+- **Rate Limiting:** Currently not enforced but may be implemented in future versions
+- **API Versioning:** Current version is v1
+- **CORS:** Enabled for the frontend application
+- **Content Type:** All requests and responses use `application/json` unless otherwise specified
