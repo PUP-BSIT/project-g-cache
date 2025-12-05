@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { catchError, tap, of, firstValueFrom } from 'rxjs';
 
 export interface SoundSettings {
   enabled: boolean;
@@ -18,6 +21,34 @@ export interface AppSettings {
   autoStart: AutoStartSettings;
   notifications: boolean;
   calendarSync: boolean;
+  theme?: 'LIGHT' | 'DARK';
+}
+
+// Backend API response structure
+interface UserSettingsResponse {
+  userId: number;
+  soundType: string;
+  notificationSound: boolean;
+  volume: number;
+  tickSound: boolean;
+  autoStartBreaks: boolean;
+  autoStartPomodoros: boolean;
+  theme: string;
+  notificationsEnabled: boolean;
+  googleCalendarSync: boolean;
+}
+
+// Backend API request structure
+interface UpdateSettingsRequest {
+  soundType?: string;
+  notificationSound?: boolean;
+  volume?: number;
+  tickSound?: boolean;
+  autoStartBreaks?: boolean;
+  autoStartPomodoros?: boolean;
+  theme?: string;
+  notificationsEnabled?: boolean;
+  googleCalendarSync?: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -33,23 +64,25 @@ const DEFAULT_SETTINGS: AppSettings = {
     countdownSeconds: 3
   },
   notifications: true,
-  calendarSync: false
+  calendarSync: false,
+  theme: 'LIGHT'
 };
 
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
-  private readonly STORAGE_KEY = 'pomodify_settings';
+  private readonly API_URL = `${environment.apiUrl}/settings`;
+  private http = inject(HttpClient);
   
   // Signals for reactive state
-  private settingsSignal = signal<AppSettings>(this.loadSettings());
+  private settingsSignal = signal<AppSettings>(DEFAULT_SETTINGS);
+  private isLoadingSignal = signal<boolean>(false);
+  private errorSignal = signal<string | null>(null);
   
   constructor() {
-    // Load settings from localStorage on init (only in browser)
-    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      this.settingsSignal.set(this.loadSettings());
-    }
+    // Load settings from API on init
+    this.loadSettingsFromAPI();
   }
   
   // Get current settings
@@ -60,6 +93,40 @@ export class SettingsService {
   // Get settings as signal (for reactive components)
   getSettingsSignal() {
     return this.settingsSignal.asReadonly();
+  }
+
+  // Get loading state
+  isLoading() {
+    return this.isLoadingSignal();
+  }
+
+  // Get error state
+  getError() {
+    return this.errorSignal();
+  }
+
+  // Load settings from API
+  async loadSettingsFromAPI(): Promise<void> {
+    this.isLoadingSignal.set(true);
+    this.errorSignal.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.get<UserSettingsResponse>(this.API_URL).pipe(
+          tap(apiSettings => {
+            const appSettings = this.mapApiToAppSettings(apiSettings);
+            this.settingsSignal.set(appSettings);
+          }),
+          catchError(error => {
+            console.warn('Failed to load settings from API, using defaults:', error);
+            this.errorSignal.set('Failed to load settings from server');
+            return of(null);
+          })
+        )
+      );
+    } finally {
+      this.isLoadingSignal.set(false);
+    }
   }
   
   // Update sound settings
@@ -115,39 +182,93 @@ export class SettingsService {
   }
   
   // Reset to defaults
-  resetToDefaults() {
+  async resetToDefaults() {
     this.settingsSignal.set(DEFAULT_SETTINGS);
-    this.saveSettings(DEFAULT_SETTINGS);
+    await this.saveSettingsToAPI(DEFAULT_SETTINGS);
   }
   
   // Private methods
-  private loadSettings(): AppSettings {
-    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-      return DEFAULT_SETTINGS;
-    }
-    
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Merge with defaults to handle new settings
-        return { ...DEFAULT_SETTINGS, ...parsed };
-      }
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-    return DEFAULT_SETTINGS;
+  private async saveSettings(settings: AppSettings) {
+    // Save directly to API only
+    await this.saveSettingsToAPI(settings);
   }
-  
-  private saveSettings(settings: AppSettings) {
-    if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-      return;
-    }
-    
+
+  private async saveSettingsToAPI(settings: AppSettings): Promise<void> {
+    this.errorSignal.set(null);
+
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
+      const request = this.mapAppToApiSettings(settings);
+      await firstValueFrom(
+        this.http.patch<UserSettingsResponse>(this.API_URL, request).pipe(
+          tap(() => {
+            console.log('Settings saved to API successfully');
+          }),
+          catchError(error => {
+            console.warn('Failed to save settings to API:', error);
+            this.errorSignal.set('Failed to save settings to server');
+            return of(null);
+          })
+        )
+      );
     } catch (error) {
-      console.error('Error saving settings:', error);
+      console.error('Error in saveSettingsToAPI:', error);
     }
+  }
+
+  // Map API response to AppSettings
+  private mapApiToAppSettings(api: UserSettingsResponse): AppSettings {
+    return {
+      sound: {
+        enabled: api.notificationSound,
+        type: this.mapSoundType(api.soundType),
+        volume: api.volume,
+        tickSound: api.tickSound
+      },
+      autoStart: {
+        autoStartBreaks: api.autoStartBreaks,
+        autoStartPomodoros: api.autoStartPomodoros,
+        countdownSeconds: 3 // Default, not stored in backend
+      },
+      notifications: api.notificationsEnabled,
+      calendarSync: api.googleCalendarSync,
+      theme: api.theme as 'LIGHT' | 'DARK'
+    };
+  }
+
+  // Map AppSettings to API request
+  private mapAppToApiSettings(app: AppSettings): UpdateSettingsRequest {
+    return {
+      soundType: this.mapSoundTypeToApi(app.sound.type),
+      notificationSound: app.sound.enabled,
+      volume: app.sound.volume,
+      tickSound: app.sound.tickSound,
+      autoStartBreaks: app.autoStart.autoStartBreaks,
+      autoStartPomodoros: app.autoStart.autoStartPomodoros,
+      theme: app.theme,
+      notificationsEnabled: app.notifications,
+      googleCalendarSync: app.calendarSync
+    };
+  }
+
+  // Map backend sound type to frontend
+  private mapSoundType(apiType: string): 'bell' | 'chime' | 'digital' | 'soft' {
+    const mapping: Record<string, 'bell' | 'chime' | 'digital' | 'soft'> = {
+      'BELL': 'bell',
+      'CHYME': 'chime',
+      'DIGITAL_BEEP': 'digital',
+      'SOFT_DING': 'soft'
+    };
+    return mapping[apiType] || 'bell';
+  }
+
+  // Map frontend sound type to backend
+  private mapSoundTypeToApi(type: 'bell' | 'chime' | 'digital' | 'soft'): string {
+    const mapping: Record<string, string> = {
+      'bell': 'BELL',
+      'chime': 'CHYME',
+      'digital': 'DIGITAL_BEEP',
+      'soft': 'SOFT_DING'
+    };
+    return mapping[type] || 'BELL';
   }
 }

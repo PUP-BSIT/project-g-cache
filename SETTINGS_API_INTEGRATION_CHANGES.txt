@@ -1,0 +1,50 @@
+Settings API Integration - Changes Summary
+
+Integrated frontend Settings Service with backend Settings API for persistent user settings across devices.
+
+CHANGES:
+
+1. settings.service.ts
+   - Added HttpClient for API communication
+   - Integrated GET and PATCH endpoints for settings
+   - Removed all localStorage functionality (100% database-backed)
+   - Added auto-save on every change (no manual save needed)
+   - Added data mapping between frontend and backend formats
+   - Added loading and error state signals
+   - Settings load from API on app init
+   - Sound type mapping: bell/chime/digital/soft <-> BELL/CHYME/DIGITAL_BEEP/SOFT_DING
+
+2. settings.html
+   - Removed "Save changes" button
+   - Removed success modal
+   - Settings now auto-save on change
+
+3. settings.ts
+   - Removed onSaveChanges() method
+   - Removed onCloseSuccessModal() method
+   - Removed showSuccessModal signal
+   - Simplified clear data confirmations
+
+BACKEND:
+   - No changes required
+   - API already exists at https://api.pomodify.site/api/v1/settings
+   - Endpoints: GET /settings, PATCH /settings
+
+DATA FLOW:
+   Before: User updates → localStorage only → Lost on browser clear
+   After: User updates → API (database) → Persistent across devices
+
+BENEFITS:
+   - Cross-device sync
+   - 100% persistent in database
+   - Auto-save (no button needed)
+   - Non-blocking API calls
+   - No localStorage dependency
+
+TESTING:
+   - Login to app
+   - Settings load from API (check Network tab)
+   - Change settings → auto-saves to API
+   - Refresh page → settings persist
+   - No "Save changes" button visible
+   - Settings sync across devices

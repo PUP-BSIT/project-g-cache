@@ -254,10 +254,6 @@
             <i class="fa-solid fa-user-xmark"></i>
             Delete my Account
           </button>
-          <button class="btn btn-save" (click)="onSaveChanges()">
-            <i class="fa-solid fa-check"></i>
-            Save changes
-          </button>
         </div>
       </section>
     </div>
@@ -291,20 +287,7 @@
     </div>
   }
 
-  <!-- Success Modal -->
-  @if (showSuccessModal()) {
-    <div class="modal-overlay" (click)="onCloseSuccessModal()">
-      <div class="modal-content success-modal" (click)="$event.stopPropagation()">
-        <div class="modal-body">
-          <p class="success-text">Settings saved successfully!</p>
-        </div>
-        
-        <div class="modal-actions">
-          <button class="modal-btn btn-ok" (click)="onCloseSuccessModal()">OK</button>
-        </div>
-      </div>
-    </div>
-  }
+
 
   <!-- Clear Session History Modal -->
   @if (showClearSessionsModal()) {
