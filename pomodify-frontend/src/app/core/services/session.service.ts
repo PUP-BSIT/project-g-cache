@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 
 // Session types based on backend API
 export type SessionType = 'POMODORO' | 'CLASSIC' | 'FREESTYLE';
@@ -54,13 +54,12 @@ export interface PhaseChangeEvent {
 })
 export class SessionService {
   private http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/activities`;
 
   /**
    * Create a new session for an activity
    */
   createSession(activityId: number, request: CreateSessionRequest): Observable<PomodoroSession> {
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions`, request).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.CREATE(activityId), request).pipe(
       map(response => extractSession(response))
     );
   }
@@ -73,7 +72,7 @@ export class SessionService {
     if (status) {
       params = params.set('status', status);
     }
-    return this.http.get<SessionResponse>(`${this.baseUrl}/${activityId}/sessions`, { params }).pipe(
+    return this.http.get<SessionResponse>(API.ACTIVITIES.SESSIONS.GET_ALL(activityId), { params }).pipe(
       map(response => response.sessions)
     );
   }
@@ -82,7 +81,7 @@ export class SessionService {
    * Get a specific session
    */
   getSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
-    return this.http.get<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}`).pipe(
+    return this.http.get<SessionResponse>(API.ACTIVITIES.SESSIONS.DETAILS(activityId, sessionId)).pipe(
       map(response => extractSession(response))
     );
   }
@@ -91,14 +90,14 @@ export class SessionService {
    * Delete a session
    */
   deleteSession(activityId: number, sessionId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${activityId}/sessions/${sessionId}`);
+    return this.http.delete<void>(API.ACTIVITIES.SESSIONS.DELETE(activityId, sessionId));
   }
 
   /**
    * Start a session
    */
   startSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/start`, null).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.START(activityId, sessionId), null).pipe(
       map(response => extractSession(response))
     );
   }
@@ -111,7 +110,7 @@ export class SessionService {
     if (note) {
       params = params.set('note', note);
     }
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/pause`, null, { params }).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.PAUSE(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );
   }
@@ -120,7 +119,7 @@ export class SessionService {
    * Resume a paused session
    */
   resumeSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/resume`, null).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.RESUME(activityId, sessionId), null).pipe(
       map(response => extractSession(response))
     );
   }
@@ -133,7 +132,7 @@ export class SessionService {
     if (note) {
       params = params.set('note', note);
     }
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/stop`, null, { params }).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.STOP(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );
   }
@@ -142,7 +141,7 @@ export class SessionService {
    * Cancel the entire session (invalidates all cycles)
    */
   cancelSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/cancel`, null).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.CANCEL(activityId, sessionId), null).pipe(
       map(response => extractSession(response))
     );
   }
@@ -155,7 +154,7 @@ export class SessionService {
     if (note) {
       params = params.set('note', note);
     }
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/complete-phase`, null, { params }).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.COMPLETE_PHASE(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );
   }
@@ -168,7 +167,7 @@ export class SessionService {
     if (note) {
       params = params.set('note', note);
     }
-    return this.http.post<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/finish`, null, { params }).pipe(
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.FINISH(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );
   }
@@ -178,7 +177,7 @@ export class SessionService {
    */
   updateNote(activityId: number, sessionId: number, note: string): Observable<PomodoroSession> {
     const params = new HttpParams().set('note', note);
-    return this.http.put<SessionResponse>(`${this.baseUrl}/${activityId}/sessions/${sessionId}/note`, null, { params }).pipe(
+    return this.http.put<SessionResponse>(API.ACTIVITIES.SESSIONS.UPDATE_NOTE(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );
   }
@@ -187,7 +186,7 @@ export class SessionService {
    * Connect to Server-Sent Events for real-time session updates
    */
   connectToSessionEvents(activityId: number, sessionId: number): EventSource {
-    return new EventSource(`${this.baseUrl}/${activityId}/sessions/${sessionId}/events`);
+    return new EventSource(API.ACTIVITIES.SESSIONS.EVENTS(activityId, sessionId));
   }
 }
 

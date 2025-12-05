@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 
 // Activity interfaces matching backend API
 export interface ActivityData {
@@ -39,7 +39,7 @@ export interface UpdateActivityRequest {
 })
 export class ActivityService {
   private http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiUrl}/activities`;
+  private readonly baseUrl = API.ACTIVITIES.BASE;
 
   /**
    * Fetch all activities for the current user with pagination

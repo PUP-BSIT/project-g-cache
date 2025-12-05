@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 
 export enum ReportRange {
   WEEK = 'week',
@@ -64,11 +64,7 @@ type SummaryResponse = {
   providedIn: 'root',
 })
 export class ReportService {
-  private readonly baseUrl: string;
-
-  constructor(private http: HttpClient) {
-    this.baseUrl = environment.apiUrl.replace('/api/v1/report/summary', '/api/reports');
-  }
+  constructor(private http: HttpClient) {}
 
   getSummary(range: ReportRange): Observable<SummaryItem> {
     const token = localStorage.getItem('accessToken');
@@ -81,7 +77,7 @@ export class ReportService {
 
     const params = new HttpParams().set('range', range);
     return this.http
-      .get<SummaryResponse>(`${this.baseUrl}/summary`, { params, headers })
+      .get<SummaryResponse>(API.REPORTS.SUMMARY, { params, headers })
       .pipe(map((response: SummaryResponse) => response.item));
   }
 }

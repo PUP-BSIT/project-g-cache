@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 
 type RefreshResponse = {
   user?: {
@@ -35,7 +35,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         error.error?.message?.includes('authentication is required');
 
       if (isTokenExpired) {
-        console.log('[AuthErrorInterceptor] Token expired or unauthorized, attempting refresh...');
+        console.log('[AuthErrorInterceptor] 401 received for URL:', request.url);
       }
 
       // Handle 401 Unauthorized errors or token expiration
@@ -43,8 +43,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         const isAuthEndpoint = request.url.includes('/api/v1/auth/');
         
         // Don't retry auth endpoints (login, register, refresh)
+        // If auth endpoint fails with 401, tokens are invalid
         if (isAuthEndpoint) {
-          // Clear invalid tokens and redirect to login
+          console.log('[AuthErrorInterceptor] Auth endpoint failed with 401, clearing tokens');
+          isRefreshing = false;
           clearAuthData();
           router.navigate(['/login']);
           return throwError(() => error);
@@ -53,19 +55,28 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         // Try to refresh the token
         const refreshToken = localStorage.getItem('refreshToken');
         
-        if (!refreshToken || isRefreshing) {
-          // No refresh token available or already refreshing
+        if (!refreshToken) {
+          console.log('[AuthErrorInterceptor] No refresh token available');
+          isRefreshing = false;
           clearAuthData();
           router.navigate(['/login']);
           return throwError(() => error);
         }
 
+        if (isRefreshing) {
+          // Already attempting refresh, don't start another
+          console.log('[AuthErrorInterceptor] Refresh already in progress');
+          return throwError(() => error);
+        }
+
         // Attempt token refresh
+        console.log('[AuthErrorInterceptor] Attempting token refresh...');
         isRefreshing = true;
-        const refreshUrl = `${environment.apiUrl}/auth/refresh`;
+        const refreshUrl = API.AUTH.REFRESH;
 
         return http.post<RefreshResponse>(refreshUrl, { refreshToken }).pipe(
           switchMap((response) => {
+            console.log('[AuthErrorInterceptor] Token refresh successful');
             isRefreshing = false;
             
             // Save new tokens
@@ -78,8 +89,9 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
                 if (response.user) {
                   localStorage.setItem('currentUser', JSON.stringify(response.user));
                 }
+                console.log('[AuthErrorInterceptor] New tokens saved, retrying original request');
               } catch (e) {
-                console.warn('Unable to save refreshed tokens', e);
+                console.warn('[AuthErrorInterceptor] Unable to save refreshed tokens', e);
               }
 
               // Retry the original request with new token
@@ -93,13 +105,14 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
             }
 
             // Refresh response was invalid
+            console.warn('[AuthErrorInterceptor] Refresh response missing accessToken');
             clearAuthData();
             router.navigate(['/login']);
             return throwError(() => error);
           }),
           catchError((refreshError) => {
+            console.error('[AuthErrorInterceptor] Token refresh failed:', refreshError);
             isRefreshing = false;
-            console.error('Token refresh failed:', refreshError);
             
             // Refresh failed - clear auth and redirect
             clearAuthData();
@@ -111,7 +124,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
       // Handle 403 Forbidden (user doesn't have permission)
       if (error.status === 403) {
-        console.error('Access forbidden:', error);
+        console.error('[AuthErrorInterceptor] Access forbidden:', error);
         // Don't redirect, just pass the error through
         // The component can handle this appropriately
       }
@@ -126,7 +139,8 @@ function clearAuthData(): void {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
+    console.log('[AuthErrorInterceptor] Auth data cleared');
   } catch (e) {
-    console.warn('Unable to clear auth data', e);
+    console.warn('[AuthErrorInterceptor] Unable to clear auth data', e);
   }
 }
