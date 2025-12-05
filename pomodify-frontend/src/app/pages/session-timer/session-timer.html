@@ -39,10 +39,22 @@
               <span class="cycle-indicator">#{{ cycleDisplay() }}</span>
             </div>
 
-            <!-- Focus/Break Labels -->
+            <!-- Focus/Break Labels with Time Info -->
             <div class="phase-labels">
-              <span class="phase-label" [class.active]="currentPhase() === 'FOCUS'">Focus</span>
-              <span class="phase-label" [class.active]="currentPhase() === 'BREAK'">Break</span>
+              <span 
+                class="phase-label" 
+                [class.active]="currentPhase() === 'FOCUS'"
+                [class.clickable]="isPending() || isPaused()"
+                (click)="switchToPhase('FOCUS')">
+                Focus <span class="phase-time">({{ focusTimeDisplay() }})</span>
+              </span>
+              <span 
+                class="phase-label" 
+                [class.active]="currentPhase() === 'BREAK'"
+                [class.clickable]="isPending() || isPaused()"
+                (click)="switchToPhase('BREAK')">
+                Break <span class="phase-time">({{ breakTimeDisplay() }})</span>
+              </span>
             </div>
 
             <!-- Timer Display -->
@@ -54,12 +66,10 @@
             <button 
               class="btn-timer-control"
               [class.paused]="isPaused()"
-              (click)="isPending() ? startSession() : (isRunning() ? pauseSession() : resumeSession())">
-              @if (isPending()) {
-                START
-              } @else if (isRunning()) {
+              (click)="isRunning() ? pauseSession() : startSession()">
+              @if (isRunning()) {
                 PAUSE
-              } @else if (isPaused()) {
+              } @else {
                 START
               }
             </button>

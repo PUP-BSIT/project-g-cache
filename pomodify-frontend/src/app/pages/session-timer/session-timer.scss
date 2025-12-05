@@ -139,14 +139,14 @@ $bg-light: #F5F5F5;
   width: 100%;
 
   .session-type {
-    font-size: 18px;
+    font-size: 30px;
     font-weight: 500;
     color: $primary-teal-light;
     text-align: center;
   }
 
   .cycle-indicator {
-    font-size: 16px;
+    font-size: 25px;
     font-weight: 500;
     color: $text-gray;
     text-align: center;
@@ -162,20 +162,40 @@ $bg-light: #F5F5F5;
   width: 100%;
 
   .phase-label {
-    font-size: 18px;
+    font-size: 30px;
     font-weight: 600;
     color: $text-gray;
     transition: color 0.2s ease;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 
     &.active {
       color: $text-dark;
+    }
+
+    &.clickable {
+      cursor: pointer;
+      
+      &:hover {
+        color: $text-dark;
+        opacity: 0.8;
+      }
+    }
+
+    .phase-time {
+      font-size: 14px;
+      font-weight: 400;
+      color: $text-gray;
+      opacity: 0.8;
     }
   }
 }
 
 .timer-display-box {
-  background: $text-dark;
+  background: $primary-teal-light;
   border-radius: 12px;
   padding: 24px 48px;
   margin-bottom: 28px;

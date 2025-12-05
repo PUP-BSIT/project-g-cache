@@ -18,6 +18,8 @@ import { SessionService, PomodoroSession } from '../../core/services/session.ser
 import { ActivityService } from '../../core/services/activity.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TimePickerModalComponent, TimePickerData } from '../../shared/components/time-picker-modal/time-picker-modal';
+import { Auth } from '../../core/services/auth';
+import { HttpErrorResponse } from '@angular/common/http';
 
 /**
  * Session Timer Page - Main timer interface for Pomodoro sessions
@@ -40,6 +42,7 @@ export class SessionTimerComponent implements OnDestroy {
   private activityService = inject(ActivityService);
   protected router = inject(Router);
   private dialog = inject(MatDialog);
+  private auth = inject(Auth);
 
   // State signals
   session = signal<PomodoroSession | null>(null);
@@ -54,6 +57,10 @@ export class SessionTimerComponent implements OnDestroy {
   isRunning = computed(() => this.session()?.status === 'IN_PROGRESS');
   isPending = computed(() => this.session()?.status === 'PENDING');
   isCompleted = computed(() => this.session()?.status === 'COMPLETED');
+  
+  // Track when current phase started (for calculating elapsed time)
+  private phaseStartTimestamp: number | null = null;
+  private pausedElapsedSeconds: number = 0;
 
   // Timer display (MM:SS format)
   timerDisplay = computed(() => {
@@ -61,6 +68,21 @@ export class SessionTimerComponent implements OnDestroy {
     const mins = Math.floor(total / 60);
     const secs = total % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  });
+
+  // Focus and Break time displays (for reference)
+  focusTimeDisplay = computed(() => {
+    const sess = this.session();
+    if (!sess) return '00:00';
+    const minutes = sess.focusTimeInMinutes || 25;
+    return `${minutes.toString().padStart(2, '0')}:00`;
+  });
+
+  breakTimeDisplay = computed(() => {
+    const sess = this.session();
+    if (!sess) return '00:00';
+    const minutes = sess.breakTimeInMinutes || 5;
+    return `${minutes.toString().padStart(2, '0')}:00`;
   });
 
   // Cycle display
@@ -89,7 +111,6 @@ export class SessionTimerComponent implements OnDestroy {
 
   // Timer subscription
   private timerSub?: Subscription;
-  private phaseStartTime: number = 0;
 
   constructor() {
     // Load session data when component initializes
@@ -132,27 +153,60 @@ export class SessionTimerComponent implements OnDestroy {
       }),
       catchError(error => {
         console.error('[Session Timer] Failed to load session:', error);
-        this.error.set(error.message || 'Failed to load session');
+        this.handleError(error, 'load session');
         this.loading.set(false);
         return of(null);
       })
     ).subscribe(sess => {
       if (sess) {
+        console.log('[Session Timer] Session loaded:', sess);
+        console.log('[Session Timer] Focus time:', sess.focusTimeInMinutes, 'Break time:', sess.breakTimeInMinutes);
+        console.log('[Session Timer] Current phase:', sess.currentPhase, 'Status:', sess.status);
+        
         this.session.set(sess);
         this.loading.set(false);
         
         // Initialize timer based on session state
         if (sess.status === 'PENDING' || (sess.status as any) === 'NOT_STARTED') {
-          // Set timer to focus duration
-          const minutes = sess.focusTimeInMinutes;
-          this.remainingSeconds.set(minutes * 60);
+          // Set timer to focus duration from session (sessions always start in FOCUS phase)
+          // Ensure we have valid values
+          const focusMinutes = sess.focusTimeInMinutes;
+          const breakMinutes = sess.breakTimeInMinutes;
+          
+          if (!focusMinutes || focusMinutes <= 0) {
+            console.warn('[Session Timer] Invalid focusTimeInMinutes:', focusMinutes, 'using default 25');
+          }
+          if (!breakMinutes || breakMinutes <= 0) {
+            console.warn('[Session Timer] Invalid breakTimeInMinutes:', breakMinutes, 'using default 5');
+          }
+          
+          const minutes = focusMinutes && focusMinutes > 0 ? focusMinutes : 25; // Default to 25 if not set or invalid
+          const seconds = minutes * 60;
+          console.log('[Session Timer] Initializing PENDING session with', minutes, 'minutes (', seconds, 'seconds)');
+          this.remainingSeconds.set(seconds);
+          this.pausedElapsedSeconds = 0;
+          this.phaseStartTimestamp = null;
         } else if (sess.status === 'IN_PROGRESS') {
           // Calculate remaining time in current phase
-          this.calculateRemainingTime();
+          console.log('[Session Timer] Initializing IN_PROGRESS session');
+          this.initializeTimerForPhase();
         } else if (sess.status === 'PAUSED') {
-          // Keep current remaining time
-          this.calculateRemainingTime();
+          // Calculate remaining time (will be preserved from when paused)
+          console.log('[Session Timer] Initializing PAUSED session');
+          this.initializeTimerForPhase();
+        } else if (sess.status === 'COMPLETED') {
+          // Session is completed, set timer to 0
+          console.log('[Session Timer] Session is COMPLETED');
+          this.remainingSeconds.set(0);
         }
+        
+        // Ensure timer is never zero for non-completed sessions
+        if (sess.status !== 'COMPLETED' && this.remainingSeconds() === 0) {
+          console.warn('[Session Timer] Timer was zero, reinitializing...');
+          this.initializeTimerForPhase();
+        }
+        
+        console.log('[Session Timer] Timer initialized to:', this.remainingSeconds(), 'seconds (', this.timerDisplay(), ')');
       }
     });
   }
@@ -162,38 +216,90 @@ export class SessionTimerComponent implements OnDestroy {
   private startTimerIfRunning() {
     const sess = this.session();
     if (sess?.status === 'IN_PROGRESS') {
+      // Initialize timer for current phase first
+      this.initializeTimerForPhase();
       this.startTimer();
+    }
+  }
+
+  private initializeTimerForPhase() {
+    const sess = this.session();
+    if (!sess) {
+      console.warn('[Session Timer] Cannot initialize timer: session is null');
+      return;
+    }
+
+    // Determine current phase (default to FOCUS if null)
+    const currentPhase = sess.currentPhase || 'FOCUS';
+    
+    // Get phase duration based on current phase
+    const phaseDuration = currentPhase === 'FOCUS' 
+      ? (sess.focusTimeInMinutes || 25)  // Default to 25 minutes if not set
+      : (sess.breakTimeInMinutes || 5);  // Default to 5 minutes if not set
+    
+    const totalPhaseSeconds = phaseDuration * 60;
+    
+    console.log('[Session Timer] Initializing phase:', currentPhase, 'Duration:', phaseDuration, 'minutes (', totalPhaseSeconds, 'seconds)');
+    
+    // If paused, use the preserved remaining time
+    // If in progress but we don't have elapsed time info, start fresh
+    if (sess.status === 'PAUSED' && this.remainingSeconds() > 0) {
+      // Keep the current remaining time
+      console.log('[Session Timer] Preserving paused time:', this.remainingSeconds(), 'seconds');
+      this.pausedElapsedSeconds = totalPhaseSeconds - this.remainingSeconds();
+    } else {
+      // Start with full phase duration
+      console.log('[Session Timer] Setting timer to full phase duration:', totalPhaseSeconds, 'seconds');
+      this.remainingSeconds.set(totalPhaseSeconds);
+      this.pausedElapsedSeconds = 0;
     }
   }
 
   private startTimer() {
     this.timerSub?.unsubscribe();
-    this.phaseStartTime = Date.now();
+    
+    // Record when this phase started (accounting for already elapsed time)
+    const currentRemaining = this.remainingSeconds();
+    const totalPhaseSeconds = this.getPhaseDurationSeconds();
+    const alreadyElapsed = totalPhaseSeconds - currentRemaining;
+    
+    this.phaseStartTimestamp = Date.now() - (alreadyElapsed * 1000);
     
     this.timerSub = timer(0, 1000).subscribe(() => {
-      const remaining = this.remainingSeconds();
-      
-      if (remaining > 0) {
-        this.remainingSeconds.update(val => Math.max(0, val - 1));
-      } else {
-        // Timer reached zero - auto-complete phase
+      const sess = this.session();
+      if (!sess) {
         this.timerSub?.unsubscribe();
-        this.handlePhaseComplete();
+        return;
+      }
+
+      const totalPhaseSeconds = this.getPhaseDurationSeconds();
+      const now = Date.now();
+      
+      if (this.phaseStartTimestamp) {
+        const elapsedMs = now - this.phaseStartTimestamp;
+        const elapsedSeconds = Math.floor(elapsedMs / 1000);
+        const remaining = Math.max(0, totalPhaseSeconds - elapsedSeconds);
+        
+        this.remainingSeconds.set(remaining);
+        
+        if (remaining <= 0) {
+          // Timer reached zero - auto-complete phase
+          this.timerSub?.unsubscribe();
+          this.handlePhaseComplete();
+        }
       }
     });
   }
 
-  private calculateRemainingTime() {
+  private getPhaseDurationSeconds(): number {
     const sess = this.session();
-    if (!sess) return;
-
+    if (!sess) return 0;
+    
     const phaseDuration = sess.currentPhase === 'FOCUS' 
       ? sess.focusTimeInMinutes 
       : sess.breakTimeInMinutes;
     
-    // For now, just set to full phase duration
-    // In a real implementation, you'd calculate based on startedAt timestamp
-    this.remainingSeconds.set(phaseDuration * 60);
+    return phaseDuration * 60;
   }
 
   /* -------------------- USER ACTIONS -------------------- */
@@ -236,15 +342,24 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // If paused, resume instead of start
+    if (sess.status === 'PAUSED') {
+      this.resumeSession();
+      return;
+    }
+
+    // Otherwise start the session
     this.sessionService.startSession(actId, sess.id).subscribe({
       next: (updated) => {
         console.log('[Session Timer] Session started:', updated);
         this.session.set(updated);
+        // Initialize timer for current phase
+        this.initializeTimerForPhase();
         this.startTimer();
       },
       error: (err) => {
         console.error('[Session Timer] Failed to start session:', err);
-        this.error.set('Failed to start session');
+        this.handleError(err, 'start session');
       }
     });
   }
@@ -255,20 +370,26 @@ export class SessionTimerComponent implements OnDestroy {
     if (!sess || !actId) return;
 
     this.timerSub?.unsubscribe();
+    this.phaseStartTimestamp = null;
 
     this.sessionService.pauseSession(actId, sess.id).subscribe({
       next: (updated) => {
         console.log('[Session Timer] Session paused:', updated);
         this.session.set(updated);
+        // Preserve current remaining time
       },
       error: (err) => {
         console.error('[Session Timer] Failed to pause session:', err);
-        this.error.set('Failed to pause session');
+        this.handleError(err, 'pause session');
+        // Restart timer if pause failed (unless it's an auth error)
+        if (!(err instanceof HttpErrorResponse && err.status === 401)) {
+          this.startTimer();
+        }
       }
     });
   }
 
-  protected resumeSession(): void {
+  private resumeSession(): void {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) return;
@@ -277,11 +398,13 @@ export class SessionTimerComponent implements OnDestroy {
       next: (updated) => {
         console.log('[Session Timer] Session resumed:', updated);
         this.session.set(updated);
+        // Initialize timer for current phase (preserving remaining time)
+        this.initializeTimerForPhase();
         this.startTimer();
       },
       error: (err) => {
         console.error('[Session Timer] Failed to resume session:', err);
-        this.error.set('Failed to resume session');
+        this.handleError(err, 'resume session');
       }
     });
   }
@@ -305,7 +428,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         console.error('[Session Timer] Failed to stop session:', err);
-        this.error.set('Failed to stop session');
+        this.handleError(err, 'stop session');
       }
     });
   }
@@ -333,7 +456,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         console.error('[Session Timer] Failed to cancel session:', err);
-        this.error.set('Failed to cancel session');
+        this.handleError(err, 'cancel session');
       }
     });
   }
@@ -345,6 +468,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     console.log('[Session Timer] Phase completed, calling completePhase API');
 
+    this.timerSub?.unsubscribe();
+    this.phaseStartTimestamp = null;
+
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
         console.log('[Session Timer] Phase completed:', updated);
@@ -353,22 +479,64 @@ export class SessionTimerComponent implements OnDestroy {
         // If session is now completed, show completion message
         if (updated.status === 'COMPLETED') {
           // Session finished
-          this.timerSub?.unsubscribe();
+          this.remainingSeconds.set(0);
         } else {
-          // Continue to next phase
-          this.calculateRemainingTime();
-          this.startTimer();
+          // Continue to next phase (FOCUS -> BREAK or BREAK -> FOCUS)
+          this.initializeTimerForPhase();
+          // Auto-start timer for next phase if session is still IN_PROGRESS
+          if (updated.status === 'IN_PROGRESS') {
+            this.startTimer();
+          }
         }
       },
       error: (err) => {
         console.error('[Session Timer] Failed to complete phase:', err);
-        this.error.set('Failed to complete phase');
+        this.handleError(err, 'complete phase');
       }
     });
   }
 
   protected goBack(): void {
     this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
+  }
+
+  /* -------------------- ERROR HANDLING -------------------- */
+
+  private handleError(err: any, operation: string): void {
+    if (err instanceof HttpErrorResponse) {
+      // Handle authentication errors (401)
+      if (err.status === 401) {
+        this.error.set('Your session has expired. You will be redirected to login shortly...');
+        // The auth-error interceptor will handle token refresh or redirect to login
+        // If refresh fails, the interceptor will clear auth data and redirect
+        return;
+      }
+      
+      // Handle other HTTP errors
+      if (err.status === 403) {
+        this.error.set('You do not have permission to perform this action.');
+        return;
+      }
+      
+      if (err.status >= 500) {
+        this.error.set('Server error. Please try again later.');
+        return;
+      }
+      
+      if (err.status === 404) {
+        this.error.set('Session not found. It may have been deleted.');
+        return;
+      }
+      
+      // Generic HTTP error
+      const errorMessage = err.error?.message || err.message || `Failed to ${operation}`;
+      this.error.set(errorMessage);
+      return;
+    }
+    
+    // Non-HTTP error
+    const errorMessage = err?.message || `Failed to ${operation}`;
+    this.error.set(errorMessage);
   }
 
   /* -------------------- NOTES AND TODOS -------------------- */
@@ -396,5 +564,48 @@ export class SessionTimerComponent implements OnDestroy {
     this.todos.update(list =>
       list.map(todo => todo.id === id ? { ...todo, checked: !todo.checked } : todo)
     );
+  }
+
+  /* -------------------- PHASE SWITCHING -------------------- */
+
+  protected switchToPhase(phase: 'FOCUS' | 'BREAK'): void {
+    // Allow switching phases when session is PENDING or PAUSED
+    if (!this.isPending() && !this.isPaused()) {
+      return;
+    }
+
+    const sess = this.session();
+    if (!sess) return;
+
+    // Don't switch if already in the requested phase
+    if (sess.currentPhase === phase) {
+      return;
+    }
+
+    // Stop timer if running (shouldn't happen for PAUSED, but safety check)
+    if (this.isRunning()) {
+      this.timerSub?.unsubscribe();
+      this.phaseStartTimestamp = null;
+    }
+
+    // Update the session's current phase locally
+    const updatedSession: PomodoroSession = {
+      ...sess,
+      currentPhase: phase
+    };
+    this.session.set(updatedSession);
+
+    // Update timer based on selected phase
+    const phaseDuration = phase === 'FOCUS' 
+      ? (sess.focusTimeInMinutes || 25)
+      : (sess.breakTimeInMinutes || 5);
+    
+    const totalSeconds = phaseDuration * 60;
+    this.remainingSeconds.set(totalSeconds);
+    
+    // Reset paused elapsed time when switching phases
+    this.pausedElapsedSeconds = 0;
+    
+    console.log('[Session Timer] Switched to', phase, 'phase with', phaseDuration, 'minutes');
   }
 }
