@@ -50,22 +50,27 @@
   <main class="main-content">
     <!-- Header -->
     <header class="header">
-      <button class="theme-btn" (click)="onToggleTheme()">
-        <i class="fa-solid fa-moon"></i>
-      </button>
-      <button class="profile-btn" (click)="openProfileModal()">
-        <i class="fa-solid fa-user"></i>
-      </button>
+      <div class="header-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 class="page-title">My Activities</h1>
+      </div>
+      <div class="header-right">
+        <button class="theme-btn" (click)="onToggleTheme()">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button class="profile-btn" (click)="openProfileModal()">
+          <i class="fa-solid fa-user"></i>
+        </button>
+      </div>
     </header>
 
     <!-- Page Content -->
     <div class="page-content">
       <!-- Page Header -->
       <div class="page-header">
-        <div class="header-text">
-          <h1 class="page-title">My Activities</h1>
-          <p class="page-subtitle">Manage and track all your activities</p>
-        </div>
+        <p class="page-subtitle">Manage and track all your activities</p>
         <button class="btn-primary" (click)="openCreateActivityModal()">
           <i class="fa-solid fa-plus"></i>
           Create Activity

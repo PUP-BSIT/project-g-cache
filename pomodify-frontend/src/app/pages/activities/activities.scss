@@ -222,7 +222,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 
 .header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   padding: 20px 40px;
   background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
@@ -231,6 +231,49 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   top: 0;
   z-index: 50;
   gap: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hamburger-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: none; // Hidden by default on desktop
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  i {
+    font-size: 18px;
+  }
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1;
 }
 
 .theme-btn,
@@ -277,27 +320,16 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 32px;
   gap: 20px;
 }
 
-.header-text {
+.page-subtitle {
+  font-size: 16px;
+  color: $text-light;
+  margin: 0;
   flex: 1;
-
-  .page-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: $text-dark;
-    margin: 0 0 8px 0;
-    line-height: 1.2;
-  }
-
-  .page-subtitle {
-    font-size: 16px;
-    color: $text-light;
-    margin: 0;
-  }
 }
 
 .btn-primary {
@@ -1460,6 +1492,10 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     width: calc(100% - 56px);
   }
 
+  .hamburger-btn {
+    display: flex; // Show hamburger on mobile
+  }
+
   .page-content {
     padding: 24px 16px;
   }
@@ -1470,10 +1506,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 
   .page-header {
-    .page-title {
-      font-size: 26px;
-    }
-
     .page-subtitle {
       font-size: 14px;
     }
