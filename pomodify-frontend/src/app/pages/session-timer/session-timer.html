@@ -23,122 +23,93 @@
       <header class="session-header">
         <button class="btn-back" (click)="goBack()">
           <i class="fa-solid fa-arrow-left"></i>
+          <span>Back</span>
         </button>
-        <div class="header-content">
-          <h1 class="activity-title">{{ activityTitle() }}</h1>
-          <div class="session-info">
-            <span class="session-type">{{ sess.sessionType }}</span>
-            <span class="cycle-indicator">#{{ cycleDisplay() }}</span>
-          </div>
-        </div>
+        <h1 class="activity-title">{{ activityTitle() }}</h1>
       </header>
 
-      <!-- Phase Indicator -->
-      <div class="phase-banner" [style.background-color]="phaseColor()">
-        @if (currentPhase() === 'FOCUS') {
-          <i class="fa-solid fa-brain"></i>
-          <span>Time to focus!</span>
-        } @else {
-          <i class="fa-solid fa-coffee"></i>
-          <span>Take a break</span>
-        }
-      </div>
-
-      <!-- Main Timer Display -->
-      <div class="timer-container">
-        <div 
-          class="timer-display" 
-          [class.clickable]="isPending()"
-          (click)="openTimePicker()">
-          <div class="time-value">{{ timerDisplay() }}</div>
-          @if (isPending()) {
-            <div class="timer-hint">
-              <i class="fa-solid fa-hand-pointer"></i>
-              Click to edit time
+      <!-- Main Content: Timer and Notes Side by Side -->
+      <div class="main-content-wrapper">
+        <!-- Left Side: Timer Circle -->
+        <div class="timer-section">
+          <div class="timer-circle">
+            <!-- Top: Session Type and Progress -->
+            <div class="timer-top">
+              <span class="session-type">{{ sessionTypeDisplay() }}</span>
+              <span class="cycle-indicator">#{{ cycleDisplay() }}</span>
             </div>
-          }
+
+            <!-- Focus/Break Labels -->
+            <div class="phase-labels">
+              <span class="phase-label" [class.active]="currentPhase() === 'FOCUS'">Focus</span>
+              <span class="phase-label" [class.active]="currentPhase() === 'BREAK'">Break</span>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="timer-display-box">
+              <div class="time-value">{{ timerDisplay() }}</div>
+            </div>
+
+            <!-- Start/Pause Button -->
+            <button 
+              class="btn-timer-control"
+              [class.paused]="isPaused()"
+              (click)="isPending() ? startSession() : (isRunning() ? pauseSession() : resumeSession())">
+              @if (isPending()) {
+                START
+              } @else if (isRunning()) {
+                PAUSE
+              } @else if (isPaused()) {
+                START
+              }
+            </button>
+          </div>
         </div>
 
-        <!-- Progress Circle (optional visual enhancement) -->
-        <div class="progress-ring">
-          <svg width="400" height="400" viewBox="0 0 400 400">
-            <circle 
-              cx="200" 
-              cy="200" 
-              r="180" 
-              fill="none" 
-              stroke="rgba(255, 255, 255, 0.1)" 
-              stroke-width="8" />
-            <circle 
-              cx="200" 
-              cy="200" 
-              r="180" 
-              fill="none" 
-              [attr.stroke]="phaseColor()" 
-              stroke-width="8" 
-              stroke-linecap="round"
-              [style.stroke-dasharray]="1130"
-              [style.stroke-dashoffset]="1130"
-              class="progress-circle" />
-          </svg>
+        <!-- Right Side: Notes and Todo Panel -->
+        <div class="notes-panel">
+          <!-- Header: Notes label and TODO button -->
+          <div class="panel-header">
+            <span class="notes-label">Notes:</span>
+            <button class="btn-add-todo" (click)="addTodo()">
+              <span class="todo-label">TODO</span>
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+
+          <!-- Todo List -->
+          <div class="todo-list">
+            @for (todo of todos(); track todo.id) {
+              <div class="todo-item">
+                <input 
+                  type="checkbox" 
+                  class="todo-checkbox"
+                  [checked]="todo.checked"
+                  (change)="toggleTodo(todo.id)"
+                  [id]="'todo-' + todo.id">
+                <input 
+                  type="text"
+                  class="todo-text"
+                  [value]="todo.text"
+                  (input)="updateTodoText(todo.id, $any($event.target).value)"
+                  [id]="'todo-text-' + todo.id"
+                  placeholder="Todo item">
+                <button 
+                  class="btn-remove-todo"
+                  (click)="removeTodo(todo.id)"
+                  title="Remove">
+                  <i class="fa-solid fa-x"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Notes Textarea at Bottom -->
+          <textarea 
+            class="notes-textarea"
+            [(ngModel)]="notes"
+            placeholder="Add your notes here..."></textarea>
         </div>
-      </div>
-
-      <!-- Control Buttons -->
-      <div class="controls">
-        @if (isPending()) {
-          <!-- Not Started - Show START button -->
-          <button class="btn-primary btn-large" (click)="startSession()">
-            <i class="fa-solid fa-play"></i>
-            START
-          </button>
-        }
-
-        @if (isRunning()) {
-          <!-- Running - Show PAUSE and STOP buttons -->
-          <div class="button-group">
-            <button class="btn-secondary" (click)="pauseSession()">
-              <i class="fa-solid fa-pause"></i>
-              PAUSE
-            </button>
-            <button class="btn-warning" (click)="stopSession()">
-              <i class="fa-solid fa-stop"></i>
-              STOP
-            </button>
-          </div>
-        }
-
-        @if (isPaused()) {
-          <!-- Paused - Show RESUME and STOP buttons -->
-          <div class="button-group">
-            <button class="btn-primary" (click)="resumeSession()">
-              <i class="fa-solid fa-play"></i>
-              RESUME
-            </button>
-            <button class="btn-warning" (click)="stopSession()">
-              <i class="fa-solid fa-stop"></i>
-              STOP
-            </button>
-          </div>
-        }
-
-        @if (isCompleted()) {
-          <!-- Completed - Show completion message -->
-          <div class="completion-message">
-            <i class="fa-solid fa-check-circle"></i>
-            <h2>Session Completed!</h2>
-            <p>Great work! You completed {{ sess.cyclesCompleted }} cycle(s).</p>
-            <button class="btn-primary" (click)="goBack()">Back to Sessions</button>
-          </div>
-        }
-
-        <!-- Cancel Button (always visible except when completed) -->
-        @if (!isCompleted()) {
-          <button class="btn-danger btn-cancel" (click)="cancelSession()">
-            <i class="fa-solid fa-times-circle"></i>
-            CANCEL SESSION
-          </button>
-        }
       </div>
     </div>
   }

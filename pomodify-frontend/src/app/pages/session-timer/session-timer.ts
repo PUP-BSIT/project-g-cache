@@ -10,6 +10,7 @@ import {
   numberAttribute
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { timer, Subscription, of } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
@@ -25,7 +26,7 @@ import { TimePickerModalComponent, TimePickerData } from '../../shared/component
 @Component({
   selector: 'app-session-timer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './session-timer.html',
   styleUrls: ['./session-timer.scss']
 })
@@ -73,6 +74,18 @@ export class SessionTimerComponent implements OnDestroy {
   phaseColor = computed(() => {
     return this.currentPhase() === 'FOCUS' ? '#1abc9c' : '#3498db';
   });
+
+  // Session type display
+  sessionTypeDisplay = computed(() => {
+    const sess = this.session();
+    if (!sess) return 'CLASSIC';
+    return sess.sessionType === 'CLASSIC' ? 'Classic' : 'Freestyle';
+  });
+
+  // Notes and Todos
+  notes = signal<string>('');
+  todos = signal<Array<{ id: number; text: string; checked: boolean }>>([]);
+  private nextTodoId = 1;
 
   // Timer subscription
   private timerSub?: Subscription;
@@ -356,5 +369,32 @@ export class SessionTimerComponent implements OnDestroy {
 
   protected goBack(): void {
     this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
+  }
+
+  /* -------------------- NOTES AND TODOS -------------------- */
+
+  protected addTodo(): void {
+    const newTodo = {
+      id: this.nextTodoId++,
+      text: '',
+      checked: false
+    };
+    this.todos.update(list => [...list, newTodo]);
+  }
+
+  protected removeTodo(id: number): void {
+    this.todos.update(list => list.filter(todo => todo.id !== id));
+  }
+
+  protected updateTodoText(id: number, text: string): void {
+    this.todos.update(list =>
+      list.map(todo => todo.id === id ? { ...todo, text } : todo)
+    );
+  }
+
+  protected toggleTodo(id: number): void {
+    this.todos.update(list =>
+      list.map(todo => todo.id === id ? { ...todo, checked: !todo.checked } : todo)
+    );
   }
 }
