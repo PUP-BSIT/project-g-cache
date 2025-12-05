@@ -1,47 +1,37 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
-export interface SessionData {
-  id: string;
-  focusTimeMinutes: number;
-  breakTimeMinutes: number;
-  note?: string;
-  createdAt: string;
+// Activity interfaces matching backend API
+export interface ActivityData {
+  activityId: number;
+  categoryId?: number;
+  activityTitle: string;
+  activityDescription: string;
+  categoryName?: string;
+  colorTag?: string;
 }
 
-export interface ActivityData {
-  id: string;
-  name: string;
-  icon: string;
-  category: string;
-  colorTag: string;
-  estimatedHoursPerWeek: number;
-  lastAccessed: string;
-  sessions: SessionData[];
+export interface ActivityResponse {
+  message: string;
+  activities: ActivityData[];
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
 }
 
 export interface CreateActivityRequest {
-  name: string;
-  icon: string;
-  category?: string;
-  colorTag: string;
-  estimatedHoursPerWeek: number;
+  activityTitle: string;
+  activityDescription: string;
+  categoryId?: number;
 }
 
 export interface UpdateActivityRequest {
-  name?: string;
-  icon?: string;
-  category?: string;
-  colorTag?: string;
-  estimatedHoursPerWeek?: number;
-}
-
-export interface AddSessionRequest {
-  focusTimeMinutes: number;
-  breakTimeMinutes: number;
-  note?: string;
+  newActivityTitle: string;
+  newActivityDescription: string;
+  newCategoryId?: number;
 }
 
 @Injectable({
@@ -49,63 +39,69 @@ export interface AddSessionRequest {
 })
 export class ActivityService {
   private http = inject(HttpClient);
-  private readonly baseUrl = '/api/v1/activities';
+  private readonly baseUrl = `${environment.apiUrl}/activities`;
 
   /**
-   * Fetch all activities for the current user
+   * Fetch all activities for the current user with pagination
    */
-  getAllActivities(): Observable<ActivityData[]> {
-    return this.http.get<ActivityData[]>(this.baseUrl).pipe(
-      map(activities => activities || [])
-    );
+  getAllActivities(page: number = 0, size: number = 100, sortOrder: 'asc' | 'desc' = 'desc', sortBy: string = 'title', categoryId?: number): Observable<ActivityResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sortOrder', sortOrder)
+      .set('sortBy', sortBy);
+    
+    if (categoryId !== undefined) {
+      params = params.set('categoryId', categoryId.toString());
+    }
+
+    return this.http.get<ActivityResponse>(this.baseUrl, { params });
   }
 
   /**
    * Fetch a specific activity by ID
    */
-  getActivity(activityId: string): Observable<ActivityData> {
-    return this.http.get<ActivityData>(`${this.baseUrl}/${activityId}`);
+  getActivity(activityId: number): Observable<ActivityData> {
+    return this.http.get<ActivityResponse>(`${this.baseUrl}/${activityId}`).pipe(
+      map(response => (response?.activities && response.activities.length > 0) ? response.activities[0] : ({} as ActivityData))
+    );
   }
 
   /**
    * Create a new activity
    */
   createActivity(request: CreateActivityRequest): Observable<ActivityData> {
-    return this.http.post<ActivityData>(this.baseUrl, request);
+    return this.http.post<ActivityResponse>(this.baseUrl, request).pipe(
+      map(response => (response?.activities && response.activities.length > 0) ? response.activities[0] : ({} as ActivityData))
+    );
   }
 
   /**
    * Update an existing activity
    */
-  updateActivity(activityId: string, request: UpdateActivityRequest): Observable<ActivityData> {
-    return this.http.put<ActivityData>(`${this.baseUrl}/${activityId}`, request);
+  updateActivity(activityId: number, request: UpdateActivityRequest): Observable<ActivityData> {
+    return this.http.put<ActivityResponse>(`${this.baseUrl}/${activityId}`, request).pipe(
+      map(response => (response?.activities && response.activities.length > 0) ? response.activities[0] : ({} as ActivityData))
+    );
   }
 
   /**
-   * Delete an activity
+   * Delete an activity (soft delete)
    */
-  deleteActivity(activityId: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${activityId}`);
+  deleteActivity(activityId: number): Observable<ActivityData> {
+    return this.http.delete<ActivityResponse>(`${this.baseUrl}/${activityId}`).pipe(
+      map(response => (response?.activities && response.activities.length > 0) ? response.activities[0] : ({} as ActivityData))
+    );
   }
 
   /**
-   * Add a session to an activity
+   * Get deleted activities
    */
-  addSession(activityId: string, request: AddSessionRequest): Observable<SessionData> {
-    return this.http.post<SessionData>(`${this.baseUrl}/${activityId}/sessions`, request);
-  }
-
-  /**
-   * Update a session
-   */
-  updateSession(activityId: string, sessionId: string, request: Partial<AddSessionRequest>): Observable<SessionData> {
-    return this.http.put<SessionData>(`${this.baseUrl}/${activityId}/sessions/${sessionId}`, request);
-  }
-
-  /**
-   * Delete a session
-   */
-  deleteSession(activityId: string, sessionId: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${activityId}/sessions/${sessionId}`);
+  getDeletedActivities(page: number = 0, size: number = 10): Observable<ActivityResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    
+    return this.http.get<ActivityResponse>(`${this.baseUrl}/deleted`, { params });
   }
 }

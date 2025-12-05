@@ -165,12 +165,12 @@
                     <h4>{{ activity.activityTitle }}</h4>
                     <p class="session-details">
                       <i class="fa-solid fa-clock"></i>
-                      {{ formatSessionTime(activity.lastSession.startTime, activity.lastSession.endTime) }}
-                      • {{ getRelativeTime(activity.lastSession.startTime) }}
+                      {{ formatSessionTime(activity.lastSession.startTime || '', activity.lastSession.endTime || '') }}
+                      • {{ getRelativeTime(activity.lastSession.startTime || '') }}
                     </p>
                   </div>
-                  <div class="session-status" [class]="activity.lastSession.status.toLowerCase()">
-                    {{ activity.lastSession.status }}
+                  <div class="session-status" [class]="(activity.lastSession.status || '').toLowerCase()">
+                    {{ activity.lastSession.status || 'N/A' }}
                   </div>
                 </div>
               }

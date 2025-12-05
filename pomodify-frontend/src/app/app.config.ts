@@ -7,6 +7,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { routes } from './app.routes';
 import { smartAuthInterceptor } from './core/interceptors/smart-auth.interceptor';
 import { mockActivityInterceptor } from './core/interceptors/mock-activity.interceptor';
+import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,6 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
     provideAnimations(),
     provideAnimationsAsync(),
-    provideHttpClient(withFetch(), withInterceptors([mockActivityInterceptor, smartAuthInterceptor]))
+    // Order: token first, then mocks, then auth-specific handling
+    provideHttpClient(withFetch(), withInterceptors([authTokenInterceptor, mockActivityInterceptor, smartAuthInterceptor]))
   ]
 };

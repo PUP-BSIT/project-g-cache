@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
 export interface RecentActivity {
@@ -22,7 +23,7 @@ export interface DashboardMetrics {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly API_URL = '/api/v1/dashboard';
+  private readonly API_URL = `${environment.apiUrl}/dashboard`;
 
   constructor(private http: HttpClient) {}
 
@@ -32,11 +33,8 @@ export class DashboardService {
    * @returns Observable of DashboardMetrics
    */
   getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
-    const headers = new HttpHeaders({
-      'X-Timezone': timezone,
-      'Content-Type': 'application/json'
-    });
-
+    // Live API expects X-Timezone header; send it and rely on proxy for CORS
+    const headers = new HttpHeaders({ 'X-Timezone': timezone });
     return this.http.get<DashboardMetrics>(this.API_URL, { headers });
   }
 

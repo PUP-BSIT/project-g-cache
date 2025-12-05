@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 // Mock data storage (simulates a database)
 let mockActivities: any[] = [
@@ -45,14 +46,25 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
+  // Respect environment flag to disable mocks
+  if (!environment.useMockBackend) {
+    return next(req);
+  }
+
   console.log('🎭 Mock Interceptor:', req.method, url);
 
   // GET all activities
   if (req.method === 'GET' && url.includes('/api/v1/activities') && !url.match(/\/\d+$/)) {
     return of(new HttpResponse({
       status: 200,
-      body: mockActivities
-    })).pipe(delay(300)); // Simulate network delay
+      body: {
+        message: 'Active activities fetched successfully.',
+        activities: mockActivities,
+        currentPage: 0,
+        totalPages: 1,
+        totalItems: mockActivities.length,
+      }
+    })).pipe(delay(300));
   }
 
   // GET single activity
@@ -63,7 +75,13 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     if (activity) {
       return of(new HttpResponse({
         status: 200,
-        body: activity
+        body: {
+          message: 'Activity fetched successfully',
+          activities: [activity],
+          currentPage: 0,
+          totalPages: 1,
+          totalItems: 1,
+        }
       })).pipe(delay(200));
     }
     return throwError(() => ({ status: 404, message: 'Activity not found' }));
@@ -74,11 +92,11 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     const body = req.body as any;
     const newActivity = {
       activityId: nextActivityId++,
-      activityTitle: body.name,
+      activityTitle: body.title,
       activityDescription: body.description || '',
-      categoryId: mockActivities.length + 1,
-      categoryName: body.category || 'General',
-      colorTag: body.colorTag || 'teal',
+      categoryId: body.categoryId || (mockActivities.length + 1),
+      categoryName: 'General',
+      colorTag: 'teal',
       createdAt: new Date().toISOString(),
       sessions: []
     };
@@ -89,7 +107,13 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     
     return of(new HttpResponse({
       status: 201,
-      body: newActivity
+      body: {
+        message: 'Activity created successfully',
+        activities: [newActivity],
+        currentPage: 0,
+        totalPages: 1,
+        totalItems: 1,
+      }
     })).pipe(delay(400));
   }
 
@@ -102,15 +126,20 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     if (index !== -1) {
       mockActivities[index] = {
         ...mockActivities[index],
-        activityTitle: body.name || mockActivities[index].activityTitle,
-        activityDescription: body.description || mockActivities[index].activityDescription,
-        categoryName: body.category || mockActivities[index].categoryName,
-        colorTag: body.colorTag || mockActivities[index].colorTag
+        activityTitle: body.newActivityTitle || mockActivities[index].activityTitle,
+        activityDescription: body.newActivityDescription || mockActivities[index].activityDescription,
+        categoryId: body.newCategoryId || mockActivities[index].categoryId,
       };
       
       return of(new HttpResponse({
         status: 200,
-        body: mockActivities[index]
+        body: {
+          message: 'Activity updated successfully',
+          activities: [mockActivities[index]],
+          currentPage: 0,
+          totalPages: 1,
+          totalItems: 1,
+        }
       })).pipe(delay(300));
     }
     return throwError(() => ({ status: 404, message: 'Activity not found' }));
@@ -122,10 +151,16 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
     const index = mockActivities.findIndex(a => a.activityId === id);
     
     if (index !== -1) {
-      mockActivities.splice(index, 1);
+      const deleted = mockActivities.splice(index, 1);
       return of(new HttpResponse({
-        status: 204,
-        body: null
+        status: 200,
+        body: {
+          message: 'Activity deleted successfully',
+          activities: deleted,
+          currentPage: 0,
+          totalPages: 1,
+          totalItems: 1,
+        }
       })).pipe(delay(200));
     }
     return throwError(() => ({ status: 404, message: 'Activity not found' }));
@@ -179,14 +214,35 @@ export const mockActivityInterceptor: HttpInterceptorFn = (req, next) => {
 
   // GET dashboard
   if (req.method === 'GET' && url.includes('/api/v1/dashboard')) {
-    const dashboardData = {
-      totalActivities: mockActivities.length,
-      totalSessions: mockActivities.reduce((sum, a) => sum + a.sessions.length, 0),
-      recentActivities: mockActivities.slice(0, 3),
-      weeklyStats: {
-        hoursThisWeek: 12,
-        streak: 3
+    const recent = mockActivities.slice(0, 3).map(a => ({
+      activityId: a.activityId,
+      activityTitle: a.activityTitle,
+      lastSession: a.sessions[0] ? {
+        sessionId: Number(a.sessions[0].id),
+        startTime: new Date(Date.now() - 3600000).toISOString(),
+        endTime: new Date().toISOString(),
+        status: 'COMPLETED'
+      } : {
+        sessionId: 0,
+        startTime: new Date(Date.now() - 3600000).toISOString(),
+        endTime: new Date().toISOString(),
+        status: 'COMPLETED'
       }
+    }));
+
+    const dashboardData = {
+      totalCompletedSessions: mockActivities.reduce((sum, a) => sum + a.sessions.length, 0),
+      totalFocusTime: mockActivities.reduce((sum, a) => sum + a.sessions.reduce((s: number, x: any) => s + (x.focusTimeMinutes * 60), 0), 0),
+      weeklyFocusDistribution: {
+        MONDAY: 7200,
+        TUESDAY: 5400,
+        WEDNESDAY: 9000,
+        THURSDAY: 3600,
+        FRIDAY: 10800,
+        SATURDAY: 0,
+        SUNDAY: 0,
+      },
+      recentActivities: recent,
     };
     
     return of(new HttpResponse({
