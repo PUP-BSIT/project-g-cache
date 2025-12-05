@@ -1,8 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { toggleTheme } from '../../shared/theme';
+import { API } from '../../core/config/api.config';
 import {
   CreateActivityModal,
   ActivityData as CreateActivityModalData,
@@ -69,6 +72,7 @@ type Activity = {
 export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private http = inject(HttpClient);
   private auth = inject(Auth);
   private iconMapper = inject(IconMapper);
   private dashboardService = inject(DashboardService);
@@ -280,6 +284,8 @@ export class Dashboard implements OnInit {
 
   protected selectActivity(activity: Activity): void {
     this.selectedActivity.set(activity);
+    // Navigate to sessions list for this activity
+    this.router.navigate(['/activities', activity.name, 'sessions']);
   }
 
   protected openCreateActivityModal(): void {
@@ -287,41 +293,73 @@ export class Dashboard implements OnInit {
     this.dialog
       .open(CreateActivityModal)
       .afterClosed()
-      .subscribe((result: CreateActivityModalData) => {
-        if (result) {
+      .pipe(
+        filter((result: CreateActivityModalData) => !!result),
+        switchMap((result: CreateActivityModalData) => {
           console.log('[Dashboard] Creating new activity:', result.name);
           const req: any = {
             title: result.name,
             description: result.category || '',
           };
-          // Only add categoryId if it's actually defined
-          if (result.category) {
-            // For now, we don't have category IDs, so omit this field
-          }
           console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
-          this.activityService.createActivity(req).subscribe({
-            next: (created) => {
-              console.log('[Dashboard] Activity created successfully, redirecting to activities page');
-              // Redirect to activities page to see the newly created activity
-              this.router.navigate(['/activities']);
-            },
-            error: (err) => {
-              console.error('[Dashboard] Error creating activity:', err);
-              console.error('[Dashboard] Error status:', err.status);
-              console.error('[Dashboard] Error body:', err.error);
-              console.error('[Dashboard] Full error details:', JSON.stringify(err.error, null, 2));
-              
-              let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
-              
-              // Check if it's a backend cache configuration error
-              if (errorMsg.includes('Cannot find cache')) {
-                errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator to configure Spring Boot cache.';
-                console.error('[Dashboard] Backend cache error: Spring Boot cache named "activities" is not configured.');
-              }
-              
-              alert(`Error: ${errorMsg}`);
-            }
-          });
+          
+          // Return observable of [activityData, createResponse]
+          return this.activityService.createActivity(req).pipe(
+            map(created => ({ created, activityTitle: result.name }))
+          );
+        }),
+        switchMap(({ created, activityTitle }) => {
+          console.log('[Dashboard] Activity created, auto-creating session');
+          const activityId = created.activityId;
+          console.log('[Dashboard] Activity ID:', activityId);
+          console.log('[Dashboard] Created object:', created);
+          
+          // Auto-create session with CLASSIC preset
+          const sessionPayload = {
+            sessionType: 'CLASSIC',
+            focusTimeInMinutes: 25,
+            breakTimeInMinutes: 5,
+            cycles: 6
+          };
+          
+          console.log('[Dashboard] Session URL:', API.ACTIVITIES.SESSIONS.CREATE(activityId));
+          console.log('[Dashboard] Session payload:', sessionPayload);
+          
+          return this.http.post<any>(API.ACTIVITIES.SESSIONS.CREATE(activityId), sessionPayload).pipe(
+            map(session => ({ session, activityId, activityTitle }))
+          );
+        })
+      )
+      .subscribe({
+        next: ({ session, activityId, activityTitle }) => {
+          console.log('[Dashboard] Session created, navigating to timer');
+          console.log('[Dashboard] Session response:', session);
+          const sessionId = session.id || session.sessionId;
+          console.log('[Dashboard] Extracted sessionId:', sessionId);
+          console.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
+          
+          if (!sessionId) {
+            console.error('[Dashboard] Session ID is undefined!');
+            return;
+          }
+          
+          // Navigate to: /activities/:activityTitle/sessions/:sessionId
+          this.router.navigate(['/activities', activityTitle, 'sessions', sessionId]);
+        },
+        error: (err) => {
+          console.error('[Dashboard] Error in create flow:', err);
+          console.error('[Dashboard] Error status:', err.status);
+          console.error('[Dashboard] Error body:', err.error);
+          
+          let errorMsg = err?.error?.message || err?.message || 'Failed to create activity/session';
+          
+          // Check if it's a backend cache configuration error
+          if (errorMsg.includes('Cannot find cache')) {
+            errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator to configure Spring Boot cache.';
+            console.error('[Dashboard] Backend cache error: Spring Boot cache named "activities" is not configured.');
+          }
+          
+          alert(`Error: ${errorMsg}`);
         }
       });
   }
@@ -392,7 +430,7 @@ export class Dashboard implements OnInit {
       .subscribe((result: SessionData) => {
         if (result) {
           this.sessionService.createSession(Number(activity.id), {
-            sessionType: 'POMODORO',
+            sessionType: 'CLASSIC',
             focusTimeInMinutes: result.focusTimeMinutes,
             breakTimeInMinutes: result.breakTimeMinutes,
             cycles: 1,

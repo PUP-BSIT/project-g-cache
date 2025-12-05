@@ -1,0 +1,428 @@
+.session-timer-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  color: white;
+  transition: background 0.5s ease;
+  position: relative;
+  overflow: hidden;
+
+  &[data-phase="FOCUS"] {
+    background: linear-gradient(135deg, #134e4a 0%, #0f766e 50%, #115e59 100%);
+  }
+
+  &[data-phase="BREAK"] {
+    background: linear-gradient(135deg, #0e7490 0%, #0891b2 50%, #06b6d4 100%);
+  }
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1.5rem;
+
+  i {
+    font-size: 4rem;
+    color: #1abc9c;
+  }
+
+  p {
+    font-size: 1.25rem;
+    opacity: 0.8;
+  }
+
+  .btn-primary {
+    margin-top: 1rem;
+  }
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* -------------------- HEADER -------------------- */
+
+.session-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .btn-back {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+
+    i {
+      font-size: 1.25rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(-4px);
+    }
+  }
+
+  .header-content {
+    flex: 1;
+  }
+
+  .activity-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    color: #1abc9c;
+  }
+
+  .session-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+
+    .session-type {
+      background: rgba(26, 188, 156, 0.2);
+      color: #1abc9c;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cycle-indicator {
+      font-size: 1.125rem;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+  }
+}
+
+/* -------------------- PHASE BANNER -------------------- */
+
+.phase-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 16px;
+  margin-bottom: 3rem;
+  background-color: #1abc9c;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+  i {
+    font-size: 1.5rem;
+  }
+
+  span {
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+}
+
+/* -------------------- TIMER DISPLAY -------------------- */
+
+.timer-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 2rem 0;
+}
+
+.timer-display {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  
+  &.clickable {
+    cursor: pointer;
+    
+    &:hover .time-value {
+      color: #16a085;
+      transform: scale(1.05);
+    }
+  }
+
+  .time-value {
+    font-size: 8rem;
+    font-weight: 700;
+    font-family: 'Roboto Mono', monospace;
+    color: #1abc9c;
+    text-shadow: 0 0 40px rgba(26, 188, 156, 0.5);
+    line-height: 1;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+
+    @media (max-width: 768px) {
+      font-size: 5rem;
+    }
+  }
+
+  .timer-hint {
+    font-size: 1rem;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+
+    i {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.progress-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.3;
+
+  svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-circle {
+    transition: stroke-dashoffset 1s linear;
+  }
+}
+
+/* -------------------- CONTROLS -------------------- */
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary, .btn-secondary, .btn-warning, .btn-danger, .btn-large, .btn-cancel {
+  padding: 1rem 2.5rem;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.125rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  i {
+    font-size: 1.25rem;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3);
+
+  &:hover {
+    box-shadow: 0 10px 30px rgba(26, 188, 156, 0.4);
+  }
+}
+
+.btn-large {
+  padding: 1.5rem 4rem;
+  font-size: 1.5rem;
+  box-shadow: 0 8px 25px rgba(26, 188, 156, 0.4);
+
+  i {
+    font-size: 1.75rem;
+  }
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.3);
+
+  &:hover {
+    box-shadow: 0 10px 30px rgba(243, 156, 18, 0.4);
+  }
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+
+  &:hover {
+    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.4);
+  }
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  opacity: 0.7;
+  
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* -------------------- COMPLETION MESSAGE -------------------- */
+
+.completion-message {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+
+  i {
+    font-size: 5rem;
+    color: #2ecc71;
+    animation: scaleIn 0.5s ease;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+    margin: 0;
+    color: #2ecc71;
+  }
+
+  p {
+    font-size: 1.25rem;
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  button {
+    margin-top: 1rem;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* -------------------- RESPONSIVE -------------------- */
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .session-header {
+    .activity-title {
+      font-size: 1.5rem;
+    }
+
+    .session-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+
+  .phase-banner {
+    font-size: 0.875rem;
+    padding: 0.75rem;
+    
+    i {
+      font-size: 1.125rem;
+    }
+
+    span {
+      font-size: 1rem;
+    }
+  }
+
+  .timer-display .time-value {
+    font-size: 4rem;
+  }
+
+  .btn-primary, .btn-secondary, .btn-warning, .btn-danger {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  .btn-large {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.25rem;
+
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  .completion-message {
+    h2 {
+      font-size: 1.75rem;
+    }
+
+    p {
+      font-size: 1rem;
+    }
+  }
+}

@@ -233,7 +233,7 @@ export class ActivitiesPage implements OnInit {
       .subscribe((result: SessionData) => {
         if (result) {
           this.sessionService.createSession(activity.activityId, {
-            sessionType: 'POMODORO',
+            sessionType: 'CLASSIC',
             focusTimeInMinutes: result.focusTimeMinutes,
             breakTimeInMinutes: result.breakTimeMinutes,
             cycles: 1,

@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { API } from '../config/api.config';
 
-// Session types based on backend API
-export type SessionType = 'POMODORO' | 'CLASSIC' | 'FREESTYLE';
-export type SessionStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'CANCELED';
+// Session types based on backend API (STRICT ADHERENCE)
+export type SessionType = 'CLASSIC' | 'FREESTYLE';
+export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
 export type SessionPhase = 'FOCUS' | 'BREAK';
 
 export interface PomodoroSession {
@@ -192,12 +192,20 @@ export class SessionService {
 
 function extractSession(response: SessionResponse): PomodoroSession {
   if (response && Array.isArray(response.sessions) && response.sessions.length > 0) {
-    return response.sessions[0];
+    const s = response.sessions[0];
+    const rawStatus = (s as any).status as string;
+    const normalizedStatus = (rawStatus === 'NOT_STARTED' ? 'PENDING' : rawStatus) as SessionStatus;
+    const normalized = { ...s, status: normalizedStatus };
+    return normalized;
   }
   // Some endpoints may return a single session object instead of array
   const anyResp = response as unknown as { session?: PomodoroSession };
   if (anyResp && anyResp.session) {
-    return anyResp.session;
+    const s = anyResp.session;
+    const rawStatus = (s as any).status as string;
+    const normalizedStatus = (rawStatus === 'NOT_STARTED' ? 'PENDING' : rawStatus) as SessionStatus;
+    const normalized = { ...s, status: normalizedStatus };
+    return normalized;
   }
   throw new Error('Session not found in response');
 }

@@ -1,0 +1,145 @@
+<div class="session-timer-page" [attr.data-phase]="currentPhase()">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <p>Loading session...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @else if (error()) {
+    <div class="error-container">
+      <i class="fa-solid fa-exclamation-circle"></i>
+      <p>{{ error() }}</p>
+      <button class="btn-primary" (click)="goBack()">Go Back</button>
+    </div>
+  }
+
+  <!-- Main Timer Interface -->
+  @else if (session(); as sess) {
+    <div class="container">
+      <!-- Header -->
+      <header class="session-header">
+        <button class="btn-back" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div class="header-content">
+          <h1 class="activity-title">{{ activityTitle() }}</h1>
+          <div class="session-info">
+            <span class="session-type">{{ sess.sessionType }}</span>
+            <span class="cycle-indicator">#{{ cycleDisplay() }}</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Phase Indicator -->
+      <div class="phase-banner" [style.background-color]="phaseColor()">
+        @if (currentPhase() === 'FOCUS') {
+          <i class="fa-solid fa-brain"></i>
+          <span>Time to focus!</span>
+        } @else {
+          <i class="fa-solid fa-coffee"></i>
+          <span>Take a break</span>
+        }
+      </div>
+
+      <!-- Main Timer Display -->
+      <div class="timer-container">
+        <div 
+          class="timer-display" 
+          [class.clickable]="isPending()"
+          (click)="openTimePicker()">
+          <div class="time-value">{{ timerDisplay() }}</div>
+          @if (isPending()) {
+            <div class="timer-hint">
+              <i class="fa-solid fa-hand-pointer"></i>
+              Click to edit time
+            </div>
+          }
+        </div>
+
+        <!-- Progress Circle (optional visual enhancement) -->
+        <div class="progress-ring">
+          <svg width="400" height="400" viewBox="0 0 400 400">
+            <circle 
+              cx="200" 
+              cy="200" 
+              r="180" 
+              fill="none" 
+              stroke="rgba(255, 255, 255, 0.1)" 
+              stroke-width="8" />
+            <circle 
+              cx="200" 
+              cy="200" 
+              r="180" 
+              fill="none" 
+              [attr.stroke]="phaseColor()" 
+              stroke-width="8" 
+              stroke-linecap="round"
+              [style.stroke-dasharray]="1130"
+              [style.stroke-dashoffset]="1130"
+              class="progress-circle" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="controls">
+        @if (isPending()) {
+          <!-- Not Started - Show START button -->
+          <button class="btn-primary btn-large" (click)="startSession()">
+            <i class="fa-solid fa-play"></i>
+            START
+          </button>
+        }
+
+        @if (isRunning()) {
+          <!-- Running - Show PAUSE and STOP buttons -->
+          <div class="button-group">
+            <button class="btn-secondary" (click)="pauseSession()">
+              <i class="fa-solid fa-pause"></i>
+              PAUSE
+            </button>
+            <button class="btn-warning" (click)="stopSession()">
+              <i class="fa-solid fa-stop"></i>
+              STOP
+            </button>
+          </div>
+        }
+
+        @if (isPaused()) {
+          <!-- Paused - Show RESUME and STOP buttons -->
+          <div class="button-group">
+            <button class="btn-primary" (click)="resumeSession()">
+              <i class="fa-solid fa-play"></i>
+              RESUME
+            </button>
+            <button class="btn-warning" (click)="stopSession()">
+              <i class="fa-solid fa-stop"></i>
+              STOP
+            </button>
+          </div>
+        }
+
+        @if (isCompleted()) {
+          <!-- Completed - Show completion message -->
+          <div class="completion-message">
+            <i class="fa-solid fa-check-circle"></i>
+            <h2>Session Completed!</h2>
+            <p>Great work! You completed {{ sess.cyclesCompleted }} cycle(s).</p>
+            <button class="btn-primary" (click)="goBack()">Back to Sessions</button>
+          </div>
+        }
+
+        <!-- Cancel Button (always visible except when completed) -->
+        @if (!isCompleted()) {
+          <button class="btn-danger btn-cancel" (click)="cancelSession()">
+            <i class="fa-solid fa-times-circle"></i>
+            CANCEL SESSION
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
