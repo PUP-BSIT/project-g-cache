@@ -262,6 +262,23 @@ export class Dashboard implements OnInit {
     return activities.slice(0, 4);
   });
 
+  // Get 4 most recent activities as cards (for the new recent activities section)
+  protected readonly recentActivitiesCards = computed(() => {
+    const allActivities = this.activities();
+    // Sort by last session time or created date, then take first 4
+    return allActivities
+      .sort((a, b) => {
+        const aTime = a.sessions.length > 0 
+          ? new Date(a.sessions[a.sessions.length - 1].createdAt).getTime()
+          : new Date(a.id).getTime(); // Fallback to ID if no sessions
+        const bTime = b.sessions.length > 0
+          ? new Date(b.sessions[b.sessions.length - 1].createdAt).getTime()
+          : new Date(b.id).getTime();
+        return bTime - aTime; // Most recent first
+      })
+      .slice(0, 4);
+  });
+
   protected selectActivity(activity: Activity): void {
     this.selectedActivity.set(activity);
   }

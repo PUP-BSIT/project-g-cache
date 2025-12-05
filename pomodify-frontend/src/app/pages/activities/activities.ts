@@ -48,6 +48,20 @@ export class ActivitiesPage implements OnInit {
   // Search and filter
   protected searchQuery = signal('');
   protected selectedCategory = signal<number | null>(null);
+  protected selectedCategoryName = signal<string | null>(null);
+  protected categoryDropdownOpen = signal(false);
+
+  // Computed categories list
+  protected categories = computed(() => {
+    const allActivities = this.activities();
+    const categoryNames = new Set<string>();
+    allActivities.forEach(activity => {
+      if (activity.categoryName) {
+        categoryNames.add(activity.categoryName);
+      }
+    });
+    return Array.from(categoryNames).sort();
+  });
 
   ngOnInit(): void {
     console.log('[ActivitiesPage] Initializing...');
@@ -257,6 +271,17 @@ export class ActivitiesPage implements OnInit {
   // Search
   protected updateSearchQuery(query: string): void {
     this.searchQuery.set(query);
+  }
+
+  // Category dropdown
+  protected toggleCategoryDropdown(): void {
+    this.categoryDropdownOpen.update(open => !open);
+  }
+
+  protected selectCategory(category: string | null): void {
+    this.selectedCategoryName.set(category);
+    this.categoryDropdownOpen.set(false);
+    // TODO: Implement filtering by category name
   }
 
   // Helper methods

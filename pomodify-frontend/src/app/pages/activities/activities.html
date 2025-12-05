@@ -68,13 +68,58 @@
 
     <!-- Page Content -->
     <div class="page-content">
-      <!-- Page Header -->
+      <!-- Page Header with Search and Filter -->
       <div class="page-header">
         <p class="page-subtitle">Manage and track all your activities</p>
         <button class="btn-primary" (click)="openCreateActivityModal()">
           <i class="fa-solid fa-plus"></i>
           Create Activity
         </button>
+      </div>
+
+      <!-- Search and Filter Section -->
+      <div class="search-section">
+        <div class="search-bar">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            placeholder="Search activities..."
+            [(ngModel)]="searchQuery"
+          />
+        </div>
+        
+        <!-- Category Dropdown -->
+        <div class="category-dropdown-container">
+          <button class="category-dropdown-btn" (click)="toggleCategoryDropdown()">
+            <i class="fa-solid fa-list"></i>
+            <span>{{ selectedCategory() || 'All Categories' }}</span>
+            <i class="fa-solid fa-chevron-down" [class.rotated]="categoryDropdownOpen()"></i>
+          </button>
+          
+          @if (categoryDropdownOpen()) {
+            <div class="category-dropdown-menu">
+              <button 
+                class="category-item"
+                [class.active]="!selectedCategory()"
+                (click)="selectCategory(null); toggleCategoryDropdown()"
+              >
+                <i class="fa-solid fa-inbox"></i>
+                <span>All Activities</span>
+              </button>
+              
+              @for (category of categories(); track category) {
+                <button 
+                  class="category-item"
+                  [class.active]="selectedCategoryName() === category"
+                  (click)="selectCategory(category)"
+                >
+                  <i class="fa-solid fa-folder"></i>
+                  <span>{{ category }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
       </div>
 
       <!-- Loading State -->

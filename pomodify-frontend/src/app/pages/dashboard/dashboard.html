@@ -133,150 +133,23 @@
           </div>
         </div>
 
-        <!-- Weekly Distribution Chart -->
-        <div class="weekly-distribution-section">
-          <h3 class="section-title">Weekly Focus Distribution</h3>
-          <div class="weekly-chart">
-            @for (day of weeklyDistributionDays(); track day.day) {
-              <div class="chart-bar-container">
-                <div class="chart-bar">
-                  <div class="bar-fill" [style.height.%]="day.percentage"></div>
-                </div>
-                <div class="bar-label">{{ day.day }}</div>
-                <div class="bar-value">{{ day.hours }}h</div>
-              </div>
-            }
-          </div>
-        </div>
-
         <!-- Recent Activities Section -->
         <div class="recent-activities-section">
           <div class="section-header">
             <h3 class="section-title">Recent Activities</h3>
-            <span class="section-subtitle">Last 4 activities</span>
-          </div>
-          @if (recentActivities().length === 0) {
-            <div class="empty-recent">
-              <i class="fa-solid fa-inbox"></i>
-              <p>No recent activities yet</p>
-              <p class="empty-hint">Complete some activity sessions to see them here</p>
-            </div>
-          } @else {
-            <div class="recent-activities-list">
-              @for (activity of recentActivities(); track activity.activityId) {
-                <div class="recent-activity-item">
-                  <div class="activity-info">
-                    <h4>{{ activity.activityTitle }}</h4>
-                    <p class="session-details">
-                      <i class="fa-solid fa-clock"></i>
-                      {{ formatSessionTime(activity.lastSession.startTime || '', activity.lastSession.endTime || '') }}
-                      • {{ getRelativeTime(activity.lastSession.startTime || '') }}
-                    </p>
-                  </div>
-                  <div class="session-status" [class]="(activity.lastSession.status || '').toLowerCase()">
-                    {{ activity.lastSession.status || 'N/A' }}
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Search and Filter Section -->
-      <div class="search-section">
-        <div class="search-bar">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input
-            type="text"
-            placeholder="Search activities..."
-            [value]="searchQuery()"
-            (input)="updateSearchQuery($any($event).target.value)"
-          />
-        </div>
-        
-        <!-- Category Dropdown -->
-        <div class="category-dropdown-container">
-          <button class="category-dropdown-btn" (click)="toggleCategoryDropdown()">
-            <i class="fa-solid fa-list"></i>
-            <span>Categories</span>
-            <i class="fa-solid fa-chevron-down" [class.rotated]="categoryDropdownOpen()"></i>
-          </button>
-          
-          @if (categoryDropdownOpen()) {
-            <div class="category-dropdown-menu">
-              <button 
-                class="category-item"
-                [class.active]="selectedCategory() === null"
-                (click)="toggleCategory(''); toggleCategoryDropdown()"
-              >
-                <i class="fa-solid fa-inbox"></i>
-                <span>All Activities</span>
-                <span class="category-count">{{ activities().length }}</span>
-              </button>
-              
-              @for (category of categories(); track category) {
-                <button 
-                  class="category-item"
-                  [class.active]="selectedCategory() === category"
-                  (click)="toggleCategory(category); toggleCategoryDropdown()"
-                >
-                  <i class="fa-solid fa-folder"></i>
-                  <span>{{ category }}</span>
-                  <span class="category-count">{{ getActivitiesByCategory(category).length }}</span>
-                </button>
-              }
-              
-              @if (hasUncategorizedActivities()) {
-                <button 
-                  class="category-item"
-                  [class.active]="selectedCategory() === 'Uncategorized'"
-                  (click)="toggleCategory('Uncategorized'); toggleCategoryDropdown()"
-                >
-                  <i class="fa-solid fa-circle-question"></i>
-                  <span>Uncategorized</span>
-                  <span class="category-count">{{ getUncategorizedActivities().length }}</span>
-                </button>
-              }
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Two-Column Layout (Grid + Detail View) -->
-      <div class="content-wrapper">
-        <!-- Grid View Section -->
-        <div class="grid-view-section">
-          <div class="grid-view-header">
-            <span>Activities ({{ paginatedActivities().length }})</span>
             <button class="create-button" (click)="openCreateActivityModal()">
               <i class="fa-solid fa-plus"></i>
             </button>
           </div>
-
           @if (activities().length === 0) {
-            <div class="empty-state">
-              <div class="empty-icon">
-                <i class="fa-solid fa-calendar-plus"></i>
-              </div>
-              <h3>No activities yet</h3>
-              <p>Start tracking your productivity by creating your first activity</p>
-              <button class="create-activity-btn" (click)="openCreateActivityModal()">
-                <i class="fa-solid fa-plus"></i>
-                Create Your First Activity
-              </button>
-            </div>
-          } @else if (paginatedActivities().length === 0) {
-            <div class="empty-state">
-              <div class="empty-icon">
-                <i class="fa-solid fa-search"></i>
-              </div>
-              <h3>No activities found</h3>
-              <p>Try adjusting your search or filter</p>
+            <div class="empty-recent">
+              <i class="fa-solid fa-inbox"></i>
+              <p>No activities yet</p>
+              <p class="empty-hint">Create your first activity to get started</p>
             </div>
           } @else {
             <div class="activities-grid">
-              @for (activity of paginatedActivities(); track activity.id) {
+              @for (activity of recentActivitiesCards(); track activity.id) {
                 <div
                   class="activity-card"
                   [class.selected]="selectedActivity()?.id === activity.id"
@@ -319,34 +192,9 @@
                 </div>
               }
             </div>
-
-            <!-- Pagination -->
-            @if (totalPages() > 1) {
-              <div class="pagination-section">
-                <button
-                  class="pagination-button"
-                  (click)="goToPage(currentPage() - 1)"
-                  [disabled]="currentPage() === 1"
-                >
-                  <i class="fa-solid fa-chevron-left"></i>
-                </button>
-
-                <span class="pagination-info">
-                  {{ currentPage() }} of {{ totalPages() }}
-                </span>
-
-                <button
-                  class="pagination-button"
-                  (click)="goToPage(currentPage() + 1)"
-                  [disabled]="currentPage() === totalPages()"
-                >
-                  <i class="fa-solid fa-chevron-right"></i>
-                </button>
-              </div>
-            }
           }
         </div>
-      </div>
+      }
     </div>
   </main>
 </div>
