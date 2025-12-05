@@ -40,9 +40,10 @@ export class DashboardService {
    * @returns Observable of DashboardMetrics
    */
   getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
-    const headers = new HttpHeaders({ 'X-Timezone': timezone });
-    console.log('[DashboardService] Fetching dashboard with timezone:', timezone);
-    return this.http.get<DashboardMetrics>(this.API_URL, { headers });
+    // Note: Removing X-Timezone header to avoid CORS policy errors
+    // Backend should use user's stored timezone preference
+    console.log('[DashboardService] Fetching dashboard (timezone handling on backend)');
+    return this.http.get<DashboardMetrics>(this.API_URL);
   }
 
   /**

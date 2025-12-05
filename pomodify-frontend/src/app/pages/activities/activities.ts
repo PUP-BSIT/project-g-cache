@@ -1,429 +1,274 @@
-// activities.ts - Dedicated Pomodoro Timer Page with Backend Integration
+// activities.ts - Activities List Page with Backend Integration
 import { CommonModule } from '@angular/common';
-import { Component, signal, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Auth } from '../../core/services/auth';
-import { SessionService, PomodoroSession, SessionType, SessionPhase, CreateSessionRequest } from '../../core/services/session.service';
-import { ActivityData } from '../../core/services/activity.service';
-
-// Timer modes matching backend
-export type TimerMode = 'classic' | 'freestyle';
+import { ActivityService, ActivityData, ActivityResponse, CreateActivityRequest, UpdateActivityRequest } from '../../core/services/activity.service';
+import { SessionService } from '../../core/services/session.service';
+import { ActivityColorService } from '../../core/services/activity-color.service';
+import { CreateActivityModal, ActivityData as CreateActivityModalData } from '../../shared/components/create-activity-modal/create-activity-modal';
+import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
+import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
+import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
+import { IconMapper } from '../../core/services/icon-mapper';
 
 @Component({
-  selector: 'app-activities-timer',
+  selector: 'app-activities-page',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
   templateUrl: './activities.html',
   styleUrls: ['./activities.scss'],
 })
-export class ActivitiesPage implements OnInit, OnDestroy {
+export class ActivitiesPage implements OnInit {
   private router = inject(Router);
   private auth = inject(Auth);
+  private dialog = inject(MatDialog);
+  private activityService = inject(ActivityService);
   private sessionService = inject(SessionService);
+  private activityColorService = inject(ActivityColorService);
+  private iconMapper = inject(IconMapper);
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
-  // Activity from navigation
-  protected activity = signal<ActivityData | null>(null);
+  // Activities data
+  protected activities = signal<ActivityData[]>([]);
+  protected isLoading = signal(false);
+  protected error = signal<string | null>(null);
 
-  // Backend session
-  protected backendSession = signal<PomodoroSession | null>(null);
-  
-  // Local timer state for UI
-  protected timeRemaining = signal<number>(0);
-  protected isRunning = signal<boolean>(false);
+  // Pagination
+  protected currentPage = signal(1);
+  protected readonly itemsPerPage = 8; // 2 rows x 4 columns
+  protected totalPages = signal(1);
+  protected totalItems = signal(0);
 
-  // Timer interval
-  private timerInterval: any = null;
-  
-  // SSE connection
-  private eventSource: EventSource | null = null;
-
-  // Color mapping
-  private colorMap: Record<string, string> = {
-    red: '#ef4444',
-    orange: '#f97316',
-    yellow: '#eab308',
-    green: '#22c55e',
-    blue: '#3b82f6',
-    purple: '#a855f7',
-    teal: '#14b8a6',
-  };
-
-  // Computed properties for UI
-  protected get session(): PomodoroSession | null {
-    return this.backendSession();
-  }
-
-  protected get focusMinutes(): number {
-    return this.backendSession()?.focusTimeInMinutes || 25;
-  }
-
-  protected get breakMinutes(): number {
-    return this.backendSession()?.breakTimeInMinutes || 5;
-  }
-
-  protected get cycles(): number | null {
-    const session = this.backendSession();
-    return session?.sessionType === 'CLASSIC' ? session.cycles : null;
-  }
-
-  protected get mode(): TimerMode {
-    const sessionType = this.backendSession()?.sessionType;
-    return sessionType === 'FREESTYLE' ? 'freestyle' : 'classic';
-  }
+  // Search and filter
+  protected searchQuery = signal('');
+  protected selectedCategory = signal<number | null>(null);
 
   ngOnInit(): void {
-    // Get activity from navigation state
-    const navigation = this.router.getCurrentNavigation();
-    const state = navigation?.extras?.state || history.state;
-
-    if (state && state['activity']) {
-      const activityData = state['activity'];
-      this.activity.set(activityData);
-
-      // Check if there's an existing session
-      if (state['sessionId']) {
-        this.loadExistingSession(activityData.activityId, state['sessionId']);
-      } else {
-        // Create a new session with defaults
-        this.createNewSession('classic');
-      }
-    } else {
-      // No activity provided, redirect back to dashboard
-      this.router.navigate(['/dashboard']);
-    }
+    console.log('[ActivitiesPage] Initializing...');
+    this.loadActivities();
   }
 
-  ngOnDestroy(): void {
-    this.stopTimerInterval();
-    this.disconnectSSE();
-  }
+  // Load activities from backend
+  protected loadActivities(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
 
-  // ===== Session Management =====
+    const page = this.currentPage() - 1; // Backend uses 0-indexed pages
+    const categoryId = this.selectedCategory() ?? undefined;
 
-  private createNewSession(mode: TimerMode): void {
-    if (!this.activity()) return;
+    console.log('[ActivitiesPage] Loading activities:', { page, categoryId });
 
-    const request: CreateSessionRequest = {
-      sessionType: mode === 'classic' ? 'CLASSIC' : 'FREESTYLE',
-      focusTimeInMinutes: 25,
-      breakTimeInMinutes: 5,
-      cycles: mode === 'classic' ? 4 : 1,
-    };
-
-    this.sessionService.createSession(this.activity()!.activityId, request).subscribe({
-      next: (session) => {
-        this.backendSession.set(session);
-        this.timeRemaining.set(session.focusTimeInMinutes * 60);
-        this.connectToSSE();
+    this.activityService.getAllActivities(page, this.itemsPerPage, 'desc', 'title', categoryId).subscribe({
+      next: (response: ActivityResponse) => {
+        console.log('[ActivitiesPage] Activities loaded:', response);
+        // Apply stored color tags to activities
+        const activitiesWithColors = (response.activities || []).map(activity => ({
+          ...activity,
+          colorTag: this.activityColorService.getColorTag(activity.activityId) || activity.colorTag || 'teal'
+        }));
+        this.activities.set(activitiesWithColors);
+        this.totalPages.set(response.totalPages || 1);
+        this.totalItems.set(response.totalItems || 0);
+        this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Failed to create session:', err);
-        alert('Failed to create session. Please try again.');
-      }
-    });
-  }
-
-  private loadExistingSession(activityId: number, sessionId: number): void {
-    this.sessionService.getSession(activityId, sessionId).subscribe({
-      next: (session) => {
-        this.backendSession.set(session);
-        this.calculateTimeRemaining(session);
-        this.connectToSSE();
+        console.error('[ActivitiesPage] Error loading activities:', err);
+        let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
         
-        if (session.status === 'IN_PROGRESS') {
-          this.isRunning.set(true);
-          this.startTimerInterval();
+        // Check if it's a backend cache configuration error
+        if (errorMsg.includes('Cannot find cache')) {
+          errorMsg = 'Backend cache not configured. Please contact administrator.';
+          console.error('[ActivitiesPage] Backend cache error detected.');
         }
-      },
-      error: (err) => {
-        console.error('Failed to load session:', err);
-        this.router.navigate(['/dashboard']);
+        
+        this.error.set(errorMsg);
+        this.isLoading.set(false);
+        this.activities.set([]);
       }
     });
   }
 
-  private calculateTimeRemaining(session: PomodoroSession): void {
-    // For now, reset to phase duration (backend should track this)
-    if (session.currentPhase === 'FOCUS') {
-      this.timeRemaining.set(session.focusTimeInMinutes * 60);
-    } else if (session.currentPhase === 'BREAK') {
-      this.timeRemaining.set(session.breakTimeInMinutes * 60);
-    } else {
-      this.timeRemaining.set(session.focusTimeInMinutes * 60);
-    }
-  }
+  // Computed filtered activities (client-side search)
+  protected filteredActivities = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    const allActivities = this.activities();
 
-  // ===== Timer Controls =====
+    if (!query) return allActivities;
 
-  protected startTimer(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
+    return allActivities.filter((activity) =>
+      activity.activityTitle.toLowerCase().includes(query) ||
+      activity.activityDescription?.toLowerCase().includes(query)
+    );
+  });
 
-    this.sessionService.startSession(this.activity()!.activityId, session.id).subscribe({
-      next: (updatedSession) => {
-        this.backendSession.set(updatedSession);
-        this.isRunning.set(true);
-        this.startTimerInterval();
-      },
-      error: (err) => {
-        console.error('Failed to start session:', err);
-        alert('Failed to start session. Please try again.');
-      }
-    });
-  }
+  // Open create activity modal
+  protected openCreateActivityModal(): void {
+    console.log('[ActivitiesPage] Opening create activity modal');
+    this.dialog
+      .open(CreateActivityModal)
+      .afterClosed()
+      .subscribe((result: CreateActivityModalData) => {
+        if (result) {
+          console.log('[ActivitiesPage] Creating activity:', result.name);
+          const request: any = {
+            title: result.name,
+            description: result.category || '',
+          };
+          console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
 
-  protected pauseTimer(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.sessionService.pauseSession(this.activity()!.activityId, session.id).subscribe({
-      next: (updatedSession) => {
-        this.backendSession.set(updatedSession);
-        this.isRunning.set(false);
-        this.stopTimerInterval();
-      },
-      error: (err) => {
-        console.error('Failed to pause session:', err);
-      }
-    });
-  }
-
-  protected resumeTimer(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.sessionService.resumeSession(this.activity()!.activityId, session.id).subscribe({
-      next: (updatedSession) => {
-        this.backendSession.set(updatedSession);
-        this.isRunning.set(true);
-        this.startTimerInterval();
-      },
-      error: (err) => {
-        console.error('Failed to resume session:', err);
-      }
-    });
-  }
-
-  protected resetCurrentPhase(): void {
-    const session = this.backendSession();
-    if (!session) return;
-
-    if (session.currentPhase === 'FOCUS') {
-      this.timeRemaining.set(session.focusTimeInMinutes * 60);
-    } else if (session.currentPhase === 'BREAK') {
-      this.timeRemaining.set(session.breakTimeInMinutes * 60);
-    }
-  }
-
-  protected stopCurrentCycle(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.sessionService.stopSession(this.activity()!.activityId, session.id).subscribe({
-      next: (updatedSession) => {
-        this.backendSession.set(updatedSession);
-        this.isRunning.set(false);
-        this.stopTimerInterval();
-        this.timeRemaining.set(updatedSession.focusTimeInMinutes * 60);
-      },
-      error: (err) => {
-        console.error('Failed to stop session:', err);
-      }
-    });
-  }
-
-  protected cancelSession(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.sessionService.cancelSession(this.activity()!.activityId, session.id).subscribe({
-      next: () => {
-        this.stopTimerInterval();
-        this.disconnectSSE();
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        console.error('Failed to cancel session:', err);
-        // Navigate anyway
-        this.router.navigate(['/dashboard']);
-      }
-    });
-  }
-
-  // ===== Mode Switching =====
-
-  protected switchMode(mode: TimerMode): void {
-    const session = this.backendSession();
-    if (!session || session.status === 'IN_PROGRESS' || session.status === 'PAUSED') {
-      return; // Can't switch mode while session is active
-    }
-
-    // Delete current session and create new one
-    if (this.activity()) {
-      this.sessionService.deleteSession(this.activity()!.activityId, session.id).subscribe({
-        next: () => {
-          this.createNewSession(mode);
-        },
-        error: (err) => {
-          console.error('Failed to delete session:', err);
+          this.activityService.createActivity(request).subscribe({
+            next: (created) => {
+              console.log('[ActivitiesPage] Activity created successfully');
+              // Save color tag to localStorage
+              this.activityColorService.setColorTag(created.activityId, result.colorTag);
+              // Reload activities to get fresh data from backend
+              this.loadActivities();
+            },
+            error: (err) => {
+              console.error('[ActivitiesPage] Error creating activity:', err);
+              console.error('[ActivitiesPage] Error status:', err.status);
+              console.error('[ActivitiesPage] Error body:', err.error);
+              
+              let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
+              
+              // Check if it's a backend cache configuration error
+              if (errorMsg.includes('Cannot find cache')) {
+                errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
+                console.error('[ActivitiesPage] Backend cache error detected.');
+              }
+              
+              alert(`Error: ${errorMsg}`);
+            }
+          });
         }
       });
-    }
   }
 
-  // ===== Timer Interval Management =====
-
-  private startTimerInterval(): void {
-    this.stopTimerInterval();
-
-    this.timerInterval = setInterval(() => {
-      const currentTime = this.timeRemaining();
-      
-      if (currentTime <= 0) {
-        // Phase completed - notify backend
-        this.completePhase();
-        return;
-      }
-
-      this.timeRemaining.update(time => time - 1);
-    }, 1000);
-  }
-
-  private stopTimerInterval(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
-
-  private completePhase(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.stopTimerInterval();
-
-    this.sessionService.completePhase(this.activity()!.activityId, session.id).subscribe({
-      next: (updatedSession) => {
-        this.backendSession.set(updatedSession);
-        
-        // Check if session is complete
-        if (updatedSession.status === 'COMPLETED') {
-          this.isRunning.set(false);
-          alert('🎉 Session completed! Great work!');
-        } else {
-          // Update time for next phase
-          this.calculateTimeRemaining(updatedSession);
-          
-          if (this.isRunning()) {
-            this.startTimerInterval();
-          }
-        }
-      },
-      error: (err) => {
-        console.error('Failed to complete phase:', err);
-      }
-    });
-  }
-
-  // ===== SSE Connection =====
-
-  private connectToSSE(): void {
-    const session = this.backendSession();
-    if (!session || !this.activity()) return;
-
-    this.eventSource = this.sessionService.connectToSessionEvents(
-      this.activity()!.activityId,
-      session.id
-    );
-
-    this.eventSource.addEventListener('phase-change', (event: any) => {
-      const data = JSON.parse(event.data);
-      console.log('Phase change event:', data);
-      
-      // Update session state from server
-      if (this.activity()) {
-        this.sessionService.getSession(this.activity()!.activityId, session.id).subscribe({
-          next: (updatedSession) => {
-            this.backendSession.set(updatedSession);
-            this.calculateTimeRemaining(updatedSession);
-          }
-        });
-      }
-    });
-
-    this.eventSource.onerror = (error) => {
-      console.error('SSE error:', error);
-      this.disconnectSSE();
+  // Open edit activity modal
+  protected openEditActivityModal(activity: ActivityData): void {
+    const modalData: CreateActivityModalData = {
+      name: activity.activityTitle,
+      category: activity.categoryName || '',
+      colorTag: activity.colorTag || 'teal',
+      estimatedHoursPerWeek: 0,
     };
+
+    this.dialog
+      .open(EditActivityModal, { data: modalData })
+      .afterClosed()
+      .subscribe((updated: CreateActivityModalData) => {
+        if (updated) {
+          const request: any = {
+            newActivityTitle: updated.name,
+            newActivityDescription: updated.category || '',
+            newCategoryId: undefined,
+          };
+
+          this.activityService.updateActivity(activity.activityId, request).subscribe({
+            next: () => {
+              console.log('[ActivitiesPage] Activity updated successfully');
+              // Save color tag to localStorage
+              this.activityColorService.setColorTag(activity.activityId, updated.colorTag);
+              this.loadActivities();
+            },
+            error: (err) => {
+              console.error('[ActivitiesPage] Error updating activity:', err);
+              alert('Failed to update activity. Please try again.');
+            }
+          });
+        }
+      });
   }
 
-  private disconnectSSE(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
+  // Open delete activity modal
+  protected openDeleteActivityModal(activity: ActivityData): void {
+    this.dialog
+      .open(DeleteActivityModal, {
+        data: { id: activity.activityId, name: activity.activityTitle }
+      })
+      .afterClosed()
+      .subscribe((confirmed: boolean) => {
+        if (confirmed) {
+          this.activityService.deleteActivity(activity.activityId).subscribe({
+            next: () => {
+              console.log('[ActivitiesPage] Activity deleted successfully');
+              // Remove color tag from localStorage
+              this.activityColorService.removeColorTag(activity.activityId);
+              this.loadActivities();
+            },
+            error: (err) => {
+              console.error('[ActivitiesPage] Error deleting activity:', err);
+              alert('Failed to delete activity. Please try again.');
+            }
+          });
+        }
+      });
+  }
+
+  // Open add session modal for activity
+  protected openAddSessionModal(activity: ActivityData): void {
+    this.dialog
+      .open(AddSessionModal)
+      .afterClosed()
+      .subscribe((result: SessionData) => {
+        if (result) {
+          this.sessionService.createSession(activity.activityId, {
+            sessionType: 'POMODORO',
+            focusTimeInMinutes: result.focusTimeMinutes,
+            breakTimeInMinutes: result.breakTimeMinutes,
+            cycles: 1,
+            note: result.note,
+          }).subscribe({
+            next: () => {
+              console.log('[ActivitiesPage] Session added successfully');
+              // Optionally reload activities or show success message
+            },
+            error: (err) => {
+              console.error('[ActivitiesPage] Error adding session:', err);
+              alert('Failed to add session. Please try again.');
+            }
+          });
+        }
+      });
+  }
+
+  // Pagination controls
+  protected goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+      this.loadActivities();
     }
   }
 
-  // ===== Display Helpers =====
-
-  protected getTimerDisplay(): string {
-    const time = this.timeRemaining();
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  protected nextPage(): void {
+    this.goToPage(this.currentPage() + 1);
   }
 
-  protected getCycleDuration(): number {
-    return this.focusMinutes + this.breakMinutes;
+  protected previousPage(): void {
+    this.goToPage(this.currentPage() - 1);
   }
 
-  protected getTotalSessionMinutes(): number {
-    const session = this.backendSession();
-    if (!session || session.sessionType === 'FREESTYLE') return 0;
-    return this.getCycleDuration() * session.cycles;
+  // Search
+  protected updateSearchQuery(query: string): void {
+    this.searchQuery.set(query);
   }
 
-  protected getColorHex(colorTag: string): string {
-    return this.colorMap[colorTag || 'teal'] || this.colorMap['teal'];
+  // Helper methods
+  protected getIconClass(activity: ActivityData): string {
+    try {
+      return this.iconMapper.getIconClass(activity.activityTitle, activity.categoryName || 'General');
+    } catch {
+      return 'fa-solid fa-circle';
+    }
   }
 
-  protected get currentPhase(): string {
-    return this.backendSession()?.currentPhase?.toLowerCase() || 'focus';
-  }
-
-  protected get cyclesCompleted(): number {
-    return this.backendSession()?.cyclesCompleted || 0;
-  }
-
-  protected get isPaused(): boolean {
-    return this.backendSession()?.status === 'PAUSED';
-  }
-
-  // ===== Time Updates (Note: These would require recreating the session) =====
-
-  protected updateFocusTime(minutes: number): void {
-    // For now, just show a message that session needs to be recreated
-    console.log('Focus time update requested:', minutes);
-    alert('To change timer settings, please cancel and create a new session.');
-  }
-
-  protected updateBreakTime(minutes: number): void {
-    console.log('Break time update requested:', minutes);
-    alert('To change timer settings, please cancel and create a new session.');
-  }
-
-  protected updateCycles(cycles: number): void {
-    console.log('Cycles update requested:', cycles);
-    alert('To change timer settings, please cancel and create a new session.');
-  }
-
-  // ===== Navigation =====
-
+  // Navigation
   protected toggleSidebar(): void {
     this.sidebarExpanded.update(expanded => !expanded);
   }
@@ -433,7 +278,14 @@ export class ActivitiesPage implements OnInit, OnDestroy {
   }
 
   protected onLogout(): void {
-    this.auth.logout();
+    console.log('[ActivitiesPage] Logout initiated');
+    this.auth.logout()
+      .then(() => {
+        console.log('[ActivitiesPage] Logout completed');
+      })
+      .catch((error) => {
+        console.error('[ActivitiesPage] Logout error:', error);
+      });
   }
 
   protected onNavIconClick(event: MouseEvent, route: string): void {
@@ -446,7 +298,6 @@ export class ActivitiesPage implements OnInit, OnDestroy {
   }
 
   protected openProfileModal(): void {
-    // TODO: Implement profile modal
-    console.log('Profile modal clicked');
+    console.log('[ActivitiesPage] Profile modal clicked');
   }
 }

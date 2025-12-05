@@ -1,4 +1,4 @@
-<!-- activities.html - Timer Only Page -->
+<!-- activities.html - Activities List Page -->
 <div class="activities-page">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
@@ -50,181 +50,131 @@
   <main class="main-content">
     <!-- Header -->
     <header class="header">
-      <div class="theme-toggle">
-        <button class="theme-btn" (click)="onToggleTheme()">
-          <i class="fa-solid fa-moon"></i>
-        </button>
-      </div>
-      <div class="user-profile">
-        <button class="profile-btn" (click)="openProfileModal()">
-          <i class="fa-solid fa-user"></i>
-        </button>
-      </div>
+      <button class="theme-btn" (click)="onToggleTheme()">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <button class="profile-btn" (click)="openProfileModal()">
+        <i class="fa-solid fa-user"></i>
+      </button>
     </header>
 
     <!-- Page Content -->
     <div class="page-content">
-      <!-- Timer View (Pomodoro) -->
-      @if (backendSession() && activity()) {
-        <div class="timer-view-full">
-          <div class="timer-header">
-            <button class="back-to-activities" (click)="cancelSession()">
-              <i class="fa-solid fa-arrow-left"></i>
-              Back to Dashboard
-            </button>
-            <div class="activity-info">
-              <h1 class="timer-activity-title">{{ activity()!.activityTitle }}</h1>
-              <p class="timer-activity-desc">{{ activity()!.activityDescription }}</p>
-            </div>
-          </div>
-
-          <div class="timer-container" [style.--accent-color]="getColorHex(activity()!.colorTag || 'teal')" [ngClass]="'theme-' + mode">
-            <!-- Main Timer Display -->
-            <div class="timer-display-section">
-              <div class="timer-phase-badge" [ngClass]="currentPhase">
-                {{ currentPhase === 'focus' ? '🔥 Focus Time' : '☕ Break Time' }}
-              </div>
-              
-              <div class="timer-circle">
-                <svg class="timer-progress" viewBox="0 0 100 100">
-                  <defs>
-                    <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" [attr.stop-color]="getColorHex(activity()!.colorTag || 'teal')" />
-                      <stop offset="100%" [attr.stop-color]="getColorHex(activity()!.colorTag || 'teal')" stop-opacity="0.7" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="50" cy="50" r="45" class="progress-bg"></circle>
-                  <circle cx="50" cy="50" r="45" class="progress-fill" 
-                          [style.stroke-dashoffset]="283 - (283 * (timeRemaining() / (currentPhase === 'focus' ? focusMinutes * 60 : breakMinutes * 60)))"></circle>
-                </svg>
-                <div class="timer-time">{{ getTimerDisplay() }}</div>
-              </div>
-
-              <div class="timer-stats">
-                <div class="stat-item">
-                  <span class="stat-label">Cycles Completed</span>
-                  <span class="stat-value">{{ cyclesCompleted }} <span class="stat-max">{{ mode === 'classic' ? '/ ' + cycles : '/ ∞' }}</span></span>
-                </div>
-                @if (mode === 'classic') {
-                  <div class="stat-item">
-                    <span class="stat-label">Total Session</span>
-                    <span class="stat-value">{{ (getTotalSessionMinutes() / 60) | number: '1.0-1' }}h</span>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Mode Selector and Settings -->
-            <div class="timer-modes-section">
-              <div class="mode-selector">
-                <button class="mode-btn" 
-                        [class.active]="mode === 'classic'"
-                        (click)="switchMode('classic')"
-                        [disabled]="isRunning() || isPaused">
-                  <i class="fa-solid fa-list"></i>
-                  Classic Mode
-                </button>
-                <button class="mode-btn" 
-                        [class.active]="mode === 'freestyle'"
-                        (click)="switchMode('freestyle')"
-                        [disabled]="isRunning() || isPaused">
-                  <i class="fa-solid fa-wand-magic-sparkles"></i>
-                  Freestyle Mode
-                </button>
-              </div>
-
-              <!-- Settings Panel -->
-              <div class="settings-panel">
-                <div class="settings-group">
-                  <label class="setting-label">Focus Time</label>
-                  <div class="time-input-group">
-                    <span class="readonly-value">{{ focusMinutes }} min</span>
-                    <small class="setting-note">(Set when creating session)</small>
-                  </div>
-                </div>
-
-                <div class="settings-group">
-                  <label class="setting-label">Break Time</label>
-                  <div class="time-input-group">
-                    <span class="readonly-value">{{ breakMinutes }} min</span>
-                    <small class="setting-note">(Set when creating session)</small>
-                  </div>
-                </div>
-
-                <div class="settings-group auto-calculated">
-                  <label class="setting-label">Cycle Duration</label>
-                  <div class="auto-value">{{ getCycleDuration() }} min</div>
-                </div>
-
-                @if (mode === 'classic') {
-                  <div class="settings-group">
-                    <label class="setting-label">Rounds</label>
-                    <div class="time-input-group">
-                      <span class="readonly-value">{{ cycles }} rounds</span>
-                      <small class="setting-note">(Set when creating session)</small>
-                    </div>
-                  </div>
-
-                  <div class="settings-group auto-calculated">
-                    <label class="setting-label">Total Session</label>
-                    <div class="auto-value">{{ (getTotalSessionMinutes() / 60) | number: '1.0-1' }} hrs</div>
-                  </div>
-                } @else {
-                  <div class="settings-group auto-calculated">
-                    <label class="setting-label">Mode</label>
-                    <div class="auto-value">Continuous ∞</div>
-                  </div>
-                }
-              </div>
-            </div>
-
-            <!-- Timer Controls -->
-            <div class="timer-controls">
-              @if (!isRunning() && !isPaused) {
-                <button class="control-btn start-btn" (click)="startTimer()">
-                  <i class="fa-solid fa-play"></i>
-                  Start Session
-                </button>
-              } @else if (isRunning() && !isPaused) {
-                <button class="control-btn pause-btn" (click)="pauseTimer()">
-                  <i class="fa-solid fa-pause"></i>
-                  Pause
-                </button>
-              } @else if (isPaused) {
-                <button class="control-btn resume-btn" (click)="resumeTimer()">
-                  <i class="fa-solid fa-play"></i>
-                  Resume
-                </button>
-                <button class="control-btn reset-btn" (click)="resetCurrentPhase()">
-                  <i class="fa-solid fa-arrow-rotate-right"></i>
-                  Reset Phase
-                </button>
-              }
-
-              <button class="control-btn stop-btn" (click)="stopCurrentCycle()">
-                <i class="fa-solid fa-stop"></i>
-                Stop Cycle
-              </button>
-
-              <button class="control-btn cancel-btn" (click)="cancelSession()">
-                <i class="fa-solid fa-times"></i>
-                Cancel
-              </button>
-            </div>
-          </div>
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="header-text">
+          <h1 class="page-title">My Activities</h1>
+          <p class="page-subtitle">Manage and track all your activities</p>
         </div>
-      } @else {
-        <!-- No Activity Selected -->
-        <div class="no-activity-state">
-          <div class="empty-state-icon">
-            <i class="fa-solid fa-clock"></i>
+        <button class="btn-primary" (click)="openCreateActivityModal()">
+          <i class="fa-solid fa-plus"></i>
+          Create Activity
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading activities...</p>
+        </div>
+      }
+
+      <!-- Error State -->
+      @else if (error()) {
+        <div class="error-state">
+          <div class="error-icon">
+            <i class="fa-solid fa-exclamation-circle"></i>
           </div>
-          <h2 class="empty-state-title">No Timer Session</h2>
-          <p class="empty-state-subtitle">Please select an activity from the Dashboard to start a timer session.</p>
-          <button class="btn-back-to-dashboard" routerLink="/dashboard">
-            <i class="fa-solid fa-arrow-left"></i>
-            Go to Dashboard
+          <h3 class="error-title">Error Loading Activities</h3>
+          <p class="error-message">{{ error() }}</p>
+          <button class="btn-retry" (click)="loadActivities()">
+            <i class="fa-solid fa-refresh"></i>
+            Retry
           </button>
+        </div>
+      }
+
+      <!-- Empty State (No Activities) -->
+      @else if (filteredActivities().length === 0 && totalItems() === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <h2 class="empty-title">No Activities Yet</h2>
+          <p class="empty-subtitle">Create your first activity to get started with Pomodoro tracking</p>
+          <button class="btn-create-first" (click)="openCreateActivityModal()">
+            <i class="fa-solid fa-plus"></i>
+            Create Your First Activity
+          </button>
+        </div>
+      }
+
+      <!-- Activities Grid -->
+      @else {
+        <div class="activities-content">
+          <!-- Activities Grid (4 columns) -->
+          <div class="activities-grid">
+            @for (activity of filteredActivities(); track activity.activityId) {
+              <div class="activity-card" [style.--card-color]="activity.colorTag || 'teal'">
+                <div class="card-header">
+                  <div class="activity-icon" [style.color]="activity.colorTag || 'teal'">
+                    <i [class]="getIconClass(activity)"></i>
+                  </div>
+                  <div class="card-actions">
+                    <button class="icon-btn" (click)="openEditActivityModal(activity)" title="Edit">
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="icon-btn delete" (click)="openDeleteActivityModal(activity)" title="Delete">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="card-body">
+                  <h3 class="activity-name">{{ activity.activityTitle }}</h3>
+                  @if (activity.activityDescription) {
+                    <p class="activity-desc">{{ activity.activityDescription }}</p>
+                  }
+                  @if (activity.categoryName) {
+                    <span class="activity-category">{{ activity.categoryName }}</span>
+                  }
+                </div>
+
+                <div class="card-footer">
+                  <button class="btn-add-session" (click)="openAddSessionModal(activity)">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Session
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <div class="pagination">
+              <button class="page-btn" 
+                      [disabled]="currentPage() === 1"
+                      (click)="previousPage()">
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+              </button>
+
+              <div class="page-numbers">
+                <span class="page-info">
+                  Page {{ currentPage() }} of {{ totalPages() }}
+                </span>
+              </div>
+
+              <button class="page-btn" 
+                      [disabled]="currentPage() === totalPages()"
+                      (click)="nextPage()">
+                Next
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          }
         </div>
       }
     </div>

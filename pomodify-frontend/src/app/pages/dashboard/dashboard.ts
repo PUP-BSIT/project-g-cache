@@ -137,7 +137,8 @@ export class Dashboard implements OnInit {
 
     console.log('[Dashboard] Loading activities...');
 
-    this.activityService.getAllActivities().subscribe({
+    // Use 'title' as sortBy parameter (backend default)
+    this.activityService.getAllActivities(0, 100, 'desc', 'title').subscribe({
       next: (resp: ActivityResponse) => {
         const list = Array.isArray((resp as any).activities) ? (resp as any).activities : [];
         const mapped = list.map((a: ActivityApiData) => this.mapActivityDataToView(a));
@@ -147,7 +148,14 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('[Dashboard] Activities loading error:', err);
-        const errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
+        let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
+        
+        // Check if it's a backend cache configuration error
+        if (errorMsg.includes('Cannot find cache')) {
+          errorMsg = 'Backend cache not configured. Please contact administrator.';
+          console.error('[Dashboard] Backend cache error detected. Backend needs cache configuration.');
+        }
+        
         this.activitiesError.set(errorMsg);
         this.isLoadingActivities.set(false);
         this.activities.set([]);
@@ -266,31 +274,36 @@ export class Dashboard implements OnInit {
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
           console.log('[Dashboard] Creating new activity:', result.name);
-          const req: CreateActivityRequest = {
-            activityTitle: result.name,
-            activityDescription: '',
-            categoryId: undefined,
+          const req: any = {
+            title: result.name,
+            description: result.category || '',
           };
+          // Only add categoryId if it's actually defined
+          if (result.category) {
+            // For now, we don't have category IDs, so omit this field
+          }
+          console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
           this.activityService.createActivity(req).subscribe({
             next: (created) => {
-              console.log('[Dashboard] Activity created successfully');
-              const mapped = this.mapActivityDataToView(created);
-              const isValid = mapped && mapped.id && mapped.name;
-              if (isValid) {
-                this.activities.update((acts) => [...acts, mapped]);
-                this.selectActivity(mapped);
-                // Refresh dashboard metrics after creating activity
-                this.loadDashboardMetrics();
-              } else {
-                // Fallback: backend didn't return the created item; refresh list
-                this.loadActivities();
-                this.loadDashboardMetrics();
-              }
+              console.log('[Dashboard] Activity created successfully, redirecting to activities page');
+              // Redirect to activities page to see the newly created activity
+              this.router.navigate(['/activities']);
             },
             error: (err) => {
               console.error('[Dashboard] Error creating activity:', err);
-              const errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
-              alert(`Error: ${errorMsg}. Please try again.`);
+              console.error('[Dashboard] Error status:', err.status);
+              console.error('[Dashboard] Error body:', err.error);
+              console.error('[Dashboard] Full error details:', JSON.stringify(err.error, null, 2));
+              
+              let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
+              
+              // Check if it's a backend cache configuration error
+              if (errorMsg.includes('Cannot find cache')) {
+                errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator to configure Spring Boot cache.';
+                console.error('[Dashboard] Backend cache error: Spring Boot cache named "activities" is not configured.');
+              }
+              
+              alert(`Error: ${errorMsg}`);
             }
           });
         }
@@ -310,9 +323,9 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((updated: CreateActivityModalData) => {
         if (updated) {
-          const req: UpdateActivityRequest = {
+          const req: any = {
             newActivityTitle: updated.name,
-            newActivityDescription: '',
+            newActivityDescription: updated.category || '',
             newCategoryId: undefined,
           };
           this.activityService.updateActivity(Number(activity.id), req).subscribe({

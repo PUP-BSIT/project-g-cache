@@ -89,13 +89,24 @@ export class CreateActivityModal implements OnInit {
   onCreateActivity(): void {
     if (this.activityForm.valid) {
       const { name, category, estimatedHoursPerWeek } = this.activityForm.getRawValue() as ActivityFormValue;
+      
+      if (!name || name.trim() === '') {
+        console.error('[CreateActivityModal] Activity name is required');
+        this.activityForm.get('name')?.markAsTouched();
+        return;
+      }
+      
       const activityData: ActivityData = {
-        name,
+        name: name.trim(),
         category: category || undefined,
         colorTag: this.selectedColor,
         estimatedHoursPerWeek: estimatedHoursPerWeek || 0,
       };
+      console.log('[CreateActivityModal] Closing with data:', activityData);
       this.dialogRef.close(activityData);
+    } else {
+      console.error('[CreateActivityModal] Form is invalid');
+      this.activityForm.markAllAsTouched();
     }
   }
 }

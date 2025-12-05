@@ -27,8 +27,19 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Handle 401 Unauthorized errors
-      if (error.status === 401) {
+      // Check for token expired in error message or code
+      const isTokenExpired = 
+        error.status === 401 || 
+        error.error?.code === 'TOKEN_EXPIRED' ||
+        error.error?.message?.includes('TOKEN_EXPIRED') ||
+        error.error?.message?.includes('authentication is required');
+
+      if (isTokenExpired) {
+        console.log('[AuthErrorInterceptor] Token expired or unauthorized, attempting refresh...');
+      }
+
+      // Handle 401 Unauthorized errors or token expiration
+      if (isTokenExpired) {
         const isAuthEndpoint = request.url.includes('/api/v1/auth/');
         
         // Don't retry auth endpoints (login, register, refresh)

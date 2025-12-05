@@ -14,40 +14,40 @@ import { Injectable } from '@angular/core';
 export class IconMapper {
   // Keyword → Icon mappings for intelligent matching
   private readonly keywordIconMap: Record<string, string> = {
-    // Programming & Code
-    'angular': 'fa-angular',
-    'react': 'fa-react',
-    'vue': 'fa-vuejs',
-    'python': 'fa-python',
-    'javascript': 'fa-js',
-    'typescript': 'fa-js',
-    'java': 'fa-java',
-    'kotlin': 'fa-code',
-    'code': 'fa-code',
-    'coding': 'fa-laptop-code',
-    'programming': 'fa-code',
-    'develop': 'fa-laptop-code',
-    'devops': 'fa-code',
-    'api': 'fa-plug',
-    'database': 'fa-database',
-    'server': 'fa-server',
-    'backend': 'fa-server',
-    'frontend': 'fa-desktop',
-    'web': 'fa-globe',
-    'app': 'fa-mobile',
-    'mobile': 'fa-mobile',
+    // Programming & Code (Brand icons use fa-brands)
+    'angular': 'fa-brands fa-angular',
+    'react': 'fa-brands fa-react',
+    'vue': 'fa-brands fa-vuejs',
+    'python': 'fa-brands fa-python',
+    'javascript': 'fa-brands fa-js',
+    'typescript': 'fa-brands fa-js',
+    'java': 'fa-brands fa-java',
+    'kotlin': 'fa-solid fa-code',
+    'code': 'fa-solid fa-code',
+    'coding': 'fa-solid fa-laptop-code',
+    'programming': 'fa-solid fa-code',
+    'develop': 'fa-solid fa-laptop-code',
+    'devops': 'fa-solid fa-code',
+    'api': 'fa-solid fa-plug',
+    'database': 'fa-solid fa-database',
+    'server': 'fa-solid fa-server',
+    'backend': 'fa-solid fa-server',
+    'frontend': 'fa-solid fa-desktop',
+    'web': 'fa-solid fa-globe',
+    'app': 'fa-solid fa-mobile',
+    'mobile': 'fa-solid fa-mobile',
 
     // Science & Study
-    'math': 'fa-calculator',
-    'physics': 'fa-flask',
-    'chemistry': 'fa-flask-vial',
-    'biology': 'fa-microscope',
-    'science': 'fa-microscope',
-    'study': 'fa-book',
-    'learn': 'fa-book-open',
-    'reading': 'fa-book-open',
-    'lecture': 'fa-graduation-cap',
-    'course': 'fa-graduation-cap',
+    'math': 'fa-solid fa-calculator',
+    'physics': 'fa-solid fa-flask',
+    'chemistry': 'fa-solid fa-flask-vial',
+    'biology': 'fa-solid fa-microscope',
+    'science': 'fa-solid fa-microscope',
+    'study': 'fa-solid fa-book',
+    'learn': 'fa-solid fa-book-open',
+    'reading': 'fa-solid fa-book-open',
+    'lecture': 'fa-solid fa-graduation-cap',
+    'course': 'fa-solid fa-graduation-cap',
     'education': 'fa-graduation-cap',
     'research': 'fa-flask',
     'lab': 'fa-flask',
@@ -194,6 +194,7 @@ export class IconMapper {
   /**
    * Get Font Awesome icon class using intelligent word analysis
    * Checks keywords in activity name and category, returns best match
+   * Returns full class string with fa-solid/fa-brands prefix
    */
   getIconClass(activityName: string, category?: string): string {
     const nameWords = this.extractKeywords(activityName);
@@ -202,19 +203,30 @@ export class IconMapper {
 
     // Try to find the best matching icon from keywords
     for (const word of allWords) {
-      if (this.keywordIconMap[word]) {
-        return this.keywordIconMap[word];
+      const icon = this.keywordIconMap[word];
+      if (icon) {
+        // If icon already has prefix (fa-solid or fa-brands), return as-is
+        if (icon.startsWith('fa-solid') || icon.startsWith('fa-brands')) {
+          return icon;
+        }
+        // Otherwise, add fa-solid prefix
+        return `fa-solid ${icon}`;
       }
     }
 
     // Try category-based lookup
     if (category && this.categoryIcons[category]) {
       const icons = this.categoryIcons[category];
-      return icons[0]; // Return first icon for the category
+      const icon = icons[0];
+      // Add fa-solid prefix if not present
+      if (icon.startsWith('fa-solid') || icon.startsWith('fa-brands')) {
+        return icon;
+      }
+      return `fa-solid ${icon}`;
     }
 
     // Default fallback
-    return 'fa-bookmark';
+    return 'fa-solid fa-bookmark';
   }
 
   /**
