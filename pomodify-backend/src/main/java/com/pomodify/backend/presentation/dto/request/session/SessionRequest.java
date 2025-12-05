@@ -5,9 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SessionRequest(
-        @NotNull(message = "Activity ID is required")
-        Long activityId,
-
         @NotBlank(message = "Session type is required")
         String sessionType,
 
