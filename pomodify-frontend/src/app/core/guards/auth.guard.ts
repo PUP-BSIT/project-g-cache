@@ -14,11 +14,32 @@ export class AuthGuardService {
 
     if (!token) {
       // No token found, redirect to login
+      console.warn('[AuthGuard] No access token found, redirecting to login');
       this.router.navigate(['/login']);
       return false;
     }
 
+    // Basic validation: check if token is a non-empty string
+    if (typeof token !== 'string' || token.trim().length === 0) {
+      console.warn('[AuthGuard] Invalid token format, redirecting to login');
+      this.clearAuthData();
+      this.router.navigate(['/login']);
+      return false;
+    }
+
+    // Token exists and has basic validity
+    // The auth-error interceptor will handle expired/invalid tokens on API calls
     return true;
+  }
+
+  private clearAuthData(): void {
+    try {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('currentUser');
+    } catch (e) {
+      console.warn('[AuthGuard] Unable to clear auth data', e);
+    }
   }
 }
 

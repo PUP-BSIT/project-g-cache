@@ -534,7 +534,15 @@ export class Dashboard implements OnInit {
   }
 
   protected onLogout(): void {
-    this.auth.logout();
+    console.log('[Dashboard] Logout initiated');
+    this.auth.logout()
+      .then(() => {
+        console.log('[Dashboard] Logout completed');
+      })
+      .catch((error) => {
+        console.error('[Dashboard] Logout error:', error);
+        // Error is already handled in auth service
+      });
   }
 
   protected openProfileModal(): void {

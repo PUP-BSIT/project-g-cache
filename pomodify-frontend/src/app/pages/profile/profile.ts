@@ -45,6 +45,9 @@ export class Profile {
   private timerInterval?: ReturnType<typeof setInterval>;
   
   ngOnInit(): void {
+    // Load user data from localStorage
+    this.loadUserData();
+    
     // Initialize profile form
     this.profileForm = this.fb.group({
       name: [
@@ -96,6 +99,32 @@ export class Profile {
         },
       ],
     });
+  }
+  
+  /**
+   * Load user data from localStorage and update the component state
+   */
+  private loadUserData(): void {
+    try {
+      const currentUserStr = localStorage.getItem('currentUser');
+      if (currentUserStr) {
+        const currentUser = JSON.parse(currentUserStr);
+        
+        // Update user name and email from stored data
+        if (currentUser.firstName && currentUser.lastName) {
+          this.userName.set(`${currentUser.firstName} ${currentUser.lastName}`);
+        }
+        if (currentUser.email) {
+          this.userEmail.set(currentUser.email);
+        }
+        
+        console.log('[Profile] User data loaded:', currentUser.email);
+      } else {
+        console.warn('[Profile] No user data found in localStorage');
+      }
+    } catch (error) {
+      console.error('[Profile] Error loading user data:', error);
+    }
   }
   
   ngOnDestroy(): void {
