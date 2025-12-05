@@ -1,7 +1,7 @@
 // activities.ts - Activities List Page with Backend Integration
 import { CommonModule } from '@angular/common';
 import { Component, signal, computed, OnInit, inject } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
@@ -18,7 +18,7 @@ import { IconMapper } from '../../core/services/icon-mapper';
 @Component({
   selector: 'app-activities-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './activities.html',
   styleUrls: ['./activities.scss'],
 })

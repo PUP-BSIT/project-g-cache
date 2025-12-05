@@ -75,7 +75,8 @@
           <input
             type="text"
             placeholder="Search activities..."
-            [(ngModel)]="searchQuery"
+            [value]="searchQuery()"
+            (input)="updateSearchQuery($any($event.target).value)"
           />
         </div>
         
