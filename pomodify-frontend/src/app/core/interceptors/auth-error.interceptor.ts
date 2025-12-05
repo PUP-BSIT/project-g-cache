@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 
 type RefreshResponse = {
   user?: {
@@ -72,7 +72,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         // Attempt token refresh
         console.log('[AuthErrorInterceptor] Attempting token refresh...');
         isRefreshing = true;
-        const refreshUrl = `${environment.apiUrl}/auth/refresh`;
+        const refreshUrl = API.AUTH.REFRESH;
 
         return http.post<RefreshResponse>(refreshUrl, { refreshToken }).pipe(
           switchMap((response) => {

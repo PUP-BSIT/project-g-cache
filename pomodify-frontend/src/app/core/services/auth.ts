@@ -4,7 +4,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { VerifyEmailModal } from '../../shared/components/verify-email-modal/verify-email-modal';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 import { HistoryService } from './history.service';
 
 type LoginResponse = {
@@ -53,7 +53,7 @@ export class Auth {
    */
   logout(): Promise<void> {
     const accessToken = localStorage.getItem('accessToken');
-    const url = `${environment.apiUrl}/auth/logout`;
+    const url = API.AUTH.LOGOUT;
 
     // Always clear local data and navigate, even if API call fails
     const clearAndNavigate = () => {
@@ -100,7 +100,7 @@ export class Auth {
    * @returns Promise with success status and optional verification flag
    */
   login(email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> {
-    const url = `${environment.apiUrl}/auth/login`;
+    const url = API.AUTH.LOGIN;
     
     console.log('[Auth] ========== LOGIN ATTEMPT ==========');
     console.log('[Auth] Email:', email);
@@ -159,7 +159,7 @@ export class Auth {
         console.error('[Auth] Error body:', err?.error);
         console.error('[Auth] Error message:', err?.message);
         
-        // Extract error message from backend/mock response
+        // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Login failed';
         const statusCode = err?.status || 0;
         
@@ -183,7 +183,7 @@ export class Auth {
    * @returns Promise that resolves on successful registration
    */
   signup(firstName: string, lastName: string, email: string, password: string): Promise<void> {
-    const url = `${environment.apiUrl}/auth/register`;
+    const url = API.AUTH.REGISTER;
     
     console.log('[Auth] Attempting signup for:', email);
     
@@ -193,7 +193,7 @@ export class Auth {
         return Promise.resolve();
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
-        // Extract error message from backend/mock response
+        // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Registration failed';
         const statusCode = err?.status || 0;
         

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { API } from '../config/api.config';
 import { Observable } from 'rxjs';
 
 export interface RecentActivity {
@@ -23,7 +23,7 @@ export interface DashboardMetrics {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly API_URL = `${environment.apiUrl}/dashboard`;
+  private readonly API_URL = API.DASHBOARD.GET_DATA;
 
   constructor(private http: HttpClient) {
     console.log('[DashboardService] Initialized with API URL:', this.API_URL);
