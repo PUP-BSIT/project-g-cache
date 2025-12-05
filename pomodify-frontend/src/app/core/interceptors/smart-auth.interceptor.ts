@@ -33,6 +33,12 @@ export const smartAuthInterceptor: HttpInterceptorFn = (
     return next(request);
   }
 
+  // Check if mock backend is enabled in environment
+  if (!environment.useMockBackend) {
+    // Mock is disabled - always use real backend
+    return next(request);
+  }
+
   // If backend is known to be unavailable, use mock
   if (backendAvailable === false) {
     return handleMockAuth(request, next);
@@ -41,6 +47,12 @@ export const smartAuthInterceptor: HttpInterceptorFn = (
   // Try real backend first
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
+      // Only switch to mock if explicitly enabled AND backend is unreachable
+      if (!environment.useMockBackend) {
+        // Mock disabled - return real error
+        return throwError(() => error);
+      }
+
       // If backend is unreachable or returning server errors, switch to mock mode
       const isNetworkError = error.status === 0 || (error instanceof HttpErrorResponse && !error.status);
       const isServerError = error.status >= 500;

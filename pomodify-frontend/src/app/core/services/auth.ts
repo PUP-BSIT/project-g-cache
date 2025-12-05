@@ -102,47 +102,73 @@ export class Auth {
   login(email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean }> {
     const url = `${environment.apiUrl}/auth/login`;
     
-    console.log('[Auth] Attempting login for:', email);
+    console.log('[Auth] ========== LOGIN ATTEMPT ==========');
+    console.log('[Auth] Email:', email);
+    console.log('[Auth] Login URL:', url);
+    console.log('[Auth] Sending request...');
     
     return lastValueFrom(this.http.post<LoginResponse>(url, { email, password }))
       .then((response) => {
-        console.log('[Auth] Login response received');
+        console.log('[Auth] ========== LOGIN SUCCESS ==========');
+        console.log('[Auth] Full response:', response);
+        console.log('[Auth] Response details:', {
+          hasUser: !!response.user,
+          hasAccessToken: !!response.accessToken,
+          hasRefreshToken: !!response.refreshToken,
+          accessTokenLength: response.accessToken?.length || 0,
+          refreshTokenLength: response.refreshToken?.length || 0
+        });
         
         // Expected response: { user, accessToken, refreshToken }
         if (response && response.accessToken) {
           try {
             localStorage.setItem('accessToken', response.accessToken);
-            console.log('[Auth] Access token saved');
+            console.log('[Auth] ✓ Access token saved (length:', response.accessToken.length, ')');
             
             if (response.refreshToken) {
               localStorage.setItem('refreshToken', response.refreshToken);
-              console.log('[Auth] Refresh token saved');
+              console.log('[Auth] ✓ Refresh token saved (length:', response.refreshToken.length, ')');
+            } else {
+              console.warn('[Auth] ⚠ No refresh token in response');
             }
             
             if (response.user) {
               localStorage.setItem('currentUser', JSON.stringify(response.user));
-              console.log('[Auth] User data saved:', response.user.email);
+              console.log('[Auth] ✓ User data saved:', response.user.email);
+            } else {
+              console.warn('[Auth] ⚠ No user data in response');
             }
           } catch (e) {
-            console.warn('[Auth] Unable to save tokens to localStorage', e);
+            console.error('[Auth] ✗ Unable to save tokens to localStorage:', e);
           }
 
           // Navigate to dashboard on successful login
-          console.log('[Auth] Login successful, navigating to dashboard');
+          console.log('[Auth] ========== NAVIGATING TO DASHBOARD ==========');
           this.router.navigate(['/dashboard']);
           return { success: true };
         }
 
         // If API indicates email verification required, backend would respond accordingly
-        console.warn('[Auth] Login response missing accessToken');
+        console.error('[Auth] ✗ Login response missing accessToken:', response);
         return { success: false };
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
+        console.log('[Auth] ========== LOGIN FAILED ==========');
+        console.error('[Auth] Error object:', err);
+        console.error('[Auth] Status code:', err?.status);
+        console.error('[Auth] Error body:', err?.error);
+        console.error('[Auth] Error message:', err?.message);
+        
         // Extract error message from backend/mock response
         const errorMessage = err?.error?.message || err?.message || 'Login failed';
         const statusCode = err?.status || 0;
         
-        console.error('[Auth] Login failed:', { status: statusCode, message: errorMessage });
+        console.error('[Auth] Final error:', { 
+          status: statusCode, 
+          message: errorMessage
+        });
+        console.log('[Auth] ==========================================');
+        
         return Promise.reject(new Error(errorMessage));
       });
   }
