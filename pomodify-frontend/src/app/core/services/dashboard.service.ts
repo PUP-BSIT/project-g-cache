@@ -15,10 +15,23 @@ export interface RecentActivity {
 }
 
 export interface DashboardMetrics {
-  totalCompletedSessions: number;
-  totalFocusTime: number;
-  weeklyFocusDistribution: Record<string, number>;
-  recentActivities: RecentActivity[];
+  currentStreak: number;
+  bestStreak: number;
+  totalActivities: number;
+  totalSessions: number;
+  focusHoursToday: number;
+  focusHoursThisWeek: number;
+  focusHoursAllTime: number;
+  recentSessions: RecentSession[];
+}
+
+export interface RecentSession {
+  id: number;
+  activityId: number;
+  activityName: string;
+  completedAt: string;
+  cyclesCompleted: number;
+  focusHours: number;
 }
 
 @Injectable({ providedIn: 'root' })

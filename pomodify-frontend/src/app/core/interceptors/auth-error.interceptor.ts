@@ -34,7 +34,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         error.error?.message?.includes('TOKEN_EXPIRED') ||
         error.error?.message?.includes('authentication is required');
 
-      if (isTokenExpired) {
+      const isSessionEndpoint = request.url.includes('/sessions/');
+
+      // Only log 401 errors for non-session endpoints to avoid console clutter
+      if (isTokenExpired && !isSessionEndpoint) {
         console.log('[AuthErrorInterceptor] 401 received for URL:', request.url);
       }
 
@@ -52,7 +55,14 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
           return throwError(() => error);
         }
 
-        // Try to refresh the token
+        // For session endpoints, let the component handle the error gracefully
+        // Don't force logout - allow offline-first session timer to work
+        // Silent pass-through without logging to keep console clean
+        if (isSessionEndpoint) {
+          return throwError(() => error);
+        }
+        
+        // Try to refresh the token for other endpoints
         const refreshToken = localStorage.getItem('refreshToken');
         
         if (!refreshToken) {
