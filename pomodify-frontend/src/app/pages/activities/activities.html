@@ -158,16 +158,16 @@
           <!-- Activities Grid (4 columns) -->
           <div class="activities-grid">
             @for (activity of filteredActivities(); track activity.activityId) {
-              <div class="activity-card" [style.--card-color]="activity.colorTag || 'teal'">
+              <div class="activity-card" [style.--card-color]="activity.colorTag || 'teal'" (click)="selectActivity(activity)">
                 <div class="card-header">
                   <div class="activity-icon" [style.color]="activity.colorTag || 'teal'">
                     <i [class]="getIconClass(activity)"></i>
                   </div>
                   <div class="card-actions">
-                    <button class="icon-btn" (click)="openEditActivityModal(activity)" title="Edit">
+                    <button class="icon-btn" (click)="openEditActivityModal(activity); $event.stopPropagation()" title="Edit">
                       <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button class="icon-btn delete" (click)="openDeleteActivityModal(activity)" title="Delete">
+                    <button class="icon-btn delete" (click)="openDeleteActivityModal(activity); $event.stopPropagation()" title="Delete">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                   </div>
@@ -184,7 +184,7 @@
                 </div>
 
                 <div class="card-footer">
-                  <button class="btn-add-session" (click)="openAddSessionModal(activity)">
+                  <button class="btn-add-session" (click)="openAddSessionModal(activity); $event.stopPropagation()">
                     <i class="fa-solid fa-plus"></i>
                     Add Session
                   </button>

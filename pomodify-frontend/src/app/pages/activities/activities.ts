@@ -284,6 +284,13 @@ export class ActivitiesPage implements OnInit {
     // TODO: Implement filtering by category name
   }
 
+  // Select activity and navigate to sessions
+  protected selectActivity(activity: ActivityData): void {
+    console.log('[ActivitiesPage] Activity selected:', activity.activityTitle);
+    // Navigate to sessions list for this activity
+    this.router.navigate(['/activities', activity.activityTitle, 'sessions']);
+  }
+
   // Helper methods
   protected getIconClass(activity: ActivityData): string {
     try {
