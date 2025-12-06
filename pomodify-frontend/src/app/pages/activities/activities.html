@@ -158,37 +158,37 @@
           <!-- Activities Grid (4 columns) -->
           <div class="activities-grid">
             @for (activity of filteredActivities(); track activity.activityId) {
-              <div class="activity-card" [style.--card-color]="activity.colorTag || 'teal'" (click)="selectActivity(activity)">
-                <div class="card-header">
-                  <div class="activity-icon" [style.color]="activity.colorTag || 'teal'">
+              <div class="activity-card" (click)="selectActivity(activity)">
+                <!-- Activity Header with Icon and Name -->
+                <div class="activity-card-header">
+                  <div class="activity-icon-section">
                     <i [class]="getIconClass(activity)"></i>
                   </div>
-                  <div class="card-actions">
-                    <button class="icon-btn" (click)="openEditActivityModal(activity); $event.stopPropagation()" title="Edit">
-                      <i class="fa-solid fa-pen"></i>
-                    </button>
-                    <button class="icon-btn delete" (click)="openDeleteActivityModal(activity); $event.stopPropagation()" title="Delete">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-                
-                <div class="card-body">
-                  <h3 class="activity-name">{{ activity.activityTitle }}</h3>
-                  @if (activity.activityDescription) {
-                    <p class="activity-desc">{{ activity.activityDescription }}</p>
-                  }
-                  @if (activity.categoryName) {
-                    <span class="activity-category">{{ activity.categoryName }}</span>
-                  }
+                  <h4 class="activity-name">{{ activity.activityTitle }}</h4>
                 </div>
 
-                <div class="card-footer">
-                  <button class="btn-add-session" (click)="openAddSessionModal(activity); $event.stopPropagation()">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Session
+                <p class="last-accessed">Last: Just now</p>
+
+                <p class="completion-text">{{ getActivityCompletionPercentage(activity) }}% Completed</p>
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="getActivityCompletionPercentage(activity)"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card-actions">
+                  <button class="action-btn edit-btn" (click)="openEditActivityModal(activity); $event.stopPropagation()">
+                    Edit
+                  </button>
+                  <button class="action-btn delete-btn" (click)="openDeleteActivityModal(activity); $event.stopPropagation()">
+                    Delete
                   </button>
                 </div>
+
+                <!-- Add Session Button -->
+                <button class="add-session-btn" (click)="openAddSessionModal(activity); $event.stopPropagation()">
+                  <i class="fa-solid fa-plus"></i>
+                  Add Session
+                </button>
               </div>
             }
           </div>

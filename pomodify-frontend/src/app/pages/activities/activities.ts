@@ -39,6 +39,9 @@ export class ActivitiesPage implements OnInit {
   protected isLoading = signal(false);
   protected error = signal<string | null>(null);
 
+  // Activity completion tracking
+  protected readonly activityCompletions = signal<Map<number, number>>(new Map());
+
   // Pagination
   protected currentPage = signal(1);
   protected readonly itemsPerPage = 8; // 2 rows x 4 columns
@@ -90,6 +93,11 @@ export class ActivitiesPage implements OnInit {
         this.totalPages.set(response.totalPages || 1);
         this.totalItems.set(response.totalItems || 0);
         this.isLoading.set(false);
+        
+        // Load sessions for each activity to calculate completion
+        activitiesWithColors.forEach(activity => {
+          this.loadActivitySessions(activity.activityId);
+        });
       },
       error: (err) => {
         console.error('[ActivitiesPage] Error loading activities:', err);
@@ -298,6 +306,38 @@ export class ActivitiesPage implements OnInit {
     } catch {
       return 'fa-solid fa-circle';
     }
+  }
+
+  // Get completion percentage for activity based on sessions
+  protected getActivityCompletionPercentage(activity: ActivityData): number {
+    const completions = this.activityCompletions();
+    return completions.get(activity.activityId) || 0;
+  }
+
+  // Load sessions for an activity and calculate completion
+  private loadActivitySessions(activityId: number): void {
+    this.sessionService.getSessions(activityId, 'COMPLETED').subscribe({
+      next: (sessions: any[]) => {
+        // Calculate completion percentage
+        // Assuming 5 hours per week as target (can be adjusted)
+        const estimatedHoursPerWeek = 5;
+        const totalFocusHours = sessions.reduce((sum: number, session: any) => {
+          return sum + (session.focusTimeInMinutes || 0) / 60;
+        }, 0);
+        const percentage = Math.min((totalFocusHours / estimatedHoursPerWeek) * 100, 100);
+        
+        const currentCompletions = new Map(this.activityCompletions());
+        currentCompletions.set(activityId, Math.round(percentage));
+        this.activityCompletions.set(currentCompletions);
+      },
+      error: (err: any) => {
+        console.error('[ActivitiesPage] Error loading sessions for activity:', activityId, err);
+        // Set to 0% on error
+        const currentCompletions = new Map(this.activityCompletions());
+        currentCompletions.set(activityId, 0);
+        this.activityCompletions.set(currentCompletions);
+      }
+    });
   }
 
   // Navigation

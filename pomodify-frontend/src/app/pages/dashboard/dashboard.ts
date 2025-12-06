@@ -17,28 +17,9 @@ import { EditSessionModal } from '../../shared/components/edit-session-modal/edi
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { IconMapper } from '../../core/services/icon-mapper';
-import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardService, DashboardMetrics, RecentSession } from '../../core/services/dashboard.service';
 import { ActivityService, ActivityResponse, ActivityData as ActivityApiData, CreateActivityRequest, UpdateActivityRequest } from '../../core/services/activity.service';
 import { SessionService } from '../../core/services/session.service';
-
-// API Response Types
-export type DashboardMetrics = {
-  totalCompletedSessions: number;
-  totalFocusTime: number;
-  weeklyFocusDistribution: Record<string, number>;
-  recentActivities: RecentActivity[];
-};
-
-export type RecentActivity = {
-  activityId: number;
-  activityTitle: string;
-  lastSession: {
-    sessionId: number;
-    startTime: string;
-    endTime: string;
-    status: string;
-  };
-};
 
 export type Session = {
   id: string;
@@ -118,9 +99,9 @@ export class Dashboard implements OnInit {
     this.dashboardService.getDashboard(timezone).subscribe({
       next: (data) => {
         console.log('[Dashboard] Metrics loaded successfully:', {
-          sessions: data.totalCompletedSessions,
-          focusTime: data.totalFocusTime,
-          recentActivitiesCount: data.recentActivities?.length || 0
+          sessions: data.totalSessions,
+          focusTime: data.focusHoursAllTime,
+          recentSessionsCount: data.recentSessions?.length || 0
         });
         this.dashboardMetrics.set(data);
         this.isLoadingDashboard.set(false);
@@ -148,6 +129,11 @@ export class Dashboard implements OnInit {
         console.log('[Dashboard] Activities loaded:', mapped.length);
         this.activities.set(mapped);
         this.isLoadingActivities.set(false);
+        
+        // Load sessions for each activity to calculate completion
+        list.forEach((a: ActivityApiData) => {
+          this.loadActivityCompletion((a as any).activityId);
+        });
       },
       error: (err) => {
         console.error('[Dashboard] Activities loading error:', err);
@@ -170,6 +156,7 @@ export class Dashboard implements OnInit {
   protected readonly activities = signal<Activity[]>([]);
   protected readonly isLoadingActivities = signal(false);
   protected readonly activitiesError = signal<string | null>(null);
+  protected readonly activityCompletions = signal<Map<number, number>>(new Map());
   protected readonly searchQuery = signal('');
   protected readonly selectedCategory = signal<string | null>(null);
   protected readonly currentPage = signal(1);
@@ -231,26 +218,18 @@ export class Dashboard implements OnInit {
   });
 
   protected readonly totalCompletedSessions = computed(() => {
-    return this.dashboardMetrics()?.totalCompletedSessions || 0;
+    return this.dashboardMetrics()?.totalSessions || 0;
   });
 
   protected readonly totalFocusTimeHours = computed(() => {
-    const seconds = this.dashboardMetrics()?.totalFocusTime || 0;
-    const hours = seconds / 3600;
+    const hours = this.dashboardMetrics()?.focusHoursAllTime || 0;
     return hours.toFixed(1);
   });
 
   protected readonly weeklyDistributionDays = computed(() => {
-    const distribution = this.dashboardMetrics()?.weeklyFocusDistribution;
-    if (!distribution) return [];
-    
-    const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-    return days.map(day => ({
-      day: day.substring(0, 3),
-      seconds: distribution[day] || 0,
-      hours: ((distribution[day] || 0) / 3600).toFixed(1),
-      percentage: this.calculateDayPercentage(distribution, day)
-    }));
+    // Backend doesn't provide weekly distribution yet
+    // Return empty array for now
+    return [];
   });
 
   private calculateDayPercentage(distribution: Record<string, number>, day: string): number {
@@ -260,9 +239,9 @@ export class Dashboard implements OnInit {
   }
 
   protected readonly recentActivities = computed(() => {
-    const activities = this.dashboardMetrics()?.recentActivities || [];
-    // Limit to maximum 4 recent activities for dashboard display
-    return activities.slice(0, 4);
+    const sessions = this.dashboardMetrics()?.recentSessions || [];
+    // Limit to maximum 4 recent sessions for dashboard display
+    return sessions.slice(0, 4);
   });
 
   // Get 4 most recent activities as cards (for the new recent activities section)
@@ -537,10 +516,36 @@ export class Dashboard implements OnInit {
       icon: iconClass,
       category: (a as any).categoryName || '',
       colorTag: (a as any).colorTag || '#888888',
-      estimatedHoursPerWeek: 0,
+      estimatedHoursPerWeek: 5, // Default target: 5 hours per week
       lastAccessed: new Date().toISOString(),
       sessions: [],
     };
+  }
+
+  // Load sessions for an activity and calculate completion percentage
+  private loadActivityCompletion(activityId: number): void {
+    this.sessionService.getSessions(activityId, 'COMPLETED').subscribe({
+      next: (sessions: any[]) => {
+        // Calculate total focus hours from completed sessions
+        const totalFocusHours = sessions.reduce((sum: number, session: any) => {
+          return sum + (session.focusTimeInMinutes || 0) / 60;
+        }, 0);
+        
+        // Assuming 5 hours per week as target
+        const estimatedHoursPerWeek = 5;
+        const percentage = Math.min((totalFocusHours / estimatedHoursPerWeek) * 100, 100);
+        
+        const currentCompletions = new Map(this.activityCompletions());
+        currentCompletions.set(activityId, Math.round(percentage));
+        this.activityCompletions.set(currentCompletions);
+      },
+      error: (err: any) => {
+        console.error('[Dashboard] Error loading sessions for completion:', activityId, err);
+        const currentCompletions = new Map(this.activityCompletions());
+        currentCompletions.set(activityId, 0);
+        this.activityCompletions.set(currentCompletions);
+      }
+    });
   }
 
   protected toggleCategory(category: string): void {
@@ -565,6 +570,14 @@ export class Dashboard implements OnInit {
   }
 
   protected getActivityCompletionPercentage(activity: Activity): number {
+    // Try to get from cached completions first
+    const activityId = parseInt(activity.id);
+    const cachedPercentage = this.activityCompletions().get(activityId);
+    if (cachedPercentage !== undefined) {
+      return cachedPercentage;
+    }
+    
+    // Fallback to old calculation if not in cache yet
     if (!activity.estimatedHoursPerWeek || activity.estimatedHoursPerWeek <= 0) {
       return 0;
     }
