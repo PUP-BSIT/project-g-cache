@@ -7,9 +7,10 @@ import {
   inject,
   afterNextRender,
   OnDestroy,
-  numberAttribute
+  numberAttribute,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { timer, Subscription, of } from 'rxjs';
@@ -43,6 +44,7 @@ export class SessionTimerComponent implements OnDestroy {
   protected router = inject(Router);
   private dialog = inject(MatDialog);
   private auth = inject(Auth);
+  private platformId = inject(PLATFORM_ID);
 
   // State signals
   session = signal<PomodoroSession | null>(null);
@@ -232,6 +234,10 @@ export class SessionTimerComponent implements OnDestroy {
         } else if (sess.status === 'IN_PROGRESS') {
           // Calculate remaining time in current phase
           this.initializeTimerForPhase();
+          // Auto-start timer when status is IN_PROGRESS
+          if (isPlatformBrowser(this.platformId)) {
+            this.startTimer();
+          }
         } else if (sess.status === 'PAUSED') {
           // Calculate remaining time (will be preserved from when paused)
           this.initializeTimerForPhase();
@@ -361,8 +367,9 @@ export class SessionTimerComponent implements OnDestroy {
   /* -------------------- USER ACTIONS -------------------- */
 
   protected openTimePicker(): void {
-    // Only allow editing if session is PENDING
-    if (!this.isPending()) {
+    // Allow editing the timer at any time (PENDING, IN_PROGRESS, or PAUSED)
+    const sess = this.session();
+    if (!sess || sess.status === 'COMPLETED') {
       return;
     }
 
@@ -386,6 +393,13 @@ export class SessionTimerComponent implements OnDestroy {
     ).subscribe(timeData => {
       const totalSeconds = (timeData.minutes * 60) + timeData.seconds;
       this.remainingSeconds.set(totalSeconds);
+      
+      // If timer is running, restart it with the new time
+      if (sess.status === 'IN_PROGRESS') {
+        this.timerSub?.unsubscribe();
+        this.pausedElapsedSeconds = 0;
+        this.startTimer();
+      }
     });
   }
 
@@ -394,7 +408,20 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    // If paused, resume instead of start
+    // If paused after phase completion, just start timer locally without API call
+    // This prevents the logout bug when starting break phase after focus completes
+    if (sess.status === 'PAUSED' && this.remainingSeconds() > 0) {
+      // Just start the timer locally - phase was already initialized
+      const updatedSession: PomodoroSession = {
+        ...sess,
+        status: 'IN_PROGRESS'
+      };
+      this.session.set(updatedSession);
+      this.startTimer();
+      return;
+    }
+
+    // If paused normally (user pressed pause), resume via API
     if (sess.status === 'PAUSED') {
       this.resumeSession();
       return;
@@ -510,6 +537,30 @@ export class SessionTimerComponent implements OnDestroy {
     });
   }
 
+  protected completeSessionEarly(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    if (!confirm('Complete this session early? This will mark it as COMPLETED.')) {
+      return;
+    }
+
+    this.timerSub?.unsubscribe();
+
+    this.sessionService.finishSession(actId, sess.id, this.notes).subscribe({
+      next: (updated) => {
+        this.session.set(updated);
+        this.remainingSeconds.set(0);
+        // Optionally go back to sessions list
+        setTimeout(() => this.goBack(), 1500);
+      },
+      error: (err) => {
+        this.handleError(err, 'complete session early');
+      }
+    });
+  }
+
   protected cancelSession(): void {
     const sess = this.session();
     const actId = this.activityId();
@@ -590,6 +641,16 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   protected goBack(): void {
+    const sess = this.session();
+    
+    // If session is running or paused, stop the timer before going back
+    if (sess && (sess.status === 'IN_PROGRESS' || sess.status === 'PAUSED')) {
+      this.timerSub?.unsubscribe();
+      // Stop timer to reset progress
+      this.pausedElapsedSeconds = 0;
+      this.phaseStartTimestamp = null;
+    }
+    
     // Persist notes before leaving the session page
     this.saveNotes();
     this.router.navigate(['/activities', this.activityTitle(), 'sessions']);

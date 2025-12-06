@@ -222,9 +222,12 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   min-width: 200px;
   text-align: center;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   box-shadow: $card-shadow;
+  position: relative;
+  transition: all 0.2s ease;
 
   .time-value {
     font-size: 48px;
@@ -234,6 +237,35 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     letter-spacing: 2px;
     line-height: 1.2;
     text-align: center;
+  }
+
+  .edit-icon {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      background: $primary-teal-dark;
+      transform: translateY(-2px);
+      box-shadow: $card-shadow-hover;
+
+      .edit-icon {
+        opacity: 1;
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: $card-shadow;
+    }
   }
 }
 
@@ -265,6 +297,75 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   &:hover {
     background: $primary-teal-dark;
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $card-shadow;
+  }
+}
+
+.btn-stop {
+  background: #E74C3C;
+  color: $bg-white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $card-shadow;
+
+  &:hover {
+    background: #C0392B;
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $card-shadow;
+  }
+}
+
+.early-complete-section {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-early-complete {
+  background: #27AE60;
+  color: $bg-white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: $card-shadow;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: #229954;
     transform: translateY(-2px);
     box-shadow: $card-shadow-hover;
   }
