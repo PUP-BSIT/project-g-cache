@@ -14,34 +14,40 @@ import { CommonModule } from '@angular/common';
       <div class="time-container">
         <!-- Minutes Column -->
         <div class="time-column">
-          <div class="scroll-container" #minutesScroll>
-            @for (min of minutes(); track min) {
-              <div 
-                class="time-digit" 
-                [class.selected]="min === time().minutes"
-                (click)="selectMinute(min)">
-                {{ min.toString().padStart(2, '0') }}
-              </div>
-            }
+          <div class="column-header">MINUTES</div>
+          <div class="scroll-wrapper">
+            <div class="scroll-container" #minutesScroll>
+              @for (min of minutes(); track min) {
+                <div 
+                  class="time-digit" 
+                  [class.selected]="min === time().minutes"
+                  (click)="selectMinute(min)">
+                  {{ min.toString().padStart(2, '0') }}
+                </div>
+              }
+            </div>
+            <div class="selection-indicator"></div>
           </div>
-          <div class="label">MIN</div>
         </div>
 
         <div class="separator">:</div>
 
         <!-- Seconds Column -->
         <div class="time-column">
-          <div class="scroll-container" #secondsScroll>
-            @for (sec of seconds(); track sec) {
-              <div 
-                class="time-digit" 
-                [class.selected]="sec === time().seconds"
-                (click)="selectSecond(sec)">
-                {{ sec.toString().padStart(2, '0') }}
-              </div>
-            }
+          <div class="column-header">SECONDS</div>
+          <div class="scroll-wrapper">
+            <div class="scroll-container" #secondsScroll>
+              @for (sec of seconds(); track sec) {
+                <div 
+                  class="time-digit" 
+                  [class.selected]="sec === time().seconds"
+                  (click)="selectSecond(sec)">
+                  {{ sec.toString().padStart(2, '0') }}
+                </div>
+              }
+            </div>
+            <div class="selection-indicator"></div>
           </div>
-          <div class="label">SEC</div>
         </div>
       </div>
 
@@ -56,86 +62,115 @@ import { CommonModule } from '@angular/common';
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 2rem;
+      padding: 1rem;
       user-select: none;
     }
 
     .time-container {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 24px;
-      padding: 1.5rem 2rem;
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(26, 188, 156, 0.2);
+      justify-content: center;
+      gap: 2rem;
+      background: #F8F9FA;
+      border-radius: 16px;
+      padding: 24px 40px;
+      border: 2px solid #E0E0E0;
+      min-width: 450px;
     }
 
     .time-column {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 12px;
+    }
+
+    .column-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: #5FA9A4;
+      letter-spacing: 1.5px;
+      text-align: center;
+    }
+
+    .scroll-wrapper {
+      position: relative;
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid #E8E8E8;
     }
 
     .scroll-container {
-      height: 200px;
+      height: 210px;
       overflow-y: auto;
       scroll-snap-type: y mandatory;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      width: 80px;
+      scrollbar-width: thin;
+      scrollbar-color: #5FA9A4 #F0F0F0;
+      width: 100px;
       position: relative;
+      padding: 0 12px;
       
       /* Custom scrollbar for webkit */
       &::-webkit-scrollbar {
-        display: none;
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #F5F5F5;
+        border-radius: 10px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #5FA9A4;
+        border-radius: 10px;
+
+        &:hover {
+          background: #4D8B87;
+        }
       }
     }
 
+    .selection-indicator {
+      display: none;
+    }
+
     .time-digit {
-      font-size: 3rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.3);
-      height: 66px;
+      font-size: 2rem;
+      font-weight: 500;
+      color: #7F8C8D;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
       scroll-snap-align: center;
       cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: 'Roboto Mono', monospace;
+      transition: all 0.25s ease;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      border-radius: 8px;
 
       &:hover {
-        color: rgba(26, 188, 156, 0.6);
-        transform: scale(1.1);
+        color: #34495E;
+        background: rgba(95, 169, 164, 0.1);
       }
 
       &.selected {
-        color: #1abc9c;
-        transform: scale(1.2);
-        text-shadow: 0 0 20px rgba(26, 188, 156, 0.5);
+        color: #FFFFFF;
+        font-weight: 700;
+        font-size: 2.5rem;
+        background: #5FA9A4;
+        box-shadow: 0 4px 8px rgba(95, 169, 164, 0.3);
       }
     }
 
     .separator {
-      font-size: 4rem;
+      font-size: 2.5rem;
       font-weight: 700;
-      color: #1abc9c;
+      color: #5FA9A4;
       margin: 0 0.5rem;
-      animation: blink 2s infinite;
-    }
-
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0.3; }
-    }
-
-    .label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
-      letter-spacing: 2px;
+      padding-top: 24px;
+      flex-shrink: 0;
     }
 
     .overlay-disabled {
@@ -145,7 +180,7 @@ import { CommonModule } from '@angular/common';
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.3);
-      border-radius: 24px;
+      border-radius: 16px;
       cursor: not-allowed;
       backdrop-filter: blur(2px);
     }
