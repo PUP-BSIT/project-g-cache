@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Auth } from '../../core/services/auth';
+import { API } from '../../core/config/api.config';
 import { ActivityService, ActivityData, ActivityResponse, CreateActivityRequest, UpdateActivityRequest } from '../../core/services/activity.service';
 import { SessionService } from '../../core/services/session.service';
 import { ActivityColorService } from '../../core/services/activity-color.service';
@@ -26,6 +28,7 @@ export class ActivitiesPage implements OnInit {
   private router = inject(Router);
   private auth = inject(Auth);
   private dialog = inject(MatDialog);
+  private http = inject(HttpClient);
   private activityService = inject(ActivityService);
   private sessionService = inject(SessionService);
   private activityColorService = inject(ActivityColorService);
@@ -53,9 +56,18 @@ export class ActivitiesPage implements OnInit {
   protected selectedCategory = signal<number | null>(null);
   protected selectedCategoryName = signal<string | null>(null);
   protected categoryDropdownOpen = signal(false);
+  protected allCategories = signal<Array<{categoryId: number, categoryName: string}>>([]);
 
-  // Computed categories list
+  // Computed categories list (fallback to extracted from activities if API fails)
   protected categories = computed(() => {
+    // Prefer categories from API
+    const apiCategories = this.allCategories();
+    if (apiCategories.length > 0) {
+      return apiCategories.map(c => c.categoryName).sort();
+    }
+    
+    // Fallback: extract from loaded activities (THIS IS NOW THE PRIMARY METHOD)
+    console.log('[ActivitiesPage] Using categories from activities as fallback');
     const allActivities = this.activities();
     const categoryNames = new Set<string>();
     allActivities.forEach(activity => {
@@ -63,12 +75,77 @@ export class ActivitiesPage implements OnInit {
         categoryNames.add(activity.categoryName);
       }
     });
-    return Array.from(categoryNames).sort();
+    const extractedCategories = Array.from(categoryNames).sort();
+    console.log('[ActivitiesPage] Extracted categories from activities:', extractedCategories);
+    return extractedCategories;
+  });
+
+  // Filtered activities based on search and category
+  protected filteredActivities = computed(() => {
+    let filtered = this.activities();
+    
+    // Filter by category
+    const selectedCat = this.selectedCategoryName();
+    if (selectedCat) {
+      filtered = filtered.filter(activity => activity.categoryName === selectedCat);
+    }
+    
+    // Filter by search query
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      filtered = filtered.filter(activity => 
+        activity.activityTitle.toLowerCase().includes(query) ||
+        (activity.activityDescription?.toLowerCase().includes(query) || false)
+      );
+    }
+    
+    return filtered;
   });
 
   ngOnInit(): void {
     console.log('[ActivitiesPage] Initializing...');
+    this.loadCategories();
     this.loadActivities();
+  }
+
+  // Load all categories from backend
+  private loadCategories(): void {
+    console.log('[ActivitiesPage] Fetching categories from API...');
+    this.http.get<any>(API.CATEGORIES.GET_ALL).subscribe({
+      next: (response) => {
+        console.log('[ActivitiesPage] Categories API response:', response);
+        
+        // Handle multiple possible response formats
+        let categories: any[] = [];
+        
+        if (Array.isArray(response)) {
+          // Response is directly an array
+          categories = response;
+        } else if (response && Array.isArray(response.categories)) {
+          // Response has a categories property that is an array
+          categories = response.categories;
+        } else if (response && Array.isArray(response.content)) {
+          // Response has a content property (paginated response)
+          categories = response.content;
+        } else if (response && typeof response === 'object') {
+          // Try to find any array property in the response
+          const arrayProp = Object.values(response).find(val => Array.isArray(val));
+          if (arrayProp) {
+            categories = arrayProp as any[];
+          }
+        }
+        
+        console.log('[ActivitiesPage] Processed categories:', categories);
+        this.allCategories.set(categories);
+        console.log('[ActivitiesPage] Categories signal updated, length:', this.allCategories().length);
+      },
+      error: (err) => {
+        console.error('[ActivitiesPage] Error loading categories:', err);
+        console.error('[ActivitiesPage] Error status:', err.status);
+        console.error('[ActivitiesPage] Error message:', err.message);
+        // Silently fail - will use categories from activities as fallback
+      }
+    });
   }
 
   // Load activities from backend
@@ -94,6 +171,10 @@ export class ActivitiesPage implements OnInit {
         this.totalItems.set(response.totalItems || 0);
         this.isLoading.set(false);
         
+        // Log available categories from loaded activities
+        const availableCategories = this.categories();
+        console.log('[ActivitiesPage] Available categories after loading:', availableCategories);
+        
         // Load sessions for each activity to calculate completion
         activitiesWithColors.forEach(activity => {
           this.loadActivitySessions(activity.activityId);
@@ -115,19 +196,6 @@ export class ActivitiesPage implements OnInit {
       }
     });
   }
-
-  // Computed filtered activities (client-side search)
-  protected filteredActivities = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    const allActivities = this.activities();
-
-    if (!query) return allActivities;
-
-    return allActivities.filter((activity) =>
-      activity.activityTitle.toLowerCase().includes(query) ||
-      activity.activityDescription?.toLowerCase().includes(query)
-    );
-  });
 
   // Open create activity modal
   protected openCreateActivityModal(): void {
@@ -289,7 +357,7 @@ export class ActivitiesPage implements OnInit {
   protected selectCategory(category: string | null): void {
     this.selectedCategoryName.set(category);
     this.categoryDropdownOpen.set(false);
-    // TODO: Implement filtering by category name
+    console.log('[ActivitiesPage] Category selected:', category);
   }
 
   // Select activity and navigate to sessions

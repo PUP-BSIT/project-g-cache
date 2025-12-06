@@ -84,7 +84,7 @@
         <div class="category-dropdown-container">
           <button class="category-dropdown-btn" (click)="toggleCategoryDropdown()">
             <i class="fa-solid fa-list"></i>
-            <span>{{ selectedCategory() || 'All Categories' }}</span>
+            <span>{{ selectedCategoryName() || 'All Categories' }}</span>
             <i class="fa-solid fa-chevron-down" [class.rotated]="categoryDropdownOpen()"></i>
           </button>
           
@@ -92,8 +92,8 @@
             <div class="category-dropdown-menu">
               <button 
                 class="category-item"
-                [class.active]="!selectedCategory()"
-                (click)="selectCategory(null); toggleCategoryDropdown()"
+                [class.active]="!selectedCategoryName()"
+                (click)="selectCategory(null)"
               >
                 <i class="fa-solid fa-inbox"></i>
                 <span>All Activities</span>
