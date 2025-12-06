@@ -19,6 +19,7 @@ import { SessionService, PomodoroSession } from '../../core/services/session.ser
 import { ActivityService } from '../../core/services/activity.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TimePickerModalComponent, TimePickerData } from '../../shared/components/time-picker-modal/time-picker-modal';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { Auth } from '../../core/services/auth';
 import { HttpErrorResponse } from '@angular/common/http';
 
@@ -464,8 +465,7 @@ export class SessionTimerComponent implements OnDestroy {
           this.pausedElapsedSeconds = 0;
           this.initializeTimerForPhase();
           this.startTimer();
-          this.error.set('Session started locally. You can continue working.');
-          setTimeout(() => this.error.set(null), 3000);
+          // No error message shown to user - silent graceful degradation
         } else {
           this.handleError(err, 'start session');
         }
@@ -485,36 +485,31 @@ export class SessionTimerComponent implements OnDestroy {
     // Remember which phase we are in (FOCUS or BREAK)
     const localPhase = sess.currentPhase || 'FOCUS';
 
-    this.sessionService.pauseSession(actId, sess.id).subscribe({
+    // Update local state immediately to provide instant feedback
+    const pausedSession: PomodoroSession = {
+      ...sess,
+      status: 'PAUSED',
+      currentPhase: localPhase
+    };
+    this.session.set(pausedSession);
+
+    // Try to sync with backend, but don't show errors if it fails
+    this.sessionService.pauseSession(actId, sess.id).pipe(
+      catchError(err => {
+        console.log('[Session Timer] Pause sync failed, continuing with local state:', err);
+        return of(null);
+      })
+    ).subscribe({
       next: (updated) => {
-        // Keep using the local phase so pausing never flips BREAK -> FOCUS
-        const sessionWithLocalPhase: PomodoroSession = {
-          ...updated,
-          currentPhase: localPhase
-        };
-        this.session.set(sessionWithLocalPhase);
-        // remainingSeconds is left as‑is so we can resume from the same point
-      },
-      error: (err) => {
-        // If pause fails, update local state to PAUSED anyway
-        // This prevents logout and keeps user in the session
-        console.log('[Session Timer] Pause failed, handling gracefully:', err);
-        const pausedSession: PomodoroSession = {
-          ...sess,
-          status: 'PAUSED',
-          currentPhase: localPhase
-        };
-        this.session.set(pausedSession);
-        
-        // Show a non-critical error message
-        if (err instanceof HttpErrorResponse && err.status === 401) {
-          this.error.set('Session paused locally. Your session may have expired, but you can continue working.');
-        } else {
-          this.error.set('Pause request failed, but session is paused locally.');
+        if (updated) {
+          // Keep using the local phase so pausing never flips BREAK -> FOCUS
+          const sessionWithLocalPhase: PomodoroSession = {
+            ...updated,
+            currentPhase: localPhase
+          };
+          this.session.set(sessionWithLocalPhase);
         }
-        
-        // Clear error after 3 seconds
-        setTimeout(() => this.error.set(null), 3000);
+        // remainingSeconds is left as‑is so we can resume from the same point
       }
     });
   }
@@ -551,16 +546,7 @@ export class SessionTimerComponent implements OnDestroy {
         };
         this.session.set(resumedSession);
         this.startTimer();
-        
-        // Show a non-critical error message
-        if (err instanceof HttpErrorResponse && err.status === 401) {
-          this.error.set('Session resumed locally. Your session may have expired, but you can continue working.');
-        } else {
-          this.error.set('Resume request failed, but session is running locally.');
-        }
-        
-        // Clear error after 3 seconds
-        setTimeout(() => this.error.set(null), 3000);
+        // No error message shown to user - silent graceful degradation
       }
     });
   }
@@ -570,26 +556,33 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    if (!confirm('Are you sure you want to stop this session? The current cycle will be invalidated.')) {
-      return;
-    }
+    // Open confirmation dialog instead of browser alert
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Stop Session',
+        message: 'Are you sure you want to stop this session? The current cycle will be invalidated.',
+        confirmText: 'Stop',
+        cancelText: 'Cancel'
+      } as ConfirmDialogData
+    });
 
-    this.timerSub?.unsubscribe();
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
 
-    this.sessionService.stopSession(actId, sess.id).subscribe({
-      next: (updated) => {
-        this.session.set(updated);
-        this.goBack();
-      },
-      error: (err) => {
-        // If stop fails due to auth, just go back anyway
-        if (err instanceof HttpErrorResponse && err.status === 401) {
-          this.error.set('Session stopped locally.');
-          setTimeout(() => this.goBack(), 1500);
-        } else {
-          this.handleError(err, 'stop session');
+      this.timerSub?.unsubscribe();
+
+      this.sessionService.stopSession(actId, sess.id).subscribe({
+        next: (updated) => {
+          this.session.set(updated);
+          this.goBack();
+        },
+        error: (err) => {
+          // If stop fails due to auth, just go back anyway
+          console.log('[Session Timer] Stop failed, navigating back:', err);
+          this.goBack();
         }
-      }
+      });
     });
   }
 
@@ -598,34 +591,40 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    if (!confirm('Complete this session early? This will mark it as COMPLETED.')) {
-      return;
-    }
+    // Open confirmation dialog instead of browser alert
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Complete Session Early',
+        message: 'Complete this session early? This will mark it as COMPLETED.',
+        confirmText: 'Complete',
+        cancelText: 'Cancel'
+      } as ConfirmDialogData
+    });
 
-    this.timerSub?.unsubscribe();
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
 
-    this.sessionService.finishSession(actId, sess.id, this.notes).subscribe({
-      next: (updated) => {
-        this.session.set(updated);
-        this.remainingSeconds.set(0);
-        // Optionally go back to sessions list
-        setTimeout(() => this.goBack(), 1500);
-      },
-      error: (err) => {
-        // If complete early fails due to auth, mark as completed locally
-        if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.timerSub?.unsubscribe();
+
+      this.sessionService.finishSession(actId, sess.id, this.notes).subscribe({
+        next: (updated) => {
+          this.session.set(updated);
+          this.remainingSeconds.set(0);
+          setTimeout(() => this.goBack(), 1500);
+        },
+        error: (err) => {
+          // If complete early fails, mark as completed locally
+          console.log('[Session Timer] Complete early failed, handling locally:', err);
           const completedSession: PomodoroSession = {
             ...sess,
             status: 'COMPLETED'
           };
           this.session.set(completedSession);
           this.remainingSeconds.set(0);
-          this.error.set('Session completed locally.');
           setTimeout(() => this.goBack(), 1500);
-        } else {
-          this.handleError(err, 'complete session early');
         }
-      }
+      });
     });
   }
 
@@ -634,34 +633,38 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    if (!confirm('Cancel current progress? You can start this session again later.')) {
-      return;
-    }
+    // Open confirmation dialog instead of browser alert
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Cancel Session',
+        message: 'Cancel current progress? You can start this session again later.',
+        confirmText: 'Cancel Session',
+        cancelText: 'Keep Session'
+      } as ConfirmDialogData
+    });
 
-    this.timerSub?.unsubscribe();
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (!confirmed) return;
 
-    this.sessionService.cancelSession(actId, sess.id).subscribe({
-      next: (updated) => {
-        // Treat canceled session as pending to allow restart
-        const focus = updated.focusTimeInMinutes;
-        const reset: PomodoroSession = { ...updated, status: 'PENDING', currentPhase: 'FOCUS' };
-        this.session.set(reset);
-        this.remainingSeconds.set(focus * 60);
-        // Keep user on timer page to allow immediate restart
-      },
-      error: (err) => {
-        // If cancel fails due to auth, reset locally anyway
-        if (err instanceof HttpErrorResponse && err.status === 401) {
+      this.timerSub?.unsubscribe();
+
+      this.sessionService.cancelSession(actId, sess.id).subscribe({
+        next: (updated) => {
+          const focus = updated.focusTimeInMinutes;
+          const reset: PomodoroSession = { ...updated, status: 'PENDING', currentPhase: 'FOCUS' };
+          this.session.set(reset);
+          this.remainingSeconds.set(focus * 60);
+        },
+        error: (err) => {
+          // If cancel fails, reset locally anyway
+          console.log('[Session Timer] Cancel failed, resetting locally:', err);
           const focus = sess.focusTimeInMinutes || 25;
           const reset: PomodoroSession = { ...sess, status: 'PENDING', currentPhase: 'FOCUS' };
           this.session.set(reset);
           this.remainingSeconds.set(focus * 60);
-          this.error.set('Session cancelled locally.');
-          setTimeout(() => this.error.set(null), 3000);
-        } else {
-          this.handleError(err, 'cancel session');
         }
-      }
+      });
     });
   }
 
@@ -714,6 +717,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // If complete phase fails, handle it gracefully
+        console.log('[Session Timer] Complete phase failed, handling locally:', err);
         if (err instanceof HttpErrorResponse && err.status === 401) {
           // Just transition to next phase locally
           const currentPhase = sess.currentPhase || 'FOCUS';
@@ -728,8 +732,7 @@ export class SessionTimerComponent implements OnDestroy {
           this.pausedElapsedSeconds = 0;
           this.phaseStartTimestamp = null;
           this.initializeTimerForPhase();
-          this.error.set('Phase completed locally. You can continue working.');
-          setTimeout(() => this.error.set(null), 3000);
+          // No error message shown to user - silent graceful degradation
         } else {
           this.handleError(err, 'complete phase');
         }
@@ -757,15 +760,13 @@ export class SessionTimerComponent implements OnDestroy {
 
   private handleError(err: any, operation: string): void {
     if (err instanceof HttpErrorResponse) {
-      // Handle authentication errors (401) - Don't force logout immediately
+      // Handle authentication errors (401) - Silent handling, no user message
       if (err.status === 401) {
-        this.error.set(`Authentication issue occurred. You can continue working, but some features may not sync.`);
-        // Clear error after 5 seconds to not alarm the user
-        setTimeout(() => this.error.set(null), 5000);
+        console.log(`[Session Timer] 401 error during ${operation}, handled silently`);
         return;
       }
       
-      // Handle other HTTP errors
+      // Handle other HTTP errors with auto-clearing messages
       if (err.status === 403) {
         this.error.set('You do not have permission to perform this action.');
         setTimeout(() => this.error.set(null), 5000);
