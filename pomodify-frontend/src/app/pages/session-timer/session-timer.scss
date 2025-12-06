@@ -216,6 +216,14 @@ $bg-light: #F5F5F5;
   }
 }
 
+.timer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
 .btn-timer-control {
   background: $primary-teal-light;
   color: $bg-white;
@@ -232,6 +240,37 @@ $bg-light: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &:hover {
+    background: $primary-teal;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-fast-forward {
+  background: $primary-teal-light;
+  color: $bg-white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  i {
+    font-size: 20px;
+  }
 
   &:hover {
     background: $primary-teal;
@@ -505,10 +544,24 @@ $bg-light: #F5F5F5;
     }
   }
 
+  .timer-controls {
+    gap: 8px;
+  }
+
   .btn-timer-control {
     padding: 12px 32px;
     font-size: 14px;
     min-width: 120px;
+  }
+
+  .btn-fast-forward {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
+
+    i {
+      font-size: 18px;
+    }
   }
 
   .notes-panel {

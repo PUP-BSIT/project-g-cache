@@ -41,20 +41,24 @@
 
             <!-- Focus/Break Labels with Time Info -->
             <div class="phase-labels">
-              <span 
-                class="phase-label" 
-                [class.active]="currentPhase() === 'FOCUS'"
-                [class.clickable]="isPending() || isPaused()"
-                (click)="switchToPhase('FOCUS')">
-                Focus <span class="phase-time">({{ focusTimeDisplay() }})</span>
-              </span>
-              <span 
-                class="phase-label" 
-                [class.active]="currentPhase() === 'BREAK'"
-                [class.clickable]="isPending() || isPaused()"
-                (click)="switchToPhase('BREAK')">
-                Break <span class="phase-time">({{ breakTimeDisplay() }})</span>
-              </span>
+              @if (!isFreestyle() || (isFreestyle() && currentPhase() === 'FOCUS')) {
+                <span 
+                  class="phase-label" 
+                  [class.active]="currentPhase() === 'FOCUS'"
+                  [class.clickable]="(isPending() || isPaused()) && !isFreestyle()"
+                  (click)="switchToPhase('FOCUS')">
+                  Focus
+                </span>
+              }
+              @if (!isFreestyle() || (isFreestyle() && currentPhase() === 'BREAK')) {
+                <span 
+                  class="phase-label" 
+                  [class.active]="currentPhase() === 'BREAK'"
+                  [class.clickable]="(isPending() || isPaused()) && !isFreestyle()"
+                  (click)="switchToPhase('BREAK')">
+                  Break
+                </span>
+              }
             </div>
 
             <!-- Timer Display -->
@@ -62,17 +66,27 @@
               <div class="time-value">{{ timerDisplay() }}</div>
             </div>
 
-            <!-- Start/Pause Button -->
-            <button 
-              class="btn-timer-control"
-              [class.paused]="isPaused()"
-              (click)="isRunning() ? pauseSession() : startSession()">
-              @if (isRunning()) {
-                PAUSE
-              } @else {
-                START
+            <!-- Start/Pause Button and Fast Forward -->
+            <div class="timer-controls">
+              <button 
+                class="btn-timer-control"
+                [class.paused]="isPaused()"
+                (click)="isRunning() ? pauseSession() : startSession()">
+                @if (isRunning()) {
+                  PAUSE
+                } @else {
+                  START
+                }
+              </button>
+              @if (isFreestyle()) {
+                <button 
+                  class="btn-fast-forward"
+                  (click)="fastForwardPhase()"
+                  title="Fast forward to next phase">
+                  <i class="fa-solid fa-forward-fast"></i>
+                </button>
               }
-            </button>
+            </div>
           </div>
         </div>
 
@@ -118,6 +132,8 @@
           <textarea 
             class="notes-textarea"
             [(ngModel)]="notes"
+            (ngModelChange)="onNotesChanged($event)"
+            (blur)="saveNotes()"
             placeholder="Add your notes here..."></textarea>
         </div>
       </div>
