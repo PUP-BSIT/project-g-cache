@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router'; // <--- 1. Import this
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -11,13 +11,13 @@ import { authErrorInterceptor } from './core/interceptors/auth-error.interceptor
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    
+    // 2. Add 'withComponentInputBinding()' here:
+    provideRouter(routes, withComponentInputBinding()), 
+    
     provideClientHydration(withEventReplay()),
     provideAnimations(),
     provideAnimationsAsync(),
-    // Interceptor order: 
-    // 1. authTokenInterceptor - adds Authorization header
-    // 2. authErrorInterceptor - handles 401 errors and token refresh (must be last)
     provideHttpClient(
       withFetch(), 
       withInterceptors([

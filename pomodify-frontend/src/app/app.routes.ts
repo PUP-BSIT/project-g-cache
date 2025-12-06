@@ -40,5 +40,15 @@ export const routes: Routes = [
     path: 'report',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/report/report').then(m => m.Report),
+  },
+  {
+    path: 'activities/:activityTitle/sessions',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/sessions-list/sessions-list').then(m => m.SessionsListComponent),
+  },
+  {
+    path: 'activities/:activityTitle/sessions/:sessionId',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/session-timer/session-timer').then(m => m.SessionTimerComponent),
   }
 ];

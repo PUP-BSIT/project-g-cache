@@ -29,7 +29,7 @@ export const API = {
   AUTH: {
     LOGIN: `${ROOT}/auth/login`,
     REGISTER: `${ROOT}/auth/register`,
-    REFRESH: `${ROOT}/auth/refresh-token`,
+    REFRESH: `${ROOT}/auth/refresh`,
     LOGOUT: `${ROOT}/auth/logout`,
   },
 
