@@ -101,7 +101,7 @@ export const API = {
 
   // Reports Resource
   REPORTS: {
-    SUMMARY: `${ROOT}/report/summary`,
+    SUMMARY: `${ROOT}/reports/summary`,
     FOCUS_TIME: `${ROOT}/reports/focus-time`,
     SESSIONS: `${ROOT}/reports/sessions`,
   },
