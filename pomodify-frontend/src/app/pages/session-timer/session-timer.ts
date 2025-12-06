@@ -452,6 +452,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // If start fails, still start the timer locally to prevent disruption
+        console.log('[Session Timer] Start failed, handling gracefully:', err);
         if (err instanceof HttpErrorResponse && err.status === 401) {
           const startedSession: PomodoroSession = {
             ...sess,
@@ -497,6 +498,7 @@ export class SessionTimerComponent implements OnDestroy {
       error: (err) => {
         // If pause fails, update local state to PAUSED anyway
         // This prevents logout and keeps user in the session
+        console.log('[Session Timer] Pause failed, handling gracefully:', err);
         const pausedSession: PomodoroSession = {
           ...sess,
           status: 'PAUSED',
@@ -541,6 +543,7 @@ export class SessionTimerComponent implements OnDestroy {
       error: (err) => {
         // If resume fails, update local state to IN_PROGRESS anyway and start timer
         // This prevents logout and keeps user in the session
+        console.log('[Session Timer] Resume failed, handling gracefully:', err);
         const resumedSession: PomodoroSession = {
           ...sess,
           status: 'IN_PROGRESS',

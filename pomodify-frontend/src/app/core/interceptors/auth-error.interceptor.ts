@@ -41,6 +41,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
       // Handle 401 Unauthorized errors or token expiration
       if (isTokenExpired) {
         const isAuthEndpoint = request.url.includes('/api/v1/auth/');
+        const isSessionEndpoint = request.url.includes('/sessions/');
         
         // Don't retry auth endpoints (login, register, refresh)
         // If auth endpoint fails with 401, tokens are invalid
@@ -52,7 +53,14 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
           return throwError(() => error);
         }
 
-        // Try to refresh the token
+        // For session endpoints, let the component handle the error gracefully
+        // Don't force logout - allow offline-first session timer to work
+        if (isSessionEndpoint) {
+          console.log('[AuthErrorInterceptor] Session endpoint 401 - letting component handle gracefully');
+          return throwError(() => error);
+        }
+        
+        // Try to refresh the token for other endpoints
         const refreshToken = localStorage.getItem('refreshToken');
         
         if (!refreshToken) {
