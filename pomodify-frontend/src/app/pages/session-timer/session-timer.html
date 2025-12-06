@@ -61,12 +61,19 @@
               }
             </div>
 
-            <!-- Timer Display -->
-            <div class="timer-display-box">
+            <!-- Timer Display (clickable to edit) -->
+            <div 
+              class="timer-display-box" 
+              [class.clickable]="session()?.status !== 'COMPLETED'"
+              (click)="openTimePicker()"
+              title="Click to edit timer">
               <div class="time-value">{{ timerDisplay() }}</div>
+              @if (session()?.status !== 'COMPLETED') {
+                <i class="fa-solid fa-pen-to-square edit-icon"></i>
+              }
             </div>
 
-            <!-- Start/Pause Button and Fast Forward -->
+            <!-- Start/Pause and Stop Buttons -->
             <div class="timer-controls">
               <button 
                 class="btn-timer-control"
@@ -78,6 +85,14 @@
                   START
                 }
               </button>
+              @if (isRunning() || isPaused()) {
+                <button 
+                  class="btn-stop"
+                  (click)="stopSession()"
+                  title="Stop and reset timer">
+                  STOP
+                </button>
+              }
               @if (isFreestyle()) {
                 <button 
                   class="btn-fast-forward"
@@ -87,6 +102,19 @@
                 </button>
               }
             </div>
+
+            <!-- Early Complete Button (shown only when running or paused) -->
+            @if (isRunning() || isPaused()) {
+              <div class="early-complete-section">
+                <button 
+                  class="btn-early-complete"
+                  (click)="completeSessionEarly()"
+                  title="Complete session early">
+                  <i class="fa-solid fa-check-circle"></i>
+                  Complete Early
+                </button>
+              </div>
+            }
           </div>
         </div>
 
