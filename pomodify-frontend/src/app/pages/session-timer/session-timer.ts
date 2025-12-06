@@ -574,10 +574,13 @@ export class SessionTimerComponent implements OnDestroy {
           // Now initialize with the correct phase
           this.initializeTimerForPhase();
           
-          // Auto-start timer for next phase if session is still IN_PROGRESS
-          if (updated.status === 'IN_PROGRESS') {
-            this.startTimer();
-          }
+          // Set status to PAUSED so the button shows START instead of PAUSE
+          // Timer will NOT auto-start - user must manually click START button to continue
+          const pausedSession: PomodoroSession = {
+            ...sessionWithPreservedTimes,
+            status: 'PAUSED'
+          };
+          this.session.set(pausedSession);
         }
       },
       error: (err) => {
