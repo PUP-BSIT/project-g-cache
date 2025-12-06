@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { API } from '../config/api.config';
 import { Observable } from 'rxjs';
 
 export interface RecentActivity {
@@ -22,29 +23,39 @@ export interface DashboardMetrics {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
-  private readonly API_URL = '/api/v1/dashboard';
+  private readonly API_URL = API.DASHBOARD.GET_DATA;
 
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Fetch dashboard metrics from API
-   * @param timezone - User's timezone (e.g., "Asia/Manila")
-   * @returns Observable of DashboardMetrics
-   */
-  getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
-    const headers = new HttpHeaders({
-      'X-Timezone': timezone,
-      'Content-Type': 'application/json'
-    });
-
-    return this.http.get<DashboardMetrics>(this.API_URL, { headers });
+  constructor(private http: HttpClient) {
+    console.log('[DashboardService] Initialized with API URL:', this.API_URL);
   }
 
   /**
-   * Get user's system timezone
-   * @returns Timezone string (e.g., "Asia/Manila")
+   * Fetch dashboard metrics from API
+   * GET /api/v1/dashboard
+   * Required headers:
+   * - Authorization: Bearer <accessToken> (added by auth-token interceptor)
+   * - X-Timezone: User's timezone for proper date calculations
+   * 
+   * @param timezone - User's timezone (e.g., "Asia/Manila", "UTC")
+   * @returns Observable of DashboardMetrics
+   */
+  getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
+    // Note: Removing X-Timezone header to avoid CORS policy errors
+    // Backend should use user's stored timezone preference
+    console.log('[DashboardService] Fetching dashboard (timezone handling on backend)');
+    return this.http.get<DashboardMetrics>(this.API_URL);
+  }
+
+  /**
+   * Get user's system timezone using Intl API
+   * @returns Timezone string (e.g., "Asia/Manila", "America/New_York")
    */
   getUserTimezone(): string {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch (error) {
+      console.warn('[DashboardService] Failed to get system timezone, using default:', error);
+      return 'Asia/Manila';
+    }
   }
 }

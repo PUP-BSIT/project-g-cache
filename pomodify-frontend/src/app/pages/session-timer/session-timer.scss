@@ -1,0 +1,599 @@
+// Session Timer Page Styles - Matching Image Design
+$primary-teal: #5FA9A4;
+$primary-teal-light: #7BC4BF;
+$text-dark: #000000;
+$text-gray: #808080;
+$bg-white: #FFFFFF;
+$bg-light: #F5F5F5;
+
+.session-timer-page {
+  min-height: 100vh;
+  background: $bg-white;
+  color: $text-dark;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1.5rem;
+
+  i {
+    font-size: 4rem;
+    color: $primary-teal;
+  }
+
+  p {
+    font-size: 1.25rem;
+    color: $text-gray;
+  }
+
+  .btn-primary {
+    margin-top: 1rem;
+    padding: 12px 24px;
+    background: $primary-teal;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 40px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* -------------------- HEADER -------------------- */
+
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  width: 100%;
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: $text-dark;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 8px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    i {
+      font-size: 18px;
+    }
+
+    &:hover {
+      color: $primary-teal;
+    }
+  }
+
+  .activity-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: $text-dark;
+    flex: 1;
+    text-align: left;
+  }
+}
+
+/* -------------------- MAIN CONTENT WRAPPER -------------------- */
+
+.main-content-wrapper {
+  display: flex;
+  gap: 32px;
+  flex: 1;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+}
+
+/* -------------------- TIMER SECTION (LEFT SIDE) -------------------- */
+
+.timer-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 600px;
+}
+
+.timer-circle {
+  width: 500px;
+  height: 500px;
+  border: 3px solid $primary-teal-light;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  background: $bg-white;
+}
+
+.timer-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+
+  .session-type {
+    font-size: 30px;
+    font-weight: 500;
+    color: $primary-teal-light;
+    text-align: center;
+  }
+
+  .cycle-indicator {
+    font-size: 25px;
+    font-weight: 500;
+    color: $text-gray;
+    text-align: center;
+  }
+}
+
+.phase-labels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 28px;
+  width: 100%;
+
+  .phase-label {
+    font-size: 30px;
+    font-weight: 600;
+    color: $text-gray;
+    transition: color 0.2s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    &.active {
+      color: $text-dark;
+    }
+
+    &.clickable {
+      cursor: pointer;
+      
+      &:hover {
+        color: $text-dark;
+        opacity: 0.8;
+      }
+    }
+
+    .phase-time {
+      font-size: 14px;
+      font-weight: 400;
+      color: $text-gray;
+      opacity: 0.8;
+    }
+  }
+}
+
+.timer-display-box {
+  background: $primary-teal-light;
+  border-radius: 12px;
+  padding: 24px 48px;
+  margin-bottom: 28px;
+  min-width: 200px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .time-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: $bg-white;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    line-height: 1.2;
+    text-align: center;
+  }
+}
+
+.timer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-timer-control {
+  background: $primary-teal-light;
+  color: $bg-white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 48px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+  min-width: 150px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $primary-teal;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-fast-forward {
+  background: $primary-teal-light;
+  color: $bg-white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  i {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: $primary-teal;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* -------------------- NOTES PANEL (RIGHT SIDE) -------------------- */
+
+.notes-panel {
+  width: 400px;
+  background: $primary-teal-light;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 600px;
+  align-items: stretch;
+  align-self: flex-start;
+  box-sizing: border-box;
+}
+
+/* -------------------- PANEL HEADER -------------------- */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+  flex-shrink: 0;
+
+  .notes-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-dark;
+  }
+
+  .btn-add-todo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: $bg-white;
+    border: none;
+    border-radius: 6px;
+    color: $primary-teal;
+    cursor: pointer;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    .todo-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: $primary-teal;
+    }
+
+    i {
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: $primary-teal;
+      color: $bg-white;
+      transform: scale(1.05);
+
+      .todo-label {
+        color: $bg-white;
+      }
+    }
+  }
+}
+
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 235px;
+  overflow-y: auto;
+  padding-right: 4px;
+  flex-shrink: 0;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.6);
+    }
+  }
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: $bg-white;
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.todo-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: $primary-teal;
+  flex-shrink: 0;
+}
+
+.todo-text {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: $text-dark;
+  outline: none;
+  padding: 4px;
+
+  &:focus {
+    background: rgba(95, 169, 164, 0.05);
+    border-radius: 4px;
+  }
+
+  &::placeholder {
+    color: $text-gray;
+  }
+}
+
+.btn-remove-todo {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: $text-gray;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  i {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: rgba(231, 76, 60, 0.1);
+    color: #E74C3C;
+  }
+}
+
+/* -------------------- NOTES TEXTAREA (BOTTOM) -------------------- */
+
+.notes-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: $bg-white;
+  font-size: 14px;
+  font-family: inherit;
+  color: $text-dark;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  margin-top: auto;
+
+  &::placeholder {
+    color: $text-gray;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px $primary-teal;
+  }
+}
+
+/* -------------------- RESPONSIVE -------------------- */
+
+@media (max-width: 1200px) {
+  .main-content-wrapper {
+    flex-direction: column;
+  }
+
+  .timer-section {
+    min-height: auto;
+  }
+
+  .timer-circle {
+    width: 400px;
+    height: 400px;
+    padding: 40px;
+  }
+
+  .notes-panel {
+    width: 100%;
+    min-height: 400px;
+    max-height: none;
+  }
+
+  .todo-list {
+    max-height: 200px;
+  }
+
+  .notes-textarea {
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 20px;
+  }
+
+  .session-header {
+    .activity-title {
+      font-size: 20px;
+    }
+  }
+
+  .timer-circle {
+    width: 320px;
+    height: 320px;
+    padding: 30px;
+  }
+
+  .timer-display-box {
+    padding: 16px 32px;
+
+    .time-value {
+      font-size: 36px;
+    }
+  }
+
+  .timer-top {
+    .session-type {
+      font-size: 16px;
+    }
+
+    .cycle-indicator {
+      font-size: 14px;
+    }
+  }
+
+  .phase-labels {
+    .phase-label {
+      font-size: 16px;
+    }
+  }
+
+  .timer-controls {
+    gap: 8px;
+  }
+
+  .btn-timer-control {
+    padding: 12px 32px;
+    font-size: 14px;
+    min-width: 120px;
+  }
+
+  .btn-fast-forward {
+    width: 44px;
+    height: 44px;
+    padding: 12px;
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  .notes-panel {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timer-circle {
+    width: 280px;
+    height: 280px;
+    padding: 20px;
+  }
+
+  .timer-display-box {
+    padding: 12px 24px;
+
+    .time-value {
+      font-size: 28px;
+    }
+  }
+
+  .timer-top {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .phase-labels {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+}
+
+

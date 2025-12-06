@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, signal, HostListener, inject, effect, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
+import { filter, switchMap, map } from 'rxjs/operators';
 import { toggleTheme } from '../../shared/theme';
+import { API } from '../../core/config/api.config';
 import {
   CreateActivityModal,
-  ActivityData,
+  ActivityData as CreateActivityModalData,
 } from '../../shared/components/create-activity-modal/create-activity-modal';
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
@@ -15,7 +18,8 @@ import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { IconMapper } from '../../core/services/icon-mapper';
 import { DashboardService } from '../../core/services/dashboard.service';
-import { ActivityService } from '../../core/services/activity.service';
+import { ActivityService, ActivityResponse, ActivityData as ActivityApiData, CreateActivityRequest, UpdateActivityRequest } from '../../core/services/activity.service';
+import { SessionService } from '../../core/services/session.service';
 
 // API Response Types
 export type DashboardMetrics = {
@@ -60,8 +64,7 @@ type Activity = {
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink,
-    RouterLinkActive,
+    RouterModule,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -69,10 +72,12 @@ type Activity = {
 export class Dashboard implements OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
+  private http = inject(HttpClient);
   private auth = inject(Auth);
   private iconMapper = inject(IconMapper);
   private dashboardService = inject(DashboardService);
   private activityService = inject(ActivityService);
+  private sessionService = inject(SessionService);
 
   protected sidebarExpanded = signal(true);
 
@@ -108,15 +113,22 @@ export class Dashboard implements OnInit {
     this.dashboardError.set(null);
 
     const timezone = this.dashboardService.getUserTimezone();
+    console.log('[Dashboard] Loading dashboard metrics with timezone:', timezone);
 
     this.dashboardService.getDashboard(timezone).subscribe({
       next: (data) => {
+        console.log('[Dashboard] Metrics loaded successfully:', {
+          sessions: data.totalCompletedSessions,
+          focusTime: data.totalFocusTime,
+          recentActivitiesCount: data.recentActivities?.length || 0
+        });
         this.dashboardMetrics.set(data);
         this.isLoadingDashboard.set(false);
       },
       error: (err) => {
-        console.error('Dashboard metrics error:', err);
-        this.dashboardError.set('Failed to load dashboard metrics. Please refresh the page.');
+        console.error('[Dashboard] Metrics loading error:', err);
+        const errorMsg = err?.error?.message || err?.message || 'Failed to load dashboard metrics';
+        this.dashboardError.set(`${errorMsg}. Please refresh the page or try logging in again.`);
         this.isLoadingDashboard.set(false);
       }
     });
@@ -126,14 +138,28 @@ export class Dashboard implements OnInit {
     this.isLoadingActivities.set(true);
     this.activitiesError.set(null);
 
-    this.activityService.getAllActivities().subscribe({
-      next: (data) => {
-        this.activities.set(data);
+    console.log('[Dashboard] Loading activities...');
+
+    // Use 'title' as sortBy parameter (backend default)
+    this.activityService.getAllActivities(0, 100, 'desc', 'title').subscribe({
+      next: (resp: ActivityResponse) => {
+        const list = Array.isArray((resp as any).activities) ? (resp as any).activities : [];
+        const mapped = list.map((a: ActivityApiData) => this.mapActivityDataToView(a));
+        console.log('[Dashboard] Activities loaded:', mapped.length);
+        this.activities.set(mapped);
         this.isLoadingActivities.set(false);
       },
       error: (err) => {
-        console.error('Activities loading error:', err);
-        this.activitiesError.set('Failed to load activities.');
+        console.error('[Dashboard] Activities loading error:', err);
+        let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
+        
+        // Check if it's a backend cache configuration error
+        if (errorMsg.includes('Cannot find cache')) {
+          errorMsg = 'Backend cache not configured. Please contact administrator.';
+          console.error('[Dashboard] Backend cache error detected. Backend needs cache configuration.');
+        }
+        
+        this.activitiesError.set(errorMsg);
         this.isLoadingActivities.set(false);
         this.activities.set([]);
       }
@@ -234,41 +260,112 @@ export class Dashboard implements OnInit {
   }
 
   protected readonly recentActivities = computed(() => {
-    return this.dashboardMetrics()?.recentActivities || [];
+    const activities = this.dashboardMetrics()?.recentActivities || [];
+    // Limit to maximum 4 recent activities for dashboard display
+    return activities.slice(0, 4);
+  });
+
+  // Get 4 most recent activities as cards (for the new recent activities section)
+  protected readonly recentActivitiesCards = computed(() => {
+    const allActivities = this.activities();
+    // Sort by last session time or created date, then take first 4
+    return allActivities
+      .sort((a, b) => {
+        const aTime = a.sessions.length > 0 
+          ? new Date(a.sessions[a.sessions.length - 1].createdAt).getTime()
+          : new Date(a.id).getTime(); // Fallback to ID if no sessions
+        const bTime = b.sessions.length > 0
+          ? new Date(b.sessions[b.sessions.length - 1].createdAt).getTime()
+          : new Date(b.id).getTime();
+        return bTime - aTime; // Most recent first
+      })
+      .slice(0, 4);
   });
 
   protected selectActivity(activity: Activity): void {
     this.selectedActivity.set(activity);
+    // Navigate to sessions list for this activity
+    this.router.navigate(['/activities', activity.name, 'sessions']);
   }
 
   protected openCreateActivityModal(): void {
+    console.log('[Dashboard] Opening create activity modal');
     this.dialog
       .open(CreateActivityModal)
       .afterClosed()
-      .subscribe((result: ActivityData) => {
-        if (result) {
-          this.activityService.createActivity({
-            name: result.name,
-            icon: this.iconMapper.getIconClass(result.name, result.category || 'General'),
-            category: result.category,
-            colorTag: result.colorTag,
-            estimatedHoursPerWeek: result.estimatedHoursPerWeek || 0,
-          }).subscribe({
-            next: (newActivity) => {
-              this.activities.update((acts) => [...acts, newActivity]);
-              this.selectActivity(newActivity);
-            },
-            error: (err) => {
-              console.error('Error creating activity:', err);
-              alert('Failed to create activity. Please try again.');
-            }
-          });
+      .pipe(
+        filter((result: CreateActivityModalData) => !!result),
+        switchMap((result: CreateActivityModalData) => {
+          console.log('[Dashboard] Creating new activity:', result.name);
+          const req: any = {
+            title: result.name,
+            description: result.category || '',
+          };
+          console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
+          
+          // Return observable of [activityData, createResponse]
+          return this.activityService.createActivity(req).pipe(
+            map(created => ({ created, activityTitle: result.name }))
+          );
+        }),
+        switchMap(({ created, activityTitle }) => {
+          console.log('[Dashboard] Activity created, auto-creating session');
+          const activityId = created.activityId;
+          console.log('[Dashboard] Activity ID:', activityId);
+          console.log('[Dashboard] Created object:', created);
+          
+          // Auto-create session with CLASSIC preset
+          const sessionPayload = {
+            sessionType: 'CLASSIC',
+            focusTimeInMinutes: 25,
+            breakTimeInMinutes: 5,
+            cycles: 6
+          };
+          
+          console.log('[Dashboard] Session URL:', API.ACTIVITIES.SESSIONS.CREATE(activityId));
+          console.log('[Dashboard] Session payload:', sessionPayload);
+          
+          return this.http.post<any>(API.ACTIVITIES.SESSIONS.CREATE(activityId), sessionPayload).pipe(
+            map(session => ({ session, activityId, activityTitle }))
+          );
+        })
+      )
+      .subscribe({
+        next: ({ session, activityId, activityTitle }) => {
+          console.log('[Dashboard] Session created, navigating to timer');
+          console.log('[Dashboard] Session response:', session);
+          const sessionId = session.id || session.sessionId;
+          console.log('[Dashboard] Extracted sessionId:', sessionId);
+          console.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
+          
+          if (!sessionId) {
+            console.error('[Dashboard] Session ID is undefined!');
+            return;
+          }
+          
+          // Navigate to: /activities/:activityTitle/sessions/:sessionId
+          this.router.navigate(['/activities', activityTitle, 'sessions', sessionId]);
+        },
+        error: (err) => {
+          console.error('[Dashboard] Error in create flow:', err);
+          console.error('[Dashboard] Error status:', err.status);
+          console.error('[Dashboard] Error body:', err.error);
+          
+          let errorMsg = err?.error?.message || err?.message || 'Failed to create activity/session';
+          
+          // Check if it's a backend cache configuration error
+          if (errorMsg.includes('Cannot find cache')) {
+            errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator to configure Spring Boot cache.';
+            console.error('[Dashboard] Backend cache error: Spring Boot cache named "activities" is not configured.');
+          }
+          
+          alert(`Error: ${errorMsg}`);
         }
       });
   }
 
   protected openEditActivityModal(activity: Activity): void {
-    const sample: ActivityData = {
+    const sample: CreateActivityModalData = {
       name: activity.name,
       category: activity.category,
       colorTag: activity.colorTag,
@@ -278,21 +375,21 @@ export class Dashboard implements OnInit {
     this.dialog
       .open(EditActivityModal, { data: sample })
       .afterClosed()
-      .subscribe((updated: ActivityData) => {
+      .subscribe((updated: CreateActivityModalData) => {
         if (updated) {
-          this.activityService.updateActivity(activity.id, {
-            name: updated.name,
-            category: updated.category,
-            colorTag: updated.colorTag,
-            estimatedHoursPerWeek: updated.estimatedHoursPerWeek,
-            icon: this.iconMapper.getIconClass(updated.name, updated.category || 'General'),
-          }).subscribe({
+          const req: any = {
+            newActivityTitle: updated.name,
+            newActivityDescription: updated.category || '',
+            newCategoryId: undefined,
+          };
+          this.activityService.updateActivity(Number(activity.id), req).subscribe({
             next: (updatedActivity) => {
+              const mapped = this.mapActivityDataToView(updatedActivity);
               this.activities.update((acts) =>
-                acts.map((a) => a.id === activity.id ? updatedActivity : a)
+                acts.map((a) => a.id === activity.id ? mapped : a)
               );
               if (this.selectedActivity()?.id === activity.id) {
-                this.selectedActivity.set(updatedActivity);
+                this.selectedActivity.set(mapped);
               }
             },
             error: (err) => {
@@ -310,7 +407,7 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((confirmed: boolean) => {
         if (confirmed) {
-          this.activityService.deleteActivity(activity.id).subscribe({
+          this.activityService.deleteActivity(Number(activity.id)).subscribe({
             next: () => {
               this.activities.update((acts) => acts.filter((a) => a.id !== activity.id));
               if (this.selectedActivity()?.id === activity.id) {
@@ -332,9 +429,11 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          this.activityService.addSession(activity.id, {
-            focusTimeMinutes: result.focusTimeMinutes,
-            breakTimeMinutes: result.breakTimeMinutes,
+          this.sessionService.createSession(Number(activity.id), {
+            sessionType: 'CLASSIC',
+            focusTimeInMinutes: result.focusTimeMinutes,
+            breakTimeInMinutes: result.breakTimeMinutes,
+            cycles: 1,
             note: result.note,
           }).subscribe({
             next: (newSession) => {
@@ -372,19 +471,15 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          this.activityService.updateSession(activity.id, session.id, {
-            focusTimeMinutes: result.focusTimeMinutes,
-            breakTimeMinutes: result.breakTimeMinutes,
-            note: result.note,
-          }).subscribe({
-            next: (updatedSession) => {
+          this.sessionService.updateNote(Number(activity.id), Number(session.id), result.note || '').subscribe({
+            next: () => {
               this.activities.update((acts) =>
                 acts.map((a) =>
                   a.id === activity.id
                     ? {
                         ...a,
                         sessions: a.sessions.map((s) =>
-                          s.id === session.id ? (updatedSession as any) : s
+                          s.id === session.id ? { ...s, note: result.note } : s
                         ),
                       }
                     : a
@@ -406,7 +501,7 @@ export class Dashboard implements OnInit {
   }
 
   protected deleteSession(activity: Activity, sessionId: string): void {
-    this.activityService.deleteSession(activity.id, sessionId).subscribe({
+    this.sessionService.deleteSession(Number(activity.id), Number(sessionId)).subscribe({
       next: () => {
         this.activities.update((acts) =>
           acts.map((a) =>
@@ -426,6 +521,26 @@ export class Dashboard implements OnInit {
         alert('Failed to delete session. Please try again.');
       }
     });
+  }
+
+  private mapActivityDataToView(a: ActivityApiData): Activity {
+    const title = (a && (a as any).activityTitle) ? (a as any).activityTitle : 'Activity';
+    let iconClass = 'fa-solid fa-circle';
+    try {
+      iconClass = this.iconMapper.getIconClass((title || ''), 'General');
+    } catch {
+      iconClass = 'fa-solid fa-circle';
+    }
+    return {
+      id: String((a as any).activityId || cryptoRandomId()),
+      name: title,
+      icon: iconClass,
+      category: (a as any).categoryName || '',
+      colorTag: (a as any).colorTag || '#888888',
+      estimatedHoursPerWeek: 0,
+      lastAccessed: new Date().toISOString(),
+      sessions: [],
+    };
   }
 
   protected toggleCategory(category: string): void {
@@ -506,7 +621,15 @@ export class Dashboard implements OnInit {
   }
 
   protected onLogout(): void {
-    this.auth.logout();
+    console.log('[Dashboard] Logout initiated');
+    this.auth.logout()
+      .then(() => {
+        console.log('[Dashboard] Logout completed');
+      })
+      .catch((error) => {
+        console.error('[Dashboard] Logout error:', error);
+        // Error is already handled in auth service
+      });
   }
 
   protected openProfileModal(): void {
@@ -551,3 +674,15 @@ export class Dashboard implements OnInit {
     return `${diffDays} days ago`;
   }
 }
+
+function cryptoRandomId(): string {
+  try {
+    // Use Web Crypto if available
+    const arr = new Uint32Array(1);
+    (window.crypto || (window as any).msCrypto).getRandomValues(arr);
+    return String(arr[0]);
+  } catch {
+    return String(Date.now());
+  }
+}
+

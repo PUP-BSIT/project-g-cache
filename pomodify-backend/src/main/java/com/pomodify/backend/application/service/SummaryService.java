@@ -7,6 +7,7 @@ import com.pomodify.backend.domain.model.PomodoroSession;
 import com.pomodify.backend.domain.repository.PomodoroSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.*;
@@ -18,6 +19,7 @@ public class SummaryService {
 
     private final PomodoroSessionRepository sessionRepository;
 
+    @Transactional(readOnly = true)
     public SummaryResult getSummary(SummaryCommand cmd) {
         ZoneId zone = cmd.zoneId();
         Long userId = cmd.userId();

@@ -1,0 +1,96 @@
+<div class="sessions-list-container">
+  <header class="sessions-header">
+    <button class="back-btn" (click)="router.navigate(['/dashboard'])">
+      <i class="fa-solid fa-arrow-left"></i>
+      Back
+    </button>
+    <h1>{{ activityTitle() }}</h1>
+    <button class="create-session-btn" (click)="createNewSession()">
+      <i class="fa-solid fa-plus"></i>
+      New Session
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <p>Loading sessions...</p>
+    </div>
+  } @else if (error()) {
+    <div class="error-state">
+      <i class="fa-solid fa-exclamation-circle"></i>
+      <p>{{ error() }}</p>
+      <button (click)="loadSessions()">Retry</button>
+    </div>
+  } @else if (sessions().length === 0) {
+    <div class="empty-state">
+      <i class="fa-solid fa-clock"></i>
+      <h3>No sessions yet</h3>
+      <p>Create your first pomodoro session to get started!</p>
+      <button class="create-first-btn" (click)="createNewSession()">
+        <i class="fa-solid fa-plus"></i>
+        Create Session
+      </button>
+    </div>
+  } @else {
+    <div class="sessions-grid">
+      @for (session of sessions(); track session.id) {
+        <div class="session-card" (click)="openSession(session)">
+          <div class="session-header">
+            <div class="session-type">
+              <i class="fa-solid fa-stopwatch"></i>
+              {{ session.sessionType }}
+            </div>
+            <span class="session-status" [ngClass]="getStatusClass(session.status)">
+              {{ session.status }}
+            </span>
+          </div>
+
+          <div class="session-details">
+            <div class="detail-item">
+              <span class="label">Focus Time:</span>
+              <span class="value">{{ session.focusTimeInMinutes }} min</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Break Time:</span>
+              <span class="value">{{ session.breakTimeInMinutes }} min</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Cycles:</span>
+              <span class="value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Current Phase:</span>
+              <span class="value">{{ session.currentPhase }}</span>
+            </div>
+          </div>
+
+          @if (session.note) {
+            <div class="session-note">
+              <i class="fa-solid fa-note-sticky"></i>
+              {{ session.note }}
+            </div>
+          }
+
+          <div class="session-footer">
+            <span class="created-at">
+              <i class="fa-solid fa-calendar"></i>
+              {{ formatDate(session.createdAt) }}
+            </span>
+            @if (session.status === 'COMPLETED' && session.updatedAt) {
+              <span class="completed-at">
+                <i class="fa-solid fa-check-circle"></i>
+                Completed: {{ formatDate(session.updatedAt) }}
+              </span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Floating Action Button -->
+  <button class="fab" (click)="createNewSession()" title="Create New Session">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+</div>

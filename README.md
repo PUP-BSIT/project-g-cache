@@ -21,7 +21,12 @@
 
 ## 🌐 Live Demo
 
-> - [Pomidify Web Host](http://3.106.212.47/)
+> - [Pomidify Web Host](https://pomodify.site/)
+
+## 🔑 Test User Account 
+- Use the following credentials to explore the system:
+- **Email**: johndoe@gmail.com
+- **Password**: JohnDoe@123
 
 ## 🛠️ Tech Stack
 - **Frontend:** Angular, Tailwind CSS
