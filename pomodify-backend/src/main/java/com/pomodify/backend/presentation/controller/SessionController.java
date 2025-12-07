@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/activities/{activityId}/sessions")
+@RequestMapping("/activities/{activityId}/sessions")
 public class SessionController {
 
         private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();

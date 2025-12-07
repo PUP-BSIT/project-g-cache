@@ -19,7 +19,7 @@ import java.time.DayOfWeek;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
 @RestController
-@RequestMapping("/api/v1/reports")
+@RequestMapping("/reports")
 @RequiredArgsConstructor
 public class ReportsController {
 

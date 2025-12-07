@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZoneId;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping
 @RequiredArgsConstructor
 public class DashboardController {
 

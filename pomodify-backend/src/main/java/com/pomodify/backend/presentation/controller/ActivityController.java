@@ -21,7 +21,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/activities")
+@RequestMapping("/activities")
 @Slf4j
 @RequiredArgsConstructor
 public class ActivityController {
