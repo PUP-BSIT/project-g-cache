@@ -16,17 +16,17 @@ export default defineConfig({
   // ✅ Retry once in CI
   retries: process.env.CI ? 1 : 0,
 
-  // ✅ Fast workers in CI, moderate locally
-  workers: process.env.CI ? 4 : 2,
+  // ✅ Fewer workers in CI to avoid overwhelming external API
+  workers: process.env.CI ? 1 : 2,
 
   // ✅ HTML report for local, but still fine in CI
   reporter: 'html',
 
-  // ✅ Global test timeout
-  timeout: 30_000,
+  // ✅ Global test timeout - shorter in CI to fail fast
+  timeout: process.env.CI ? 20_000 : 30_000,
 
   expect: {
-    timeout: 10_000,
+    timeout: process.env.CI ? 5_000 : 10_000,
   },
 
   use: {
@@ -37,9 +37,10 @@ export default defineConfig({
     // ✅ Disable tracing in CI for speed
     trace: process.env.CI ? 'off' : 'on-first-retry',
 
-    // ✅ Reasonable action & nav timeouts
-    actionTimeout: 15_000,
-    navigationTimeout: 30_000,
+    // ✅ Shorter timeouts in CI to fail fast
+    actionTimeout: process.env.CI ? 10_000 : 15_000,
+    navigationTimeout: process.env.CI ? 15_000 : 30_000,
+    
   },
 
   // ✅ Only Chromium in CI, all browsers locally

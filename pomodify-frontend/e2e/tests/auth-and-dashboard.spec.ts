@@ -30,8 +30,8 @@ test.describe('Login Flow', () => {
     const loginPage = new LoginPage(page);
     await loginPage.goto();
 
-    await page.click('a:has-text("Sign up")');
-    await expect(page).toHaveURL(/.*\/signup/);
+    await page.click('a:has-text("Sign up")', { timeout: 10000 });
+    await expect(page).toHaveURL(/.*\/signup/, { timeout: 10000 });
   });
 });
 
@@ -50,9 +50,9 @@ test.describe('Dashboard', () => {
   });
 
   test('should have create session button', async ({ page }) => {
-    await page.waitForSelector('button:has-text("Create Session")');
+    await page.waitForSelector('button:has-text("Create Session")', { timeout: 10000 });
     const button = await page.locator('button:has-text("Create Session")');
-    await expect(button).toBeVisible();
+    await expect(button).toBeVisible({ timeout: 5000 });
   });
 
   test('should display session cards', async ({ page }) => {
@@ -79,7 +79,7 @@ test.describe('Session Management', () => {
   });
 
   test('should show settings page', async ({ page }) => {
-    await page.click('a[href="/settings"], button:has-text("Settings")');
-    await expect(page).toHaveURL(/.*\/settings/);
+    await page.click('a[href="/settings"], button:has-text("Settings")', { timeout: 10000 });
+    await expect(page).toHaveURL(/.*\/settings/, { timeout: 10000 });
   });
 });

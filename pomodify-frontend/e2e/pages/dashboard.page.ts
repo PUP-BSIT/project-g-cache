@@ -8,24 +8,32 @@ export class DashboardPage {
   constructor(private page: Page) {}
 
   async goto() {
-    await this.page.goto('/dashboard');
+    await this.page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 15000 });
   }
 
   async isLoaded() {
-    await this.page.waitForSelector('h1:has-text("Dashboard")');
-    return true;
+    try {
+      await this.page.waitForSelector('h1:has-text("Dashboard")', { timeout: 10000 });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getSessionCount() {
-    const sessionCards = await this.page.locator('[data-testid="session-card"]').count();
-    return sessionCards;
+    try {
+      const sessionCards = await this.page.locator('[data-testid="session-card"]').count({ timeout: 5000 });
+      return sessionCards;
+    } catch {
+      return 0;
+    }
   }
 
   async clickCreateSessionButton() {
-    await this.page.click('button:has-text("Create Session")');
+    await this.page.click('button:has-text("Create Session")', { timeout: 10000 });
   }
 
   async isWelcomeMessageVisible() {
-    return await this.page.isVisible('text=Welcome back');
+    return await this.page.isVisible('text=Welcome back', { timeout: 5000 }).catch(() => false);
   }
 }
