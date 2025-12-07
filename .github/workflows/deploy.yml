@@ -47,10 +47,12 @@ jobs:
       - name: Sign frontend images with cosign
         env:
           COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
           echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
-          ./cosign sign --key cosign.key $FRONTEND_IMAGE:$TAG_SHA
-          ./cosign sign --key cosign.key $FRONTEND_IMAGE:$TAG_LATEST
+          ./cosign sign --yes --key cosign.key $FRONTEND_IMAGE:$TAG_SHA
+          ./cosign sign --yes --key cosign.key $FRONTEND_IMAGE:$TAG_LATEST
+          rm -f cosign.key
 
       - name: Build and push backend image
         run: |
@@ -64,10 +66,12 @@ jobs:
       - name: Sign backend images with cosign
         env:
           COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: |
           echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
-          ./cosign sign --key cosign.key $BACKEND_IMAGE:$TAG_SHA
-          ./cosign sign --key cosign.key $BACKEND_IMAGE:$TAG_LATEST
+          ./cosign sign --yes --key cosign.key $BACKEND_IMAGE:$TAG_SHA
+          ./cosign sign --yes --key cosign.key $BACKEND_IMAGE:$TAG_LATEST
+          rm -f cosign.key
 
   deploy-to-ec2:
     name: Deploy to EC2 Server
