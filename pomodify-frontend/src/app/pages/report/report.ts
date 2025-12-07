@@ -61,8 +61,8 @@ export class Report implements OnInit {
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
-  protected readonly completedFocusChecked = signal(false);
-  protected readonly progressingFocusChecked = signal(false);
+  protected readonly expiredSessionFocusChecked = signal(false);
+  protected readonly mockExpiredSessionsCount = signal(5); // Mock data - will be replaced with backend
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -134,16 +134,10 @@ export class Report implements OnInit {
 
   protected readonly ReportRange = ReportRange;
 
-  protected onCompletedFocusToggle(event: Event): void {
+  protected onExpiredSessionFocusToggle(event: Event): void {
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
-    this.completedFocusChecked.set(input.checked);
-  }
-
-  protected onProgressingFocusToggle(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
-    if (!input) return;
-    this.progressingFocusChecked.set(input.checked);
+    this.expiredSessionFocusChecked.set(input.checked);
   }
 
   protected onBarHover(point: FocusPoint, event: MouseEvent): void {
@@ -188,6 +182,7 @@ export class Report implements OnInit {
     const metrics = summary.metrics;
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
+    const recentSessions = summary.recentSessions ?? [];
 
     // Generate labels if not provided or empty
     const labels = chartData?.labels && chartData.labels.length > 0
@@ -219,12 +214,16 @@ export class Report implements OnInit {
     }
     this.streakDays.set(streak);
 
-    const points: FocusPoint[] = labels.map((label, index) => ({
-      label,
-      hours: paddedFocusHours[index] ?? 0,
-      percentage: 0,
-      activities: [],
-    }));
+    // Build activity breakdown for each label based on recentSessions
+    const points: FocusPoint[] = labels.map((label, index) => {
+      const activities = this.getActivitiesForDateLabel(label, index, recentSessions);
+      return {
+        label,
+        hours: paddedFocusHours[index] ?? 0,
+        percentage: 0,
+        activities,
+      };
+    });
 
     this.rebuildSeries(points);
 
@@ -247,6 +246,53 @@ export class Report implements OnInit {
 
     this.activityRanking.set(ranking);
     this.focusProjects.set(projects);
+  }
+
+  private getActivitiesForDateLabel(label: string, index: number, sessions: any[]): ActivityBreakdown[] {
+    const activityMap: { [key: string]: ActivityBreakdown } = {};
+
+    for (const session of sessions) {
+      // Extract date from session and match with label
+      const sessionDate = new Date(session.date);
+      const isMatch = this.isSessionMatchingLabel(sessionDate, label, index);
+
+      if (isMatch) {
+        const activityName = session.activityName || 'Untitled Session';
+        const hours = (session.focusDurationMinutes ?? 0) / 60;
+
+        if (activityMap[activityName]) {
+          activityMap[activityName].hours += hours;
+          activityMap[activityName].sessions += 1;
+        } else {
+          activityMap[activityName] = {
+            activityName,
+            hours,
+            sessions: 1,
+          };
+        }
+      }
+    }
+
+    return Object.values(activityMap);
+  }
+
+  private isSessionMatchingLabel(date: Date, label: string, index: number): boolean {
+    const range = this.selectedRange();
+
+    if (range === ReportRange.WEEK) {
+      // Label format: 'Mon', 'Tue', etc.
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const sessionDayName = dayNames[date.getDay()].substring(0, 3);
+      return sessionDayName === label;
+    } else if (range === ReportRange.MONTH) {
+      // Label format: day of month (e.g., '1', '2', '15')
+      const sessionDay = date.getDate().toString();
+      return sessionDay === label;
+    } else {
+      // YEAR range - Label format: year (e.g., '2025')
+      const sessionYear = date.getFullYear().toString();
+      return sessionYear === label;
+    }
   }
 
   private rebuildSeries(points: FocusPoint[]): void {

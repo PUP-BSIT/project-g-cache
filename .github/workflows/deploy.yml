@@ -39,6 +39,19 @@ jobs:
           docker push $FRONTEND_IMAGE:$TAG_LATEST
           docker push $FRONTEND_IMAGE:$TAG_SHA
 
+      - name: Install cosign
+        run: |
+          curl -sSL -o cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+          chmod +x cosign
+
+      - name: Sign frontend images with cosign
+        env:
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
+          ./cosign sign --key cosign.key $FRONTEND_IMAGE:$TAG_SHA
+          ./cosign sign --key cosign.key $FRONTEND_IMAGE:$TAG_LATEST
+
       - name: Build and push backend image
         run: |
           docker build -f pomodify-backend/Dockerfile \
@@ -48,11 +61,32 @@ jobs:
           docker push $BACKEND_IMAGE:$TAG_LATEST
           docker push $BACKEND_IMAGE:$TAG_SHA
 
+      - name: Sign backend images with cosign
+        env:
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
+          ./cosign sign --key cosign.key $BACKEND_IMAGE:$TAG_SHA
+          ./cosign sign --key cosign.key $BACKEND_IMAGE:$TAG_LATEST
+
   deploy-to-ec2:
     name: Deploy to EC2 Server
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
+      - name: Install cosign for verification
+        run: |
+          curl -sSL -o cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+          chmod +x cosign
+
+      - name: Verify image signatures before deploy
+        env:
+          COSIGN_PUBKEY_B64: ${{ secrets.COSIGN_PUBKEY_B64 }}
+        run: |
+          echo "$COSIGN_PUBKEY_B64" | base64 -d > cosign.pub || true
+          ./cosign verify --key cosign.pub ${{ env.FRONTEND_IMAGE }}:${{ env.TAG_SHA }}
+          ./cosign verify --key cosign.pub ${{ env.BACKEND_IMAGE }}:${{ env.TAG_SHA }}
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:

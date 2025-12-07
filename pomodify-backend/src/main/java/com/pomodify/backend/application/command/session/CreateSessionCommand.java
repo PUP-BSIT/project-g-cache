@@ -10,5 +10,9 @@ public record CreateSessionCommand(
         Integer focusTimeInMinutes,
         Integer breakTimeInMinutes,
         Integer cycles,
+        Boolean enableLongBreak,
+        Integer longBreakTimeInMinutes,
+        Integer longBreakIntervalInMinutes,
         String note
-) {}
+) {
+}

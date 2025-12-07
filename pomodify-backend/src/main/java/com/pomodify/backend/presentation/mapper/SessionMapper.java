@@ -12,20 +12,22 @@ public final class SessionMapper {
 
     public static SessionItem toItem(SessionResult result) {
         return new SessionItem(
-                result.id(),
-                result.activityId(),
-                result.sessionType(),
-                result.status(),
-                result.currentPhase(),
-                result.focusTimeInMinutes(),
-                result.breakTimeInMinutes(),
-                result.cycles(),
-                result.cyclesCompleted(),
-                result.totalTimeInMinutes(),
-                result.note(),
-                result.startedAt(),
-                result.completedAt(),
-                result.createdAt()
+            result.id(),
+            result.activityId(),
+            result.sessionType(),
+            result.status(),
+            result.currentPhase(),
+            result.focusTimeInMinutes(),
+            result.breakTimeInMinutes(),
+            result.cycles(),
+            result.cyclesCompleted(),
+            result.totalTimeInMinutes(),
+            result.totalElapsedSeconds(),
+            result.remainingPhaseSeconds(),
+            result.note(),
+            result.startedAt(),
+            result.completedAt(),
+            result.createdAt()
         );
     }
 

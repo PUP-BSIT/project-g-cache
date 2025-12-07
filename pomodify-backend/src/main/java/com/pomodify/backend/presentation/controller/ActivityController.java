@@ -8,6 +8,8 @@ import com.pomodify.backend.presentation.dto.request.activity.CreateActivityRequ
 import com.pomodify.backend.presentation.dto.request.activity.UpdateActivityRequest;
 import com.pomodify.backend.presentation.dto.response.ActivityResponse;
 import com.pomodify.backend.presentation.mapper.ActivityMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +23,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/activities")
+@RequestMapping("/activities")
+@Tag(name = "Activities", description = "Manage activities for pomodoro sessions")
 @Slf4j
 @RequiredArgsConstructor
 public class ActivityController {
@@ -29,7 +32,8 @@ public class ActivityController {
     private final ActivityService activityService;
 
     /* -------------------- CREATE -------------------- */
-    @PostMapping
+        @PostMapping
+        @Operation(summary = "Create a new activity")
     public ResponseEntity<ActivityResponse> createActivity(
             @RequestBody @Valid CreateActivityRequest request,
             @AuthenticationPrincipal Jwt jwt
@@ -49,7 +53,8 @@ public class ActivityController {
     }
 
     /* -------------------- GET -------------------- */
-    @GetMapping
+        @GetMapping
+        @Operation(summary = "List active activities")
     public ResponseEntity<ActivityResponse> getActiveActivities(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
@@ -61,7 +66,8 @@ public class ActivityController {
         return fetchActivities(jwt, false, categoryId, page, size, sortOrder, sortBy);
     }
 
-    @GetMapping("/deleted")
+        @GetMapping("/deleted")
+        @Operation(summary = "List deleted activities")
     public ResponseEntity<ActivityResponse> getDeletedActivities(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
@@ -73,7 +79,8 @@ public class ActivityController {
         return fetchActivities(jwt, true, categoryId, page, size, sortOrder, sortBy);
     }
 
-    @GetMapping("/{id}")
+        @GetMapping("/{id}")
+        @Operation(summary = "Get a single activity by id")
     public ResponseEntity<ActivityResponse> getActivity(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId
@@ -91,7 +98,8 @@ public class ActivityController {
     }
 
     /* -------------------- UPDATE -------------------- */
-    @PutMapping("/{id}")
+        @PutMapping("/{id}")
+        @Operation(summary = "Update an activity")
     public ResponseEntity<ActivityResponse> updateActivity(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId,
@@ -113,7 +121,8 @@ public class ActivityController {
     }
 
     /* -------------------- DELETE -------------------- */
-    @DeleteMapping("/{id}")
+        @DeleteMapping("/{id}")
+        @Operation(summary = "Soft delete an activity")
     public ResponseEntity<ActivityResponse> deleteActivity(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId

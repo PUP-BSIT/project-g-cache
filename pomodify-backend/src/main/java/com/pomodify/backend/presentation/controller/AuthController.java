@@ -14,6 +14,8 @@ import com.pomodify.backend.presentation.dto.response.LogoutResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
 import com.pomodify.backend.presentation.mapper.AuthMapper;
 import com.pomodify.backend.presentation.mapper.UserMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
+@Tag(name = "Auth", description = "User registration, login and token management")
 @Slf4j
 public class AuthController {
 
@@ -35,6 +38,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Register a new user")
     public ResponseEntity<UserResponse> register(@RequestBody @Valid RegisterRequest request) {
         log.info("Registration request received for user with email: {}", request.email());
 
@@ -52,6 +56,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Login with email and password")
     public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
         log.info("Login request received for: {}", request.email());
 
@@ -67,6 +72,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
+    @Operation(summary = "Logout current user by revoking token")
     public ResponseEntity<LogoutResponse> logout(HttpServletRequest request) {
         log.info("Logout request received");
 
@@ -93,6 +99,7 @@ public class AuthController {
 
     // ──────────────── Refresh Tokens ────────────────
     @PostMapping("/refresh")
+    @Operation(summary = "Refresh access and refresh tokens")
     public ResponseEntity<AuthResponse> refresh(@RequestBody @Valid RefreshTokensRequest request) {
         log.info("Refresh request received");
 
@@ -105,6 +112,7 @@ public class AuthController {
 
     // ──────────────── Current User ──────────────q──
     @GetMapping("/me")
+    @Operation(summary = "Get current authenticated user profile")
     public ResponseEntity<UserResponse> me(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
