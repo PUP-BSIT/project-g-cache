@@ -9,14 +9,14 @@ import org.springframework.web.util.pattern.PathPatternParser;
 @Configuration
 public class ApiPathPrefixConfig implements WebMvcConfigurer {
 
-    @Value("${api.version:v1}")
+    @Value("${app.api.major-version:1}")
     private String apiVersion;
 
     @Override
     public void configurePathMatch(PathMatchConfigurer configurer) {
         configurer.setPatternParser(new PathPatternParser());
 
-        String apiBasePath = "/api/" + apiVersion;
+        String apiBasePath = "/api/v" + apiVersion;
 
         configurer.addPathPrefix(apiBasePath, handlerType ->
                 handlerType.getPackageName().startsWith("com.pomodify.backend.presentation.controller"));
