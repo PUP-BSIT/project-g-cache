@@ -50,23 +50,52 @@ const mockActivities = [
  * Routes are matched in order - more specific routes first
  */
 async function setupApiMocks(page: Page) {
+  // Enable request interception logging for debugging
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/')) {
+      console.log(`[MOCK] Request: ${request.method()} ${request.url()}`);
+    }
+  });
+
+  page.on('response', (response) => {
+    if (response.url().includes('/api/v1/')) {
+      console.log(`[MOCK] Response: ${response.status()} ${response.url()}`);
+    }
+  });
+
   // Mock login endpoint (must be before catch-all)
   await page.route('**/api/v1/auth/login', async (route) => {
+    console.log('[MOCK] Intercepted login request');
     const request = route.request();
-    const postData = request.postDataJSON();
+    let postData;
+    try {
+      postData = request.postDataJSON();
+    } catch (e) {
+      postData = null;
+    }
     
     // Check credentials
     if (postData?.email === 'test@example.com' && postData?.password === 'Password123!') {
+      console.log('[MOCK] Returning success response for login');
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
         body: JSON.stringify(mockAuthResponse),
       });
     } else {
+      console.log('[MOCK] Returning error response for login');
       // Invalid credentials
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: JSON.stringify({ message: 'Invalid credentials' }),
       });
     }
@@ -83,18 +112,30 @@ async function setupApiMocks(page: Page) {
 
   // Mock dashboard endpoint (match with or without query params)
   await page.route('**/api/v1/dashboard*', async (route) => {
+    console.log('[MOCK] Intercepted dashboard request');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
       body: JSON.stringify(mockDashboardData),
     });
   });
 
   // Mock user profile endpoint
   await page.route('**/api/v1/users/me*', async (route) => {
+    console.log('[MOCK] Intercepted user profile request');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
       body: JSON.stringify(mockUser),
     });
   });
@@ -154,8 +195,13 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock any other API calls with a generic response (catch-all)
-  await page.route('**/api/v1/**', async (route) => {
+  // Use function matcher to ensure we catch all API calls
+  await page.route((url) => {
+    return url.href.includes('/api/v1/');
+  }, async (route) => {
     const url = route.request().url();
+    console.log(`[MOCK] Catch-all intercepted: ${route.request().method()} ${url}`);
+    
     // Only mock if not already handled by specific routes above
     const isHandled = 
       url.includes('/auth/login') ||
@@ -169,13 +215,18 @@ async function setupApiMocks(page: Page) {
       url.includes('/auth/logout');
     
     if (!isHandled) {
+      console.log(`[MOCK] Returning generic response for unhandled endpoint: ${url}`);
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
         body: JSON.stringify({}),
       });
     } else {
-      // Let the specific handler process it
+      // Let the specific handler process it (shouldn't reach here, but just in case)
+      console.log(`[MOCK] Passing to specific handler: ${url}`);
       await route.continue();
     }
   });
@@ -185,7 +236,7 @@ async function setupApiMocks(page: Page) {
 // The page fixture is automatically extended to setup mocks
 export const test = base.extend({
   page: async ({ page }, use) => {
-    // Setup API mocks before each test uses the page
+    // Setup API mocks BEFORE page is used
     await setupApiMocks(page);
     
     // Set up localStorage for auth (if needed)
@@ -194,6 +245,7 @@ export const test = base.extend({
       localStorage.clear();
     });
     
+    // Use the page
     await use(page);
   },
 });

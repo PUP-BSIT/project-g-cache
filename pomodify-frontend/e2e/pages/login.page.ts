@@ -27,14 +27,18 @@ export class LoginPage {
     await this.fillEmail(email);
     await this.fillPassword(password);
     await this.clickLoginButton();
-    // Wait for navigation or error, but with timeout
+    // Wait for API response and navigation or error
     try {
+      // Wait for network to be idle (API call completed)
+      await this.page.waitForLoadState('networkidle', { timeout: 10000 });
+      // Then wait for navigation or error message
       await Promise.race([
-        this.page.waitForURL(/.*\/dashboard/, { timeout: 15000 }),
-        this.page.waitForSelector('text=Invalid credentials', { timeout: 10000 }),
+        this.page.waitForURL(/.*\/dashboard/, { timeout: 10000 }),
+        this.page.waitForSelector('text=Invalid credentials, text=Error, .error', { timeout: 5000 }),
       ]);
     } catch (error) {
       // Timeout is acceptable - test will check state
+      console.log('[LoginPage] Login wait completed with timeout');
     }
   }
 
