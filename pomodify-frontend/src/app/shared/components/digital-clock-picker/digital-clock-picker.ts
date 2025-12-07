@@ -11,42 +11,44 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="digital-clock-picker">
-      <div class="time-container">
-        <!-- Minutes Column -->
-        <div class="time-column">
-          <div class="column-header">MINUTES</div>
-          <div class="scroll-wrapper">
-            <div class="scroll-container" #minutesScroll>
+      <div class="time-display">
+        <!-- Minutes -->
+        <div class="time-section">
+          <div class="section-label">MINUTES</div>
+          <div class="digit-wrapper">
+            <div class="fade-overlay top"></div>
+            <div class="digit-container" #minutesScroll>
               @for (min of minutes(); track min) {
                 <div 
-                  class="time-digit" 
+                  class="digit-option" 
                   [class.selected]="min === time().minutes"
                   (click)="selectMinute(min)">
                   {{ min.toString().padStart(2, '0') }}
                 </div>
               }
             </div>
-            <div class="selection-indicator"></div>
+            <div class="fade-overlay bottom"></div>
           </div>
         </div>
 
-        <div class="separator">:</div>
+        <div class="colon">:</div>
 
-        <!-- Seconds Column -->
-        <div class="time-column">
-          <div class="column-header">SECONDS</div>
-          <div class="scroll-wrapper">
-            <div class="scroll-container" #secondsScroll>
+        <!-- Seconds -->
+        <div class="time-section">
+          <div class="section-label">SECONDS</div>
+          <div class="digit-wrapper">
+            <div class="fade-overlay top"></div>
+            <div class="digit-container" #secondsScroll>
               @for (sec of seconds(); track sec) {
                 <div 
-                  class="time-digit" 
+                  class="digit-option" 
                   [class.selected]="sec === time().seconds"
                   (click)="selectSecond(sec)">
                   {{ sec.toString().padStart(2, '0') }}
                 </div>
               }
             </div>
-            <div class="selection-indicator"></div>
+            <div class="fade-overlay bottom"></div>
           </div>
         </div>
       </div>
@@ -62,115 +64,127 @@ import { CommonModule } from '@angular/common';
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 1rem;
+      padding: 20px 32px;
       user-select: none;
+      width: 100%;
+      background: #F5F3FF;
+      border-radius: 16px;
+      height: 240px;
+      overflow: visible;
     }
 
-    .time-container {
+    .time-display {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 2rem;
-      background: #F8F9FA;
-      border-radius: 16px;
-      padding: 24px 40px;
-      border: 2px solid #E0E0E0;
-      min-width: 450px;
+      justify-content: space-around;
+      gap: 1.5rem;
+      width: 100%;
+      height: 100%;
     }
 
-    .time-column {
+    .time-section {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      gap: 10px;
+      flex: 1;
+      height: 100%;
+      max-width: 350px;
     }
 
-    .column-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: #5FA9A4;
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9CA3AF;
       letter-spacing: 1.5px;
-      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 4px;
     }
 
-    .scroll-wrapper {
+    .digit-wrapper {
       position: relative;
-      background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      border: 1px solid #E8E8E8;
+      width: 100%;
+      height: 160px;
+      overflow: hidden !important;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0, black 60px, black calc(100% - 60px), transparent 100%);
     }
 
-    .scroll-container {
-      height: 210px;
-      overflow-y: auto;
-      scroll-snap-type: y mandatory;
-      scrollbar-width: thin;
-      scrollbar-color: #5FA9A4 #F0F0F0;
-      width: 100px;
-      position: relative;
-      padding: 0 12px;
+    .fade-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 60px;
+      pointer-events: none;
+      z-index: 2;
       
-      /* Custom scrollbar for webkit */
+      &.top {
+        top: 0;
+        background: linear-gradient(180deg, #F5F3FF 0%, rgba(245, 243, 255, 0) 100%);
+      }
+      
+      &.bottom {
+        bottom: 0;
+        background: linear-gradient(0deg, #F5F3FF 0%, rgba(245, 243, 255, 0) 100%);
+      }
+    }
+
+    .digit-container {
+      width: 100%;
+      height: 160px;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none !important;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      -ms-overflow-style: none !important;
+      scroll-behavior: smooth;
+      
       &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: #F5F5F5;
-        border-radius: 10px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #5FA9A4;
-        border-radius: 10px;
-
-        &:hover {
-          background: #4D8B87;
-        }
+        display: none !important;
       }
     }
 
-    .selection-indicator {
-      display: none;
-    }
-
-    .time-digit {
-      font-size: 2rem;
-      font-weight: 500;
-      color: #7F8C8D;
-      height: 70px;
+    .digit-option {
+      font-size: 7rem;
+      font-weight: 800;
+      color: #E5E7EB;
+      height: 160px;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       scroll-snap-align: center;
       cursor: pointer;
-      transition: all 0.25s ease;
-      font-family: 'Inter', 'Segoe UI', sans-serif;
-      border-radius: 8px;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      flex-shrink: 0;
 
       &:hover {
-        color: #34495E;
-        background: rgba(95, 169, 164, 0.1);
+        color: #A855F7;
+        transform: scale(1.05);
       }
 
       &.selected {
-        color: #FFFFFF;
-        font-weight: 700;
-        font-size: 2.5rem;
-        background: #5FA9A4;
-        box-shadow: 0 4px 8px rgba(95, 169, 164, 0.3);
+        color: #9333EA;
+        font-weight: 900;
+        transform: scale(1.1);
       }
     }
 
-    .separator {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #5FA9A4;
-      margin: 0 0.5rem;
-      padding-top: 24px;
+    .colon {
+      font-size: 7rem;
+      font-weight: 900;
+      color: #9333EA;
+      margin: 0;
+      padding-top: 25px;
       flex-shrink: 0;
+      width: 60px;
+      text-align: center;
     }
 
     .overlay-disabled {
@@ -180,7 +194,7 @@ import { CommonModule } from '@angular/common';
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.3);
-      border-radius: 16px;
+      border-radius: 20px;
       cursor: not-allowed;
       backdrop-filter: blur(2px);
     }
@@ -227,7 +241,7 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     setTimeout(() => {
       if (this.minutesScrollRef) {
         const minuteElement = this.minutesScrollRef.nativeElement
-          .querySelector('.time-digit.selected') as HTMLElement;
+          .querySelector('.digit-option.selected') as HTMLElement;
         if (minuteElement) {
           minuteElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -235,7 +249,7 @@ export class DigitalClockPickerComponent implements AfterViewInit {
 
       if (this.secondsScrollRef) {
         const secondElement = this.secondsScrollRef.nativeElement
-          .querySelector('.time-digit.selected') as HTMLElement;
+          .querySelector('.digit-option.selected') as HTMLElement;
         if (secondElement) {
           secondElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }

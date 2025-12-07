@@ -378,9 +378,8 @@ export class SessionTimerComponent implements OnDestroy {
     const currentSeconds = this.remainingSeconds() % 60;
 
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      width: '400px',
-      disableClose: false,
-      panelClass: 'time-picker-dialog-panel'
+      width: '900px',
+      disableClose: false
     });
 
     // Set initial time
