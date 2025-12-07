@@ -5,6 +5,8 @@ import com.pomodify.backend.application.helper.UserHelper;
 import com.pomodify.backend.application.service.SummaryService;
 import com.pomodify.backend.presentation.dto.response.SummaryResponse;
 import com.pomodify.backend.presentation.mapper.SummaryMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -20,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 
 @RestController
 @RequestMapping("/reports")
+@Tag(name = "Reports", description = "Summary reports over different time ranges")
 @RequiredArgsConstructor
 public class ReportsController {
 
@@ -28,6 +31,7 @@ public class ReportsController {
     private final UserHelper userHelper;
 
     @GetMapping("/summary")
+    @Operation(summary = "Get summary report", description = "Returns a summary report for the current user over weekly, monthly, or yearly range.")
     public SummaryResponse getSummary(@AuthenticationPrincipal Jwt jwt,
                                       @RequestParam(name = "range", defaultValue = "week") String range) {
         Long userId = userHelper.extractUserId(jwt);

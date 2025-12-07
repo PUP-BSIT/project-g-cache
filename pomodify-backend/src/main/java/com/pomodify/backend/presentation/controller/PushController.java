@@ -2,6 +2,8 @@ package com.pomodify.backend.presentation.controller;
 
 import com.pomodify.backend.domain.model.UserPushToken;
 import com.pomodify.backend.domain.repository.UserPushTokenRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,12 +14,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/push")
+@Tag(name = "Push Notifications", description = "Manage user push notification tokens and settings")
 @RequiredArgsConstructor
 public class PushController {
 
     private final UserPushTokenRepository tokenRepo;
 
     @PostMapping("/register-token")
+    @Operation(summary = "Register or update push token")
     public ResponseEntity<?> registerToken(@AuthenticationPrincipal Jwt jwt,
                                            @RequestBody Map<String, String> payload) {
         if (jwt == null) {
@@ -57,6 +61,7 @@ public class PushController {
     }
 
     @DeleteMapping("/unregister-token")
+    @Operation(summary = "Unregister push token")
     public ResponseEntity<?> unregisterToken(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
             return ResponseEntity.status(401).body("Unauthorized");
@@ -76,6 +81,7 @@ public class PushController {
     }
 
     @GetMapping("/status")
+    @Operation(summary = "Get push registration status")
     public ResponseEntity<?> status(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) return ResponseEntity.status(401).body("Unauthorized");
         Long userId = extractUserId(jwt);
@@ -91,6 +97,7 @@ public class PushController {
     }
 
     @PutMapping("/enable")
+    @Operation(summary = "Enable push notifications")
     public ResponseEntity<?> enable(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) return ResponseEntity.status(401).body("Unauthorized");
         Long userId = extractUserId(jwt);
@@ -105,6 +112,7 @@ public class PushController {
     }
 
     @PutMapping("/disable")
+    @Operation(summary = "Disable push notifications")
     public ResponseEntity<?> disable(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) return ResponseEntity.status(401).body("Unauthorized");
         Long userId = extractUserId(jwt);

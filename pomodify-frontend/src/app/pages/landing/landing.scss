@@ -50,6 +50,9 @@
   background: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
   scroll-margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .feature-box:hover {
@@ -109,6 +112,9 @@
   font-weight: 500;
   font-size: 15px;
   transition: background 0.2s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .learn-btn:hover {
@@ -126,16 +132,112 @@
   .feature-grid-wrap .feature-box:nth-child(5) { grid-column: auto; }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 768px) {
   .feature-grid {
-    padding: 60px 24px;
+    padding: 50px 24px 60px;
   }
-  .feature-grid-wrap { grid-template-columns: 1fr; }
+  
+  .feature-title {
+    font-size: 28px;
+    margin-bottom: 32px;
+  }
+  
+  .feature-grid-wrap { 
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .feature-box {
+    padding: 20px;
+  }
+  
+  .feature-box h4 {
+    font-size: 17px;
+  }
+  
+  .feature-box p {
+    font-size: 13px;
+  }
+  
+  .feature-box img {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-grid {
+    padding: 40px 16px 50px;
+  }
+  
+  .feature-eyebrow {
+    font-size: 12px;
+  }
+  
+  .feature-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .feature-grid-wrap {
+    gap: 16px;
+  }
+  
+  .feature-box {
+    padding: 16px;
+  }
+  
+  .feature-box h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .feature-box p {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .feature-box img {
+    height: 140px;
+    margin: 6px 0 16px;
+  }
+  
+  .learn-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 375px) {
+  .feature-box {
+    padding: 14px;
+  }
+  
+  .learn-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 320px) {
+  .feature-box {
+    padding: 12px;
+  }
+  
+  .learn-btn {
+    padding: 9px 10px;
+    font-size: 12px;
+  }
 }
 .landing {
   padding: 0;
   background: #ffffff;
   min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .landing {
+    overflow: visible !important;
+  }
 }
 
 .hero {
@@ -296,9 +398,13 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 3;
+  overflow: visible !important;
 
   /* Each feature wrapper is absolutely positioned around the clock */
-  .feature { position: absolute; }
+  .feature { 
+    position: absolute;
+    overflow: visible !important;
+  }
 
   .feature-card {
     pointer-events: auto;
@@ -449,13 +555,13 @@
   
   .feature-2 .feature-icon { 
     left: -82px;
-    top: -2px;
+    top: -8px;
     transform: none;
   }
   
   .feature-3 .feature-icon { 
     right: -60px;               /* move closer to card so it sits farther from center */
-    top: 2px;
+    top: 35px;
     transform: none;
   }
   
@@ -468,7 +574,7 @@
   /* Tail connectors */
   .feature-1 .feature-tail { 
     right: -42px;                         /* snug gap to icon */
-    top: 50%;
+    top: 60px;
     transform: translateY(-50%);
     /* show left + top sides to create a ⎾ bracket (open right/bottom) */
     border-right: 0;
@@ -477,7 +583,7 @@
   
   .feature-2 .feature-tail { 
     left: -42px;
-    top: 50%;
+    top: 60px;
     transform: translateY(-50%);
     /* show right + top sides to create a ⎽⎺ mirrored bracket (open left/bottom) */
     border-left: 0;
@@ -486,7 +592,7 @@
   
   .feature-3 .feature-tail { 
     right: -34px;                /* align with icon’s new, closer position */
-    top: 50%;
+    top: 95px;
     transform: translateY(-50%);
     /* show left + bottom sides (open right/top) */
     border-right: 0;
@@ -495,7 +601,7 @@
   
   .feature-4 .feature-tail { 
     left: -34px;  
-    top: 50%;
+    top: 95px;
     transform: translateY(-50%);
     /* show right + bottom sides (open left/top) */
     border-left: 0;
@@ -505,21 +611,480 @@
 
 
 
-@media (max-width: 640px) {
-  .hero {
-    padding: 24px 24px 60px;
+@media (max-width: 768px) {
+  .hero-left {
+    padding: 25px 18px 12px;
   }
   
-  .features { 
-    grid-template-columns: 1fr;
+  .hero-left .site-brand {
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  
+  .headline {
+    font-size: 24px;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  
+  .subtext {
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 0 12px;
   }
   
   .cta {
-    flex-direction: column;
+    padding: 15px 18px 30px;
+    gap: 10px;
+    flex-direction: row;
   }
   
   .btn {
-    width: 100%;
+    flex: 1;
+    max-width: 145px;
+    min-width: 105px;
+  }
+  
+  .hero-right {
+    padding: 30px 15px 25px;
+    overflow: visible !important;
+  }
+  
+  .clock-frame {
+    width: 250px;
+    height: 250px;
+    border-width: 7px;
+  }
+  
+  .student {
+    width: 230px;
+    transform: translate(0, -48px);
+  }
+  
+  .features {
+    width: 250px !important;
+    height: 250px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-1 {
+    left: -55px;
+    top: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-2 {
+    right: -55px;
+    top: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-3 {
+    left: -35px;
+    bottom: -30px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-4 {
+    right: -35px;
+    bottom: -30px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card {
+    width: 95px !important;
+    padding: 6px 7px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-icon {
+    width: 30px !important;
+    height: 30px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-icon img {
+    width: 30px !important;
+    height: 30px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card .title {
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+  
+  .feature-card .desc {
+    font-size: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-left {
+    padding: 22px 14px 10px;
+  }
+  
+  .hero-left .site-brand {
+    font-size: 18px;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  
+  .headline {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .subtext {
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 0 8px;
+  }
+  
+  .cta {
+    padding: 12px 14px 25px;
+    gap: 8px;
+    flex-direction: row;
+  }
+  
+  .btn {
+    flex: 1;
+    min-height: 44px;
+    font-size: 14px;
+    padding: 0 10px;
+    min-width: 95px;
+    max-width: 135px;
+  }
+  
+  .hero-right {
+    padding: 25px 10px 20px;
+    overflow: visible !important;
+  }
+  
+  .clock-frame {
+    width: 210px;
+    height: 210px;
+    border-width: 6px;
+  }
+  
+  .student {
+    width: 190px;
+    transform: translate(0, -42px);
+  }
+  
+  .features {
+    width: 210px !important;
+    height: 210px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-1 {
+    left: -50px;
+    top: -18px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-2 {
+    right: -50px;
+    top: -18px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-3 {
+    left: -32px;
+    bottom: -25px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-4 {
+    right: -32px;
+    bottom: -25px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card {
+    width: 85px !important;
+    padding: 5px 6px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-icon {
+    width: 28px !important;
+    height: 28px !important;
+    margin-bottom: 3px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-icon img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .feature-card .title {
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+  
+  .feature-card .desc {
+    font-size: 5.5px;
+    margin-top: 2px;
+  }
+}
+
+@media (max-width: 375px) {
+  .hero-left {
+    padding: 20px 12px 10px;
+  }
+  
+  .hero-left .site-brand {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .headline {
+    font-size: 18px;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  
+  .subtext {
+    font-size: 11px;
+    padding: 0 5px;
+  }
+  
+  .cta {
+    padding: 12px 12px;
+    gap: 8px;
+    flex-direction: row;
+  }
+  
+  .btn {
+    font-size: 13px;
+    min-height: 42px;
+    padding: 0 8px;
+    min-width: 90px;
+    max-width: 130px;
+    flex: 1;
+  }
+  
+  .hero-right {
+    padding: 10px 5px;
+    overflow: visible !important;
+  }
+  
+  .clock-frame {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .student {
+    width: 180px;
+    transform: translate(0, -40px);
+  }
+  
+  .features {
+    width: 190px !important;
+    height: 190px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-1 {
+    left: -42px;
+    top: -15px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-2 {
+    right: -42px;
+    top: -15px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-3 {
+    left: -28px;
+    bottom: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-4 {
+    right: -28px;
+    bottom: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card {
+    width: 78px !important;
+    padding: 4px 5px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-icon {
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-icon img {
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card .title {
+    font-size: 6.5px;
+    padding: 1px 2px;
+  }
+  
+  .feature-card .desc {
+    font-size: 5px;
+  }
+}
+
+@media (max-width: 320px) {
+  .hero-left {
+    padding: 16px 10px 8px;
+  }
+  
+  .hero-left .site-brand {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .headline {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .subtext {
+    font-size: 10px;
+    line-height: 1.4;
+    padding: 0 5px;
+  }
+  
+  .cta {
+    padding: 10px 10px;
+    gap: 6px;
+    flex-direction: row;
+  }
+  
+  .btn {
+    flex: 1;
+    max-width: 145px;
+    min-width: 85px;
+    font-size: 12px;
+    min-height: 40px;
+    padding: 0 8px;
+  }
+  
+  .hero-right {
+    padding: 8px 5px;
+    overflow: visible !important;
+  }
+  
+  .clock-frame {
+    width: 180px;
+    height: 180px;
+    border-width: 5px;
+  }
+  
+  .student {
+    width: 160px;
+    transform: translate(0, -35px);
+  }
+  
+  .features {
+    width: 180px !important;
+    height: 180px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-1,
+  .feature-2 {
+    left: -38px;
+    top: -13px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-2 {
+    left: auto;
+    right: -38px;
+  }
+  
+  .feature-3 {
+    left: -25px;
+    bottom: -18px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-4 {
+    right: -25px;
+    bottom: -18px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card {
+    width: 72px !important;
+    padding: 3px 4px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-icon {
+    width: 20px !important;
+    height: 20px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-icon img {
+    width: 20px !important;
+    height: 20px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card .title {
+    font-size: 6px;
+    padding: 1px 2px;
+  }
+  
+  .feature-card .desc {
+    font-size: 4.5px;
   }
 }
 
@@ -558,60 +1123,171 @@
 @media (max-width: 1024px) {
   .hero {
     grid-template-columns: 1fr;
-    padding: 40px 40px 80px;
-    gap: 60px;
+    padding: 0;
+    gap: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+  
+  .hero-left {
+    max-width: 100%;
+    text-align: center;
+    order: 1;
+    padding: 40px 24px 20px;
+    display: flex;
+    flex-direction: column;
   }
   
   .hero-left .site-brand {
-    font-size: 28px;
+    font-size: 24px;
+    margin-bottom: 20px;
+    order: 1;
   }
   
   .headline {
-    font-size: 36px;
+    font-size: 28px;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    order: 2;
+  }
+  
+  .subtext {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 0;
+    padding: 0 20px;
+    order: 3;
+  }
+  
+  .cta {
+    justify-content: center;
+    margin-top: 0;
+    order: 4;
+    padding: 20px 24px 30px;
+    flex-direction: row;
+    gap: 12px;
   }
   
   .hero-right { 
-    order: -1;
+    order: 2;
+    min-height: auto;
+    padding: 40px 10px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    overflow: visible;
   }
   
   .clock-frame {
-    width: 340px;
-    height: 340px;
+    width: 240px;
+    height: 240px;
   }
   
   .student {
-    width: 300px;
-    transform: translate(0, -40px);
+    width: 220px;
+    transform: translate(0, -48px);
   }
   
   .features { 
-    position: static !important;
-    height: auto !important;
-    pointer-events: auto !important;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    margin-top: 40px;
+    position: absolute !important;
+    width: 240px !important;
+    height: 240px !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: none;
+    display: block !important;
+    z-index: 10;
+  }
+
+  .feature { 
+    position: absolute !important;
+    pointer-events: auto;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-1 {
+    left: -108px;
+    top: 15px;
+  }
+  
+  .feature-2 {
+    right: -108px;
+    top: 15px;
+  }
+  
+  .feature-3 {
+    left: 3px;
+    bottom: -20px;
+  }
+  
+  .feature-4 {
+    right: 3px;
+    bottom: -20px;
   }
 
   .feature-card { 
-    position: static !important;
-    width: 100% !important;
-    max-width: none !important;
+    width: 105px !important;
+    padding: 7px 9px !important;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border: 2px solid #d0e8eb !important;
+    display: block !important;
   }
   
   .feature-icon { 
     position: static !important;
-    width: 48px !important;
-    height: 48px !important;
-    display: inline-block;
-    margin-bottom: 12px;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    background: transparent;
+    border-radius: 8px;
+    overflow: visible;
   }
+  
   .feature-icon img {
     position: static !important;
-    width: 48px !important;
-    height: 48px !important;
+    width: 36px !important;
+    height: 36px !important;
     transform: none !important;
+    object-fit: contain;
+    display: block !important;
+  }
+  
+  .feature-card .text {
+    width: 100%;
+    display: block !important;
+  }
+  
+  .feature-card .title {
+    font-size: 9px;
+    padding: 3px 6px;
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    color: #24425A;
+    display: inline-block;
+  }
+  
+  .feature-card .desc {
+    font-size: 7px;
+    margin-top: 3px;
+    line-height: 1.3;
+    color: #5a7a8c;
+    display: block;
   }
   
   .feature-tail,
