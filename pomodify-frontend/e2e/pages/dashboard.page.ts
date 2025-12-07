@@ -44,7 +44,24 @@ export class DashboardPage {
   }
 
   async clickCreateSessionButton() {
-    await this.page.click('button:has-text("Create Session")', { timeout: 10000 });
+    // Try multiple selectors for create activity/session button
+    const selectors = [
+      'button.create-button',
+      'button.add-session-btn',
+      'button:has-text("Add Session")',
+      'button:has-text("Create Session")',
+    ];
+    
+    for (const selector of selectors) {
+      try {
+        await this.page.waitForSelector(selector, { timeout: 5000 });
+        await this.page.click(selector, { timeout: 5000 });
+        return;
+      } catch (e) {
+        // Try next selector
+      }
+    }
+    throw new Error('Create session button not found');
   }
 
   async isWelcomeMessageVisible() {
