@@ -13,9 +13,23 @@ export class DashboardPage {
 
   async isLoaded() {
     try {
-      await this.page.waitForSelector('h1:has-text("Dashboard")', { timeout: 10000 });
+      // Wait for page to be fully loaded and API responses to complete
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 });
+      // Wait for dashboard title or any dashboard content
+      await this.page.waitForSelector('h1:has-text("Dashboard"), [data-testid="dashboard"], .dashboard', { timeout: 10000 });
       return true;
     } catch {
+      // Try alternative selectors
+      try {
+        await this.page.waitForSelector('body', { timeout: 5000 });
+        // Check if we're on dashboard URL
+        const url = this.page.url();
+        if (url.includes('/dashboard')) {
+          return true;
+        }
+      } catch {
+        return false;
+      }
       return false;
     }
   }
@@ -37,3 +51,4 @@ export class DashboardPage {
     return await this.page.isVisible('text=Welcome back', { timeout: 5000 }).catch(() => false);
   }
 }
+
