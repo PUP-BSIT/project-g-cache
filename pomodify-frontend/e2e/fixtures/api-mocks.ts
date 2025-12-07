@@ -63,8 +63,21 @@ async function setupApiMocks(page: Page) {
     }
   });
 
-  // Mock login endpoint (must be before catch-all)
+  // Mock login endpoint
   await page.route('**/api/v1/auth/login', async (route) => {
+    // Handle OPTIONS preflight requests
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+      return;
+    }
+
     console.log('[MOCK] Intercepted login request');
     const request = route.request();
     let postData;
@@ -187,48 +200,28 @@ async function setupApiMocks(page: Page) {
 
   // Mock logout endpoint
   await page.route('**/api/v1/auth/logout', async (route) => {
+    // Handle OPTIONS preflight
+    if (route.request().method() === 'OPTIONS') {
+      await route.fulfill({
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
       body: JSON.stringify({ message: 'Logged out successfully' }),
     });
-  });
-
-  // Mock any other API calls with a generic response (catch-all)
-  // Use function matcher to ensure we catch all API calls
-  await page.route((url) => {
-    return url.href.includes('/api/v1/');
-  }, async (route) => {
-    const url = route.request().url();
-    console.log(`[MOCK] Catch-all intercepted: ${route.request().method()} ${url}`);
-    
-    // Only mock if not already handled by specific routes above
-    const isHandled = 
-      url.includes('/auth/login') ||
-      url.includes('/auth/register') ||
-      url.includes('/dashboard') ||
-      url.includes('/users/me') ||
-      url.includes('/activities') ||
-      url.includes('/settings') ||
-      url.includes('/categories') ||
-      url.includes('/auth/refresh') ||
-      url.includes('/auth/logout');
-    
-    if (!isHandled) {
-      console.log(`[MOCK] Returning generic response for unhandled endpoint: ${url}`);
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: JSON.stringify({}),
-      });
-    } else {
-      // Let the specific handler process it (shouldn't reach here, but just in case)
-      console.log(`[MOCK] Passing to specific handler: ${url}`);
-      await route.continue();
-    }
   });
 }
 
