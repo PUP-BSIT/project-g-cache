@@ -16,8 +16,8 @@ export default defineConfig({
   // ✅ Retry once in CI
   retries: process.env.CI ? 1 : 0,
 
-  // ✅ Fewer workers in CI to avoid overwhelming external API
-  workers: process.env.CI ? 1 : 2,
+  // ✅ More workers in CI for faster execution (can be adjusted based on API capacity)
+  workers: process.env.CI ? 2 : 2,
 
   // ✅ HTML report for local, but still fine in CI
   reporter: 'html',
@@ -40,8 +40,10 @@ export default defineConfig({
     // ✅ Shorter timeouts in CI to fail fast
     actionTimeout: process.env.CI ? 10_000 : 15_000,
     navigationTimeout: process.env.CI ? 15_000 : 30_000,
-    
   },
+
+  // ✅ Global setup (optional - API mocking is done via fixtures)
+  // globalSetup: require.resolve('./e2e/global-setup.ts'),
 
   // ✅ Only Chromium in CI, all browsers locally
   projects: process.env.CI
