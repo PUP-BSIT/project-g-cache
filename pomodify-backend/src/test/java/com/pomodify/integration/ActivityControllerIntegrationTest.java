@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.Disabled;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,7 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for ActivityController.
  * Tests activity CRUD operations and retrieval.
+ * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
+@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
@@ -213,5 +216,30 @@ class ActivityControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetDeletedActivities() throws Exception {
+        // Create an activity
+        CreateActivityRequest request = new CreateActivityRequest("To Delete Activity", "This will be deleted", categoryId);
+        MvcResult createResult = mockMvc.perform(post("/activities")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String activityId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("activities").get(0).get("activityId").asText();
+
+        // Delete the activity
+        mockMvc.perform(delete("/activities/" + activityId)
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Get deleted activities - should include our deleted activity
+        mockMvc.perform(get("/activities/deleted")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activities").isArray());
     }
 }

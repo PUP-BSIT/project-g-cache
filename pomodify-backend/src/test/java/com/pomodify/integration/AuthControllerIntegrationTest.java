@@ -3,6 +3,7 @@ package com.pomodify.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pomodify.backend.presentation.dto.request.auth.LoginRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RegisterRequest;
+import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.Disabled;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -24,7 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for AuthController.
  * Tests user registration, login, logout, and token refresh flows.
+ * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
+@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
@@ -190,5 +197,39 @@ class AuthControllerIntegrationTest {
                 .header("Authorization", "Bearer " + authResponse.accessToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void testRefreshTokens_Success() throws Exception {
+        // Register and login to get refresh token
+        RegisterRequest registerRequest = new RegisterRequest("Jane", "Smith", "jane@example.com", "Password123!");
+        mockMvc.perform(post("/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated());
+
+        LoginRequest loginRequest = new LoginRequest("jane@example.com", "Password123!");
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        AuthResponse authResponse = objectMapper.readValue(
+                loginResult.getResponse().getContentAsString(),
+                AuthResponse.class
+        );
+
+        String refreshToken = authResponse.refreshToken();
+        assertThat(refreshToken).isNotNull();
+
+        // Test refresh endpoint
+        RefreshTokensRequest refreshRequest = new RefreshTokensRequest(refreshToken);
+        mockMvc.perform(post("/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").exists())
+                .andExpect(jsonPath("$.refreshToken").exists());
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.Disabled;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -24,7 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for PushNotificationController.
  * Tests push notification registration, management, and status endpoints.
+ * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
+@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
@@ -229,5 +232,94 @@ class PushNotificationControllerIntegrationTest {
     void testGetPushStatus_Unauthenticated() throws Exception {
         mockMvc.perform(get("/push/status"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testUnregisterToken_Success() throws Exception {
+        // First register a token
+        String pushTokenRequest = """
+                {
+                    "token": "fcm_token_12345",
+                    "deviceName": "iPhone 14"
+                }
+                """;
+
+        mockMvc.perform(post("/push/register-token")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(pushTokenRequest))
+                .andExpect(status().isOk());
+
+        // Then unregister it
+        mockMvc.perform(delete("/push/unregister-token")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Verify it's unregistered
+        mockMvc.perform(get("/push/status")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.registered").value(false));
+    }
+
+    @Test
+    void testEnablePushNotifications_Success() throws Exception {
+        // First register a token
+        String pushTokenRequest = """
+                {
+                    "token": "fcm_token_12345",
+                    "deviceName": "iPhone 14"
+                }
+                """;
+
+        mockMvc.perform(post("/push/register-token")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(pushTokenRequest))
+                .andExpect(status().isOk());
+
+        // Disable it first
+        mockMvc.perform(put("/push/disable")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Now enable it
+        mockMvc.perform(put("/push/enable")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Verify it's enabled
+        mockMvc.perform(get("/push/status")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true));
+    }
+
+    @Test
+    void testDisablePushNotifications_Success() throws Exception {
+        // First register a token
+        String pushTokenRequest = """
+                {
+                    "token": "fcm_token_12345",
+                    "deviceName": "iPhone 14"
+                }
+                """;
+
+        mockMvc.perform(post("/push/register-token")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(pushTokenRequest))
+                .andExpect(status().isOk());
+
+        // Disable push notifications
+        mockMvc.perform(put("/push/disable")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Verify it's disabled
+        mockMvc.perform(get("/push/status")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false));
     }
 }
