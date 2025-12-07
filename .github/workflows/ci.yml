@@ -45,9 +45,58 @@ jobs:
             echo "⚠️ Branch might have conflicts with main"
           fi
 
+  unit-tests:
+    name: Unit Tests (Frontend + Backend)
+    needs: lint-and-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./pomodify-frontend
+        run: npm ci
+
+      - name: Run frontend unit tests (Karma)
+        working-directory: ./pomodify-frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless --no-progress
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Run backend unit tests
+        working-directory: ./pomodify-backend
+        run: mvn -B -DskipITs test
+
+  integration-tests:
+    name: Integration Tests (Testcontainers + Database)
+    needs: lint-and-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Run backend integration tests with Testcontainers
+        working-directory: ./pomodify-backend
+        run: mvn -B verify
+
   build-and-test:
     name: Build and Test Docker Images
-    needs: [lint-and-validate, unit-tests]
+    needs: [unit-tests, integration-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,105 +170,74 @@ jobs:
             exit 1
           fi
 
-    build-and-secure:
-      name: Build, SBOM, Scan & Sign
-      needs: build-and-test
-      runs-on: ubuntu-latest
-      env:
-        REGISTRY: ${{ secrets.DOCKER_USERNAME }}
-        TAG_PR: ${{ env.TAG_PR }}
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+  build-and-secure:
+    name: Build, SBOM, Scan & Sign
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.DOCKER_USERNAME }}
+      TAG_PR: ${{ env.TAG_PR }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    unit-tests:
-      name: Unit Tests (Frontend + Backend)
-      needs: lint-and-validate
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-        - name: Setup Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '20'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-        - name: Install frontend dependencies
-          working-directory: ./pomodify-frontend
-          run: npm ci
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Run frontend unit tests (Karma)
-          working-directory: ./pomodify-frontend
-          run: npx ng test --watch=false --browsers=ChromeHeadless --no-progress
+      - name: Build and push backend image (temporary tag)
+        run: |
+          docker build -f pomodify-backend/Dockerfile -t $REGISTRY/pomodify-backend:$TAG_PR ./pomodify-backend
+          docker push $REGISTRY/pomodify-backend:$TAG_PR
 
-        - name: Setup Java
-          uses: actions/setup-java@v4
-          with:
-            distribution: 'temurin'
-            java-version: '21'
+      - name: Build and push frontend image (temporary tag)
+        run: |
+          docker build -f pomodify-frontend/Dockerfile -t $REGISTRY/pomodify-frontend:$TAG_PR ./pomodify-frontend
+          docker push $REGISTRY/pomodify-frontend:$TAG_PR
 
-        - name: Run backend unit tests
-          working-directory: ./pomodify-backend
-          run: mvn -B -DskipITs test
+      - name: Generate SBOM for backend image
+        uses: anchore/syft-action@v0.11.0
+        with:
+          image: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
 
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v3
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.12.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
 
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
+      - name: Install cosign
+        run: |
+          curl -sSL -o cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+          chmod +x cosign
 
-        - name: Login to Docker Hub
-          uses: docker/login-action@v3
-          with:
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Sign backend image with cosign
+        env:
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
+          ./cosign sign --key cosign.key ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
 
-        - name: Build and push backend image (temporary tag)
-          run: |
-            docker build -f pomodify-backend/Dockerfile -t $REGISTRY/pomodify-backend:$TAG_PR ./pomodify-backend
-            docker push $REGISTRY/pomodify-backend:$TAG_PR
-
-        - name: Build and push frontend image (temporary tag)
-          run: |
-            docker build -f pomodify-frontend/Dockerfile -t $REGISTRY/pomodify-frontend:$TAG_PR ./pomodify-frontend
-            docker push $REGISTRY/pomodify-frontend:$TAG_PR
-
-        - name: Generate SBOM for backend image
-          uses: anchore/syft-action@v0.11.0
-          with:
-            image: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
-
-        - name: Scan backend image with Trivy
-          uses: aquasecurity/trivy-action@v0.12.0
-          with:
-            image-ref: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
-            format: 'table'
-            exit-code: '1'
-            severity: 'CRITICAL,HIGH'
-
-        - name: Install cosign
-          run: |
-            curl -sSL -o cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
-            chmod +x cosign
-
-        - name: Sign backend image with cosign
-          env:
-            COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
-          run: |
-            echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
-            ./cosign sign --key cosign.key ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
-
-        - name: Sign frontend image with cosign
-          env:
-            COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
-          run: |
-            echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
-            ./cosign sign --key cosign.key ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }}
+      - name: Sign frontend image with cosign
+        env:
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key || true
+          ./cosign sign --key cosign.key ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }}
 
   ci-summary:
     name: CI Summary
-    needs: [lint-and-validate, build-and-test, build-and-secure]
+    needs: [lint-and-validate, unit-tests, integration-tests, build-and-test, build-and-secure]
     runs-on: ubuntu-latest
     steps:
       - name: CI Passed
@@ -230,8 +248,12 @@ jobs:
           echo ""
           echo "📋 Summary:"
           echo "  ✅ Linting and validation - Passed"
+          echo "  ✅ Unit tests (frontend + backend) - Passed"
+          echo "  ✅ Integration tests (Testcontainers) - Passed"
           echo "  ✅ Docker builds - Passed"
           echo "  ✅ Container tests - Passed"
+          echo "  ✅ SBOM generation & vulnerability scan - Passed"
+          echo "  ✅ Image signing with cosign - Passed"
           echo ""
           echo "🎉 This PR is ready to be merged into main!"
           echo "🚀 Deployment will start automatically after merge"
