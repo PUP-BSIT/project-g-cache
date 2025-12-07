@@ -94,9 +94,67 @@ jobs:
         working-directory: ./pomodify-backend
         run: mvn -B verify
 
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./pomodify-frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ./pomodify-frontend
+        run: npx playwright install --with-deps
+
+      - name: Start frontend dev server
+        working-directory: ./pomodify-frontend
+        run: npm start &
+        env:
+          NODE_ENV: test
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for http://localhost:4200 to be ready..."
+          max_retries=30
+          retry_count=0
+          while [ $retry_count -lt $max_retries ]; do
+            if curl -s http://localhost:4200 > /dev/null; then
+              echo "Frontend is ready!"
+              exit 0
+            fi
+            echo "Attempt $((retry_count + 1))/$max_retries: Waiting for frontend..."
+            sleep 2
+            retry_count=$((retry_count + 1))
+          done
+          echo "Frontend did not start in time"
+          exit 1
+
+      - name: Run E2E tests with Playwright
+        working-directory: ./pomodify-frontend
+        run: npx playwright test
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:4200
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: pomodify-frontend/playwright-report/
+          retention-days: 7
+
   build-and-test:
     name: Build and Test Docker Images
-    needs: [unit-tests, integration-tests]
+    needs: [unit-tests, integration-tests, e2e-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -237,7 +295,7 @@ jobs:
 
   ci-summary:
     name: CI Summary
-    needs: [lint-and-validate, unit-tests, integration-tests, build-and-test, build-and-secure]
+    needs: [lint-and-validate, unit-tests, integration-tests, e2e-tests, build-and-test, build-and-secure]
     runs-on: ubuntu-latest
     steps:
       - name: CI Passed
@@ -248,12 +306,13 @@ jobs:
           echo ""
           echo "📋 Summary:"
           echo "  ✅ Linting and validation - Passed"
-          echo "  ✅ Unit tests (frontend + backend) - Passed"
-          echo "  ✅ Integration tests (Testcontainers) - Passed"
+          echo "  ✅ Layer 1: Unit tests (frontend + backend) - Passed"
+          echo "  ✅ Layer 2: Integration tests (Testcontainers) - Passed"
+          echo "  ✅ Layer 3: E2E tests (Playwright) - Passed"
           echo "  ✅ Docker builds - Passed"
           echo "  ✅ Container tests - Passed"
-          echo "  ✅ SBOM generation & vulnerability scan - Passed"
-          echo "  ✅ Image signing with cosign - Passed"
+          echo "  ✅ Layer 4: SBOM generation & vulnerability scan - Passed"
+          echo "  ✅ Layer 4: Image signing with cosign - Passed"
           echo ""
           echo "🎉 This PR is ready to be merged into main!"
           echo "🚀 Deployment will start automatically after merge"
