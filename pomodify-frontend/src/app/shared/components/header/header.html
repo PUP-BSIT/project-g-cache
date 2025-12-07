@@ -4,7 +4,7 @@
         <img class="logo" src="assets/images/logo-with-name.png" alt="Pomodify" />
     </a>
 
-    <nav class="nav">
+    <nav class="nav" [class.active]="mobileMenuOpen">
         <a routerLink="/" class="nav-link">Home</a>
 
         <div class="nav-link dropdown" tabindex="0">
@@ -21,5 +21,11 @@
 
         <a routerLink="/subscribe" class="nav-link">Subscribe</a>
     </nav>
+
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger" [class.active]="mobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+        <i *ngIf="!mobileMenuOpen" class="fa-solid fa-list"></i>
+        <i *ngIf="mobileMenuOpen" class="fa-solid fa-x"></i>
+    </button>
     </div>
 </header>
