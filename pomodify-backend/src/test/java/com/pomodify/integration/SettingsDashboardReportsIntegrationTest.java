@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for SettingsController, DashboardController, and ReportsController.
  * Tests user settings, dashboard data, and reports endpoints.
  */
-@SpringBootTest
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
 class SettingsDashboardReportsIntegrationTest {

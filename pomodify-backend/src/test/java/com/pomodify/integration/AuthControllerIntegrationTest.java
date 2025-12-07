@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for AuthController.
  * Tests user registration, login, logout, and token refresh flows.
  */
-@SpringBootTest
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
 class AuthControllerIntegrationTest {

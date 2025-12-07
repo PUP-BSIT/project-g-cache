@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for SessionController.
  * Tests session CRUD operations and state transitions (start, pause, resume, stop, etc.).
  */
-@SpringBootTest
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
 class SessionControllerIntegrationTest {

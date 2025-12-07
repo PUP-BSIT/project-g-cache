@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for CategoryController.
  * Tests category CRUD operations and retrieval.
  */
-@SpringBootTest
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
 class CategoryControllerIntegrationTest {

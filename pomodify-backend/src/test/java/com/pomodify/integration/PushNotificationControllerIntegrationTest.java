@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for PushNotificationController.
  * Tests push notification registration, management, and status endpoints.
  */
-@SpringBootTest
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
 class PushNotificationControllerIntegrationTest {
