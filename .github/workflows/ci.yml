@@ -262,18 +262,51 @@ jobs:
           docker build -f pomodify-frontend/Dockerfile -t $REGISTRY/pomodify-frontend:$TAG_PR ./pomodify-frontend
           docker push $REGISTRY/pomodify-frontend:$TAG_PR
 
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft version
+
       - name: Generate SBOM for backend image
-        uses: anchore/syft-action@v0.11.0
+        run: |
+          syft ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }} -o spdx-json > sbom-backend.json
+          echo "SBOM generated successfully"
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
         with:
-          image: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
+          name: sbom-backend
+          path: sbom-backend.json
+          retention-days: 7
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
 
       - name: Scan backend image with Trivy
-        uses: aquasecurity/trivy-action@v0.12.0
+        run: |
+          trivy image --format table --exit-code 1 --severity CRITICAL,HIGH ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
+
+      - name: Generate SBOM for frontend image
+        run: |
+          syft ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }} -o spdx-json > sbom-frontend.json
+          echo "Frontend SBOM generated successfully"
+
+      - name: Upload Frontend SBOM artifact
+        uses: actions/upload-artifact@v4
         with:
-          image-ref: ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
-          format: 'table'
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
+          name: sbom-frontend
+          path: sbom-frontend.json
+          retention-days: 7
+
+      - name: Scan frontend image with Trivy
+        run: |
+          trivy image --format table --exit-code 1 --severity CRITICAL,HIGH ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }}
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v3.4.0
@@ -447,12 +480,17 @@ jobs:
             console.log(`Created issue #${issue.data.number}`);
             
             // Add comment to PR linking to the issue
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: `⚠️ **CI/CD Pipeline Failed** ❌\n\nDetailed error report: #${issue.data.number}\n\nPlease review the issue and fix the failing checks.`
-            });
+            const prNumber = context.payload.pull_request?.number || context.issue?.number;
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `⚠️ **CI/CD Pipeline Failed** ❌\n\nDetailed error report: #${issue.data.number}\n\nPlease review the issue and fix the failing checks.`
+              });
+            } else {
+              console.log('Could not determine PR number, skipping PR comment');
+            }
 
       - name: Fail workflow on CI failure
         if: steps.status.outputs.status == 'failure'
