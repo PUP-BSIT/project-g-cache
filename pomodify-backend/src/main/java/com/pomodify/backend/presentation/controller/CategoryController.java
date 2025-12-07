@@ -8,6 +8,8 @@ import com.pomodify.backend.presentation.dto.request.category.UpdateCategoryRequ
 import com.pomodify.backend.presentation.dto.item.CategoryItem;
 import com.pomodify.backend.presentation.dto.response.CategoryResponse;
 import com.pomodify.backend.presentation.mapper.CategoryMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/categories")
+@Tag(name = "Categories", description = "Manage activity categories")
 @Slf4j
 public class CategoryController {
 
@@ -29,7 +32,8 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
-    @PostMapping
+        @PostMapping
+        @Operation(summary = "Create a new category")
     public ResponseEntity<CategoryResponse> createCategory(@RequestBody @Valid CategoryRequest request,
                                                            @AuthenticationPrincipal Jwt jwt) {
         Long userId = jwt.getClaim("user");
@@ -47,7 +51,8 @@ public class CategoryController {
                 .body(CategoryMapper.toCategoryResponse(item, "Category created successfully"));
     }
 
-    @PutMapping("/{id}")
+        @PutMapping("/{id}")
+        @Operation(summary = "Update a category")
     public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id,
                                                            @RequestBody @Valid UpdateCategoryRequest request,
                                                            @AuthenticationPrincipal Jwt jwt) {
@@ -65,7 +70,8 @@ public class CategoryController {
         return ResponseEntity.ok(CategoryMapper.toCategoryResponse(item, "Category updated successfully"));
     }
 
-    @DeleteMapping("/{id}")
+        @DeleteMapping("/{id}")
+        @Operation(summary = "Delete a category")
     public ResponseEntity<CategoryResponse> deleteCategory(@PathVariable Long id,
                                                            @AuthenticationPrincipal Jwt jwt) {
         Long userId = jwt.getClaim("user");
@@ -81,7 +87,8 @@ public class CategoryController {
         return ResponseEntity.ok(CategoryMapper.toCategoryResponse(item, "Category deleted successfully"));
     }
 
-    @GetMapping
+        @GetMapping
+        @Operation(summary = "List all categories for current user")
     public ResponseEntity<CategoryResponse> getAllCategories(@AuthenticationPrincipal Jwt jwt) {
         Long userId = jwt.getClaim("user");
 
