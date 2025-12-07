@@ -20,6 +20,10 @@ RUN npx ng build --configuration=production --source-map=false
 # ----------------------------
 FROM nginx:alpine
 
+# Security: Update Alpine packages to fix vulnerabilities
+# Fixes: CVE-2025-64720, CVE-2025-65018 (libpng buffer overflow vulnerabilities)
+RUN apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*
+
 # Copy built Angular files from Stage 1
 COPY --from=build /app/dist/pomodify-frontend/browser /usr/share/nginx/html
 
