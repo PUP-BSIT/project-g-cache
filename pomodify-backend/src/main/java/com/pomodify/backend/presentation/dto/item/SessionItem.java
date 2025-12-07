@@ -1,5 +1,7 @@
 package com.pomodify.backend.presentation.dto.item;
 
+import com.pomodify.backend.presentation.dto.note.SessionNoteDto;
+
 import java.time.LocalDateTime;
 
 public record SessionItem(
@@ -13,7 +15,9 @@ public record SessionItem(
         int cycles,
         int cyclesCompleted,
         int totalTimeInMinutes,
-        String note,  // nullable - can be added on pause, stop, completion, or edited later
+        long totalElapsedSeconds,
+        long remainingPhaseSeconds,
+        SessionNoteDto note,
         LocalDateTime startedAt,
         LocalDateTime completedAt,
         LocalDateTime createdAt

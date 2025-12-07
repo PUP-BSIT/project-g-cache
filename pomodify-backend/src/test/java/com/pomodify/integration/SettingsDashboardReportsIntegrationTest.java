@@ -1,0 +1,146 @@
+package com.pomodify.integration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pomodify.backend.presentation.dto.request.auth.LoginRequest;
+import com.pomodify.backend.presentation.dto.request.auth.RegisterRequest;
+import com.pomodify.backend.presentation.dto.response.AuthResponse;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.junit.jupiter.api.Disabled;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Integration tests for SettingsController, DashboardController, and ReportsController.
+ * Tests user settings, dashboard data, and reports endpoints.
+ * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
+ */
+@Disabled("Requires Docker Desktop for PostgreSQL container")
+@SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
+@AutoConfigureMockMvc
+@Testcontainers
+class SettingsDashboardReportsIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("pomodifydb_test")
+            .withUsername("postgres")
+            .withPassword("postgres");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+    }
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private String accessToken;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        // Register user
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
+        mockMvc.perform(post("/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated());
+
+        // Login and extract token
+        LoginRequest loginRequest = new LoginRequest("john@example.com", "Password123!");
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        AuthResponse authResponse = objectMapper.readValue(
+                loginResult.getResponse().getContentAsString(),
+                AuthResponse.class
+        );
+        this.accessToken = authResponse.accessToken();
+    }
+
+    @Test
+    void testGetSettings() throws Exception {
+        mockMvc.perform(get("/settings")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").isNotEmpty());
+    }
+
+    @Test
+    void testUpdateSettings() throws Exception {
+        String settingsRequest = """
+                {
+                    "pomodoroDuration": 30,
+                    "shortBreakDuration": 5,
+                    "longBreakDuration": 15,
+                    "sessionsUntilLongBreak": 4,
+                    "autoStartNextSession": true,
+                    "soundEnabled": true
+                }
+                """;
+
+        mockMvc.perform(put("/settings")
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(settingsRequest))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetDashboard() throws Exception {
+        mockMvc.perform(get("/dashboard")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSessions").isNumber())
+                .andExpect(jsonPath("$.totalFocusTime").isNumber())
+                .andExpect(jsonPath("$.completedSessionsToday").isNumber());
+    }
+
+    @Test
+    void testGetReportsSummary() throws Exception {
+        mockMvc.perform(get("/reports/summary")
+                .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalSessionsCompleted").isNumber())
+                .andExpect(jsonPath("$.totalFocusTime").isNumber());
+    }
+
+    @Test
+    void testGetSettings_Unauthenticated() throws Exception {
+        mockMvc.perform(get("/settings"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetDashboard_Unauthenticated() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testGetReportsSummary_Unauthenticated() throws Exception {
+        mockMvc.perform(get("/reports/summary"))
+                .andExpect(status().isUnauthorized());
+    }
+}

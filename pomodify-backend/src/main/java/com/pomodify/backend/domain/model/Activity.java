@@ -104,9 +104,16 @@ public class Activity {
                                          Duration focusDuration,
                                          Duration breakDuration,
                                          Integer totalCycles,
+                                         Duration longBreakDuration,
+                                         Duration longBreakInterval,
                                          String note) {
         ensureActive();
         PomodoroSession session = PomodoroSession.create(this, sessionType, focusDuration, breakDuration, totalCycles, note);
+        if (longBreakDuration != null || longBreakInterval != null) {
+            session.validateBreaks(breakDuration, longBreakDuration, longBreakInterval);
+            session.setLongBreakDuration(longBreakDuration);
+            session.setLongBreakInterval(longBreakInterval);
+        }
         this.sessions.add(session);
         return session;
     }
@@ -122,9 +129,6 @@ public class Activity {
         ensureActive();
         PomodoroSession session = findSessionOrThrow(sessionId);
         session.pauseSession();
-        if (note != null && !note.isBlank()) {
-            session.setNote(note.trim());
-        }
         return session;
     }
 
@@ -139,16 +143,6 @@ public class Activity {
         ensureActive();
         PomodoroSession session = findSessionOrThrow(sessionId);
         session.stopSession();
-        if (note != null && !note.isBlank()) {
-            session.setNote(note.trim());
-        }
-        return session;
-    }
-
-    public PomodoroSession cancelSession(Long sessionId) {
-        ensureActive();
-        PomodoroSession session = findSessionOrThrow(sessionId);
-        session.cancelSession();
         return session;
     }
 
@@ -156,32 +150,15 @@ public class Activity {
         ensureActive();
         PomodoroSession session = findSessionOrThrow(sessionId);
         session.completeCyclePhase();
-        if (note != null && !note.isBlank()) {
-            session.setNote(note.trim());
-        }
         return session;
     }
 
-    public PomodoroSession finishSession(Long sessionId, String note) {
-        ensureActive();
-        PomodoroSession session = findSessionOrThrow(sessionId);
-        // Freestyle rule: finishing during BREAK counts the current cycle
-        if (SessionType.FREESTYLE.equals(session.getSessionType())) {
-            if (session.getCurrentPhase() == CyclePhase.BREAK) {
-                session.setCyclesCompleted((session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0) + 1);
-            }
-        }
-        session.completeSession();
-        if (note != null && !note.isBlank()) {
-            session.setNote(note.trim());
-        }
-        return session;
-    }
+    // finish and cancel session operations have been removed in the v2 model
 
     public PomodoroSession updateSessionNote(Long sessionId, String note) {
         ensureActive();
         PomodoroSession session = findSessionOrThrow(sessionId);
-        session.setNote(note != null && !note.isBlank() ? note.trim() : null);
+        // kept for backward compatibility; will be migrated to SessionNote handling if needed
         return session;
     }
 

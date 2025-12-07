@@ -45,9 +45,117 @@ jobs:
             echo "⚠️ Branch might have conflicts with main"
           fi
 
+  unit-tests:
+    name: Unit Tests (Frontend + Backend)
+    needs: lint-and-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./pomodify-frontend
+        run: npm ci
+
+      - name: Run frontend unit tests (Karma)
+        working-directory: ./pomodify-frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless --no-progress
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Run backend unit tests
+        working-directory: ./pomodify-backend
+        run: mvn -B -DskipITs test
+
+  integration-tests:
+    name: Integration Tests (Testcontainers + Database)
+    needs: lint-and-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Run backend integration tests with Testcontainers
+        working-directory: ./pomodify-backend
+        run: mvn -B verify
+
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./pomodify-frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ./pomodify-frontend
+        run: npx playwright install --with-deps
+
+      - name: Start frontend dev server
+        working-directory: ./pomodify-frontend
+        run: npm start &
+        env:
+          NODE_ENV: test
+
+      - name: Wait for frontend to be ready
+        run: |
+          echo "Waiting for http://localhost:4200 to be ready..."
+          max_retries=30
+          retry_count=0
+          while [ $retry_count -lt $max_retries ]; do
+            if curl -s http://localhost:4200 > /dev/null; then
+              echo "Frontend is ready!"
+              exit 0
+            fi
+            echo "Attempt $((retry_count + 1))/$max_retries: Waiting for frontend..."
+            sleep 2
+            retry_count=$((retry_count + 1))
+          done
+          echo "Frontend did not start in time"
+          exit 1
+
+      - name: Run E2E tests with Playwright
+        working-directory: ./pomodify-frontend
+        timeout-minutes: 10
+        run: npx playwright test --timeout=30000
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:4200
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: pomodify-frontend/playwright-report/
+          retention-days: 7
+
   build-and-test:
     name: Build and Test Docker Images
-    needs: lint-and-validate
+    needs: [unit-tests, integration-tests, e2e-tests]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -121,12 +229,131 @@ jobs:
             exit 1
           fi
 
+  build-and-secure:
+    name: Build, SBOM, Scan & Sign
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.DOCKER_USERNAME }}
+      TAG_PR: pr-${{ github.event.pull_request.number }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push backend image (temporary tag)
+        run: |
+          docker build -f pomodify-backend/Dockerfile -t $REGISTRY/pomodify-backend:$TAG_PR ./pomodify-backend
+          docker push $REGISTRY/pomodify-backend:$TAG_PR
+
+      - name: Build and push frontend image (temporary tag)
+        run: |
+          docker build -f pomodify-frontend/Dockerfile -t $REGISTRY/pomodify-frontend:$TAG_PR ./pomodify-frontend
+          docker push $REGISTRY/pomodify-frontend:$TAG_PR
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft version
+
+      - name: Generate SBOM for backend image
+        run: |
+          syft ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }} -o spdx-json > sbom-backend.json
+          echo "SBOM generated successfully"
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-backend
+          path: sbom-backend.json
+          retention-days: 7
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+      - name: Scan backend image with Trivy
+        run: |
+          trivy image --format table --exit-code 1 --severity CRITICAL,HIGH ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
+
+      - name: Generate SBOM for frontend image
+        run: |
+          syft ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }} -o spdx-json > sbom-frontend.json
+          echo "Frontend SBOM generated successfully"
+
+      - name: Upload Frontend SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-frontend
+          path: sbom-frontend.json
+          retention-days: 7
+
+      - name: Scan frontend image with Trivy
+        run: |
+          trivy image --format table --exit-code 1 --severity CRITICAL,HIGH ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.4.0
+
+      - name: Sign backend image with cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key
+          cosign sign --yes --key cosign.key ${{ env.REGISTRY }}/pomodify-backend:${{ env.TAG_PR }}
+          rm -f cosign.key
+
+      - name: Sign frontend image with cosign
+        env:
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_KEY_B64: ${{ secrets.COSIGN_KEY_B64 }}
+        run: |
+          echo "$COSIGN_KEY_B64" | base64 -d > cosign.key
+          cosign sign --yes --key cosign.key ${{ env.REGISTRY }}/pomodify-frontend:${{ env.TAG_PR }}
+          rm -f cosign.key
+
   ci-summary:
     name: CI Summary
-    needs: [lint-and-validate, build-and-test]
+    needs: [lint-and-validate, unit-tests, integration-tests, e2e-tests, build-and-test, build-and-secure]
     runs-on: ubuntu-latest
+    if: always()
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Determine CI Status
+        id: status
+        run: |
+          if [ "${{ needs.lint-and-validate.result }}" = "failure" ] || \
+             [ "${{ needs.unit-tests.result }}" = "failure" ] || \
+             [ "${{ needs.integration-tests.result }}" = "failure" ] || \
+             [ "${{ needs.e2e-tests.result }}" = "failure" ] || \
+             [ "${{ needs.build-and-test.result }}" = "failure" ] || \
+             [ "${{ needs.build-and-secure.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+
       - name: CI Passed
+        if: steps.status.outputs.status == 'success'
         run: |
           echo "════════════════════════════════════════"
           echo "✅ All CI checks passed!"
@@ -134,9 +361,139 @@ jobs:
           echo ""
           echo "📋 Summary:"
           echo "  ✅ Linting and validation - Passed"
+          echo "  ✅ Layer 1: Unit tests (frontend + backend) - Passed"
+          echo "  ✅ Layer 2: Integration tests (Testcontainers) - Passed"
+          echo "  ✅ Layer 3: E2E tests (Playwright) - Passed"
           echo "  ✅ Docker builds - Passed"
           echo "  ✅ Container tests - Passed"
+          echo "  ✅ Layer 4: SBOM generation & vulnerability scan - Passed"
+          echo "  ✅ Layer 4: Image signing with cosign - Passed"
           echo ""
           echo "🎉 This PR is ready to be merged into main!"
           echo "🚀 Deployment will start automatically after merge"
           echo "════════════════════════════════════════"
+
+      - name: CI Failed - Generate Error Report
+        if: steps.status.outputs.status == 'failure'
+        id: error_report
+        run: |
+          {
+            echo 'error_report<<EOF'
+            echo '## ❌ CI/CD Pipeline Failed'
+            echo ''
+            echo '**Build Details:**'
+            echo "- PR: #${{ github.event.pull_request.number }}"
+            echo "- Branch: \`${{ github.head_ref }}\`"
+            echo "- Commit: \`${{ github.event.pull_request.head.sha }}\`"
+            echo "- Run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            echo ''
+            echo '### Failed Jobs:'
+            echo ''
+            
+            if [ "${{ needs.lint-and-validate.result }}" = "failure" ]; then
+              echo '❌ **Lint and Validate** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Dockerfile validation failed or merge conflicts detected'
+              echo ''
+            fi
+            
+            if [ "${{ needs.unit-tests.result }}" = "failure" ]; then
+              echo '❌ **Unit Tests** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Frontend (Karma) or Backend (Maven) unit tests failed'
+              echo ''
+            fi
+            
+            if [ "${{ needs.integration-tests.result }}" = "failure" ]; then
+              echo '❌ **Integration Tests** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Testcontainers-based integration tests failed'
+              echo '   - Check database connectivity and test assertions'
+              echo ''
+            fi
+            
+            if [ "${{ needs.e2e-tests.result }}" = "failure" ]; then
+              echo '❌ **E2E Tests** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Playwright E2E tests failed'
+              echo '   - Frontend server may not have started or test assertions failed'
+              echo ''
+            fi
+            
+            if [ "${{ needs.build-and-test.result }}" = "failure" ]; then
+              echo '❌ **Docker Build & Test** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Docker image build or container tests failed'
+              echo ''
+            fi
+            
+            if [ "${{ needs.build-and-secure.result }}" = "failure" ]; then
+              echo '❌ **Security Scanning** - [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+              echo '   - Trivy vulnerability scan, SBOM generation, or image signing failed'
+              echo ''
+            fi
+            
+            echo '### Action Required:'
+            echo ''
+            echo '1. **Review the full logs** by clicking the '\''View Logs'\'' link above'
+            echo '2. **Identify the root cause** from the error messages'
+            echo '3. **Fix the issues** in your feature branch'
+            echo '4. **Push fixes** to update this PR'
+            echo '5. **Wait for CI to re-run** - it will automatically trigger on new commits'
+            echo ''
+            echo '### Troubleshooting Guide:'
+            echo ''
+            echo '**Unit Tests Failed?**'
+            echo '- Run \`mvn test\` locally in pomodify-backend'
+            echo '- Run \`npm test\` locally in pomodify-frontend'
+            echo ''
+            echo '**Integration Tests Failed?**'
+            echo '- Install Docker Desktop'
+            echo '- Run \`mvn verify\` to test with Testcontainers'
+            echo ''
+            echo '**E2E Tests Failed?**'
+            echo '- Run \`npx playwright test\` locally'
+            echo '- Check if frontend dev server starts properly'
+            echo ''
+            echo '**Docker Build Failed?**'
+            echo '- Verify Dockerfiles exist and are valid'
+            echo '- Check for missing dependencies in pom.xml or package.json'
+            echo ''
+            echo '**Security Scan Failed?**'
+            echo '- Review Trivy scan results for vulnerable dependencies'
+            echo '- Update vulnerable packages if necessary'
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Issue on Failure
+        if: steps.status.outputs.status == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get error report from previous step output
+            const errorReport = `${{ steps.error_report.outputs.error_report }}`;
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `❌ CI/CD Pipeline Failed - PR #${{ github.event.pull_request.number }}`,
+              body: errorReport || 'CI/CD Pipeline failed. Please check the workflow logs for details.',
+              labels: ['ci-failure', 'automated'],
+              assignees: ['${{ github.event.pull_request.user.login }}']
+            });
+            
+            console.log(`Created issue #${issue.data.number}`);
+            
+            // Add comment to PR linking to the issue
+            const prNumber = context.payload.pull_request?.number || context.issue?.number;
+            if (prNumber) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `⚠️ **CI/CD Pipeline Failed** ❌\n\nDetailed error report: #${issue.data.number}\n\nPlease review the issue and fix the failing checks.`
+              });
+            } else {
+              console.log('Could not determine PR number, skipping PR comment');
+            }
+
+      - name: Fail workflow on CI failure
+        if: steps.status.outputs.status == 'failure'
+        run: |
+          echo "❌ CI/CD pipeline failed. Check the GitHub issue for details."
+          exit 1

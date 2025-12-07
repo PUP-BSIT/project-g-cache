@@ -92,3 +92,112 @@
 .menu-item:hover { 
   background: #f2f6f7; 
 }
+
+/* Hamburger Menu Button */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 100;
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.hamburger:hover {
+  opacity: 0.8;
+}
+
+/* Mobile Menu Styles */
+@media (max-width: 768px) {
+  .site-header {
+    position: relative;
+    z-index: 1000;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .nav {
+    position: absolute;
+    left: 0;
+    top: 64px;
+    width: 100%;
+    background-color: #4DA1A9;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .nav.active {
+    max-height: 500px;
+    padding: 16px;
+  }
+
+  .nav-link {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: block;
+  }
+
+  .nav-link:last-child {
+    border-bottom: none;
+  }
+
+  .dropdown {
+    position: static;
+  }
+
+  .menu {
+    position: static;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    margin-top: 8px;
+    box-shadow: none;
+    min-width: auto;
+  }
+
+  .dropdown:focus .menu,
+  .dropdown:hover .menu {
+    display: block;
+  }
+
+  .menu-item {
+    padding: 8px 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    height: 56px;
+  }
+
+  .logo {
+    height: 32px;
+  }
+
+  .hamburger {
+    padding: 6px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+    height: 2.5px;
+  }
+
+  .nav {
+    top: 56px;
+    padding: 0;
+  }
+
+  .nav.active {
+    padding: 12px;
+  }
+}
