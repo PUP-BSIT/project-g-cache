@@ -455,7 +455,7 @@
   
   .feature-3 .feature-icon { 
     right: -60px;               /* move closer to card so it sits farther from center */
-    top: 2px;
+    top: 35px;
     transform: none;
   }
   
@@ -468,7 +468,7 @@
   /* Tail connectors */
   .feature-1 .feature-tail { 
     right: -42px;                         /* snug gap to icon */
-    top: 50%;
+    top: 60px;
     transform: translateY(-50%);
     /* show left + top sides to create a ⎾ bracket (open right/bottom) */
     border-right: 0;
@@ -477,7 +477,7 @@
   
   .feature-2 .feature-tail { 
     left: -42px;
-    top: 50%;
+    top: 60px;
     transform: translateY(-50%);
     /* show right + top sides to create a ⎽⎺ mirrored bracket (open left/bottom) */
     border-left: 0;
@@ -486,7 +486,7 @@
   
   .feature-3 .feature-tail { 
     right: -34px;                /* align with icon’s new, closer position */
-    top: 50%;
+    top: 95px;
     transform: translateY(-50%);
     /* show left + bottom sides (open right/top) */
     border-right: 0;
@@ -495,7 +495,7 @@
   
   .feature-4 .feature-tail { 
     left: -34px;  
-    top: 50%;
+    top: 95px;
     transform: translateY(-50%);
     /* show right + bottom sides (open left/top) */
     border-left: 0;
