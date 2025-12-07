@@ -50,6 +50,9 @@
   background: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
   scroll-margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .feature-box:hover {
@@ -109,6 +112,9 @@
   font-weight: 500;
   font-size: 15px;
   transition: background 0.2s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .learn-btn:hover {
@@ -196,9 +202,30 @@
   }
   
   .learn-btn {
-    width: 100%;
-    padding: 10px 20px;
+    padding: 10px 16px;
     font-size: 14px;
+  }
+}
+
+@media (max-width: 375px) {
+  .feature-box {
+    padding: 14px;
+  }
+  
+  .learn-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 320px) {
+  .feature-box {
+    padding: 12px;
+  }
+  
+  .learn-btn {
+    padding: 9px 10px;
+    font-size: 12px;
   }
 }
 .landing {
@@ -597,13 +624,15 @@
   }
   
   .cta {
-    padding: 15px 20px 30px;
-    gap: 12px;
+    padding: 15px 20px;
+    gap: 10px;
+    flex-direction: row;
   }
   
   .btn {
     flex: 1;
-    max-width: 160px;
+    max-width: 150px;
+    min-width: 110px;
   }
   
   .hero-right {
@@ -695,16 +724,18 @@
   }
   
   .cta {
-    padding: 12px 16px 25px;
+    padding: 15px 16px;
     gap: 8px;
+    flex-direction: row;
   }
   
   .btn {
     flex: 1;
     min-height: 44px;
     font-size: 14px;
-    padding: 0 16px;
-    max-width: 150px;
+    padding: 0 12px;
+    min-width: 100px;
+    max-width: 140px;
   }
   
   .hero-right {
@@ -772,6 +803,159 @@
   .feature-card .desc {
     font-size: 7px;
     margin-top: 3px;
+  }
+}
+
+@media (max-width: 375px) {
+  .hero-left {
+    padding: 20px 12px 10px;
+  }
+  
+  .hero-left .site-brand {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  
+  .headline {
+    font-size: 18px;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  
+  .subtext {
+    font-size: 11px;
+    padding: 0 5px;
+  }
+  
+  .cta {
+    padding: 12px 12px;
+    gap: 8px;
+    flex-direction: row;
+  }
+  
+  .btn {
+    font-size: 13px;
+    min-height: 42px;
+    padding: 0 8px;
+    min-width: 90px;
+    max-width: 130px;
+    flex: 1;
+  }
+  
+  .hero-right {
+    padding: 10px 5px;
+  }
+  
+  .clock-frame {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .student {
+    width: 180px;
+    transform: translate(0, -40px);
+  }
+  
+  .features {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+@media (max-width: 320px) {
+  .hero-left {
+    padding: 16px 10px 8px;
+  }
+  
+  .hero-left .site-brand {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  
+  .headline {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .subtext {
+    font-size: 10px;
+    line-height: 1.4;
+    padding: 0 5px;
+  }
+  
+  .cta {
+    padding: 10px 10px;
+    gap: 6px;
+    flex-direction: row;
+  }
+  
+  .btn {
+    flex: 1;
+    max-width: 145px;
+    min-width: 85px;
+    font-size: 12px;
+    min-height: 40px;
+    padding: 0 8px;
+  }
+  
+  .hero-right {
+    padding: 8px 5px;
+  }
+  
+  .clock-frame {
+    width: 180px;
+    height: 180px;
+    border-width: 5px;
+  }
+  
+  .student {
+    width: 160px;
+    transform: translate(0, -35px);
+  }
+  
+  .features {
+    width: 180px !important;
+    height: 180px !important;
+  }
+  
+  .feature-1,
+  .feature-2 {
+    left: -95px;
+    top: 15px;
+  }
+  
+  .feature-2 {
+    left: auto;
+    right: -95px;
+  }
+  
+  .feature-3,
+  .feature-4 {
+    bottom: -8px;
+  }
+  
+  .feature-card {
+    width: 90px !important;
+    padding: 5px 6px !important;
+  }
+  
+  .feature-icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  
+  .feature-icon img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .feature-card .title {
+    font-size: 8px;
+    padding: 2px 4px;
+  }
+  
+  .feature-card .desc {
+    font-size: 6px;
   }
 }
 
@@ -846,14 +1030,16 @@
   .cta {
     justify-content: center;
     margin-top: 0;
-    order: 3;
-    padding: 20px 24px 40px;
+    order: 2;
+    padding: 20px 24px;
+    flex-direction: row;
+    gap: 12px;
   }
   
   .hero-right { 
-    order: 2;
+    order: 3;
     min-height: auto;
-    padding: 30px 20px;
+    padding: 20px 20px 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
