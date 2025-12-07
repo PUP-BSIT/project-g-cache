@@ -15,15 +15,15 @@ export const authTokenInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const http = inject(HttpClient);
   // Only apply to API routes
-  const isApiRequest = request.url.includes('/api/v1/');
+  const isApiRequest = request.url.includes('/api/v2/');
   
   if (!isApiRequest) {
     return next(request);
   }
 
   // Don't add token to login and register endpoints
-  const isLoginEndpoint = request.url.includes('/api/v1/auth/login');
-  const isRegisterEndpoint = request.url.includes('/api/v1/auth/register');
+  const isLoginEndpoint = request.url.includes('/api/v2/auth/login');
+  const isRegisterEndpoint = request.url.includes('/api/v2/auth/register');
   
   if (isLoginEndpoint || isRegisterEndpoint) {
     return next(request);
@@ -42,7 +42,7 @@ export const authTokenInterceptor: HttpInterceptorFn = (
 
       if (exp && exp - nowSec <= thresholdSec && refreshToken) {
         // Avoid refreshing the refresh endpoint itself
-        const isRefreshEndpoint = request.url.includes('/api/v1/auth/refresh');
+        const isRefreshEndpoint = request.url.includes('/api/v2/auth/refresh');
         if (!isRefreshEndpoint) {
           return http.post<{ accessToken: string; refreshToken?: string }>(API.AUTH.REFRESH, { refreshToken }).pipe(
             switchMap((resp) => {
