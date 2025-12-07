@@ -234,6 +234,12 @@
   min-height: 100vh;
 }
 
+@media (max-width: 1024px) {
+  .landing {
+    overflow: visible !important;
+  }
+}
+
 .hero {
   max-width: 1400px;
   margin: 0 auto;
@@ -392,9 +398,13 @@
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 3;
+  overflow: visible !important;
 
   /* Each feature wrapper is absolutely positioned around the clock */
-  .feature { position: absolute; }
+  .feature { 
+    position: absolute;
+    overflow: visible !important;
+  }
 
   .feature-card {
     pointer-events: auto;
@@ -603,128 +613,146 @@
 
 @media (max-width: 768px) {
   .hero-left {
-    padding: 30px 20px 15px;
+    padding: 25px 18px 12px;
   }
   
   .hero-left .site-brand {
     font-size: 20px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   
   .headline {
     font-size: 24px;
     line-height: 1.3;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
   
   .subtext {
     font-size: 13px;
     line-height: 1.5;
-    padding: 0 15px;
+    padding: 0 12px;
   }
   
   .cta {
-    padding: 15px 20px;
+    padding: 15px 18px 30px;
     gap: 10px;
     flex-direction: row;
   }
   
   .btn {
     flex: 1;
-    max-width: 150px;
-    min-width: 110px;
+    max-width: 145px;
+    min-width: 105px;
   }
   
   .hero-right {
-    padding: 20px 15px;
-    max-width: 420px;
+    padding: 30px 15px 25px;
+    overflow: visible !important;
   }
   
   .clock-frame {
-    width: 260px;
-    height: 260px;
-    border-width: 8px;
+    width: 250px;
+    height: 250px;
+    border-width: 7px;
   }
   
   .student {
-    width: 240px;
-    transform: translate(0, -50px);
+    width: 230px;
+    transform: translate(0, -48px);
   }
   
   .features {
-    width: 260px !important;
-    height: 260px !important;
+    width: 250px !important;
+    height: 250px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-1 {
-    left: -120px;
-    top: 25px;
+    left: -55px;
+    top: -20px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-2 {
-    right: -120px;
-    top: 25px;
+    right: -55px;
+    top: -20px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-3 {
-    left: -5px;
-    bottom: -15px;
+    left: -35px;
+    bottom: -30px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-4 {
-    right: -5px;
-    bottom: -15px;
+    right: -35px;
+    bottom: -30px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-card {
-    width: 115px !important;
-    padding: 8px 10px !important;
+    width: 95px !important;
+    padding: 6px 7px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-icon {
-    width: 38px !important;
-    height: 38px !important;
+    width: 30px !important;
+    height: 30px !important;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-icon img {
     width: 30px !important;
     height: 30px !important;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-card .title {
-    font-size: 10px;
-    padding: 4px 6px;
+    font-size: 8px;
+    padding: 2px 4px;
   }
   
   .feature-card .desc {
-    font-size: 8px;
+    font-size: 6px;
   }
 }
 
 @media (max-width: 480px) {
   .hero-left {
-    padding: 25px 16px 12px;
+    padding: 22px 14px 10px;
   }
   
   .hero-left .site-brand {
     font-size: 18px;
     letter-spacing: 1px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   
   .headline {
     font-size: 20px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   
   .subtext {
     font-size: 12px;
     line-height: 1.5;
-    padding: 0 10px;
+    padding: 0 8px;
   }
   
   .cta {
-    padding: 15px 16px;
+    padding: 12px 14px 25px;
     gap: 8px;
     flex-direction: row;
   }
@@ -733,76 +761,92 @@
     flex: 1;
     min-height: 44px;
     font-size: 14px;
-    padding: 0 12px;
-    min-width: 100px;
-    max-width: 140px;
+    padding: 0 10px;
+    min-width: 95px;
+    max-width: 135px;
   }
   
   .hero-right {
-    padding: 15px 10px;
-    max-width: 360px;
+    padding: 25px 10px 20px;
+    overflow: visible !important;
   }
   
   .clock-frame {
-    width: 220px;
-    height: 220px;
+    width: 210px;
+    height: 210px;
     border-width: 6px;
   }
   
   .student {
-    width: 200px;
-    transform: translate(0, -45px);
+    width: 190px;
+    transform: translate(0, -42px);
   }
   
   .features {
-    width: 220px !important;
-    height: 220px !important;
+    width: 210px !important;
+    height: 210px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-1 {
-    left: -105px;
-    top: 20px;
+    left: -50px;
+    top: -18px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-2 {
-    right: -105px;
-    top: 20px;
+    right: -50px;
+    top: -18px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-3 {
-    left: 0;
-    bottom: -10px;
+    left: -32px;
+    bottom: -25px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-4 {
-    right: 0;
-    bottom: -10px;
+    right: -32px;
+    bottom: -25px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-card {
-    width: 100px !important;
-    padding: 6px 8px !important;
+    width: 85px !important;
+    padding: 5px 6px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-icon {
-    width: 34px !important;
-    height: 34px !important;
-    margin-bottom: 6px;
+    width: 28px !important;
+    height: 28px !important;
+    margin-bottom: 3px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-icon img {
-    width: 26px !important;
-    height: 26px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
   
   .feature-card .title {
-    font-size: 9px;
-    padding: 3px 5px;
+    font-size: 7px;
+    padding: 1px 3px;
   }
   
   .feature-card .desc {
-    font-size: 7px;
-    margin-top: 3px;
+    font-size: 5.5px;
+    margin-top: 2px;
   }
 }
 
@@ -844,6 +888,7 @@
   
   .hero-right {
     padding: 10px 5px;
+    overflow: visible !important;
   }
   
   .clock-frame {
@@ -857,8 +902,70 @@
   }
   
   .features {
-    width: 200px !important;
-    height: 200px !important;
+    width: 190px !important;
+    height: 190px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-1 {
+    left: -42px;
+    top: -15px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-2 {
+    right: -42px;
+    top: -15px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-3 {
+    left: -28px;
+    bottom: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-4 {
+    right: -28px;
+    bottom: -20px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card {
+    width: 78px !important;
+    padding: 4px 5px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  
+  .feature-icon {
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-icon img {
+    width: 24px !important;
+    height: 24px !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .feature-card .title {
+    font-size: 6.5px;
+    padding: 1px 2px;
+  }
+  
+  .feature-card .desc {
+    font-size: 5px;
   }
 }
 
@@ -900,6 +1007,7 @@
   
   .hero-right {
     padding: 8px 5px;
+    overflow: visible !important;
   }
   
   .clock-frame {
@@ -916,46 +1024,67 @@
   .features {
     width: 180px !important;
     height: 180px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-1,
   .feature-2 {
-    left: -95px;
-    top: 15px;
+    left: -38px;
+    top: -13px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-2 {
     left: auto;
-    right: -95px;
+    right: -38px;
   }
   
-  .feature-3,
+  .feature-3 {
+    left: -25px;
+    bottom: -18px;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
   .feature-4 {
-    bottom: -8px;
+    right: -25px;
+    bottom: -18px;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-card {
-    width: 90px !important;
-    padding: 5px 6px !important;
+    width: 72px !important;
+    padding: 3px 4px !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
   
   .feature-icon {
-    width: 30px !important;
-    height: 30px !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-icon img {
-    width: 24px !important;
-    height: 24px !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-card .title {
-    font-size: 8px;
-    padding: 2px 4px;
+    font-size: 6px;
+    padding: 1px 2px;
   }
   
   .feature-card .desc {
-    font-size: 6px;
+    font-size: 4.5px;
   }
 }
 
@@ -1000,6 +1129,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    overflow: visible;
   }
   
   .hero-left {
@@ -1007,17 +1137,21 @@
     text-align: center;
     order: 1;
     padding: 40px 24px 20px;
+    display: flex;
+    flex-direction: column;
   }
   
   .hero-left .site-brand {
     font-size: 24px;
     margin-bottom: 20px;
+    order: 1;
   }
   
   .headline {
     font-size: 28px;
     line-height: 1.3;
     margin-bottom: 16px;
+    order: 2;
   }
   
   .subtext {
@@ -1025,94 +1159,103 @@
     line-height: 1.6;
     margin-bottom: 0;
     padding: 0 20px;
+    order: 3;
   }
   
   .cta {
     justify-content: center;
     margin-top: 0;
-    order: 2;
-    padding: 20px 24px;
+    order: 4;
+    padding: 20px 24px 30px;
     flex-direction: row;
     gap: 12px;
   }
   
   .hero-right { 
-    order: 3;
+    order: 2;
     min-height: auto;
-    padding: 20px 20px 40px;
+    padding: 40px 10px 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    overflow: visible;
   }
   
   .clock-frame {
-    width: 300px;
-    height: 300px;
+    width: 240px;
+    height: 240px;
   }
   
   .student {
-    width: 280px;
-    transform: translate(0, -60px);
+    width: 220px;
+    transform: translate(0, -48px);
   }
   
   .features { 
     position: absolute !important;
-    width: 300px !important;
-    height: 300px !important;
+    width: 240px !important;
+    height: 240px !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     pointer-events: none;
-    display: block;
+    display: block !important;
+    z-index: 10;
   }
 
   .feature { 
     position: absolute !important;
     pointer-events: auto;
+    display: block !important;
+    visibility: visible !important;
   }
   
   .feature-1 {
-    left: -140px;
-    top: 30px;
+    left: -108px;
+    top: 15px;
   }
   
   .feature-2 {
-    right: -140px;
-    top: 30px;
+    right: -108px;
+    top: 15px;
   }
   
   .feature-3 {
-    left: -10px;
+    left: 3px;
     bottom: -20px;
   }
   
   .feature-4 {
-    right: -10px;
+    right: 3px;
     bottom: -20px;
   }
 
   .feature-card { 
-    width: 130px !important;
-    padding: 10px 12px !important;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
+    width: 105px !important;
+    padding: 7px 9px !important;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    border: 2px solid #d0e8eb !important;
+    display: block !important;
   }
   
   .feature-icon { 
     position: static !important;
-    width: 44px !important;
-    height: 44px !important;
-    display: flex;
+    width: 36px !important;
+    height: 36px !important;
+    display: flex !important;
     align-items: center;
     justify-content: center;
-    margin-bottom: 8px;
-    background: #f5fbfd;
-    border-radius: 10px;
-    overflow: hidden;
+    margin-bottom: 5px;
+    background: transparent;
+    border-radius: 8px;
+    overflow: visible;
   }
   
   .feature-icon img {
@@ -1121,21 +1264,30 @@
     height: 36px !important;
     transform: none !important;
     object-fit: contain;
+    display: block !important;
   }
   
   .feature-card .text {
     width: 100%;
+    display: block !important;
   }
   
   .feature-card .title {
-    font-size: 11px;
-    padding: 5px 8px;
+    font-size: 9px;
+    padding: 3px 6px;
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    color: #24425A;
+    display: inline-block;
   }
   
   .feature-card .desc {
-    font-size: 9px;
-    margin-top: 4px;
-    line-height: 1.4;
+    font-size: 7px;
+    margin-top: 3px;
+    line-height: 1.3;
+    color: #5a7a8c;
+    display: block;
   }
   
   .feature-tail,
