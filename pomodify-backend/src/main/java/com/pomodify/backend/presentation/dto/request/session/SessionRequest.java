@@ -17,6 +17,12 @@ public record SessionRequest(
         Integer breakTimeInMinutes,
 
         @Min(value = 1, message = "Cycles must be at least 1")
-        Integer cycles
+        Integer cycles,
+
+        boolean isDeleted,
+
+        Integer cyclesCompleted,
+
+        Integer totalTimeInMinutes
 ) {
 }
