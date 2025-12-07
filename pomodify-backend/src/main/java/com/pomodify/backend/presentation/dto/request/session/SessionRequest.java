@@ -22,7 +22,8 @@ public record SessionRequest(
 
         Integer cyclesCompleted,
 
-        Integer totalTimeInMinutes
+        Integer totalTimeInMinutes,
+
         boolean enableLongBreak,
 
         @Min(value = 15, message = "Long break must be at least 15 minutes")
