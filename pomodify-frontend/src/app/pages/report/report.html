@@ -161,23 +161,19 @@
                 <label class="meta-checkbox">
                   <input
                     type="checkbox"
-                    [checked]="completedFocusChecked()"
-                    (change)="onCompletedFocusToggle($event)"
+                    [checked]="expiredSessionFocusChecked()"
+                    (change)="onExpiredSessionFocusToggle($event)"
                   />
-                  <span>Completed</span>
-                </label>
-                <label class="meta-checkbox">
-                  <input
-                    type="checkbox"
-                    [checked]="progressingFocusChecked()"
-                    (change)="onProgressingFocusToggle($event)"
-                  />
-                  <span>Progressing</span>
+                  <span>Expired Sessions</span>
                 </label>
               </div>
               <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
               <span class="meta-value">
-                {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
+                @if (expiredSessionFocusChecked()) {
+                  {{ mockExpiredSessionsCount() }} expired
+                } @else {
+                  {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
+                }
               </span>
             </div>
           </div>
