@@ -3,16 +3,15 @@ package com.pomodify.backend.application.command.session;
 import lombok.Builder;
 
 @Builder
-public record CreateSessionCommand(
+public record UpdateSessionCommand(
         Long user,
-        Long activityId,
+        Long sessionId,
         String sessionType,
         Integer focusTimeInMinutes,
         Integer breakTimeInMinutes,
         Integer cycles,
         Boolean enableLongBreak,
         Integer longBreakTimeInMinutes,
-        Integer longBreakIntervalInMinutes,
-        String note
+        Integer longBreakIntervalInMinutes
 ) {
 }

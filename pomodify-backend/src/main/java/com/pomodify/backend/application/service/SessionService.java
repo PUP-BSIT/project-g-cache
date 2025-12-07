@@ -9,6 +9,9 @@ import com.pomodify.backend.domain.enums.SessionType;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.PomodoroSession;
 import com.pomodify.backend.domain.repository.PomodoroSessionRepository;
+import com.pomodify.backend.domain.model.SessionNote;
+import com.pomodify.backend.domain.model.SessionTodoItem;
+import com.pomodify.backend.presentation.dto.note.SessionTodoItemDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,8 +42,23 @@ public class SessionService {
         Duration focus = Duration.ofMinutes(command.focusTimeInMinutes());
         Duration brk = Duration.ofMinutes(command.breakTimeInMinutes());
         Integer cycles = command.cycles() != null ? command.cycles() : 1;
+        long totalMinutes = (focus.toMinutes() + brk.toMinutes()) * cycles;
+        Duration longBreak = null;
+        Duration interval = null;
+        if (command.enableLongBreak() != null && command.enableLongBreak() && totalMinutes > 180) {
+            if (command.longBreakIntervalInMinutes() == null
+                || !(command.longBreakIntervalInMinutes() == 180
+                    || command.longBreakIntervalInMinutes() == 210
+                    || command.longBreakIntervalInMinutes() == 240)) {
+                throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+            }
+            if (command.longBreakTimeInMinutes() != null) {
+                longBreak = Duration.ofMinutes(command.longBreakTimeInMinutes());
+            }
+            interval = Duration.ofMinutes(command.longBreakIntervalInMinutes());
+        }
 
-        PomodoroSession session = activity.createSession(type, focus, brk, cycles, command.note());
+        PomodoroSession session = activity.createSession(type, focus, brk, cycles, longBreak, interval, command.note());
         PomodoroSession saved = sessionRepository.save(session);
         log.info("Created session {} for activity {}", saved.getId(), activity.getId());
         return toResult(saved);
@@ -49,6 +67,8 @@ public class SessionService {
     /* -------------------- GET -------------------- */
     public SessionResult get(GetSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        session.evaluateAbandonedIfExpired();
+        sessionRepository.save(session);
         return toResult(session);
     }
 
@@ -62,6 +82,9 @@ public class SessionService {
         } else {
             sessions = sessionRepository.findActiveByUserId(command.user());
         }
+
+        sessions.forEach(PomodoroSession::evaluateAbandonedIfExpired);
+        sessions = sessions.stream().map(sessionRepository::save).toList();
 
         if (command.status() != null) {
             sessions = sessions.stream()
@@ -104,16 +127,7 @@ public class SessionService {
     public SessionResult stop(StopSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
-        activity.stopSession(command.sessionId(), command.note());
-        PomodoroSession saved = sessionRepository.save(session);
-        return toResult(saved);
-    }
-
-    @Transactional
-    public SessionResult cancel(CancelSessionCommand command) {
-        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
-        activity.cancelSession(command.sessionId());
+        session.stopSession();
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -141,22 +155,139 @@ public class SessionService {
     }
 
     @Transactional
-    public SessionResult finish(FinishSessionCommand command) {
+    public SessionResult skipPhase(SkipPhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
-        activity.finishSession(command.sessionId(), command.note());
+        session.skipPhase();
         PomodoroSession saved = sessionRepository.save(session);
-        // Notify completion
-        int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
-        pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
         return toResult(saved);
     }
+
+        @Transactional
+        public SessionResult updateSession(UpdateSessionCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+
+        SessionType newType = command.sessionType() != null
+            ? SessionType.valueOf(command.sessionType().toUpperCase())
+            : null;
+        Duration newFocus = command.focusTimeInMinutes() != null
+            ? Duration.ofMinutes(command.focusTimeInMinutes())
+            : null;
+        Duration newBreak = command.breakTimeInMinutes() != null
+            ? Duration.ofMinutes(command.breakTimeInMinutes())
+            : null;
+        Integer newCycles = command.cycles();
+        Duration newLongBreak = null;
+        Duration newInterval = null;
+        if (command.enableLongBreak() != null) {
+            if (Boolean.TRUE.equals(command.enableLongBreak())) {
+                if (command.longBreakTimeInMinutes() != null) {
+                    newLongBreak = Duration.ofMinutes(command.longBreakTimeInMinutes());
+                } else {
+                    newLongBreak = session.getLongBreakDuration();
+                }
+                if (command.longBreakIntervalInMinutes() != null) {
+                    newInterval = Duration.ofMinutes(command.longBreakIntervalInMinutes());
+                } else {
+                    newInterval = session.getLongBreakInterval();
+                }
+            } else {
+                newLongBreak = null;
+                newInterval = null;
+            }
+        }
+
+        Duration effectiveFocus = newFocus != null ? newFocus : session.getFocusDuration();
+        Duration effectiveBreak = newBreak != null ? newBreak : session.getBreakDuration();
+        int effectiveCycles = newCycles != null ? newCycles : (session.getTotalCycles() != null ? session.getTotalCycles() : 1);
+        long totalMinutes = (effectiveFocus.toMinutes() + effectiveBreak.toMinutes()) * effectiveCycles;
+
+        if (totalMinutes <= 180) {
+            newLongBreak = null;
+            newInterval = null;
+        } else if (command.enableLongBreak() != null && Boolean.TRUE.equals(command.enableLongBreak())) {
+            Integer intervalMinutes = command.longBreakIntervalInMinutes();
+            if (intervalMinutes == null
+                || !(intervalMinutes == 180 || intervalMinutes == 210 || intervalMinutes == 240)) {
+                throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+            }
+            newInterval = Duration.ofMinutes(intervalMinutes);
+        }
+
+        if (newBreak != null || newLongBreak != null || newInterval != null) {
+            session.validateBreaks(newBreak != null ? newBreak : session.getBreakDuration(),
+                    newLongBreak != null ? newLongBreak : session.getLongBreakDuration(),
+                    newInterval != null ? newInterval : session.getLongBreakInterval());
+        }
+
+        session.updateSettings(newType, newFocus, newBreak, newCycles);
+        session.setLongBreakDuration(newLongBreak != null ? newLongBreak : session.getLongBreakDuration());
+        session.setLongBreakInterval(newInterval != null ? newInterval : session.getLongBreakInterval());
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+        }
 
     @Transactional
     public SessionResult updateNote(UpdateSessionNoteCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
-        activity.updateSessionNote(command.sessionId(), command.note());
+        com.pomodify.backend.presentation.mapper.SessionNoteMapper.applyDtoToSession(session, command.note());
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult toggleTodoItem(Long userId, Long sessionId, Long itemId) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(sessionId, userId);
+        SessionNote note = session.getNote();
+        if (note == null || note.getItems() == null) {
+            throw new IllegalArgumentException("No checklist items found for this session");
+        }
+        SessionTodoItem item = note.getItems().stream()
+                .filter(i -> itemId.equals(i.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Checklist item not found"));
+        item.setDone(!item.isDone());
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult patchTodoItem(Long userId, Long sessionId, Long itemId, SessionTodoItemDto patch) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(sessionId, userId);
+        SessionNote note = session.getNote();
+        if (note == null || note.getItems() == null) {
+            throw new IllegalArgumentException("No checklist items found for this session");
+        }
+        SessionTodoItem item = note.getItems().stream()
+                .filter(i -> itemId.equals(i.getId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Checklist item not found"));
+
+        if (patch.text() != null) {
+            item.setText(patch.text());
+        }
+        // we allow explicitly setting done; if you want only toggle, use toggleTodoItem
+        item.setDone(patch.done());
+        if (patch.orderIndex() != null) {
+            item.setOrderIndex(patch.orderIndex());
+        }
+
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult deleteTodoItem(Long userId, Long sessionId, Long itemId) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(sessionId, userId);
+        SessionNote note = session.getNote();
+        if (note == null || note.getItems() == null) {
+            throw new IllegalArgumentException("No checklist items found for this session");
+        }
+        boolean removed = note.getItems().removeIf(i -> itemId.equals(i.getId()));
+        if (!removed) {
+            throw new IllegalArgumentException("Checklist item not found");
+        }
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
     }
@@ -184,6 +315,19 @@ public class SessionService {
             cycles = s.getTotalCycles() != null ? s.getTotalCycles() : 1;
             totalMinutes = (int) (s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes()) * cycles;
         }
+        long totalElapsedSeconds = s.calculateTotalElapsed().getSeconds();
+
+        long remainingPhaseSeconds;
+        if (s.getCurrentPhase() != null) {
+            Duration phaseDuration = s.getCurrentPhase() == com.pomodify.backend.domain.enums.CyclePhase.FOCUS
+                ? s.getFocusDuration()
+                : s.getBreakDuration();
+            long remaining = phaseDuration.getSeconds() - totalElapsedSeconds;
+            remainingPhaseSeconds = Math.max(remaining, 0);
+        } else {
+            remainingPhaseSeconds = 0;
+        }
+
         return SessionResult.builder()
                 .id(s.getId())
                 .activityId(s.getActivity() != null ? s.getActivity().getId() : null)
@@ -195,7 +339,9 @@ public class SessionService {
                 .cycles(cycles)
                 .cyclesCompleted(s.getCyclesCompleted() != null ? s.getCyclesCompleted() : 0)
                 .totalTimeInMinutes(totalMinutes)
-                .note(s.getNote())
+            .totalElapsedSeconds(totalElapsedSeconds)
+            .remainingPhaseSeconds(remainingPhaseSeconds)
+                .note(com.pomodify.backend.presentation.mapper.SessionNoteMapper.toDto(s.getNote()))
                 .startedAt(s.getStartedAt())
                 .completedAt(s.getCompletedAt())
                 .createdAt(s.getCreatedAt())
