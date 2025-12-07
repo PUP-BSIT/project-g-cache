@@ -4,8 +4,15 @@ import com.pomodify.backend.application.command.session.*;
 import com.pomodify.backend.application.service.SessionService;
 import com.pomodify.backend.presentation.dto.item.SessionItem;
 import com.pomodify.backend.presentation.dto.request.session.SessionRequest;
+import com.pomodify.backend.presentation.dto.request.session.UpdateSessionRequest;
 import com.pomodify.backend.presentation.dto.response.SessionResponse;
 import com.pomodify.backend.presentation.mapper.SessionMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RestController
 @RequestMapping("/activities/{activityId}/sessions")
+@Tag(name = "Sessions", description = "Manage pomodoro sessions for an activity")
 public class SessionController {
 
         private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
@@ -36,10 +44,19 @@ public class SessionController {
 
     // ───── CRUD Operations ─────
 
-    @PostMapping
+        @PostMapping
+        @Operation(
+            summary = "Create a new session",
+            description = "Creates a pomodoro or freestyle session for the given activity, with optional long-break configuration.",
+            responses = {
+                @ApiResponse(responseCode = "201", description = "Session created",
+                    content = @Content(schema = @Schema(implementation = SessionResponse.class))),
+                @ApiResponse(responseCode = "400", description = "Validation error")
+            }
+        )
         public ResponseEntity<SessionResponse> createSession(@PathVariable Long activityId,
-                                                             @RequestBody @Valid SessionRequest request,
-                                                             @AuthenticationPrincipal Jwt jwt) {
+                                     @RequestBody @Valid SessionRequest request,
+                                     @Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
         Long userId = requireUserId(jwt);
         CreateSessionCommand command = CreateSessionCommand.builder()
                 .user(userId)
@@ -47,7 +64,10 @@ public class SessionController {
                 .sessionType(request.sessionType())
                 .focusTimeInMinutes(request.focusTimeInMinutes())
                 .breakTimeInMinutes(request.breakTimeInMinutes())
-                .cycles(request.cycles())
+            .cycles(request.cycles())
+            .enableLongBreak(request.enableLongBreak())
+            .longBreakTimeInMinutes(request.longBreakTimeInMinutes())
+            .longBreakIntervalInMinutes(request.longBreakIntervalInMinutes())
                 .note(null)
                 .build();
         SessionItem item = SessionMapper.toItem(sessionService.create(command));
@@ -55,6 +75,7 @@ public class SessionController {
     }
 
     @GetMapping
+    @Operation(summary = "List sessions", description = "Returns all sessions for an activity, optionally filtered by status.")
         public ResponseEntity<SessionResponse> getAllSessions(@AuthenticationPrincipal Jwt jwt,
                                                               @PathVariable Long activityId,
                                                               @RequestParam(required = false) String status) {
@@ -70,6 +91,7 @@ public class SessionController {
     }
 
         @GetMapping("/{id}")
+        @Operation(summary = "Get session", description = "Returns a single session by id for the given activity.")
         public ResponseEntity<SessionResponse> getSession(@AuthenticationPrincipal Jwt jwt,
                                   @PathVariable Long activityId,
                                   @PathVariable Long id) {
@@ -79,6 +101,7 @@ public class SessionController {
         }
 
         @DeleteMapping("/{id}")
+        @Operation(summary = "Delete session", description = "Soft-deletes a session for the given activity.")
         public ResponseEntity<SessionResponse> deleteSession(@AuthenticationPrincipal Jwt jwt,
                                      @PathVariable Long activityId,
                                      @PathVariable Long id) {
@@ -90,6 +113,7 @@ public class SessionController {
     // ───── Lifecycle Operations ─────
 
     @PostMapping("/{id}/start")
+    @Operation(summary = "Start session", description = "Starts a session and moves it into IN_PROGRESS state.")
     public ResponseEntity<SessionResponse> startSession(@AuthenticationPrincipal Jwt jwt,
                                                         @PathVariable Long activityId,
                                                         @PathVariable Long id) {
@@ -99,6 +123,7 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/pause")
+    @Operation(summary = "Pause session", description = "Pauses a running session and accumulates elapsed time.")
     public ResponseEntity<SessionResponse> pauseSession(@AuthenticationPrincipal Jwt jwt,
                                                         @PathVariable Long activityId,
                                                         @PathVariable Long id,
@@ -109,6 +134,7 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/resume")
+    @Operation(summary = "Resume session", description = "Resumes a paused session, continuing from accumulated elapsed time.")
     public ResponseEntity<SessionResponse> resumeSession(@AuthenticationPrincipal Jwt jwt,
                                                          @PathVariable Long activityId,
                                                          @PathVariable Long id) {
@@ -118,35 +144,49 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/stop")
+    @Operation(summary = "Smart stop session", description = "Stops the current phase timer. If no cycles were completed and phase is FOCUS, returns to NOT_STARTED; otherwise PAUSED.")
     public ResponseEntity<SessionResponse> stopSession(@AuthenticationPrincipal Jwt jwt,
                                                        @PathVariable Long activityId,
                                                        @PathVariable Long id,
                                                        @RequestParam(required = false) String note) {
         Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.stop(StopSessionCommand.builder().user(userId).sessionId(id).note(note).build()));
-        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session stopped successfully (current cycle invalidated)"));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session stopped successfully"));
     }
-
-    @PostMapping("/{id}/cancel")
-    public ResponseEntity<SessionResponse> cancelSession(@AuthenticationPrincipal Jwt jwt,
-                                                         @PathVariable Long activityId,
-                                                         @PathVariable Long id) {
+    @PostMapping("/{id}/skip")
+    @Operation(summary = "Skip phase (freestyle)", description = "Skips to the next phase for FREESTYLE sessions. When skipping a BREAK, increments cyclesCompleted.")
+    public ResponseEntity<SessionResponse> skipPhase(@AuthenticationPrincipal Jwt jwt,
+                                                     @PathVariable Long activityId,
+                                                     @PathVariable Long id) {
         Long userId = requireUserId(jwt);
-        SessionItem item = SessionMapper.toItem(sessionService.cancel(CancelSessionCommand.builder().user(userId).sessionId(id).build()));
-        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session canceled successfully (all cycles invalidated)"));
+        SessionItem item = SessionMapper.toItem(sessionService.skipPhase(SkipPhaseCommand.builder().user(userId).sessionId(id).build()));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Phase skipped successfully"));
     }
 
-    @PostMapping("/{id}/finish")
-    public ResponseEntity<SessionResponse> finishSession(@AuthenticationPrincipal Jwt jwt,
+    @PatchMapping("/{id}")
+    @Operation(summary = "Update session settings", description = "PATCH endpoint to update focus/break durations, cycles and long-break configuration.")
+    public ResponseEntity<SessionResponse> updateSession(@AuthenticationPrincipal Jwt jwt,
                                                          @PathVariable Long activityId,
                                                          @PathVariable Long id,
-                                                         @RequestParam(required = false) String note) {
+                                                         @RequestBody @Valid UpdateSessionRequest request) {
         Long userId = requireUserId(jwt);
-        SessionItem item = SessionMapper.toItem(sessionService.finish(FinishSessionCommand.builder().user(userId).sessionId(id).note(note).build()));
-        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session finished successfully"));
+        UpdateSessionCommand cmd = UpdateSessionCommand.builder()
+                .user(userId)
+                .sessionId(id)
+                .sessionType(request.sessionType())
+                .focusTimeInMinutes(request.focusTimeInMinutes())
+                .breakTimeInMinutes(request.breakTimeInMinutes())
+            .cycles(request.cycles())
+            .enableLongBreak(request.enableLongBreak())
+            .longBreakTimeInMinutes(request.longBreakTimeInMinutes())
+            .longBreakIntervalInMinutes(request.longBreakIntervalInMinutes())
+                .build();
+        SessionItem item = SessionMapper.toItem(sessionService.updateSession(cmd));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session updated successfully"));
     }
 
         @PostMapping("/{id}/complete-phase")
+        @Operation(summary = "Complete current phase", description = "Marks the current phase as complete, transitions to the next phase (short or long break, or focus), and may complete the session.")
         public ResponseEntity<SessionResponse> completePhase(@AuthenticationPrincipal Jwt jwt,
                                      @PathVariable Long activityId,
                                      @PathVariable Long id,
@@ -159,6 +199,7 @@ public class SessionController {
         }
 
     @PutMapping("/{id}/note")
+    @Operation(summary = "Update session note", description = "Updates the note attached to a session.")
     public ResponseEntity<SessionResponse> updateNote(@AuthenticationPrincipal Jwt jwt,
                                                       @PathVariable Long activityId,
                                                       @PathVariable Long id,
