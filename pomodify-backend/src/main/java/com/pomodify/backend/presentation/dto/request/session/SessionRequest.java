@@ -18,6 +18,12 @@ public record SessionRequest(
         @Min(value = 1, message = "Cycles must be at least 1")
         Integer cycles,
 
+        boolean isDeleted,
+
+        Integer cyclesCompleted,
+
+        Integer totalTimeInMinutes,
+
         boolean enableLongBreak,
 
         @Min(value = 15, message = "Long break must be at least 15 minutes")

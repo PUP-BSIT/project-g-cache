@@ -1,56 +1,83 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * See https://playwright.dev/docs/test-configuration.
+ * Playwright Configuration – Optimized for Fast CI & Local Dev
+ * https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
   testDir: './e2e',
-  /* Run tests in files in parallel */
+
+  // ✅ Run test files in full parallel
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+
+  // ✅ Fail CI if test.only is committed
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+
+  // ✅ Retry once in CI
+  retries: process.env.CI ? 1 : 0,
+
+  // ✅ More workers in CI for faster execution (can be adjusted based on API capacity)
+  workers: process.env.CI ? 2 : 2,
+
+  // ✅ HTML report for local, but still fine in CI
   reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+
+  // ✅ Global test timeout - shorter in CI to fail fast
+  timeout: process.env.CI ? 20_000 : 30_000,
+
+  expect: {
+    timeout: process.env.CI ? 5_000 : 10_000,
+  },
+
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:4200',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    // ✅ Use env base URL if provided
+    baseURL:
+      process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:4200',
+
+    // ✅ Disable tracing in CI for speed
+    trace: process.env.CI ? 'off' : 'on-first-retry',
+
+    // ✅ Shorter timeouts in CI to fail fast
+    actionTimeout: process.env.CI ? 10_000 : 15_000,
+    navigationTimeout: process.env.CI ? 15_000 : 30_000,
   },
 
-  /* Configure projects for major browsers */
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
+  // ✅ Global setup (optional - API mocking is done via fixtures)
+  // globalSetup: require.resolve('./e2e/global-setup.ts'),
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
+  // ✅ Only Chromium in CI, all browsers locally
+  projects: process.env.CI
+    ? [
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'] },
+        },
+      ]
+    : [
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'] },
+        },
+        {
+          name: 'firefox',
+          use: { ...devices['Desktop Firefox'] },
+        },
+        {
+          name: 'webkit',
+          use: { ...devices['Desktop Safari'] },
+        },
+        {
+          name: 'Mobile Chrome',
+          use: { ...devices['Pixel 5'] },
+        },
+      ],
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-  ],
-
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run start',
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.CI,
-  },
+  // ✅ Do NOT start dev server from Playwright in CI
+  webServer: process.env.CI
+    ? undefined
+    : {
+        command: 'npm run start',
+        url: 'http://localhost:4200',
+        reuseExistingServer: true,
+      },
 });
