@@ -189,9 +189,9 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .mascot-container {
   position: absolute;
-  right: -320px;
-  top: 50%;
-  transform: translateY(-50%);
+  left: -180px;
+  bottom: 80px;
+  transform: translateX(0);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -201,8 +201,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   
   .mascot-character {
-    width: 380px;
-    height: 380px;
+    width: 280px;
+    height: 280px;
     object-fit: contain;
     filter: drop-shadow(0 20px 45px rgba(95, 169, 164, 0.4));
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -217,28 +217,28 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
   }
   
-  // Idle state - gentle bounce with breathing effect (right of timer)
+  // Idle state - gentle bounce with breathing effect (lower left of timer)
   &.idle {
-    right: -320px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: -180px;
+    bottom: 80px;
+    transform: translateX(0);
     
     .mascot-character {
-      width: 380px;
-      height: 380px;
+      width: 280px;
+      height: 280px;
       animation: idle-bounce 2.5s ease-in-out infinite, breathing-pulse 4s ease-in-out infinite;
     }
   }
   
-  // Running state - stays beside timer
+  // Running state - stays beside timer (lower left)
   &.bouncing {
-    right: -300px;
-    top: 50%;
-    transform: translateY(-50%);
+    left: -170px;
+    bottom: 80px;
+    transform: translateX(0);
     
     .mascot-character {
-      width: 360px;
-      height: 360px;
+      width: 270px;
+      height: 270px;
       animation: energetic-bounce 1.2s ease-in-out infinite, head-bob 0.6s ease-in-out infinite;
     }
   }
@@ -247,6 +247,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   &.celebrating {
     left: 50%;
     top: 50%;
+    bottom: auto;
     transform: translate(-50%, -50%);
     z-index: 50;
     
@@ -258,15 +259,15 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
   }
   
-  // Shake - stays on right side for urgency!
+  // Shake - stays on left side for urgency!
   &.shake {
-    right: -340px;
-    top: 10%;
-    transform: translateY(0);
+    left: -200px;
+    bottom: 50px;
+    transform: translateX(0);
     
     .mascot-character {
-      width: 400px;
-      height: 400px;
+      width: 300px;
+      height: 300px;
       animation: shake-alert 0.5s ease-in-out infinite, energetic-bounce 1.2s ease-in-out infinite;
       filter: drop-shadow(0 25px 60px rgba(255, 107, 107, 0.7));
     }
@@ -282,18 +283,18 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     filter: drop-shadow(0 10px 30px rgba(123, 196, 191, 0.4));
   }
   
-  // Speech bubble (points toward timer on the left)
+  // Speech bubble (points toward mascot from top)
   .mascot-bubble {
     position: absolute;
-    top: 20px;
-    left: -140px;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.7) translateY(20px);
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(15px);
     padding: 12px 20px;
     border-radius: 20px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
     opacity: 0;
-    transform: scale(0.7) translateY(20px);
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
     white-space: nowrap;
@@ -303,7 +304,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       content: '';
       position: absolute;
       bottom: -12px;
-      right: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 0;
       height: 0;
       border-left: 14px solid transparent;
@@ -313,7 +315,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     
     &.show {
       opacity: 1;
-      transform: scale(1) translateY(0);
+      transform: translateX(-50%) scale(1) translateY(0);
       animation: bubble-bounce 0.6s ease-out;
     }
     
@@ -471,7 +473,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 }
 
-/* -------------------- TIMER SECTION (LEFT SIDE) -------------------- */
+/* -------------------- TIMER SECTION (CENTER-RIGHT) -------------------- */
 
 .timer-section {
   flex: 1;
@@ -481,6 +483,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   min-height: 600px;
   perspective: 1000px;
   position: relative;
+  margin-left: 100px;
+  margin-top: -40px;
 }
 
 .timer-circle {
