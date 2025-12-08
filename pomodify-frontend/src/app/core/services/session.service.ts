@@ -20,6 +20,8 @@ export interface PomodoroSession {
   currentPhase: SessionPhase | null;
   cyclesCompleted: number;
   note: string | null;
+  totalElapsedSeconds?: number; // Total elapsed time across all cycles
+  remainingPhaseSeconds?: number; // Remaining time in current phase (from backend)
   createdAt?: string;
   updatedAt?: string;
 }
