@@ -188,91 +188,87 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 /* -------------------- MASCOT CHARACTER -------------------- */
 
 .mascot-container {
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
+  position: absolute;
+  right: -320px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 10;
   pointer-events: all;
   transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   
   .mascot-character {
-    width: 220px;
-    height: 220px;
+    width: 380px;
+    height: 380px;
     object-fit: contain;
-    filter: drop-shadow(0 15px 35px rgba(95, 169, 164, 0.35));
+    filter: drop-shadow(0 20px 45px rgba(95, 169, 164, 0.4));
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     cursor: pointer;
     will-change: transform;
     
     // Enhanced hover effect - bigger bounce and wave
     &:hover {
-      transform: scale(1.15) rotate(-8deg) translateY(-15px);
-      filter: drop-shadow(0 20px 45px rgba(95, 169, 164, 0.5));
+      transform: scale(1.1) rotate(-5deg) translateY(-10px);
+      filter: drop-shadow(0 25px 55px rgba(95, 169, 164, 0.6));
       animation: wave-dance 0.6s ease-in-out;
     }
   }
   
-  // Idle state - gentle bounce with breathing effect (smaller, bottom-right)
+  // Idle state - gentle bounce with breathing effect (right of timer)
   &.idle {
-    bottom: 40px;
-    right: 40px;
-    left: auto;
-    top: auto;
+    right: -320px;
+    top: 50%;
+    transform: translateY(-50%);
     
     .mascot-character {
-      width: 200px;
-      height: 200px;
+      width: 380px;
+      height: 380px;
       animation: idle-bounce 2.5s ease-in-out infinite, breathing-pulse 4s ease-in-out infinite;
     }
   }
   
-  // Running state - compact size, bottom-right (less distraction)
+  // Running state - stays beside timer
   &.bouncing {
-    bottom: 30px;
-    right: 30px;
-    left: auto;
-    top: auto;
+    right: -300px;
+    top: 50%;
+    transform: translateY(-50%);
     
     .mascot-character {
-      width: 180px;
-      height: 180px;
+      width: 360px;
+      height: 360px;
       animation: energetic-bounce 1.2s ease-in-out infinite, head-bob 0.6s ease-in-out infinite;
     }
   }
   
-  // Celebration - LARGE and CENTERED for maximum impact!
+  // Celebration - CENTERED in timer area for impact!
   &.celebrating {
-    bottom: 50%;
-    right: 50%;
-    left: auto;
-    top: auto;
-    transform: translate(50%, 50%);
-    z-index: 200;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
     
     .mascot-character {
-      width: 450px;
-      height: 450px;
+      width: 420px;
+      height: 420px;
       animation: celebration-jump 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3, celebration-spin 1.2s ease-in-out 2;
-      filter: drop-shadow(0 30px 80px rgba(95, 169, 164, 0.6));
+      filter: drop-shadow(0 35px 90px rgba(95, 169, 164, 0.7));
     }
   }
   
-  // Shake - moves to TOP-RIGHT with medium size for urgency!
+  // Shake - stays on right side for urgency!
   &.shake {
-    bottom: auto;
-    right: 40px;
-    left: auto;
-    top: 120px;
+    right: -340px;
+    top: 10%;
+    transform: translateY(0);
     
     .mascot-character {
-      width: 240px;
-      height: 240px;
+      width: 400px;
+      height: 400px;
       animation: shake-alert 0.5s ease-in-out infinite, energetic-bounce 1.2s ease-in-out infinite;
-      filter: drop-shadow(0 20px 50px rgba(255, 107, 107, 0.6));
+      filter: drop-shadow(0 25px 60px rgba(255, 107, 107, 0.7));
     }
   }
   
@@ -286,11 +282,11 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     filter: drop-shadow(0 10px 30px rgba(123, 196, 191, 0.4));
   }
   
-  // Speech bubble (adapts to mascot size)
+  // Speech bubble (points toward timer on the left)
   .mascot-bubble {
     position: absolute;
-    top: 10px;
-    left: -100px;
+    top: 20px;
+    left: -140px;
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(15px);
     padding: 12px 20px;
@@ -307,7 +303,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       content: '';
       position: absolute;
       bottom: -12px;
-      right: 30px;
+      right: 20px;
       width: 0;
       height: 0;
       border-left: 14px solid transparent;
@@ -484,6 +480,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   align-items: center;
   min-height: 600px;
   perspective: 1000px;
+  position: relative;
 }
 
 .timer-circle {

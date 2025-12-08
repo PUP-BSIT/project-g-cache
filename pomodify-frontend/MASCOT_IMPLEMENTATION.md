@@ -11,12 +11,16 @@
 - ✅ Maximized space utilization with fixed positioning
 - ✅ Phase-specific visual feedback (Focus vs Break mode)
 
-### **New Features (Latest Update)**
-- 🎯 **Fixed Positioning:** Mascot now anchored to bottom-left (40px from edges)
-- 📏 **Larger Size:** Increased from 280px to 380px for better visibility
+### **New Features (Latest Update - v2.1)**
+- 🎯 **Dynamic Positioning:** Mascot changes position AND size based on timer state
+- 📏 **Adaptive Sizing:** 
+  - **Idle:** 200px (bottom-right)
+  - **Running:** 180px (bottom-right, minimal distraction)
+  - **Low Time:** 240px (top-right, urgent visibility)
+  - **Celebration:** 450px (CENTER screen, maximum impact!)
 - 🎭 **9 Animation Types:** Idle bounce, breathing pulse, head bob, energetic bounce, wave dance, celebration jump, celebration spin, shake alert, bubble bounce
-- ⚠️ **Low Time Alert:** Mascot shakes when less than 60 seconds remain
-- 💪 **Maximized Space:** Timer and notes section now utilize full available width
+- 🚨 **Smart Repositioning:** Mascot moves to different corners based on context
+- 💪 **Zero Distraction:** Tiny during focus time, HUGE during celebration
 
 ---
 
@@ -200,61 +204,99 @@
 
 ---
 
-## 🎯 State-Based Behavior Matrix
+## 🎯 State-Based Behavior Matrix (Dynamic Positioning)
 
-| Session State | Animation | Speech Bubble | Visual Effect | Shadow Color |
-|--------------|-----------|---------------|---------------|--------------|
-| **PENDING** | Idle Bounce + Breathing Pulse | Hidden | Gentle floating, breathing | Teal (#5FA9A4) |
-| **IN_PROGRESS (Focus)** | Energetic Bounce + Head Bob | "Stay Focused! 🎯" | Active bouncing, tilting | Teal (#5FA9A4) |
-| **IN_PROGRESS (Break)** | Energetic Bounce + Head Bob | "Enjoy Your Break! 🌟" | Active bouncing, tilting | Light Teal (#7BC4BF) |
-| **PAUSED** | Idle Bounce + Breathing Pulse | Hidden | Gentle floating, breathing | Teal (#5FA9A4) |
-| **COMPLETED** | Celebration Jump + Spin | Hidden | Jump 80px + 720° spin | Teal (#5FA9A4) |
-| **LOW TIME (<60s)** | Shake + Energetic Bounce | Shows current phase message | Rapid shaking, urgent bounce | **Red (#FF6B6B)** |
-| **HOVER** | Wave Dance (one-time) | Current state bubble | 15% scale up, rotation, lift | Enhanced teal glow |
+| Session State | Size | Position | Animation | Speech Bubble | Shadow Color |
+|--------------|------|----------|-----------|---------------|--------------|
+| **PENDING** | 200px | Bottom-Right | Idle Bounce + Breathing | Hidden | Teal (#5FA9A4) |
+| **IN_PROGRESS (Focus)** | 180px | Bottom-Right | Energetic Bounce + Head Bob | "Stay Focused! 🎯" | Teal (#5FA9A4) |
+| **IN_PROGRESS (Break)** | 180px | Bottom-Right | Energetic Bounce + Head Bob | "Enjoy Your Break! 🌟" | Light Teal (#7BC4BF) |
+| **PAUSED** | 200px | Bottom-Right | Idle Bounce + Breathing | Hidden | Teal (#5FA9A4) |
+| **COMPLETED** | **450px** | **CENTER SCREEN** | Jump + 720° Spin | Hidden | Enhanced Teal |
+| **LOW TIME (<60s)** | 240px | **TOP-RIGHT** | Shake + Bounce | Shows phase message | **Red (#FF6B6B)** |
+| **HOVER** | +15% | Current position | Wave Dance | Current state | Enhanced glow |
+
+### **Position Strategy:**
+- 🎯 **Bottom-Right (180-200px):** Minimal distraction during work
+- ⚠️ **Top-Right (240px):** Urgency alert when time is low
+- 🎉 **Center Screen (450px):** Maximum celebration impact when complete!
+
+---
+
+## 📐 **Visual Position Map**
+
+```
+┌─────────────────────────────────────────────────┐
+│                                     ⚠️ LOW TIME  │
+│                                   (240px, shake) │
+│                                                  │
+│              🎉 CELEBRATION (450px)              │
+│                  [CENTER SCREEN]                 │
+│                                                  │
+│                                                  │
+│                                                  │
+│                                                  │
+│                                                  │
+│                                    💼 IDLE       │
+│                                   (200px)        │
+│                                    🏃 RUNNING    │
+│                                   (180px, tiny)  │
+└─────────────────────────────────────────────────┘
+
+STRATEGY:
+- Bottom-Right: Work mode - stay focused!
+- Top-Right: Alert mode - time's running out!
+- Center: Party mode - you did it! 🎊
+```
 
 ---
 
 ## 🎨 Design Features
 
-### **1. Positioning**
-- **Location:** Fixed bottom-left corner of viewport
-- **Position Values:** `bottom: 40px; left: 40px`
-- **Size:** 380x380px (increased from 280px for better visibility)
-- **Z-index:** 100 (ensures mascot stays above background elements)
-- **Layout Impact:** Does not affect main content layout (uses fixed positioning)
-
-### **2. Speech Bubble**
-- **Style:** Glassmorphism (frosted glass effect)
-- **Position:** Top-right of mascot (20px from top, -120px from right)
-- **Size:** Padding 16px vertical, 28px horizontal
-- **Animation:** Bubble bounce entrance with elastic effect
-- **Trigger:** Shows only when timer is running
-- **Border:** 2px solid teal with transparency
-
+### **1. Dynamic Positioning & Sizing**
 ```scss
-.mascot-bubble {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(15px);
-  border-radius: 24px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-  border: 2px solid rgba(95, 169, 164, 0.2);
+// State-based positioning with smooth transitions
+.mascot-container {
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// Idle/Paused: Bottom-right, 200px
+&.idle { 
+  bottom: 40px; right: 40px; 
+  .mascot-character { width: 200px; height: 200px; }
+}
+
+// Running: Bottom-right, 180px (COMPACT for focus)
+&.bouncing { 
+  bottom: 30px; right: 30px;
+  .mascot-character { width: 180px; height: 180px; }
+}
+
+// Low Time: Top-right, 240px (URGENT visibility)
+&.shake { 
+  top: 120px; right: 40px;
+  .mascot-character { width: 240px; height: 240px; }
+}
+
+// Celebration: CENTER, 450px (MAXIMUM impact!)
+&.celebrating {
+  bottom: 50%; right: 50%;
+  transform: translate(50%, 50%);
+  .mascot-character { width: 450px; height: 450px; }
 }
 ```
 
-### **3. Hover Effect**
-- **Scale:** 1.15x (from base 1.0)
-- **Rotation:** -8 degrees
-- **Lift:** 15px translateY
-- **Shadow:** Enhanced drop-shadow with 60px blur
-- **Duration:** 0.5s with bounce easing
-- **Animation:** Wave dance with multiple rotations
-- **Cursor:** Pointer (indicates interactivity)
+### **2. Why This Works:**
+- **Focus Mode (180px, bottom-right):** Tiny mascot = minimal distraction, peripheral vision only
+- **Alert Mode (240px, top-right):** Moves to eye-level position for urgency
+- **Celebration (450px, center):** Takes over screen for victory moment!
+- **Smooth Transitions:** 0.6s elastic easing between positions
 
-### **4. Dynamic Shadows**
-- **Normal State:** Teal shadow `rgba(95, 169, 164, 0.4)`
-- **Hover State:** Enhanced teal `rgba(95, 169, 164, 0.6)`
-- **Low Time:** Red alert shadow `rgba(255, 107, 107, 0.5)`
-- **Filter:** `drop-shadow(0 20px 50px [color])`
+### **3. Speech Bubble**
+- **Adaptive Sizing:** Smaller text for smaller mascot
+- **Position:** Always to the left of mascot
+- **Padding:** 12px x 20px (compact for small sizes)
+- **Animation:** Bubble bounce with 0.6s duration
 
 ---
 
