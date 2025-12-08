@@ -37,21 +37,35 @@ public class SummaryService {
                 .filter(s -> !s.getCompletedAt().isBefore(startDt) && !s.getCompletedAt().isAfter(endDt))
                 .collect(Collectors.toList());
 
-        // Metrics
+        // Last month abandoned sessions (based on calendar last month relative to current period end)
+        LocalDate lastMonthStart = end.minusMonths(1).withDayOfMonth(1);
+        LocalDate lastMonthEnd = end.minusMonths(1).withDayOfMonth(end.minusMonths(1).lengthOfMonth());
+        LocalDateTime lastMonthStartDt = lastMonthStart.atStartOfDay();
+        LocalDateTime lastMonthEndDt = lastMonthEnd.plusDays(1).atStartOfDay().minusNanos(1);
+        int lastMonthAbandoned = (int) sessionRepository.findByUserId(userId).stream()
+            .filter(s -> s.getCompletedAt() != null)
+            .filter(s -> !s.isDeleted())
+            .filter(s -> !s.getCompletedAt().isBefore(lastMonthStartDt) && !s.getCompletedAt().isAfter(lastMonthEndDt))
+            .filter(s -> s.getStatus() == SessionStatus.ABANDONED)
+            .count();
+
+        // Current-period metrics
         long totalFocusSeconds = sumFocusSeconds(allInRange);
+        long totalBreakSeconds = sumBreakSeconds(allInRange);
         double totalFocusedHours = round1(totalFocusSeconds / 3600.0);
+        double totalBreakHours = round1(totalBreakSeconds / 3600.0);
 
         long totalSessions = allInRange.size();
         long completedOrFinished = allInRange.stream()
-                .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
-                        .count();
+            .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
+            .count();
         int completionRate = totalSessions == 0
-                ? 0
-                : (int) Math.round((completedOrFinished * 100.0) / totalSessions);
+            ? 0
+            : (int) Math.round((completedOrFinished * 100.0) / totalSessions);
 
         int avgSessionMinutes = totalSessions == 0
-                ? 0
-                : (int) Math.round((totalFocusSeconds / 60.0) / totalSessions);
+            ? 0
+            : (int) Math.round((totalFocusSeconds / 60.0) / totalSessions);
 
         // Chart data
         SummaryResult.ChartData chartData = buildChartData(cmd.range(), start, end, allInRange, zone);
@@ -106,12 +120,61 @@ public class SummaryService {
             ));
         }
 
+        // Previous period metrics for trends
+        long days = end.toEpochDay() - start.toEpochDay() + 1;
+        LocalDate prevEnd = start.minusDays(1);
+        LocalDate prevStart = prevEnd.minusDays(days - 1);
+        LocalDateTime prevStartDt = prevStart.atStartOfDay();
+        LocalDateTime prevEndDt = prevEnd.plusDays(1).atStartOfDay().minusNanos(1);
+
+        List<PomodoroSession> allPrevious = sessionRepository.findByUserId(userId).stream()
+            .filter(s -> s.getCompletedAt() != null)
+            .filter(s -> !s.isDeleted())
+            .filter(s -> !s.getCompletedAt().isBefore(prevStartDt) && !s.getCompletedAt().isAfter(prevEndDt))
+            .toList();
+
+        long prevFocusSeconds = sumFocusSeconds(allPrevious);
+        double prevFocusHours = round1(prevFocusSeconds / 3600.0);
+        long prevTotalSessions = allPrevious.size();
+        long prevCompleted = allPrevious.stream()
+            .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
+            .count();
+        int prevCompletionRate = prevTotalSessions == 0
+            ? 0
+            : (int) Math.round((prevCompleted * 100.0) / prevTotalSessions);
+
+        SummaryResult.TrendMetric focusTrend = new SummaryResult.TrendMetric(
+            totalFocusedHours,
+            prevFocusHours,
+            computeChangePercent(prevFocusHours, totalFocusedHours)
+        );
+        SummaryResult.TrendMetric completionTrend = new SummaryResult.TrendMetric(
+            completionRate,
+            prevCompletionRate,
+            computeChangePercent(prevCompletionRate, completionRate)
+        );
+
+        SummaryResult.Overview overview = new SummaryResult.Overview(
+            totalFocusedHours,
+            totalBreakHours,
+            completionRate,
+            (int) totalSessions,
+            avgSessionMinutes
+        );
+
+        SummaryResult.Trends trends = new SummaryResult.Trends(focusTrend, completionTrend);
+
+        java.util.List<SummaryResult.Insight> insights = buildInsights(overview, trends);
+
         return new SummaryResult(
-            new SummaryResult.Meta(toRangeString(cmd.range()), start, end),
-            new SummaryResult.Metrics(totalFocusedHours, completionRate, avgSessionMinutes),
+            new SummaryResult.Period(start, end, toRangeString(cmd.range())),
+            overview,
+            trends,
+            insights,
             chartData,
             recentItems,
-            topActivities
+            topActivities,
+            lastMonthAbandoned
         );
     }
 
@@ -175,6 +238,10 @@ public class SummaryService {
         return sessions.stream().mapToLong(this::focusSecondsOf).sum();
     }
 
+    private long sumBreakSeconds(List<PomodoroSession> sessions) {
+        return sessions.stream().mapToLong(this::breakSecondsOf).sum();
+    }
+
     private long focusSecondsOf(PomodoroSession s) {
         long focusPerCycle = s.getFocusDuration() != null ? s.getFocusDuration().getSeconds() : 0L;
         return (long) s.getCyclesCompleted() * focusPerCycle;
@@ -193,5 +260,49 @@ public class SummaryService {
             case MONTHLY -> "monthly";
             case YEARLY -> "yearly";
         };
+    }
+
+    private double computeChangePercent(double previous, double current) {
+        if (previous == 0) {
+            return current == 0 ? 0.0 : 100.0;
+        }
+        return round1(((current - previous) / previous) * 100.0);
+    }
+
+    private java.util.List<SummaryResult.Insight> buildInsights(SummaryResult.Overview overview, SummaryResult.Trends trends) {
+        java.util.List<SummaryResult.Insight> insights = new java.util.ArrayList<>();
+
+        if (trends.focusHours().changePercent() > 0) {
+            insights.add(new SummaryResult.Insight(
+                    "positive",
+                    "high",
+                    "Great job! Your focus hours increased this period.",
+                    "Keep up the momentum!"
+            ));
+        }
+
+        double totalHours = overview.totalFocusHours() + overview.totalBreakHours();
+        if (totalHours > 0) {
+            double breakRatio = overview.totalBreakHours() / totalHours;
+            if (breakRatio > 0.4) {
+                insights.add(new SummaryResult.Insight(
+                        "warning",
+                        "medium",
+                        "Break time is a large portion of your total time.",
+                        "Consider slightly shorter breaks to maintain flow."
+                ));
+            }
+        }
+
+        if (overview.completionRate() < 50 && overview.sessionsCount() >= 5) {
+            insights.add(new SummaryResult.Insight(
+                    "warning",
+                    "medium",
+                    "Many sessions are not being completed.",
+                    "Try reducing session length or improving focus conditions."
+            ));
+        }
+
+        return insights;
     }
 }
