@@ -31,11 +31,25 @@ export class LoginPage {
     try {
       // Wait for network to be idle (API call completed)
       await this.page.waitForLoadState('networkidle', { timeout: 10000 });
-      // Then wait for navigation or error message
-      await Promise.race([
-        this.page.waitForURL(/.*\/dashboard/, { timeout: 10000 }),
-        this.page.waitForSelector('text=Invalid credentials, text=Error, .error', { timeout: 5000 }),
-      ]);
+      
+      // Wait for either success (dashboard URL) or error message
+      // Wrap promises to prevent false failures in trace
+      const dashboardPromise = this.page.waitForURL(/.*\/dashboard/, { timeout: 10000 })
+        .then(() => 'success')
+        .catch(() => null);
+      
+      const errorPromise = this.page.waitForSelector('text=Invalid credentials, text=Error, .error', { timeout: 5000 })
+        .then(() => 'error')
+        .catch(() => null);
+      
+      // Race both promises - whichever resolves first wins
+      // The losing promise will resolve to null instead of throwing
+      const result = await Promise.race([dashboardPromise, errorPromise]);
+      
+      // If both timed out, that's okay - test will check state
+      if (!result) {
+        console.log('[LoginPage] Login wait completed - neither condition met within timeout');
+      }
     } catch (error) {
       // Timeout is acceptable - test will check state
       console.log('[LoginPage] Login wait completed with timeout');
