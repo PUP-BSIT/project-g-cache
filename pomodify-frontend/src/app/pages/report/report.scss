@@ -361,8 +361,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 35px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
 .summary-card {
@@ -407,6 +407,263 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-size: 24px;
   font-weight: 700;
 }
+
+// Period Info Section
+.period-info-section {
+  background: $bg-white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .section-heading {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+}
+
+.period-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.period-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  background: $bg-light;
+}
+
+.period-label {
+  font-weight: 600;
+  color: $text-dark;
+  font-size: 14px;
+}
+
+.period-value {
+  color: $text-light;
+  font-size: 14px;
+}
+
+// Trends Section
+.trends-section {
+  background: $bg-white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .section-heading {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+}
+
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.trend-card {
+  background: $bg-light;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.trend-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: $primary-teal;
+  color: $text-white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.trend-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.trend-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.trend-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: $text-light;
+}
+
+.trend-current {
+  font-weight: 700;
+  color: $text-dark;
+  font-size: 12px;
+}
+
+.trend-vs {
+  color: $text-light;
+}
+
+.trend-previous {
+  font-weight: 600;
+  color: $text-dark;
+  font-size: 11px;
+}
+
+.trend-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $red;
+  padding: 4px 8px;
+  background: rgba(231, 76, 60, 0.1);
+  border-radius: 6px;
+
+  &.positive {
+    color: $green;
+    background: rgba(82, 201, 124, 0.1);
+  }
+
+  &.negative {
+    color: $red;
+    background: rgba(231, 76, 60, 0.1);
+  }
+
+  i {
+    font-size: 10px;
+  }
+}
+
+// Insights Section
+.insights-section {
+  background: $bg-white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .section-heading {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+}
+
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.insight-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border-left: 4px solid;
+
+  &.insight-positive {
+    background: rgba(82, 201, 124, 0.08);
+    border-left-color: $green;
+
+    .insight-icon {
+      background: rgba(82, 201, 124, 0.15);
+      color: $green;
+    }
+  }
+
+  &.insight-warning {
+    background: rgba(244, 196, 48, 0.08);
+    border-left-color: $yellow;
+
+    .insight-icon {
+      background: rgba(244, 196, 48, 0.15);
+      color: $yellow;
+    }
+  }
+
+  &.insight-info {
+    background: rgba(95, 169, 164, 0.08);
+    border-left-color: $primary-teal;
+
+    .insight-icon {
+      background: rgba(95, 169, 164, 0.15);
+      color: $primary-teal;
+    }
+  }
+
+  &.severity-high {
+    opacity: 1;
+  }
+
+  &.severity-medium {
+    opacity: 0.9;
+  }
+
+  &.severity-low {
+    opacity: 0.8;
+  }
+}
+
+.insight-icon {
+  min-width: 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.insight-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.insight-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: $text-dark;
+  line-height: 1.4;
+}
+
+.insight-actionable {
+  font-size: 12px;
+  color: $text-light;
+  font-style: italic;
+}
+
 
 .report-main-grid {
   display: grid;

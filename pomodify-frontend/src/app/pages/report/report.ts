@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
-import { ReportRange, ReportService, SummaryItem } from '../../core/services/report.service';
+import { ReportRange, ReportService, SummaryItem, SummaryItem as SummaryItemType } from '../../core/services/report.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -35,6 +35,28 @@ type FocusProject = {
   totalMinutes: number;
 };
 
+type TrendDisplay = {
+  label: string;
+  current: number;
+  previous: number;
+  changePercent: number;
+  icon: string;
+};
+
+type InsightDisplay = {
+  type: 'positive' | 'warning' | 'info';
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+  actionable: string;
+  icon: string;
+};
+
+type PeriodInfo = {
+  startDate: string;
+  endDate: string;
+  range: string;
+};
+
 @Component({
   selector: 'app-report',
   standalone: true,
@@ -53,8 +75,20 @@ export class Report implements OnInit {
 
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
+  protected readonly totalBreakHours = signal(0);
   protected readonly dailyAverageFocusHours = signal(0);
   protected readonly streakDays = signal(0);
+  protected readonly completionRate = signal(0);
+  protected readonly sessionsCount = signal(0);
+
+  // Period info
+  protected readonly periodInfo = signal<PeriodInfo | null>(null);
+
+  // Trends
+  protected readonly trends = signal<TrendDisplay[]>([]);
+
+  // Insights
+  protected readonly insights = signal<InsightDisplay[]>([]);
 
   // Chart + range state
   protected readonly selectedRange = signal<ReportRange>(ReportRange.WEEK);
@@ -62,7 +96,7 @@ export class Report implements OnInit {
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
   protected readonly expiredSessionFocusChecked = signal(false);
-  protected readonly mockExpiredSessionsCount = signal(5); // Mock data - will be replaced with backend
+  protected readonly expiredSessionsCount = signal(0);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -178,11 +212,29 @@ export class Report implements OnInit {
     });
   }
 
-  private updateFromSummary(summary: SummaryItem): void {
+  private updateFromSummary(summary: SummaryItemType): void {
+    // Guard against undefined summary
+    if (!summary) {
+      console.error('Summary is undefined');
+      return;
+    }
+
     const metrics = summary.metrics;
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
     const recentSessions = summary.recentSessions ?? [];
+    const meta = summary.meta;
+    const trendData = summary.trends;
+    const insightData = summary.insights;
+
+    // Update period info
+    if (meta) {
+      this.periodInfo.set({
+        startDate: meta.startDate,
+        endDate: meta.endDate,
+        range: meta.range,
+      });
+    }
 
     // Generate labels if not provided or empty
     const labels = chartData?.labels && chartData.labels.length > 0
@@ -198,7 +250,21 @@ export class Report implements OnInit {
 
     const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
-    this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
+    // Guard against undefined metrics
+    if (metrics) {
+      this.totalFocusHours.set(metrics.totalFocusedHours ?? 0);
+      this.totalBreakHours.set(metrics.totalBreakHours ?? 0);
+      this.completionRate.set(metrics.completionRate ?? 0);
+      this.sessionsCount.set(metrics.sessionsCount ?? 0);
+      this.expiredSessionsCount.set(metrics.expiredSessionsCount ?? 0);
+    } else {
+      // Reset to defaults if metrics is undefined
+      this.totalFocusHours.set(0);
+      this.totalBreakHours.set(0);
+      this.completionRate.set(0);
+      this.sessionsCount.set(0);
+      this.expiredSessionsCount.set(0);
+    }
 
     const labelCount = labels.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
@@ -261,6 +327,42 @@ export class Report implements OnInit {
 
     this.activityRanking.set(ranking);
     this.focusProjects.set(projects);
+
+    // Process trends if available
+    if (trendData) {
+      const trendDisplay: TrendDisplay[] = [];
+      
+      if (trendData.focusHours) {
+        trendDisplay.push({
+          label: 'Focus Hours',
+          current: trendData.focusHours.current,
+          previous: trendData.focusHours.previous,
+          changePercent: trendData.focusHours.changePercent,
+          icon: 'fa-solid fa-clock',
+        });
+      }
+      
+      if (trendData.completionRate) {
+        trendDisplay.push({
+          label: 'Completion Rate',
+          current: trendData.completionRate.current,
+          previous: trendData.completionRate.previous,
+          changePercent: trendData.completionRate.changePercent,
+          icon: 'fa-solid fa-check-circle',
+        });
+      }
+      
+      this.trends.set(trendDisplay);
+    }
+
+    // Process insights if available
+    if (insightData && insightData.length > 0) {
+      const insightDisplay: InsightDisplay[] = insightData.map((insight: any) => ({
+        ...insight,
+        icon: this.getInsightIcon(insight.type, insight.severity),
+      }));
+      this.insights.set(insightDisplay);
+    }
   }
 
   private getActivitiesForDateLabel(label: string, index: number, sessions: any[], dateKey?: string): ActivityBreakdown[] {
@@ -405,5 +507,11 @@ export class Report implements OnInit {
       }
       return labels;
     }
+  }
+
+  private getInsightIcon(type: 'positive' | 'warning' | 'info', severity: 'low' | 'medium' | 'high'): string {
+    if (type === 'positive') return 'fa-solid fa-thumbs-up';
+    if (type === 'warning') return 'fa-solid fa-triangle-exclamation';
+    return 'fa-solid fa-circle-info';
   }
 }

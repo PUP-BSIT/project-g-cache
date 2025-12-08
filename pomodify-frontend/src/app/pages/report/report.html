@@ -113,8 +113,113 @@
                   <i class="fa-solid fa-fire"></i>
                 </div>
               </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Total Break Hours</div>
+                  <div class="summary-value">
+                    {{ formatHours(totalBreakHours()) }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-pause"></i>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Completion Rate</div>
+                  <div class="summary-value">
+                    {{ completionRate() }}%
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-check-circle"></i>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Total Sessions</div>
+                  <div class="summary-value">
+                    {{ sessionsCount() }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-list-check"></i>
+                </div>
+              </div>
             </div>
           </section>
+
+          <!-- Period Info Section -->
+          @if (periodInfo()) {
+            <section class="period-info-section">
+              <h2 class="section-heading">Report Period</h2>
+              <div class="period-card">
+                <div class="period-row">
+                  <span class="period-label">Start Date:</span>
+                  <span class="period-value">{{ periodInfo()!.startDate }}</span>
+                </div>
+                <div class="period-row">
+                  <span class="period-label">End Date:</span>
+                  <span class="period-value">{{ periodInfo()!.endDate }}</span>
+                </div>
+                <div class="period-row">
+                  <span class="period-label">Range:</span>
+                  <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
+                </div>
+              </div>
+            </section>
+          }
+
+          <!-- Trends Section -->
+          @if (trends().length > 0) {
+            <section class="trends-section">
+              <h2 class="section-heading">Trends</h2>
+              <div class="trends-grid">
+                @for (trend of trends(); track trend.label) {
+                  <div class="trend-card">
+                    <div class="trend-icon">
+                      <i [class]="trend.icon"></i>
+                    </div>
+                    <div class="trend-content">
+                      <div class="trend-label">{{ trend.label }}</div>
+                      <div class="trend-comparison">
+                        <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
+                        <span class="trend-vs">vs</span>
+                        <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
+                      </div>
+                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
+                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
+                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Insights Section -->
+          @if (insights().length > 0) {
+            <section class="insights-section">
+              <h2 class="section-heading">Insights</h2>
+              <div class="insights-list">
+                @for (insight of insights(); track insight.message) {
+                  <div class="insight-card" [class]="'insight-' + insight.type" [class]="'severity-' + insight.severity">
+                    <div class="insight-icon">
+                      <i [class]="insight.icon"></i>
+                    </div>
+                    <div class="insight-content">
+                      <div class="insight-message">{{ insight.message }}</div>
+                      <div class="insight-actionable">{{ insight.actionable }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
 
           <!-- Focus Hours -->
           <section class="focus-panel">
@@ -170,7 +275,7 @@
               <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
               <span class="meta-value">
                 @if (expiredSessionFocusChecked()) {
-                  {{ mockExpiredSessionsCount() }} expired
+                  {{ expiredSessionsCount() }} expired
                 } @else {
                   {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
                 }
@@ -213,7 +318,7 @@
                 </div>
 
                 <div class="chart-bars">
-                  @for (point of focusSeries(); track point.label) {
+                  @for (point of focusSeries(); track $index) {
                     <div 
                             class="bar-wrapper"
                             (mouseenter)="onBarHover(point, $event)"
@@ -229,7 +334,7 @@
                 </div>
               </div>
               <div class="chart-labels">
-                @for (point of focusSeries(); track point.label) {
+                @for (point of focusSeries(); track $index) {
                   <div class="bar-label">{{ point.label }}</div>
                 }
               </div>
