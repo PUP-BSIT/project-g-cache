@@ -305,20 +305,23 @@ export class Dashboard implements OnInit {
           console.log('[Dashboard] Session payload:', sessionPayload);
           
           return this.http.post<any>(API.ACTIVITIES.SESSIONS.CREATE(activityId), sessionPayload).pipe(
-            map(session => ({ session, activityId, activityTitle }))
+            map(response => ({ response, activityId, activityTitle }))
           );
         })
       )
       .subscribe({
-        next: ({ session, activityId, activityTitle }) => {
+        next: ({ response, activityId, activityTitle }) => {
           console.log('[Dashboard] Session created, navigating to timer');
-          console.log('[Dashboard] Session response:', session);
-          const sessionId = session.id || session.sessionId;
+          console.log('[Dashboard] Session response:', response);
+          
+          // Backend returns { message, sessions: [SessionItem], ... }
+          const sessionId = response.sessions?.[0]?.id;
           console.log('[Dashboard] Extracted sessionId:', sessionId);
           console.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
           
           if (!sessionId) {
             console.error('[Dashboard] Session ID is undefined!');
+            console.error('[Dashboard] Response structure:', JSON.stringify(response, null, 2));
             return;
           }
           

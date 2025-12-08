@@ -61,6 +61,11 @@ export class SessionTimerComponent implements OnDestroy {
   isPending = computed(() => this.session()?.status === 'PENDING');
   isCompleted = computed(() => this.session()?.status === 'COMPLETED');
   
+  // Shake when time is running low (last 60 seconds)
+  isTimeLow = computed(() => {
+    return this.isRunning() && this.remainingSeconds() > 0 && this.remainingSeconds() <= 60;
+  });
+  
   // Track when current phase started (for calculating elapsed time)
   private phaseStartTimestamp: number | null = null;
   private pausedElapsedSeconds: number = 0;
@@ -294,10 +299,22 @@ export class SessionTimerComponent implements OnDestroy {
 
     const totalPhaseSeconds = phaseDuration * 60;
 
-    // ALWAYS set the timer to the correct phase duration
-    // Don't preserve anything - force reset
-    this.remainingSeconds.set(totalPhaseSeconds);
-    this.pausedElapsedSeconds = 0;
+    // Use backend's remainingPhaseSeconds if available (for PAUSED/IN_PROGRESS states)
+    // This is the authoritative remaining time from the backend
+    const remaining = sess.remainingPhaseSeconds ?? totalPhaseSeconds;
+    const elapsedSeconds = totalPhaseSeconds - remaining;
+    
+    // DEBUG: Log session state to help diagnose timer issues
+    console.log('[Timer Init] Session ID:', sess.id);
+    console.log('[Timer Init] Status:', sess.status);
+    console.log('[Timer Init] Current Phase:', currentPhase);
+    console.log('[Timer Init] Backend remainingPhaseSeconds:', sess.remainingPhaseSeconds);
+    console.log('[Timer Init] Total phase seconds:', totalPhaseSeconds);
+    console.log('[Timer Init] Calculated remaining:', remaining);
+    console.log('[Timer Init] Elapsed:', elapsedSeconds);
+    
+    this.remainingSeconds.set(remaining);
+    this.pausedElapsedSeconds = elapsedSeconds;
   }
 
   private startTimer() {
@@ -378,9 +395,8 @@ export class SessionTimerComponent implements OnDestroy {
     const currentSeconds = this.remainingSeconds() % 60;
 
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      width: '400px',
-      disableClose: false,
-      panelClass: 'time-picker-dialog-panel'
+      width: '900px',
+      disableClose: false
     });
 
     // Set initial time
@@ -741,18 +757,17 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   protected goBack(): void {
-    const sess = this.session();
+    console.log('[goBack] Navigating away - session should stay IN_PROGRESS');
+    console.log('[goBack] Current session status:', this.session()?.status);
+    console.log('[goBack] NOT calling pause API - backend will continue tracking time');
     
-    // If session is running or paused, stop the timer before going back
-    if (sess && (sess.status === 'IN_PROGRESS' || sess.status === 'PAUSED')) {
-      this.timerSub?.unsubscribe();
-      // Stop timer to reset progress
-      this.pausedElapsedSeconds = 0;
-      this.phaseStartTimestamp = null;
-    }
+    // Stop the local timer subscription but DON'T pause the session
+    // The backend continues tracking time via startedAt timestamp
+    // When user returns, it will calculate remainingPhaseSeconds based on elapsed time
+    this.timerSub?.unsubscribe();
     
-    // Persist notes before leaving the session page
-    this.saveNotes();
+    // Navigate back immediately without saving notes to avoid blocking navigation
+    // Notes will be auto-saved when user explicitly pauses or completes the session
     this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
   }
 
