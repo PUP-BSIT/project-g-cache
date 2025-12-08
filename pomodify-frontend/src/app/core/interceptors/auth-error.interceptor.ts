@@ -43,7 +43,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
       // Handle 401 Unauthorized errors or token expiration
       if (isTokenExpired) {
-        const isAuthEndpoint = request.url.includes('/api/v1/auth/');
+        const isAuthEndpoint = request.url.includes('/api/v2/auth/');
         
         // Don't retry auth endpoints (login, register, refresh)
         // If auth endpoint fails with 401, tokens are invalid
