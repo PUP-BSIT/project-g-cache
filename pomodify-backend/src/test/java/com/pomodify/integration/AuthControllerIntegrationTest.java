@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests user registration, login, logout, and token refresh flows.
  * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
-@Disabled("Requires Docker Desktop for PostgreSQL container")
+//@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
