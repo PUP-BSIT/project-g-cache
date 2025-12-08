@@ -30,5 +30,6 @@ public class DashboardResponse {
         String name;
         int milestoneDays;
         String dateEarned;
+        Double progressPercent;
     }
 }

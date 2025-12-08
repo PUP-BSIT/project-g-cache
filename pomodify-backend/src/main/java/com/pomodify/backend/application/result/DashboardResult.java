@@ -42,5 +42,6 @@ public class DashboardResult {
         String name;
         int milestoneDays;
         java.time.LocalDate dateEarned;
+        double progressPercent;
     }
 }

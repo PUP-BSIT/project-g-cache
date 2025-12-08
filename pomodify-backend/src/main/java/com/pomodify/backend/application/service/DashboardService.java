@@ -126,6 +126,7 @@ public class DashboardService {
                         .name(highestBadge.getName())
                         .milestoneDays(highestBadge.getMilestoneDays())
                         .dateEarned(highestBadge.getDateAwarded())
+                        .progressPercent(100.0)
                         .build();
             }
             // Determine next badge
@@ -135,6 +136,7 @@ public class DashboardService {
                     nextBadge = com.pomodify.backend.application.result.DashboardResult.Badge.builder()
                             .name(m == 3 ? "The Bookmark" : m == 7 ? "Deep Work" : m == 14 ? "The Protégé" : m == 30 ? "The Curator" : m == 100 ? "The Scholar" : "The Alchemist")
                             .milestoneDays(m)
+                            .progressPercent(0.0)
                             .build();
                     break;
                 }
@@ -144,6 +146,7 @@ public class DashboardService {
             nextBadge = com.pomodify.backend.application.result.DashboardResult.Badge.builder()
                     .name("The Bookmark")
                     .milestoneDays(3)
+                    .progressPercent(0.0)
                     .build();
         }
 
@@ -159,6 +162,7 @@ public class DashboardService {
             nextBadge = com.pomodify.backend.application.result.DashboardResult.Badge.builder()
                     .name(nextBadge.getName())
                     .milestoneDays(nextBadge.getMilestoneDays())
+                    .progressPercent(Math.round(nextProgress * 10.0) / 10.0)
                     .dateEarned(null)
                     .build();
         }
@@ -168,8 +172,15 @@ public class DashboardService {
             showNewBadge = badges.stream().anyMatch(b -> b.getDateAwarded() != null && b.getDateAwarded().isEqual(java.time.LocalDate.now()));
         }
 
-        // set streak progress percent to next badge progress (rounded)
-        double streakProgressPercent = nextProgress;
+        // compute streak progress toward beating best streak (or first goal)
+        double streakProgressPercent;
+        if (bestStreak > 0) {
+            double goal = bestStreak + 1.0;
+            streakProgressPercent = Math.min(100.0, ((double) currentStreak / goal) * 100.0);
+        } else {
+            int defaultGoal = 3;
+            streakProgressPercent = Math.min(100.0, ((double) currentStreak / (double) defaultGoal) * 100.0);
+        }
 
         return DashboardResult.builder()
                 .currentStreak(currentStreak)
