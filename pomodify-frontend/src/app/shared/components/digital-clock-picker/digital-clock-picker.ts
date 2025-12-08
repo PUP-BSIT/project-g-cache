@@ -165,12 +165,12 @@ import { CommonModule } from '@angular/common';
       flex-shrink: 0;
 
       &:hover {
-        color: #A855F7;
+        color: #5FA9A4;
         transform: scale(1.05);
       }
 
       &.selected {
-        color: #9333EA;
+        color: #5FA9A4;
         font-weight: 900;
         transform: scale(1.1);
       }
@@ -179,7 +179,7 @@ import { CommonModule } from '@angular/common';
     .colon {
       font-size: 7rem;
       font-weight: 900;
-      color: #9333EA;
+      color: #5FA9A4;
       margin: 0;
       padding-top: 25px;
       flex-shrink: 0;

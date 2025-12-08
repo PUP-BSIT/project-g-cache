@@ -61,6 +61,11 @@ export class SessionTimerComponent implements OnDestroy {
   isPending = computed(() => this.session()?.status === 'PENDING');
   isCompleted = computed(() => this.session()?.status === 'COMPLETED');
   
+  // Shake when time is running low (last 60 seconds)
+  isTimeLow = computed(() => {
+    return this.isRunning() && this.remainingSeconds() > 0 && this.remainingSeconds() <= 60;
+  });
+  
   // Track when current phase started (for calculating elapsed time)
   private phaseStartTimestamp: number | null = null;
   private pausedElapsedSeconds: number = 0;
