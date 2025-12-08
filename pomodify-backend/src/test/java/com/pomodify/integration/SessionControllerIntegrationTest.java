@@ -113,7 +113,7 @@ class SessionControllerIntegrationTest {
 
     @Test
     void testCreateSession_Success() throws Exception {
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
 
         mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
@@ -127,7 +127,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testGetAllSessions() throws Exception {
         // Create a session first
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -145,7 +145,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testGetSessionById() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,7 +168,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testStartSession() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -188,7 +188,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testPauseSession() throws Exception {
         // Create and start a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -211,7 +211,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testUpdateSessionNote() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -231,7 +231,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testDeleteSession() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -255,7 +255,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testResumeSession() throws Exception {
         // Create and pause a session first
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -286,7 +286,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testStopSession() throws Exception {
         // Create and start a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -312,7 +312,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testCancelSession() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -332,7 +332,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testFinishSession() throws Exception {
         // Create and start a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -358,7 +358,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testCompletePhase() throws Exception {
         // Create and start a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -383,7 +383,7 @@ class SessionControllerIntegrationTest {
     @Test
     void testSessionSSEEvents() throws Exception {
         // Create a session
-        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4);
+        SessionRequest request = new SessionRequest("POMODORO", 25, 5, 4, false, null, null);
         MvcResult createResult = mockMvc.perform(post("/activities/{activityId}/sessions", activityId)
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)

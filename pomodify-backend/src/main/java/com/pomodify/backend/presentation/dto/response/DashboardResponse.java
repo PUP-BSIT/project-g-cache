@@ -16,5 +16,19 @@ public class DashboardResponse {
     double focusHoursToday;
     double focusHoursThisWeek;
     double focusHoursAllTime;
+    double streakProgressPercent;
+    double consistencyScore;
+    String topActivityName;
+    boolean showNewBadge;
+    BadgeDto currentBadge;
+    BadgeDto nextBadge;
     List<RecentSessionItem> recentSessions;
+
+    @Value
+    @Builder
+    public static class BadgeDto {
+        String name;
+        int milestoneDays;
+        String dateEarned;
+    }
 }

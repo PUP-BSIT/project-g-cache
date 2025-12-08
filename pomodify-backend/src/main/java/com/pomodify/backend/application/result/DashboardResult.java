@@ -16,6 +16,12 @@ public class DashboardResult {
     long focusSecondsToday;
     long focusSecondsThisWeek;
     long focusSecondsAllTime;
+    double streakProgressPercent;
+    double consistencyScore;
+    String topActivityName;
+    boolean showNewBadge;
+    Badge currentBadge;
+    Badge nextBadge;
     List<RecentSession> recentSessions;
 
     @Value
@@ -27,5 +33,14 @@ public class DashboardResult {
         LocalDateTime completedAt;
         int cyclesCompleted;
         long focusSeconds; // derived: cyclesCompleted * focusDurationSeconds
+        String notePreview;
+    }
+
+    @Value
+    @Builder
+    public static class Badge {
+        String name;
+        int milestoneDays;
+        java.time.LocalDate dateEarned;
     }
 }
