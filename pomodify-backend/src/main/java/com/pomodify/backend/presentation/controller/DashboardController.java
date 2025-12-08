@@ -5,6 +5,10 @@ import com.pomodify.backend.application.service.DashboardService;
 import com.pomodify.backend.application.helper.UserHelper;
 import com.pomodify.backend.presentation.dto.response.DashboardResponse;
 import com.pomodify.backend.presentation.mapper.DashboardMapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,16 +20,32 @@ import java.time.ZoneId;
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
+@Tag(name = "Dashboard", description = "Motivation-focused dashboard metrics and streak badges")
 public class DashboardController {
 
     private final DashboardService dashboardService;
     private final DashboardMapper dashboardMapper;
     private final UserHelper userHelper;
 
-    @GetMapping("/dashboard")
+        @GetMapping("/dashboard")
+        @Operation(
+            summary = "Get focus dashboard",
+            description = "Returns a compact, positive-only dashboard with streaks, focus hours, badges, and recent sessions."
+        )
     public DashboardResponse getDashboard(
             @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
-            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Timezone", defaultValue = "Asia/Manila") String timezone
+            @Parameter(
+                name = "X-Timezone",
+                description = "IANA timezone ID used for date-based calculations (e.g. Asia/Manila)",
+                in = ParameterIn.HEADER
+            )
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Timezone", defaultValue = "Asia/Manila") String timezone,
+            @Parameter(
+                name = "layout",
+                description = "Dashboard layout: 'compact' (default) or 'detailed'",
+                in = ParameterIn.QUERY
+            )
+            @org.springframework.web.bind.annotation.RequestParam(name = "layout", defaultValue = "compact") String layout
     ) {
         Long userId = userHelper.extractUserId(jwt);
         if (userId == null) {
@@ -33,6 +53,6 @@ public class DashboardController {
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         }
         DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of(timezone));
-        return dashboardMapper.toResponse(dashboardService.getDashboard(cmd));
+        return dashboardMapper.toResponse(dashboardService.getDashboard(cmd), layout);
     }
 }

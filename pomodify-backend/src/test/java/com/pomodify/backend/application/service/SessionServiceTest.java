@@ -32,6 +32,7 @@ class SessionServiceTest {
     private DomainHelper domainHelper;
     private UserHelper userHelper;
     private PushNotificationService pushNotificationService;
+    private BadgeService badgeService;
     private SessionService sessionService;
 
     @BeforeEach
@@ -40,8 +41,9 @@ class SessionServiceTest {
         domainHelper = mock(DomainHelper.class);
         userHelper = mock(UserHelper.class);
         pushNotificationService = mock(PushNotificationService.class);
+        badgeService = mock(BadgeService.class);
 
-        sessionService = new SessionService(sessionRepository, domainHelper, userHelper, pushNotificationService);
+        sessionService = new SessionService(sessionRepository, domainHelper, userHelper, pushNotificationService, badgeService);
     }
 
     @Test
