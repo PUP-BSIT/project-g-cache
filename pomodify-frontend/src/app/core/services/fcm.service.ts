@@ -90,9 +90,9 @@ export class FcmService {
         this.fcmToken$.next(token);
         
         // Register token with backend
-        console.log('� Registoering token with backend...');
-        await firstValueFrom(this.registerToken(jwt, token));
-        console.log('✅ Token registered with backend successfully');
+        console.log('📡 Registering token with backend...');
+        const response = await firstValueFrom(this.registerToken(jwt, token));
+        console.log('✅ Token registered with backend successfully:', response);
         
         // Listen for foreground messages
         onMessage(messaging, (payload) => {

@@ -1,14 +1,21 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { SettingsService, AppSettings } from './settings.service';
 import { FcmService } from './fcm.service';
 import { Auth } from './auth';
+import { MobileDetectionService } from './mobile-detection.service';
+import { NotificationModalComponent, NotificationModalData } from '../../shared/components/notification-modal/notification-modal.component';
 
 export interface NotificationContext {
   title: string;
   body: string;
   sessionId?: number;
   activityId?: number;
+  activityTitle?: string;
+  type?: 'session-complete' | 'phase-complete';
+  nextAction?: string;
+  timestamp?: number;
 }
 
 @Injectable({
@@ -18,6 +25,8 @@ export class NotificationService {
   private settingsService = inject(SettingsService);
   private fcmService = inject(FcmService);
   private authService = inject(Auth);
+  private mobileDetection = inject(MobileDetectionService);
+  private dialog = inject(MatDialog);
   
   private isTabVisible$ = new BehaviorSubject<boolean>(true);
   private pendingNotifications: NotificationContext[] = [];
@@ -62,12 +71,16 @@ export class NotificationService {
     // Add global functions for debugging notifications
     (window as any).checkNotificationSettings = () => {
       const settings = this.settingsService.getSettings();
+      const deviceType = this.mobileDetection.getDeviceType();
+      
       console.log('🔧 Current notification settings:');
+      console.log('  - Device type:', deviceType);
       console.log('  - Notifications enabled:', settings.notifications);
       console.log('  - Sound enabled:', settings.sound.enabled);
       console.log('  - Sound type:', settings.sound.type);
       console.log('  - Browser permission:', Notification.permission);
       console.log('  - Tab visible:', this.isTabVisible());
+      console.log('  - PWA notifications supported:', this.mobileDetection.supportsPWANotifications());
       
       if (!settings.notifications) {
         console.log('💡 To enable notifications: Go to Settings → Turn on "Notifications" toggle');
@@ -78,10 +91,12 @@ export class NotificationService {
       }
       
       return {
+        deviceType,
         appNotifications: settings.notifications,
         browserPermission: Notification.permission,
         soundEnabled: settings.sound.enabled,
-        tabVisible: this.isTabVisible()
+        tabVisible: this.isTabVisible(),
+        pwaSupported: this.mobileDetection.supportsPWANotifications()
       };
     };
     
@@ -89,7 +104,9 @@ export class NotificationService {
       console.log('🚨 Force testing notification...');
       const testContext = {
         title: '🧪 Force Test Notification',
-        body: 'This notification bypasses app settings for testing'
+        body: 'This notification bypasses app settings for testing',
+        type: 'phase-complete' as const,
+        activityTitle: 'Test Activity'
       };
       await this.sendPushNotification(testContext, this.authService.getAccessToken());
     };
@@ -116,63 +133,191 @@ export class NotificationService {
       }
     };
     
+    (window as any).testMobileModal = () => {
+      console.log('📱 Testing mobile notification modal...');
+      this.showNotificationModal({
+        title: '🧪 Test Mobile Modal',
+        body: 'This is a test of the mobile notification modal',
+        type: 'session-complete',
+        activityTitle: 'Test Activity',
+        nextAction: 'Great job! Take a break.'
+      });
+    };
+    
     console.log('🔧 Added global debug functions:');
     console.log('  - checkNotificationSettings() - Check current settings');
     console.log('  - forceTestNotification() - Force test notification');
     console.log('  - enableNotifications() - Enable notifications in app');
+    console.log('  - testFCMRegistration() - Test FCM registration');
+    console.log('  - testMobileModal() - Test mobile notification modal');
   }
 
   private handleTabBecameVisible(): void {
     // When user returns to tab, show any pending notifications as modals
-    if (this.pendingNotifications.length > 0) {
+    // BUT only if user is still logged in and on a relevant page
+    if (this.pendingNotifications.length > 0 && this.shouldShowPendingNotifications()) {
       this.showPendingNotificationsAsModals();
       this.pendingNotifications = [];
     }
   }
 
+  private shouldShowPendingNotifications(): boolean {
+    // Check if user is logged in
+    const jwt = this.authService.getAccessToken();
+    if (!jwt) {
+      console.log('🚫 User not logged in - clearing pending notifications');
+      this.pendingNotifications = [];
+      return false;
+    }
+
+    // Check if user is on a relevant page (not login/signup/landing)
+    const currentUrl = window.location.pathname;
+    const irrelevantPages = ['/login', '/signup', '/landing', '/'];
+    
+    if (irrelevantPages.some(page => currentUrl.includes(page))) {
+      console.log('🚫 User on irrelevant page - not showing pending notifications');
+      return false;
+    }
+
+    // Check if notifications are from recent session (within last 30 minutes)
+    const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
+    const recentNotifications = this.pendingNotifications.filter(notification => {
+      // Add timestamp to notifications when they're created
+      return (notification as any).timestamp > thirtyMinutesAgo;
+    });
+
+    if (recentNotifications.length !== this.pendingNotifications.length) {
+      console.log('🕒 Filtering out old pending notifications');
+      this.pendingNotifications = recentNotifications;
+    }
+
+    return this.pendingNotifications.length > 0;
+  }
+
   private showPendingNotificationsAsModals(): void {
-    // TODO: Implement modal display for pending notifications
-    // This will be implemented when we create the completion modal
-    console.log('Showing pending notifications as modals:', this.pendingNotifications);
+    // Show pending notifications as modals when user returns
+    this.pendingNotifications.forEach(context => {
+      this.showNotificationModal(context);
+    });
   }
 
   /**
-   * Handle session completion notifications based on tab visibility and settings
+   * Handle session completion notifications based on device type and tab visibility
    */
   async handleSessionCompletion(context: NotificationContext): Promise<void> {
+    const enhancedContext = {
+      ...context,
+      type: 'session-complete' as const,
+      nextAction: 'Congratulations! You completed your session.'
+    };
+
+    await this.handleNotification(enhancedContext);
+  }
+
+  /**
+   * Handle phase completion notifications based on device type and tab visibility
+   */
+  async handlePhaseCompletion(context: NotificationContext): Promise<void> {
+    const enhancedContext = {
+      ...context,
+      type: 'phase-complete' as const,
+      nextAction: context.title.includes('FOCUS') 
+        ? 'Time for a break! Step away from your work.'
+        : 'Break time is over. Ready to focus again?'
+    };
+
+    await this.handleNotification(enhancedContext);
+  }
+
+  /**
+   * Main notification handler - determines behavior based on device and visibility
+   */
+  private async handleNotification(context: NotificationContext): Promise<void> {
     const settings = this.settingsService.getSettings();
     const isTabVisible = this.isTabVisible$.value;
+    const deviceType = this.mobileDetection.getDeviceType();
     const jwt = this.authService.getAccessToken();
 
-    console.log('🎯 Session completion - Tab visible:', isTabVisible);
-    console.log('⚙️ Settings - Notifications:', settings.notifications, 'Sound:', settings.sound.enabled);
-    console.log('🔊 Sound type:', settings.sound.type, 'Volume:', settings.sound.volume);
+    console.log('🎯 Notification triggered:', {
+      type: context.type,
+      tabVisible: isTabVisible,
+      deviceType,
+      notifications: settings.notifications,
+      sound: settings.sound.enabled
+    });
 
     if (isTabVisible) {
-      // User is on the tab - handle immediately (sound + visual feedback)
-      await this.handleForegroundCompletion(context, settings);
+      // Site is visible - handle foreground notifications
+      await this.handleForegroundNotification(context, settings, deviceType);
     } else {
-      // User is not on the tab (closed or different tab) - DESKTOP CLOSED TAB BEHAVIOR
-      await this.handleBackgroundCompletion(context, settings, jwt);
+      // Site is not visible - handle background notifications
+      await this.handleBackgroundNotification(context, settings, jwt);
     }
   }
 
-  private async handleForegroundCompletion(context: NotificationContext, settings: AppSettings): Promise<void> {
-    // When user is actively on the tab - SAME BEHAVIOR AS BACKGROUND
+  /**
+   * Handle notifications when site is visible (foreground)
+   */
+  private async handleForegroundNotification(
+    context: NotificationContext, 
+    settings: AppSettings, 
+    deviceType: string
+  ): Promise<void> {
+    console.log('🔍 Foreground notification - Device:', deviceType);
+    
+    if (deviceType === 'mobile' || deviceType === 'tablet') {
+      // MOBILE/TABLET: Show modal instead of push notification
+      await this.handleMobileForegroundNotification(context, settings);
+    } else {
+      // DESKTOP: Same behavior as background (push notification + sound)
+      await this.handleDesktopForegroundNotification(context, settings);
+    }
+  }
+
+  /**
+   * Handle mobile foreground notifications (modal + sound)
+   */
+  private async handleMobileForegroundNotification(
+    context: NotificationContext, 
+    settings: AppSettings
+  ): Promise<void> {
+    console.log('📱 Mobile foreground notification');
+    
+    // Play sound if enabled
+    if (settings.sound.enabled) {
+      console.log('🔊 Playing mobile completion sound:', settings.sound.type);
+      this.settingsService.playSound(settings.sound.type);
+    }
+
+    // Show modal if notifications enabled
+    if (settings.notifications) {
+      console.log('📱 Showing mobile notification modal');
+      this.showNotificationModal(context);
+    } else {
+      console.log('📱 Mobile notifications disabled - sound only');
+    }
+  }
+
+  /**
+   * Handle desktop foreground notifications (same as background)
+   */
+  private async handleDesktopForegroundNotification(
+    context: NotificationContext, 
+    settings: AppSettings
+  ): Promise<void> {
     const jwt = this.authService.getAccessToken();
     
-    console.log('🔍 Foreground completion - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
+    console.log('🖥️ Desktop foreground notification - same as background behavior');
     
     if (settings.notifications && settings.sound.enabled) {
-      // Both push notification AND sound enabled → both happen at the same time
+      // Both push notification AND sound enabled
       console.log('📱🔊 Both notifications and sound enabled - sending push notification + playing sound');
       await this.sendPushNotification(context, jwt);
       this.settingsService.playSound(settings.sound.type);
     } else if (settings.notifications && !settings.sound.enabled) {
-      // Push notification enabled but sound disabled → only push notification, no sound
+      // Push notification enabled but sound disabled
       console.log('📱 Only notifications enabled - sending push notification (no sound)');
       await this.sendPushNotification(context, jwt);
-      // Explicitly no sound
     } else if (!settings.notifications && settings.sound.enabled) {
       // Only sound enabled, no push notification
       console.log('🔊 Only sound enabled - playing sound (no push notification)');
@@ -181,14 +326,18 @@ export class NotificationService {
       // Both disabled - nothing happens
       console.log('❌ Both notifications and sound disabled - doing nothing');
     }
-    
-    // Show immediate visual feedback (could be a toast or modal)
-    console.log('✅ Foreground completion handled:', context.title);
   }
 
-  private async handleBackgroundCompletion(context: NotificationContext, settings: AppSettings, jwt: string | null): Promise<void> {
-    // DESKTOP CLOSED TAB BEHAVIOR - Only when tab is literally closed/hidden
-    console.log('🔍 Background completion - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
+  /**
+   * Handle notifications when site is not visible (background)
+   */
+  private async handleBackgroundNotification(
+    context: NotificationContext, 
+    settings: AppSettings, 
+    jwt: string | null
+  ): Promise<void> {
+    // BACKGROUND BEHAVIOR - Same for all devices
+    console.log('🔍 Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
       // Both push notification AND sound enabled → both happen at the same time
@@ -199,7 +348,6 @@ export class NotificationService {
       // Push notification enabled but sound disabled → only push notification, no sound
       console.log('📱 Only notifications enabled - sending push notification (no sound)');
       await this.sendPushNotification(context, jwt);
-      // Explicitly no sound
     } else if (!settings.notifications && settings.sound.enabled) {
       // Only sound enabled, no push notification
       console.log('🔊 Only sound enabled - playing sound (no push notification)');
@@ -209,10 +357,51 @@ export class NotificationService {
       console.log('❌ Both notifications and sound disabled - doing nothing');
     }
 
-    // Store for modal display when user returns
-    this.pendingNotifications.push(context);
+    // Store for modal display when user returns (with timestamp)
+    const contextWithTimestamp = {
+      ...context,
+      timestamp: Date.now()
+    };
+    this.pendingNotifications.push(contextWithTimestamp);
   }
 
+  /**
+   * Show notification modal for mobile devices
+   */
+  private showNotificationModal(context: NotificationContext): void {
+    const modalData: NotificationModalData = {
+      title: context.title,
+      body: context.body,
+      type: context.type || 'phase-complete',
+      activityTitle: context.activityTitle,
+      nextAction: context.nextAction
+    };
+
+    const dialogRef = this.dialog.open(NotificationModalComponent, {
+      width: '90vw',
+      maxWidth: '400px',
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'notification-modal-backdrop',
+      panelClass: 'notification-modal-panel',
+      data: modalData
+    });
+
+    // Auto-close after 10 seconds if user doesn't interact
+    setTimeout(() => {
+      if (dialogRef.componentInstance) {
+        dialogRef.close('auto-close');
+      }
+    }, 10000);
+
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('📱 Notification modal closed:', result);
+    });
+  }
+
+  /**
+   * Send push notification (desktop notification)
+   */
   private async sendPushNotification(context: NotificationContext, jwt: string | null): Promise<void> {
     try {
       console.log('🔔 Sending desktop push notification:', context.title);
@@ -288,27 +477,6 @@ export class NotificationService {
   }
 
   /**
-   * Handle phase completion (focus -> break or break -> focus)
-   */
-  async handlePhaseCompletion(context: NotificationContext): Promise<void> {
-    const settings = this.settingsService.getSettings();
-    const isTabVisible = this.isTabVisible$.value;
-    const jwt = this.authService.getAccessToken();
-
-    console.log('🎯 Phase completion - Tab visible:', isTabVisible);
-    console.log('⚙️ Settings - Notifications:', settings.notifications, 'Sound:', settings.sound.enabled);
-    console.log('🔊 Sound type:', settings.sound.type, 'Volume:', settings.sound.volume);
-
-    if (isTabVisible) {
-      // User is on the tab - handle immediately (sound + visual feedback)
-      await this.handleForegroundCompletion(context, settings);
-    } else {
-      // User is not on the tab (closed or different tab) - DESKTOP CLOSED TAB BEHAVIOR
-      await this.handleBackgroundCompletion(context, settings, jwt);
-    }
-  }
-
-  /**
    * Get current tab visibility status
    */
   isTabVisible(): boolean {
@@ -326,7 +494,16 @@ export class NotificationService {
    * Clear pending notifications
    */
   clearPendingNotifications(): void {
+    console.log('🧹 Clearing pending notifications');
     this.pendingNotifications = [];
+  }
+
+  /**
+   * Clear pending notifications on logout
+   */
+  onUserLogout(): void {
+    console.log('👋 User logged out - clearing all pending notifications');
+    this.clearPendingNotifications();
   }
 
   /**
@@ -337,7 +514,9 @@ export class NotificationService {
     
     const testContext: NotificationContext = {
       title: '🍅 Pomodify Test',
-      body: 'Test notification from NotificationService!'
+      body: 'Test notification from NotificationService!',
+      type: 'phase-complete',
+      activityTitle: 'Test Activity'
     };
     
     // Force background behavior to test desktop notification

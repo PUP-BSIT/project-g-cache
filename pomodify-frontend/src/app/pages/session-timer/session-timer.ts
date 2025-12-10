@@ -988,7 +988,9 @@ export class SessionTimerComponent implements OnDestroy {
       title: '🎉 Session Complete!',
       body: `Great work! You completed your session for "${activityTitle}"`,
       sessionId: sess.id,
-      activityId: sess.activityId
+      activityId: sess.activityId,
+      activityTitle: activityTitle,
+      type: 'session-complete' as const
     };
     
     await this.notificationService.handleSessionCompletion(context);
@@ -1008,7 +1010,9 @@ export class SessionTimerComponent implements OnDestroy {
       title: `${currentPhase === 'FOCUS' ? '🧠' : '☕'} ${currentPhase} Complete!`,
       body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
       sessionId: sess.id,
-      activityId: sess.activityId
+      activityId: sess.activityId,
+      activityTitle: activityTitle,
+      type: 'phase-complete' as const
     };
     
     await this.notificationService.handlePhaseCompletion(context);
