@@ -148,54 +148,65 @@ export class NotificationService {
     console.log('⚙️ Settings - Notifications:', settings.notifications, 'Sound:', settings.sound.enabled);
     console.log('🔊 Sound type:', settings.sound.type, 'Volume:', settings.sound.volume);
 
-    // ALWAYS play sound first if enabled, regardless of tab visibility
-    if (settings.sound.enabled) {
-      console.log('🔊 Playing completion sound immediately:', settings.sound.type);
-      this.settingsService.playSound(settings.sound.type);
-    }
-
     if (isTabVisible) {
-      // User is on the tab - handle immediately
+      // User is on the tab - handle immediately (sound + visual feedback)
       await this.handleForegroundCompletion(context, settings);
     } else {
-      // User is not on the tab (closed or different tab)
+      // User is not on the tab (closed or different tab) - DESKTOP CLOSED TAB BEHAVIOR
       await this.handleBackgroundCompletion(context, settings, jwt);
     }
   }
 
   private async handleForegroundCompletion(context: NotificationContext, settings: AppSettings): Promise<void> {
-    // When user is actively on the tab
-    if (settings.sound.enabled) {
-      console.log('🔊 Playing completion sound:', settings.sound.type);
+    // When user is actively on the tab - SAME BEHAVIOR AS BACKGROUND
+    const jwt = this.authService.getAccessToken();
+    
+    console.log('🔍 Foreground completion - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
+    
+    if (settings.notifications && settings.sound.enabled) {
+      // Both push notification AND sound enabled → both happen at the same time
+      console.log('📱🔊 Both notifications and sound enabled - sending push notification + playing sound');
+      await this.sendPushNotification(context, jwt);
       this.settingsService.playSound(settings.sound.type);
+    } else if (settings.notifications && !settings.sound.enabled) {
+      // Push notification enabled but sound disabled → only push notification, no sound
+      console.log('📱 Only notifications enabled - sending push notification (no sound)');
+      await this.sendPushNotification(context, jwt);
+      // Explicitly no sound
+    } else if (!settings.notifications && settings.sound.enabled) {
+      // Only sound enabled, no push notification
+      console.log('🔊 Only sound enabled - playing sound (no push notification)');
+      this.settingsService.playSound(settings.sound.type);
+    } else {
+      // Both disabled - nothing happens
+      console.log('❌ Both notifications and sound disabled - doing nothing');
     }
     
     // Show immediate visual feedback (could be a toast or modal)
-    console.log('Foreground completion:', context.title);
+    console.log('✅ Foreground completion handled:', context.title);
   }
 
   private async handleBackgroundCompletion(context: NotificationContext, settings: AppSettings, jwt: string | null): Promise<void> {
-    // DESKTOP CLOSED TAB BEHAVIOR
+    // DESKTOP CLOSED TAB BEHAVIOR - Only when tab is literally closed/hidden
     console.log('🔍 Background completion - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
-      // Both push notification AND sound enabled
-      console.log('📱 Both notifications and sound enabled - sending push notification');
+      // Both push notification AND sound enabled → both happen at the same time
+      console.log('📱🔊 Both notifications and sound enabled - sending push notification + playing sound');
       await this.sendPushNotification(context, jwt);
       this.playBackgroundSound();
     } else if (settings.notifications && !settings.sound.enabled) {
-      // Only push notification enabled, sound disabled
-      console.log('📱 Only notifications enabled - sending push notification');
+      // Push notification enabled but sound disabled → only push notification, no sound
+      console.log('📱 Only notifications enabled - sending push notification (no sound)');
       await this.sendPushNotification(context, jwt);
-      // No sound
+      // Explicitly no sound
     } else if (!settings.notifications && settings.sound.enabled) {
       // Only sound enabled, no push notification
-      console.log('🔊 Only sound enabled - no push notification');
-      console.log('💡 To enable desktop notifications, go to Settings and turn on "Notifications"');
+      console.log('🔊 Only sound enabled - playing sound (no push notification)');
       this.playBackgroundSound();
     } else {
+      // Both disabled - nothing happens
       console.log('❌ Both notifications and sound disabled - doing nothing');
-      console.log('💡 To enable notifications, go to Settings and turn on "Notifications"');
     }
 
     // Store for modal display when user returns
@@ -288,17 +299,11 @@ export class NotificationService {
     console.log('⚙️ Settings - Notifications:', settings.notifications, 'Sound:', settings.sound.enabled);
     console.log('🔊 Sound type:', settings.sound.type, 'Volume:', settings.sound.volume);
 
-    // ALWAYS play sound first if enabled, regardless of tab visibility
-    if (settings.sound.enabled) {
-      console.log('🔊 Playing phase completion sound immediately:', settings.sound.type);
-      this.settingsService.playSound(settings.sound.type);
-    }
-
     if (isTabVisible) {
-      // User is on the tab - handle immediately
+      // User is on the tab - handle immediately (sound + visual feedback)
       await this.handleForegroundCompletion(context, settings);
     } else {
-      // User is not on the tab (closed or different tab)
+      // User is not on the tab (closed or different tab) - DESKTOP CLOSED TAB BEHAVIOR
       await this.handleBackgroundCompletion(context, settings, jwt);
     }
   }
