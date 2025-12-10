@@ -123,6 +123,15 @@ export const API = {
   HISTORY: {
     GET_ALL: `${ROOT}/history`,
   },
+
+  // Push Notifications Resource
+  PUSH: {
+    REGISTER_TOKEN: `${ROOT}/push/register-token`,
+    UNREGISTER_TOKEN: `${ROOT}/push/unregister-token`,
+    STATUS: `${ROOT}/push/status`,
+    ENABLE: `${ROOT}/push/enable`,
+    DISABLE: `${ROOT}/push/disable`,
+  },
 };
 
 /**

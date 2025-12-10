@@ -1,7 +1,7 @@
 # User Settings API
 
 Port: `8081` (local/dev and recommended default)
-Base path: `/api/v1/settings`
+Base path: `/api/v2/settings`
 
 Authentication: JWT (claim `user` holds numeric user ID). Secured under `prod` profile.
 
