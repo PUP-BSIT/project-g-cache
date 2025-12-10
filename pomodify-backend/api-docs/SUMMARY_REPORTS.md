@@ -5,7 +5,7 @@ This is a comprehensive API Design Specification (v2) for the Summary Reports en
 ## 1. Overview
 This endpoint aggregates user session data into a holistic productivity report. It supports both standard periods (Week/Month/Year) and user-defined custom date ranges. It is designed to drive frontend dashboards, visualization widgets, and progress tracking modules.
 
-- **Endpoint**: `GET /api/v1/reports/summary`
+- **Endpoint**: `GET /api/v2/reports/summary`
 - **Auth**: Bearer `<JWT>` (Requires `user` claim)
 - **Timezone**: `Asia/Manila` (Strict adherence for day boundaries)
 
@@ -216,18 +216,18 @@ We abandon the generic string message for 400 Bad Request in favor of a detailed
 Curl (weekly default):
 ```bash
 curl -H "Authorization: Bearer <jwt>" \
-  "https://<host>/api/v1/reports/summary?range=week"
+  "https://<host>/api/v2/reports/summary?range=week"
 ```
 
 Curl (custom range):
 ```bash
 curl -H "Authorization: Bearer <jwt>" \
-  "https://<host>/api/v1/reports/summary?startDate=2025-12-01&endDate=2025-12-07"
+  "https://<host>/api/v2/reports/summary?startDate=2025-12-01&endDate=2025-12-07"
 ```
 
 HTTP Client:
 ```
-GET {{host}}/api/v1/reports/summary?range=month&fields=overview,trends
+GET {{host}}/api/v2/reports/summary?range=month&fields=overview,trends
 Authorization: Bearer {{token}}
 ```
 

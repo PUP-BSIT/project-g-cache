@@ -1,5 +1,5 @@
 ### Variables
-@baseUrl = http://localhost:8081/api/v1
+@baseUrl = https://api.pomodify.site/api/v2
 @accessToken = paste_access_token_here
 @token = paste_fcm_token_here
 

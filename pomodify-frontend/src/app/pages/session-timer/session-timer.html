@@ -123,6 +123,7 @@
                   <i class="fa-solid fa-forward-fast"></i>
                 </button>
               }
+
             </div>
 
             <!-- Early Complete Button (shown only when running or paused) -->
@@ -181,8 +182,8 @@
           <!-- Notes Textarea at Bottom -->
           <textarea 
             class="notes-textarea"
-            [(ngModel)]="notes"
-            (ngModelChange)="onNotesChanged($event)"
+            [value]="notes"
+            (input)="onNotesChanged($event)"
             (blur)="saveNotes()"
             placeholder="Add your notes here..."></textarea>
         </div>
