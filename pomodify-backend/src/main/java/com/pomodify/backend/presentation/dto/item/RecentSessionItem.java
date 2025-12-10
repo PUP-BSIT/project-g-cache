@@ -14,4 +14,7 @@ public class RecentSessionItem {
     LocalDateTime completedAt;
     int cyclesCompleted;
     double focusHours;
+    String notePreview;
+
 }
+

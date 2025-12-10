@@ -195,7 +195,7 @@ export class Report implements OnInit {
     while (paddedFocusHours.length < labels.length) {
       paddedFocusHours.push(0);
     }
-    
+
     const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
     this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
@@ -216,9 +216,24 @@ export class Report implements OnInit {
 
     // Build activity breakdown for each label based on recentSessions
     const points: FocusPoint[] = labels.map((label, index) => {
-      const activities = this.getActivitiesForDateLabel(label, index, recentSessions);
+      let displayLabel = label;
+      let dateKey: string | undefined = undefined;
+      if (this.selectedRange() === ReportRange.WEEK) {
+        const date = new Date(label);
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        displayLabel = dayNames[date.getDay()];
+        dateKey = label;
+      } else if (this.selectedRange() === ReportRange.MONTH) {
+        displayLabel = label;
+        dateKey = label;
+      } else {
+        displayLabel = label;
+        dateKey = label;
+      }
+      const activities = this.getActivitiesForDateLabel(displayLabel, index, recentSessions, dateKey);
       return {
-        label,
+        label: displayLabel,
+        dateKey,
         hours: paddedFocusHours[index] ?? 0,
         percentage: 0,
         activities,
@@ -248,13 +263,13 @@ export class Report implements OnInit {
     this.focusProjects.set(projects);
   }
 
-  private getActivitiesForDateLabel(label: string, index: number, sessions: any[]): ActivityBreakdown[] {
+  private getActivitiesForDateLabel(label: string, index: number, sessions: any[], dateKey?: string): ActivityBreakdown[] {
     const activityMap: { [key: string]: ActivityBreakdown } = {};
 
     for (const session of sessions) {
-      // Extract date from session and match with label
+      // Extract date from session and match with label/dateKey
       const sessionDate = new Date(session.date);
-      const isMatch = this.isSessionMatchingLabel(sessionDate, label, index);
+      const isMatch = this.isSessionMatchingLabel(sessionDate, label, index, dateKey);
 
       if (isMatch) {
         const activityName = session.activityName || 'Untitled Session';
@@ -276,18 +291,18 @@ export class Report implements OnInit {
     return Object.values(activityMap);
   }
 
-  private isSessionMatchingLabel(date: Date, label: string, index: number): boolean {
+  private isSessionMatchingLabel(date: Date, label: string, index: number, dateKey?: string): boolean {
     const range = this.selectedRange();
 
     if (range === ReportRange.WEEK) {
-      // Label format: 'Mon', 'Tue', etc.
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const sessionDayName = dayNames[date.getDay()].substring(0, 3);
-      return sessionDayName === label;
+      if (!dateKey) return false;
+      const sessionISO = date.toISOString().slice(0, 10);
+      return sessionISO === dateKey;
     } else if (range === ReportRange.MONTH) {
-      // Label format: day of month (e.g., '1', '2', '15')
-      const sessionDay = date.getDate().toString();
-      return sessionDay === label;
+      // Label format: month name (e.g., 'Jan', 'Feb')
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const sessionMonth = monthNames[date.getMonth()];
+      return sessionMonth === label;
     } else {
       // YEAR range - Label format: year (e.g., '2025')
       const sessionYear = date.getFullYear().toString();
@@ -370,20 +385,14 @@ export class Report implements OnInit {
 
   private generateDefaultLabels(range: ReportRange): string[] {
     if (range === ReportRange.WEEK) {
+      // Generate ISO date strings for the last 7 days ending today
       const today = new Date();
-      const dayOfWeek = today.getDay();
-      const monday = new Date(today);
-      monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      
       const labels: string[] = [];
-      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        labels.push(dayNames[date.getDay()]);
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        labels.push(date.toISOString().slice(0, 10));
       }
-      
       return labels;
     } else if (range === ReportRange.MONTH) {
       return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -391,11 +400,9 @@ export class Report implements OnInit {
       const startingYear = 2025;
       const currentYear = new Date().getFullYear();
       const labels: string[] = [];
-      
       for (let year = startingYear; year <= currentYear; year++) {
         labels.push(year.toString());
       }
-      
       return labels;
     }
   }

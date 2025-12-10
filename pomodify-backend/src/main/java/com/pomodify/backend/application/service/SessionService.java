@@ -31,6 +31,7 @@ public class SessionService {
     private final DomainHelper domainHelper;
     private final UserHelper userHelper;
     private final PushNotificationService pushNotificationService;
+    private final com.pomodify.backend.application.service.BadgeService badgeService;
 
     /* -------------------- CREATE -------------------- */
     @Transactional
@@ -150,6 +151,9 @@ public class SessionService {
         if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
             int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
             pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
+            // Award badges if user reached new streaks
+            // Award badges if eligible (BadgeService computes current streak internally)
+            badgeService.awardBadgesIfEligible(command.user());
         }
         return toResult(saved);
     }

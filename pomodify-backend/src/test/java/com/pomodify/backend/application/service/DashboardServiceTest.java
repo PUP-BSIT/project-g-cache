@@ -12,6 +12,7 @@ import com.pomodify.backend.domain.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import com.pomodify.backend.application.service.BadgeService;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
@@ -28,14 +29,15 @@ public class DashboardServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private ActivityRepository activityRepository;
-    @Mock private PomodoroSessionRepository sessionRepository;
+        @Mock private PomodoroSessionRepository sessionRepository;
+        @Mock private BadgeService badgeService;
 
     private DashboardService service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new DashboardService(userRepository, activityRepository, sessionRepository);
+        service = new DashboardService(userRepository, activityRepository, sessionRepository, badgeService);
     }
 
     @Test

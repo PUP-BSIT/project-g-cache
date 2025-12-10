@@ -11,11 +11,11 @@ const BASE_URL = "https://api.pomodify.site";
 // 2. API VERSION
 // ------------------------
 // Changing this one string updates every endpoint in the app to v2, etc.
-const API_VERSION = "/api/v1";
+const API_VERSION = "/api/v2";
 
 // 3. ROOT URL CONSTRUCTION
 // ------------------------
-// Combines "https://api.pomodify.site" + "/api/v1"
+// Combines "https://api.pomodify.site" + "/api/v2"
 const ROOT = `${BASE_URL}${API_VERSION}`;
 
 // 4. ENDPOINTS
