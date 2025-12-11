@@ -16,6 +16,7 @@ import com.pomodify.backend.domain.repository.RevokedTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,7 +66,7 @@ public class AuthService {
                 .orElse(null);
 
         if (user == null || !user.isActive() || !passwordEncoder.matches(command.password(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid credentials or inactive account");
+            throw new BadCredentialsException("Invalid credentials or inactive account");
         }
 
         String accessToken = jwtService.generateAccessToken(user);
@@ -87,7 +88,7 @@ public class AuthService {
         String refreshToken = command.refreshToken();
 
         if (!jwtService.validateToken(command.refreshToken())) {
-            throw new IllegalArgumentException("Invalid refresh token");
+            throw new BadCredentialsException("Invalid refresh token");
         }
 
         Long userId = jwtService.extractUserIdFrom(refreshToken);
