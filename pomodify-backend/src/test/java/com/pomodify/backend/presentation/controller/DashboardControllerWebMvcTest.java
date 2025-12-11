@@ -101,7 +101,7 @@ class DashboardControllerWebMvcTest {
         when(dashboardMapper.toResponse(eq(result), anyString())).thenReturn(response);
 
         // Act + Assert
-        mockMvc.perform(get("/api/v1/dashboard")
+        mockMvc.perform(get("/api/v2/dashboard")
                         .with(jwt().jwt(j -> j.claim("user", 42)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

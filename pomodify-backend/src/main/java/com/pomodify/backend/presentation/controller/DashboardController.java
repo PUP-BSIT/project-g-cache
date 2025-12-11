@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZoneId;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api/v2/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Motivation-focused dashboard metrics and streak badges")
 public class DashboardController {
@@ -27,7 +27,7 @@ public class DashboardController {
     private final DashboardMapper dashboardMapper;
     private final UserHelper userHelper;
 
-        @GetMapping("/dashboard")
+        @GetMapping
         @Operation(
             summary = "Get focus dashboard",
             description = "Returns a compact, positive-only dashboard with streaks, focus hours, badges, and recent sessions."
