@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/settings")
+@RequestMapping("/api/v2/settings")
 @Tag(name = "Settings", description = "User settings for the application")
 @RequiredArgsConstructor
 public class SettingsController {

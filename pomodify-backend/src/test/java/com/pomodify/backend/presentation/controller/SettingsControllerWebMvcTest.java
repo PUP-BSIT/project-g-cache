@@ -44,7 +44,7 @@ class SettingsControllerWebMvcTest {
         );
         Mockito.when(settingsService.getSettings(userId)).thenReturn(resp);
 
-        MockHttpServletRequestBuilder req = get("/api/v1/settings")
+        MockHttpServletRequestBuilder req = get("/api/v2/settings")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.claim("user", userId)));
 
         mockMvc.perform(req)
@@ -72,7 +72,7 @@ class SettingsControllerWebMvcTest {
         Mockito.when(settingsService.updateSettings(Mockito.eq(userId), Mockito.any(UpdateSettingsRequest.class)))
                 .thenReturn(resp);
 
-        MockHttpServletRequestBuilder req = patch("/api/v1/settings")
+        MockHttpServletRequestBuilder req = patch("/api/v2/settings")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"volume\":50,\"theme\":\"DARK\",\"soundType\":\"SOFT_DING\"}")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.claim("user", userId)));
