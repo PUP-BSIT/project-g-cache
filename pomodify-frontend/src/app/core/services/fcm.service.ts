@@ -95,7 +95,7 @@ export class FcmService {
         console.log('✅ Token registered with backend successfully:', response);
         
         // Listen for foreground messages
-        onMessage(messaging, (payload) => {
+        onMessage(messaging, (payload: any) => {
           console.log('📨 Foreground FCM message:', payload);
         });
 
