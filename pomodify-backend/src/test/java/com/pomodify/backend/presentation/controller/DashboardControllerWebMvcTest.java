@@ -111,7 +111,7 @@ class DashboardControllerWebMvcTest {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Act + Assert
-        mockMvc.perform(get("/api/v2/dashboard")
+        mockMvc.perform(get("/dashboard")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
