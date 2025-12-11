@@ -35,6 +35,7 @@ export class Login {
   isLoading = false;
   errorMessage = '';
   passwordVisible = false;
+  credentialsRejected = false; // Track if last login attempt failed
 
   get passwordInputType(): 'password' | 'text' {
     return this.passwordVisible ? 'text' : 'password';
@@ -45,18 +46,11 @@ export class Login {
   }
 
   onSubmit(): void {
-    // Clear any previous invalidCredentials flags so a new attempt can be made
-    const emailCtrl = this.loginForm.get('email');
-    const passwordCtrl = this.loginForm.get('password');
-    if (emailCtrl?.hasError('invalidCredentials')) {
-      const { invalidCredentials, ...rest } = emailCtrl.errors || {};
-      emailCtrl.setErrors(Object.keys(rest).length ? rest : null);
-    }
-    if (passwordCtrl?.hasError('invalidCredentials')) {
-      const { invalidCredentials, ...rest } = passwordCtrl.errors || {};
-      passwordCtrl.setErrors(Object.keys(rest).length ? rest : null);
-    }
+    // Clear previous rejection flag on new submission attempt
+    this.credentialsRejected = false;
+    this.errorMessage = '';
 
+    // Validate form structure (required fields, format, etc)
     if (this.loginForm.invalid) {
       this.errorMessage = 'Please fill in a valid email and password.';
       this.loginForm.markAllAsTouched();
@@ -66,7 +60,6 @@ export class Login {
     const { email, password } = this.loginForm.getRawValue() as { email: string; password: string };
 
     this.isLoading = true;
-    this.errorMessage = '';
 
     console.log('Login submit', { email });
 
@@ -78,10 +71,8 @@ export class Login {
       })
       .catch((error: Error & { message?: string }) => {
         console.error('Login error:', error);
+        this.credentialsRejected = true;
         this.errorMessage = error?.message || 'Invalid email or password';
-        // Mark controls so the user sees which fields need attention
-        this.loginForm.get('email')?.setErrors({ ...(this.loginForm.get('email')?.errors || {}), invalidCredentials: true });
-        this.loginForm.get('password')?.setErrors({ ...(this.loginForm.get('password')?.errors || {}), invalidCredentials: true });
       })
       .finally(() => {
         this.isLoading = false;

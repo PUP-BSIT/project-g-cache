@@ -17,6 +17,7 @@ import com.pomodify.backend.presentation.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -116,7 +117,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> me(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Missing token");
+            throw new AuthenticationCredentialsNotFoundException("Missing token");
         }
 
         String token = authHeader.substring(7);

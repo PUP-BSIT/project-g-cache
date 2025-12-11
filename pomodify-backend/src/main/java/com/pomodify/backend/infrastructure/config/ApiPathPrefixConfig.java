@@ -2,11 +2,13 @@ package com.pomodify.backend.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 @Configuration
+@Profile("prod")
 public class ApiPathPrefixConfig implements WebMvcConfigurer {
 
     @Value("${app.api.major-version:1}")

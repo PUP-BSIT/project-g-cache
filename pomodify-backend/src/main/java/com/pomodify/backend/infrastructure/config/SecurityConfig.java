@@ -52,9 +52,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                // production API paths
                                 "/api/v2/auth/register",
                                 "/api/v2/auth/login",
                                 "/api/v2/auth/refresh",
+                                // legacy/test paths (keep for integration tests that call /auth/*)
+                                "/auth/register",
+                                "/auth/login",
+                                "/auth/refresh",
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/v3/api-docs/**",

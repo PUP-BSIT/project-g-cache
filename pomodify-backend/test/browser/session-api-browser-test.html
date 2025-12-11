@@ -256,7 +256,7 @@
       const url = `${base}${path}${qs}`;
       setStatus(`${method} ${path}`);
       try {
-        const skipAuth = path.startsWith('/api/v1/auth/login') || path.startsWith('/api/v1/auth/refresh');
+        const skipAuth = path.startsWith('/api/v2/auth/login') || path.startsWith('/api/v2/auth/refresh');
         if (!skipAuth && !jwt) {
           log({ url, error: 'Missing JWT — login first or paste a token' });
           throw new Error('Missing JWT — login first or paste a token');
@@ -281,7 +281,7 @@
     async function login() {
       const c = cfg();
       if (!c.email || !c.password) return alert('Enter email and password');
-      const data = await req('POST', '/api/v1/auth/login', {
+      const data = await req('POST', '/api/v2/auth/login', {
         body: { email: c.email, password: c.password }
       });
       // Expecting AuthResponse shape: { accessToken, refreshToken, tokenType, expiresIn, user }
@@ -303,7 +303,7 @@
       const c = cfg();
       const token = c.refreshToken;
       if (!token) return alert('No refresh token set');
-      const data = await req('POST', '/api/v1/auth/refresh', {
+      const data = await req('POST', '/api/v2/auth/refresh', {
         body: { refreshToken: token }
       });
       const access = data?.accessToken || data?.data?.accessToken;
@@ -329,7 +329,7 @@
         breakTimeInMinutes: c.brk,
         cycles: c.cycles,
       };
-      const data = await req('POST', `/api/v1/activities/${c.activityId}/sessions`, { body });
+      const data = await req('POST', `/api/v2/activities/${c.activityId}/sessions`, { body });
       const id = data?.data?.id || data?.id || data?.sessionId || data?.data?.sessionId;
       if (id) $('#sessionId').value = id;
     }
@@ -338,13 +338,13 @@
       const { sessionId } = cfg();
       if (!sessionId) return alert('Set Session ID');
       const c = cfg();
-      await req('GET', `/api/v1/activities/${c.activityId}/sessions/${sessionId}`);
+      await req('GET', `/api/v2/activities/${c.activityId}/sessions/${sessionId}`);
     }
 
     async function listSessions() {
       const { activityId } = cfg();
       if (!activityId) return alert('Set Activity ID');
-      await req('GET', `/api/v1/activities/${activityId}/sessions`);
+      await req('GET', `/api/v2/activities/${activityId}/sessions`);
     }
 
     async function delSession() {

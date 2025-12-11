@@ -24,6 +24,8 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -96,10 +98,10 @@ class DashboardControllerWebMvcTest {
                 .build();
 
         when(dashboardService.getDashboard(any(DashboardCommand.class))).thenReturn(result);
-        when(dashboardMapper.toResponse(result)).thenReturn(response);
+        when(dashboardMapper.toResponse(eq(result), anyString())).thenReturn(response);
 
         // Act + Assert
-        mockMvc.perform(get("/api/v1/dashboard")
+        mockMvc.perform(get("/api/v2/dashboard")
                         .with(jwt().jwt(j -> j.claim("user", 42)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

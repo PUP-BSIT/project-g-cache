@@ -52,19 +52,19 @@ const mockActivities = [
 async function setupApiMocks(page: Page) {
   // Enable request interception logging for debugging
   page.on('request', (request) => {
-    if (request.url().includes('/api/v1/')) {
+    if (request.url().includes('/api/v2/')) {
       console.log(`[MOCK] Request: ${request.method()} ${request.url()}`);
     }
   });
 
   page.on('response', (response) => {
-    if (response.url().includes('/api/v1/')) {
+    if (response.url().includes('/api/v2/')) {
       console.log(`[MOCK] Response: ${response.status()} ${response.url()}`);
     }
   });
 
   // Mock login endpoint
-  await page.route('**/api/v1/auth/login', async (route) => {
+  await page.route('**/api/v2/auth/login', async (route) => {
     // Handle OPTIONS preflight requests
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({
@@ -115,7 +115,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock register endpoint
-  await page.route('**/api/v1/auth/register', async (route) => {
+  await page.route('**/api/v2/auth/register', async (route) => {
     await route.fulfill({
       status: 201,
       contentType: 'application/json',
@@ -124,7 +124,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock dashboard endpoint (match with or without query params)
-  await page.route('**/api/v1/dashboard*', async (route) => {
+  await page.route('**/api/v2/dashboard*', async (route) => {
     console.log('[MOCK] Intercepted dashboard request');
     await route.fulfill({
       status: 200,
@@ -139,7 +139,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock user profile endpoint
-  await page.route('**/api/v1/users/me*', async (route) => {
+  await page.route('**/api/v2/users/me*', async (route) => {
     console.log('[MOCK] Intercepted user profile request');
     await route.fulfill({
       status: 200,
@@ -154,7 +154,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock activities endpoint
-  await page.route('**/api/v1/activities*', async (route) => {
+  await page.route('**/api/v2/activities*', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -163,7 +163,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock settings endpoint
-  await page.route('**/api/v1/settings*', async (route) => {
+  await page.route('**/api/v2/settings*', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -176,7 +176,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock categories endpoint
-  await page.route('**/api/v1/categories*', async (route) => {
+  await page.route('**/api/v2/categories*', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -188,7 +188,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock refresh token endpoint
-  await page.route('**/api/v1/auth/refresh', async (route) => {
+  await page.route('**/api/v2/auth/refresh', async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -199,7 +199,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock logout endpoint
-  await page.route('**/api/v1/auth/logout', async (route) => {
+  await page.route('**/api/v2/auth/logout', async (route) => {
     // Handle OPTIONS preflight
     if (route.request().method() === 'OPTIONS') {
       await route.fulfill({

@@ -44,7 +44,7 @@ export class DashboardService {
 
   /**
    * Fetch dashboard metrics from API
-   * GET /api/v1/dashboard
+   * GET /api/v2/dashboard
    * Required headers:
    * - Authorization: Bearer <accessToken> (added by auth-token interceptor)
    * - X-Timezone: User's timezone for proper date calculations

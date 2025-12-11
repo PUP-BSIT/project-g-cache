@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { API } from '../config/api.config';
 import { HistoryService } from './history.service';
+import { FcmService } from './fcm.service';
 
 type LoginResponse = {
   user?: {
@@ -32,7 +33,8 @@ export class Auth {
     private router: Router,
     private dialog: MatDialog,
     private http: HttpClient,
-    private historyService: HistoryService
+    private historyService: HistoryService,
+    private fcmService: FcmService
   ) {}
 
   private clearAuthData(): void {
@@ -138,6 +140,9 @@ export class Auth {
             } else {
               console.warn('[Auth] ⚠ No user data in response');
             }
+
+            // Initialize FCM after successful login
+            this.initializeFCMAfterLogin(response.accessToken);
           } catch (e) {
             console.error('[Auth] ✗ Unable to save tokens to localStorage:', e);
           }
@@ -200,6 +205,42 @@ export class Auth {
         console.error('[Auth] Signup failed:', { status: statusCode, message: errorMessage });
         return Promise.reject(new Error(errorMessage));
       });
+  }
+
+  /**
+   * Get the current access token from localStorage
+   */
+  getAccessToken(): string | null {
+    try {
+      return localStorage.getItem('accessToken');
+    } catch (error) {
+      console.error('[Auth] Failed to get access token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Initialize FCM after successful login with proper error handling
+   */
+  private async initializeFCMAfterLogin(accessToken: string): Promise<void> {
+    try {
+      console.log('[Auth] 🔔 Initializing FCM after login...');
+      
+      // Use a timeout to ensure the app is fully loaded
+      setTimeout(async () => {
+        try {
+          // Use the proper FCM service for initialization
+          await this.fcmService.initializeFCM(accessToken);
+          console.log('[Auth] 🎉 FCM initialization completed successfully!');
+        } catch (error) {
+          console.log('[Auth] ⚠️ FCM initialization failed, but continuing with app:', error);
+          // Don't block the app if FCM fails - it's not critical for core functionality
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('[Auth] ❌ FCM initialization failed:', error);
+    }
   }
 
   showVerifyEmailModal(): void {

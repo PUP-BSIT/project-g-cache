@@ -11,11 +11,11 @@ const BASE_URL = "https://api.pomodify.site";
 // 2. API VERSION
 // ------------------------
 // Changing this one string updates every endpoint in the app to v2, etc.
-const API_VERSION = "/api/v1";
+const API_VERSION = "/api/v2";
 
 // 3. ROOT URL CONSTRUCTION
 // ------------------------
-// Combines "https://api.pomodify.site" + "/api/v1"
+// Combines "https://api.pomodify.site" + "/api/v2"
 const ROOT = `${BASE_URL}${API_VERSION}`;
 
 // 4. ENDPOINTS
@@ -122,6 +122,15 @@ export const API = {
   // History Resource
   HISTORY: {
     GET_ALL: `${ROOT}/history`,
+  },
+
+  // Push Notifications Resource
+  PUSH: {
+    REGISTER_TOKEN: `${ROOT}/push/register-token`,
+    UNREGISTER_TOKEN: `${ROOT}/push/unregister-token`,
+    STATUS: `${ROOT}/push/status`,
+    ENABLE: `${ROOT}/push/enable`,
+    DISABLE: `${ROOT}/push/disable`,
   },
 };
 

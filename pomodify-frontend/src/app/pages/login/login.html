@@ -61,11 +61,6 @@
               Password must be at least 6 characters.
             </div>
           }
-          @if (loginForm.get('password')?.hasError('invalidCredentials') && !loginForm.get('password')?.hasError('required') && !loginForm.get('password')?.hasError('minlength')) {
-            <div class="field-error">
-              Email or password is incorrect.
-            </div>
-          }
         </div>
 
         <button type="submit" class="btn-login" [disabled]="isLoading || loginForm.invalid">Log In</button>

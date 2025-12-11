@@ -32,6 +32,28 @@
       <div class="main-content-wrapper">
         <!-- Left Side: Timer Circle -->
         <div class="timer-section">
+          <!-- Mascot Character - Companion beside timer -->
+          <div class="mascot-container" 
+               [class.celebrating]="isCompleted()"
+               [class.bouncing]="isRunning()"
+               [class.idle]="isPending() || isPaused()"
+               [class.shake]="isTimeLow()">
+            <img src="/assets/images/pomodify-mascoot.png" 
+                 alt="Pomodify Mascot" 
+                 class="mascot-character"
+                 [class.focus-mode]="currentPhase() === 'FOCUS'"
+                 [class.break-mode]="currentPhase() === 'BREAK'">
+            <!-- Speech bubble for motivation -->
+            <div class="mascot-bubble" 
+                 [class.show]="isRunning()">
+              @if (currentPhase() === 'FOCUS') {
+                <span>Stay Focused! 🎯</span>
+              } @else {
+                <span>Enjoy Your Break! 🌟</span>
+              }
+            </div>
+          </div>
+
           <div class="timer-circle">
             <!-- Top: Session Type and Progress -->
             <div class="timer-top">
@@ -101,6 +123,7 @@
                   <i class="fa-solid fa-forward-fast"></i>
                 </button>
               }
+
             </div>
 
             <!-- Early Complete Button (shown only when running or paused) -->
@@ -159,8 +182,8 @@
           <!-- Notes Textarea at Bottom -->
           <textarea 
             class="notes-textarea"
-            [(ngModel)]="notes"
-            (ngModelChange)="onNotesChanged($event)"
+            [value]="notes"
+            (input)="onNotesChanged($event)"
             (blur)="saveNotes()"
             placeholder="Add your notes here..."></textarea>
         </div>
