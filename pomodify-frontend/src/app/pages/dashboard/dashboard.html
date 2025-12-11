@@ -209,25 +209,38 @@
           } @else {
             <div class="recent-sessions-list">
               @for (session of recentActivities(); track session.id) {
-                <div class="session-card">
-                  <div class="session-icon">
-                    <i class="fa-solid fa-check-circle"></i>
-                  </div>
-                  <div class="session-info">
-                    <h4 class="session-activity">{{ session.activityName }}</h4>
-                    <div class="session-meta">
-                      <span class="session-cycles">
-                        <i class="fa-solid fa-repeat"></i>
-                        {{ session.cyclesCompleted }} cycles
-                      </span>
-                      <span class="session-duration">
+                <div class="session-card" (click)="navigateToSession(session)">
+                  <div class="session-header">
+                    <div class="session-icon">
+                      <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                    <div class="session-info">
+                      <h4 class="session-activity">{{ session.activityName }}</h4>
+                      <div class="session-time">
                         <i class="fa-solid fa-clock"></i>
-                        {{ session.focusHours.toFixed(1) }} hrs
-                      </span>
+                        {{ getRelativeTime(session.completedAt) }}
+                      </div>
                     </div>
                   </div>
-                  <div class="session-time">
-                    <span>{{ getRelativeTime(session.completedAt) }}</span>
+                  <div class="session-meta">
+                    <div class="meta-item">
+                      <div class="meta-icon">
+                        <i class="fa-solid fa-repeat"></i>
+                      </div>
+                      <div class="meta-value">
+                        <span>{{ session.cyclesCompleted }}</span>
+                        <span>cycles</span>
+                      </div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-icon">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                      </div>
+                      <div class="meta-value">
+                        <span>{{ session.focusHours.toFixed(1) }}</span>
+                        <span>hours</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               }

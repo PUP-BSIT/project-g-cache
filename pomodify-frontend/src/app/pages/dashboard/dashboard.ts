@@ -163,7 +163,7 @@ export class Dashboard implements OnInit {
         }),
         switchMap(({ created, activityTitle }) => {
           console.log('[Dashboard] Activity created, auto-creating session');
-          const activityId = created.activityId;
+          const activityId = created.activities?.[0]?.activityId;
           console.log('[Dashboard] Activity ID:', activityId);
           console.log('[Dashboard] Created object:', created);
           
@@ -275,6 +275,11 @@ export class Dashboard implements OnInit {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays === 1) return '1 day ago';
     return `${diffDays} days ago`;
+  }
+
+  protected navigateToSession(session: RecentSession): void {
+    // Navigate to: /activities/:activityName/sessions/:sessionId
+    this.router.navigate(['/activities', session.activityName, 'sessions', session.id]);
   }
 }
 
