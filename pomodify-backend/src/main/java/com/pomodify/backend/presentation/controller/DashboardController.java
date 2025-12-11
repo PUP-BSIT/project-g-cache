@@ -22,7 +22,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
-@RequestMapping("/api/v2/dashboard")
+@RequestMapping("/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Motivation-focused dashboard metrics and streak badges")
 public class DashboardController {
