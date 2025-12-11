@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZoneId;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
 @RequestMapping("/api/v2/dashboard")
@@ -47,10 +51,22 @@ public class DashboardController {
             )
             @org.springframework.web.bind.annotation.RequestParam(name = "layout", defaultValue = "compact") String layout
     ) {
-        if (jwt == null) {
+        // Resolve Jwt from parameter or SecurityContext (tests may set principal directly)
+        Jwt resolvedJwt = jwt;
+        if (resolvedJwt == null) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof JwtAuthenticationToken jwtAuth) {
+                Object principal = jwtAuth.getToken();
+                if (principal instanceof Jwt j) resolvedJwt = j;
+            } else if (auth != null && auth.getPrincipal() instanceof Jwt p) {
+                resolvedJwt = (Jwt) auth.getPrincipal();
+            }
+        }
+
+        if (resolvedJwt == null) {
             throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
         }
-        Long userId = userHelper.extractUserId(jwt);
+        Long userId = userHelper.extractUserId(resolvedJwt);
         if (userId == null) {
             // Treat missing/invalid JWT claim as unauthorized
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
