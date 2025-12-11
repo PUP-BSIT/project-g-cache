@@ -17,6 +17,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -99,10 +101,17 @@ class DashboardControllerWebMvcTest {
 
         when(dashboardService.getDashboard(any(DashboardCommand.class))).thenReturn(result);
         when(dashboardMapper.toResponse(eq(result), anyString())).thenReturn(response);
+        when(userHelper.extractUserId(any(Jwt.class))).thenReturn(42L);
+
+        Jwt jwtToken = Jwt.withTokenValue("test-token")
+                .header("alg", "none")
+                .claim("user", 42)
+                .build();
+        JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwtToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Act + Assert
         mockMvc.perform(get("/api/v2/dashboard")
-                        .with(jwt().jwt(j -> j.claim("user", 42)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
