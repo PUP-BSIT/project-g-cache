@@ -26,12 +26,23 @@ public class SettingsController {
     @GetMapping
     @Operation(summary = "Get current user settings")
     public ResponseEntity<UserSettingsResponse> getSettings(@AuthenticationPrincipal Jwt jwt) {
-        if (jwt == null) {
+        Jwt resolvedJwt = jwt;
+        if (resolvedJwt == null) {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof JwtAuthenticationToken jwtAuth) {
+                Object principal = jwtAuth.getToken();
+                if (principal instanceof Jwt j) resolvedJwt = j;
+            } else if (auth != null && auth.getPrincipal() instanceof Jwt p) {
+                resolvedJwt = (Jwt) auth.getPrincipal();
+            }
+        }
+        if (resolvedJwt == null) {
             throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
         }
+
         Long userId = null;
         try {
-            Object claim = jwt.getClaims().get("user");
+            Object claim = resolvedJwt.getClaims().get("user");
             if (claim instanceof Number n) userId = n.longValue();
             else if (claim instanceof String s) userId = Long.parseLong(s);
         } catch (Exception ignored) {
@@ -45,12 +56,22 @@ public class SettingsController {
     public ResponseEntity<UserSettingsResponse> updateSettings(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody UpdateSettingsRequest request) {
-        if (jwt == null) {
+        Jwt resolvedJwt = jwt;
+        if (resolvedJwt == null) {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof JwtAuthenticationToken jwtAuth) {
+                Object principal = jwtAuth.getToken();
+                if (principal instanceof Jwt j) resolvedJwt = j;
+            } else if (auth != null && auth.getPrincipal() instanceof Jwt p) {
+                resolvedJwt = (Jwt) auth.getPrincipal();
+            }
+        }
+        if (resolvedJwt == null) {
             throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
         }
         Long userId = null;
         try {
-            Object claim = jwt.getClaims().get("user");
+            Object claim = resolvedJwt.getClaims().get("user");
             if (claim instanceof Number n) userId = n.longValue();
             else if (claim instanceof String s) userId = Long.parseLong(s);
         } catch (Exception ignored) {
