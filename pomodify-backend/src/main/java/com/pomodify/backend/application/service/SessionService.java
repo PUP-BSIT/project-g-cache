@@ -75,13 +75,25 @@ public class SessionService {
 
     public List<SessionResult> getAll(GetSessionsCommand command) {
         List<PomodoroSession> sessions;
+        Boolean fetchDeleted = command.deleted();
+
         if (command.activityId() != null) {
             sessions = sessionRepository.findByActivityId(command.activityId());
             sessions = sessions.stream()
                     .filter(s -> Objects.equals(s.getActivity().getUser().getId(), command.user()))
                     .collect(Collectors.toList());
         } else {
-            sessions = sessionRepository.findActiveByUserId(command.user());
+            if (Boolean.TRUE.equals(fetchDeleted)) {
+                sessions = sessionRepository.findByUserId(command.user());
+            } else {
+                sessions = sessionRepository.findActiveByUserId(command.user());
+            }
+        }
+
+        if (fetchDeleted != null) {
+            sessions = sessions.stream()
+                    .filter(s -> s.isDeleted() == fetchDeleted)
+                    .collect(Collectors.toList());
         }
 
         sessions.forEach(PomodoroSession::evaluateAbandonedIfExpired);
