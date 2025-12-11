@@ -32,7 +32,7 @@ public class DashboardController {
             summary = "Get focus dashboard",
             description = "Returns a compact, positive-only dashboard with streaks, focus hours, badges, and recent sessions."
         )
-    public DashboardResponse getDashboard(
+        public DashboardResponse getDashboard(
             @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
             @Parameter(
                 name = "X-Timezone",
@@ -47,6 +47,9 @@ public class DashboardController {
             )
             @org.springframework.web.bind.annotation.RequestParam(name = "layout", defaultValue = "compact") String layout
     ) {
+        if (jwt == null) {
+            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
+        }
         Long userId = userHelper.extractUserId(jwt);
         if (userId == null) {
             // Treat missing/invalid JWT claim as unauthorized

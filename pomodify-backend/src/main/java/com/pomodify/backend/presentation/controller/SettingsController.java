@@ -26,7 +26,17 @@ public class SettingsController {
     @GetMapping
     @Operation(summary = "Get current user settings")
     public ResponseEntity<UserSettingsResponse> getSettings(@AuthenticationPrincipal Jwt jwt) {
-        Long userId = jwt.getClaim("user");
+        if (jwt == null) {
+            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
+        }
+        Long userId = null;
+        try {
+            Object claim = jwt.getClaims().get("user");
+            if (claim instanceof Number n) userId = n.longValue();
+            else if (claim instanceof String s) userId = Long.parseLong(s);
+        } catch (Exception ignored) {
+        }
+        if (userId == null) throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         return ResponseEntity.ok(settingsService.getSettings(userId));
     }
 
@@ -35,7 +45,17 @@ public class SettingsController {
     public ResponseEntity<UserSettingsResponse> updateSettings(
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody UpdateSettingsRequest request) {
-        Long userId = jwt.getClaim("user");
+        if (jwt == null) {
+            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
+        }
+        Long userId = null;
+        try {
+            Object claim = jwt.getClaims().get("user");
+            if (claim instanceof Number n) userId = n.longValue();
+            else if (claim instanceof String s) userId = Long.parseLong(s);
+        } catch (Exception ignored) {
+        }
+        if (userId == null) throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         return ResponseEntity.ok(settingsService.updateSettings(userId, request));
     }
 }
