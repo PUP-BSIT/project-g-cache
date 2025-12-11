@@ -109,81 +109,126 @@
       } @else {
         <!-- Primary Metrics -->
         <div class="metrics-section">
+          <!-- Current Streak -->
+          <div class="metric-card streak">
+            <div class="metric-header">
+              <h3>Current Streak</h3>
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="metric-value">{{ currentStreak() }}</div>
+            <p class="metric-subtitle">consecutive days</p>
+          </div>
+
+          <!-- Best Streak -->
+          <div class="metric-card streak-best">
+            <div class="metric-header">
+              <h3>Best Streak</h3>
+              <i class="fa-solid fa-trophy"></i>
+            </div>
+            <div class="metric-value">{{ bestStreak() }}</div>
+            <p class="metric-subtitle">personal record</p>
+          </div>
+
+          <!-- Total Sessions -->
           <div class="metric-card primary">
             <div class="metric-header">
-              <h3>Total Completed Sessions</h3>
+              <h3>Total Sessions</h3>
               <i class="fa-solid fa-check-circle"></i>
             </div>
             <div class="metric-value">{{ totalCompletedSessions() }}</div>
-            <p class="metric-subtitle">sessions completed</p>
+            <p class="metric-subtitle">completed</p>
           </div>
 
+          <!-- Total Activities -->
+          <div class="metric-card activities">
+            <div class="metric-header">
+              <h3>Activities</h3>
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="metric-value">{{ totalActivities() }}</div>
+            <p class="metric-subtitle">created</p>
+          </div>
+
+          <!-- All-Time Focus -->
           <div class="metric-card primary">
             <div class="metric-header">
-              <h3>Total Focus Time</h3>
+              <h3>All-Time Focus</h3>
               <i class="fa-solid fa-hourglass-end"></i>
             </div>
             <div class="metric-value">{{ totalFocusTimeHours() }} <span class="unit">hrs</span></div>
-            <p class="metric-subtitle">focus time tracked</p>
+            <p class="metric-subtitle">total tracked</p>
+          </div>
+
+          <!-- This Week -->
+          <div class="metric-card secondary">
+            <div class="metric-header">
+              <h3>This Week</h3>
+              <i class="fa-solid fa-calendar-week"></i>
+            </div>
+            <div class="metric-value">{{ focusHoursThisWeek() }} <span class="unit">hrs</span></div>
+            <p class="metric-subtitle">weekly focus</p>
           </div>
         </div>
 
-        <!-- Recent Activities Section -->
-        <div class="recent-activities-section">
+        <!-- Quick Start Section -->
+        <div class="quick-start-section">
           <div class="section-header">
-            <h3 class="section-title">Recent Activities</h3>
-            <button class="create-button" (click)="openCreateActivityModal()">
-              <i class="fa-solid fa-plus"></i>
+            <h3 class="section-title">Quick Start</h3>
+            <p class="section-subtitle">Start a new focus session instantly</p>
+          </div>
+          <div class="quick-start-card">
+            <div class="quick-start-content">
+              <i class="fa-solid fa-bolt quick-start-icon"></i>
+              <div class="quick-start-info">
+                <h4>Ready to Focus?</h4>
+                <p>Start a 25-minute Pomodoro session now</p>
+              </div>
+              <button class="btn-quick-start" (click)="openCreateActivityModal()">
+                <i class="fa-solid fa-play"></i>
+                Start Session
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sessions Section -->
+        <div class="recent-sessions-section">
+          <div class="section-header">
+            <h3 class="section-title">Recent Sessions</h3>
+            <button class="view-all-btn" routerLink="/activities">
+              View All Activities
+              <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
-          @if (activities().length === 0) {
+          @if (recentActivities().length === 0) {
             <div class="empty-recent">
               <i class="fa-solid fa-inbox"></i>
-              <p>No activities yet</p>
-              <p class="empty-hint">Create your first activity to get started</p>
+              <p>No recent sessions</p>
+              <p class="empty-hint">Start your first session to see it here</p>
             </div>
           } @else {
-            <div class="activities-grid">
-              @for (activity of recentActivitiesCards(); track activity.id) {
-                <div
-                  class="activity-card"
-                  [class.selected]="selectedActivity()?.id === activity.id"
-                  (click)="selectActivity(activity)"
-                >
-                  <!-- Activity Header with Icon and Name -->
-                  <div class="activity-card-header">
-                    <div class="activity-icon-section">
-                      <i [class]="getFullIconClasses(activity)"></i>
-                    </div>
-                    <div class="activity-header-info">
-                      <h4 class="activity-name">{{ activity.name }}</h4>
-                      <p class="last-accessed">Last: {{ getLastAccessedText(activity) }}</p>
-                    </div>
+            <div class="recent-sessions-list">
+              @for (session of recentActivities(); track session.id) {
+                <div class="session-card">
+                  <div class="session-icon">
+                    <i class="fa-solid fa-check-circle"></i>
                   </div>
-
-                  <!-- Completion Percentage -->
-                  <div class="completion-section">
-                    <span class="completion-percentage">{{ getActivityCompletionPercentage(activity) }}% Completed</span>
-                    <div class="progress-bar">
-                      <div class="progress-fill" [style.width.%]="getActivityCompletionPercentage(activity)"></div>
+                  <div class="session-info">
+                    <h4 class="session-activity">{{ session.activityName }}</h4>
+                    <div class="session-meta">
+                      <span class="session-cycles">
+                        <i class="fa-solid fa-repeat"></i>
+                        {{ session.cyclesCompleted }} cycles
+                      </span>
+                      <span class="session-duration">
+                        <i class="fa-solid fa-clock"></i>
+                        {{ session.focusHours.toFixed(1) }} hrs
+                      </span>
                     </div>
                   </div>
-
-                  <!-- Action Buttons -->
-                  <div class="card-actions">
-                    <button class="action-btn edit-btn" (click)="openEditActivityModal(activity); $event.stopPropagation()">
-                      Edit
-                    </button>
-                    <button class="action-btn delete-btn" (click)="openDeleteActivityModal(activity); $event.stopPropagation()">
-                      Delete
-                    </button>
+                  <div class="session-time">
+                    <span>{{ getRelativeTime(session.completedAt) }}</span>
                   </div>
-
-                  <!-- Add Session Button -->
-                  <button class="add-session-btn" (click)="addSession(activity); $event.stopPropagation()">
-                    <i class="fa-solid fa-plus"></i>
-                    Add Session
-                  </button>
                 </div>
               }
             </div>

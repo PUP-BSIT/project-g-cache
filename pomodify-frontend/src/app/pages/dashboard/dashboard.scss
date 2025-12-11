@@ -1124,10 +1124,19 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 // Metrics Section
 .metrics-section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 0 60px;
-  margin-bottom: 16px;
+  margin-bottom: 32px;
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    padding: 0 24px;
+  }
 }
 
 .metric-card {
@@ -1137,6 +1146,20 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   box-shadow: $card-shadow;
   transition: all 0.3s ease;
   color: $text-white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+  }
 
   &:hover {
     transform: translateY(-4px);
@@ -1145,6 +1168,34 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   &.primary {
     background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+  }
+
+  &.secondary {
+    background: linear-gradient(135deg, #7BC4BF 0%, #9DD9D5 100%);
+  }
+
+  &.streak {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+    
+    &::before {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  &.streak-best {
+    background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%);
+    
+    &::before {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  &.activities {
+    background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+    
+    &::before {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 
   .metric-header {
@@ -1186,6 +1237,252 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     font-size: 13px;
     opacity: 0.85;
     margin: 0;
+  }
+}
+
+// Quick Start Section
+.quick-start-section {
+  padding: 0 60px;
+  margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    padding: 0 24px;
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-dark;
+    margin: 0;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: $text-light;
+    margin: 0;
+  }
+}
+
+.quick-start-card {
+  background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.2);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+  }
+
+  .quick-start-content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .quick-start-icon {
+    font-size: 48px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .quick-start-info {
+    flex: 1;
+
+    h4 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 0 8px 0;
+    }
+
+    p {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.95);
+      margin: 0;
+    }
+  }
+
+  .btn-quick-start {
+    padding: 14px 32px;
+    background: #fff;
+    color: #FFC107;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+
+    &:hover {
+      background: #f5f5f5;
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    i {
+      font-size: 14px;
+    }
+  }
+}
+
+// Recent Sessions Section
+.recent-sessions-section {
+  padding: 0 60px;
+  margin-bottom: 32px;
+  
+  @media (max-width: 768px) {
+    padding: 0 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: $text-dark;
+    margin: 0;
+  }
+
+  .view-all-btn {
+    padding: 8px 16px;
+    background: transparent;
+    color: $primary-teal;
+    border: 1px solid $primary-teal;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $primary-teal;
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+    i {
+      font-size: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover i {
+      transform: translateX(4px);
+    }
+  }
+}
+
+.recent-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-card {
+  background: $bg-white;
+  border: 1px solid #E0E0E0;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+  box-shadow: $card-shadow;
+
+  &:hover {
+    border-color: $primary-teal;
+    box-shadow: 0 4px 16px rgba(95, 169, 164, 0.15);
+    transform: translateX(4px);
+  }
+
+  .session-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #52C97C 0%, #42A95E 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    i {
+      font-size: 22px;
+      color: #fff;
+    }
+  }
+
+  .session-info {
+    flex: 1;
+    min-width: 0;
+
+    .session-activity {
+      font-size: 16px;
+      font-weight: 600;
+      color: $text-dark;
+      margin: 0 0 8px 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .session-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: $text-light;
+      flex-wrap: wrap;
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        i {
+          font-size: 12px;
+          color: $primary-teal;
+        }
+      }
+    }
+  }
+
+  .session-time {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: $text-light;
+    font-weight: 500;
+    padding: 6px 12px;
+    background: rgba(95, 169, 164, 0.08);
+    border-radius: 6px;
   }
 }
 
@@ -1256,54 +1553,33 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Recent Activities Section
-.recent-activities-section {
-  padding: 0 60px;
-  margin-bottom: 24px;
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: $text-dark;
-    margin: 0;
-  }
-
-  .section-subtitle {
-    font-size: 13px;
-    color: $text-light;
-    font-weight: 400;
-  }
-}
-
+// Empty State (used in recent sessions)
 .empty-recent {
   background: $bg-white;
-  padding: 40px 24px;
+  padding: 48px 24px;
   border-radius: 12px;
   box-shadow: $card-shadow;
   text-align: center;
   color: $text-light;
 
   i {
-    font-size: 32px;
-    margin-bottom: 12px;
+    font-size: 48px;
+    margin-bottom: 16px;
     display: block;
+    color: rgba(95, 169, 164, 0.3);
   }
 
   p {
     margin: 0 0 8px 0;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: $text-dark;
 
     &.empty-hint {
-      font-size: 12px;
-      color: color.adjust($text-light, $lightness: 10%);
-      margin-top: 4px;
+      font-size: 13px;
+      color: $text-light;
+      font-weight: 400;
+      margin-top: 8px;
     }
   }
 }
@@ -1381,261 +1657,17 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Grid View Section
+// Grid View Section (for Activities page - keep minimal for navigation)
 .grid-view-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 0 60px;
-}
-
-.grid-view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 4px;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: $text-dark;
-}
-
-.create-button {
-  padding: 10px 18px;
-  background: $primary-teal;
-  color: $text-white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  
-  &:hover {
-    background: $primary-teal-dark;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
-  }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 24px;
-  background: $bg-white;
-  border-radius: 12px;
-  box-shadow: $card-shadow;
-  
-  .empty-icon {
-    font-size: 48px;
-    color: $text-light;
-    margin-bottom: 16px;
-    
-    i {
-      opacity: 0.5;
-    }
-  }
-  
-  h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: $text-dark;
-    margin-bottom: 8px;
-  }
-  
-  p {
-    font-size: 14px;
-    color: $text-light;
-    margin-bottom: 24px;
-  }
-  
-  button,
-  .create-activity-btn {
-    padding: 12px 28px;
-    background: $primary-teal;
-    color: $text-white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    
-    i {
-      font-size: 14px;
-    }
-    
-    &:hover {
-      background: $primary-teal-dark;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
+  display: none; // Not used in dashboard
 }
 
 .activities-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  width: 100%;
+  display: none; // Not used in dashboard
 }
 
 .activity-card {
-  background: $primary-teal;
-  border: 2px solid $primary-teal;
-  border-radius: 8px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  color: $text-white;
-  
-  &:hover {
-    border-color: $primary-teal-dark;
-    box-shadow: 0 6px 16px rgba(95, 169, 164, 0.2);
-    transform: translateY(-2px);
-  }
-  
-  &.selected {
-    border-color: $text-white;
-    box-shadow: 0 6px 16px rgba(95, 169, 164, 0.3);
-  }
-  
-  .activity-card-header {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  
-  .activity-icon-section {
-    font-size: 28px;
-    min-width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .activity-header-info {
-    flex: 1;
-    
-    .activity-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin: 0 0 4px 0;
-      color: $text-white;
-    }
-    
-    .last-accessed {
-      font-size: 12px;
-      margin: 0;
-      opacity: 0.9;
-      color: rgba(255, 255, 255, 0.8);
-    }
-  }
-  
-  .completion-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 4px 0;
-    
-    .completion-percentage {
-      font-size: 13px;
-      font-weight: 600;
-      opacity: 0.95;
-    }
-  }
-  
-  .progress-bar {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-    overflow: hidden;
-    
-    .progress-fill {
-      height: 100%;
-      background: #FFD700;
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
-  }
-  
-  .card-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    
-    .action-btn {
-      flex: 1;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 13px;
-      transition: all 0.2s ease;
-      text-transform: capitalize;
-      
-      &.edit-btn {
-        background: #1a4d4a;
-        color: $text-white;
-        
-        &:hover {
-          background: #0d2622;
-        }
-      }
-      
-      &.delete-btn {
-        background: #8b3a3a;
-        color: $text-white;
-        
-        &:hover {
-          background: #6b2c2c;
-        }
-      }
-    }
-  }
-
-  .add-session-btn {
-    padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.15);
-    color: $text-white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    margin-top: 4px;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
-      transform: translateY(-1px);
-    }
-    
-    i {
-      font-size: 12px;
-    }
-  }
+  display: none; // Not used in dashboard - see activities page instead
 }
 
 // Pagination
