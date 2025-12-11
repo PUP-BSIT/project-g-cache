@@ -7,6 +7,7 @@ import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,8 +23,8 @@ import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
 //@Disabled("Requires Docker Desktop for PostgreSQL container")
+@ActiveProfiles("dev")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
@@ -48,7 +50,13 @@ class AuthControllerIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+                registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+                // Provide a test JWT secret so JwtService bean can be created during tests
+                // Must be long enough for HMAC-SHA algorithms (HS512 needs >= 512 bits / 64 bytes).
+                registry.add("jwt.secret", () -> "test-secret-that-is-long-enough-for-hs512-please-change-if-needed-0123456789");
+                // Provide token expiration properties required by JwtService
+                registry.add("jwt.access-token-expiration", () -> "900000");
+                registry.add("jwt.refresh-token-expiration", () -> "2592000000");
     }
 
     @Autowired
@@ -59,72 +67,84 @@ class AuthControllerIntegrationTest {
 
     @Test
     void testRegisterUser_Success() throws Exception {
+        String email = "john+" + System.currentTimeMillis() + "@example.com";
         RegisterRequest request = new RegisterRequest(
                 "John",
                 "Doe",
-                "john@example.com",
+                email,
                 "SecurePassword123!"
         );
 
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(objectMapper.writeValueAsString(request))
+                .with(csrf()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.email").value(email))
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"));
+        
     }
 
     @Test
     void testRegisterUser_DuplicateEmail() throws Exception {
-        RegisterRequest request1 = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
-        RegisterRequest request2 = new RegisterRequest("Jane", "Smith", "john@example.com", "Password456!");
+                String email = "dup+" + System.currentTimeMillis() + "@example.com";
+                RegisterRequest request1 = new RegisterRequest("John", "Doe", email, "Password123!");
+                RegisterRequest request2 = new RegisterRequest("Jane", "Smith", email, "Password456!");
 
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request1)))
+                .content(objectMapper.writeValueAsString(request1))
+                .with(csrf()))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request2)))
+                .content(objectMapper.writeValueAsString(request2))
+                .with(csrf()))
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     void testLoginUser_Success() throws Exception {
         // Register user first
-        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
+                String email = "login+" + System.currentTimeMillis() + "@example.com";
+                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .with(csrf()))
                 .andExpect(status().isCreated());
 
         // Login with correct credentials
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
-                .andExpect(jsonPath("$.user.email").value("john@example.com"));
+                .andExpect(jsonPath("$.user.email").value(email));
     }
 
     @Test
     void testLoginUser_InvalidCredentials() throws Exception {
         // Register user
-        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
-        mockMvc.perform(post("/auth/register")
+                String email = "invalid+" + System.currentTimeMillis() + "@example.com";
+                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
+                mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .with(csrf()))
                 .andExpect(status().isCreated());
 
         // Login with wrong password
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "WrongPassword");
+        LoginRequest loginRequest = new LoginRequest(email, "WrongPassword");
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -133,23 +153,26 @@ class AuthControllerIntegrationTest {
         LoginRequest loginRequest = new LoginRequest("nonexistent@example.com", "Password123!");
         mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetCurrentUser_Authenticated() throws Exception {
         // Register and login user
-        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
+        String email = "me+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .with(csrf()))
                 .andExpect(status().isCreated());
-
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -162,7 +185,7 @@ class AuthControllerIntegrationTest {
         mockMvc.perform(get("/auth/me")
                 .header("Authorization", "Bearer " + authResponse.accessToken()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("john@example.com"));
+                .andExpect(jsonPath("$.email").value(email));
     }
 
     @Test
@@ -174,13 +197,14 @@ class AuthControllerIntegrationTest {
     @Test
     void testLogout_Success() throws Exception {
         // Register, login, and logout
-        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
-        mockMvc.perform(post("/auth/register")
+                String email = "logout+" + System.currentTimeMillis() + "@example.com";
+                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
+                mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
@@ -194,7 +218,8 @@ class AuthControllerIntegrationTest {
 
         // Logout
         mockMvc.perform(post("/auth/logout")
-                .header("Authorization", "Bearer " + authResponse.accessToken()))
+                .header("Authorization", "Bearer " + authResponse.accessToken())
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").exists());
     }
@@ -202,16 +227,19 @@ class AuthControllerIntegrationTest {
     @Test
     void testRefreshTokens_Success() throws Exception {
         // Register and login to get refresh token
-        RegisterRequest registerRequest = new RegisterRequest("Jane", "Smith", "jane@example.com", "Password123!");
+        String email = "refresh+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest registerRequest = new RegisterRequest("Jane", "Smith", email, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .with(csrf()))
                 .andExpect(status().isCreated());
 
-        LoginRequest loginRequest = new LoginRequest("jane@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -227,7 +255,8 @@ class AuthControllerIntegrationTest {
         RefreshTokensRequest refreshRequest = new RefreshTokensRequest(refreshToken);
         mockMvc.perform(post("/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(refreshRequest)))
+                .content(objectMapper.writeValueAsString(refreshRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
                 .andExpect(jsonPath("$.refreshToken").exists());
