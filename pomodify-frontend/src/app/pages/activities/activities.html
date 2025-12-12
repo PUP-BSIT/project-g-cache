@@ -1,5 +1,10 @@
 <!-- activities.html - Activities List Page -->
 <div class="activities-page">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
     <!-- Close Toggle Button -->
@@ -55,6 +60,12 @@
   <main class="main-content">
     <!-- Header -->
     <header class="header">
+      <div class="header-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 class="page-title">Activities</h1>
+      </div>
       <div class="user-profile">
         <button class="profile-btn" (click)="openProfileModal()">
           <i class="fa-solid fa-user"></i>
