@@ -2,7 +2,12 @@
 <div class="activities-page">
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
-    <div class="logo" (click)="toggleSidebar()">
+    <!-- Close Toggle Button -->
+    <button class="sidebar-close-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="logo">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if (sidebarExpanded()) {
         <span class="app-name">Pomodify</span>

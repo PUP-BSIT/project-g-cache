@@ -53,6 +53,45 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
+// Sidebar Close Button
+.sidebar-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: $text-light;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  
+  i {
+    font-size: 20px;
+  }
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: $text-dark;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.sidebar.expanded .sidebar-close-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .logo {
   margin-bottom: 40px;
   flex-shrink: 0;
