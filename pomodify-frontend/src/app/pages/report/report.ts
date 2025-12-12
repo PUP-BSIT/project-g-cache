@@ -82,23 +82,6 @@ export class Report implements OnInit {
     toggleTheme();
   }
 
-  // Handle navigation icon click - expand sidebar, no bounce
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (!this.sidebarExpanded()) {
-      this.sidebarExpanded.set(true);
-    }
-    if (this.router.url === route) {
-      event.preventDefault();
-    }
-  }
-
-  // Collapse sidebar when clicking main content
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
-    }
-  }
-
   protected onLogout(): void {
     this.auth.logout();
   }

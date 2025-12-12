@@ -1,7 +1,17 @@
 <div class="report-page">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
-    <div class="logo" (click)="toggleSidebar()">
+    <!-- Close Toggle Button -->
+    <button class="sidebar-close-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="logo">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -10,32 +20,28 @@
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/dashboard')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
       <button class="nav-icon" routerLink="/activities" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/activities')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/report')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
       <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/settings')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -54,10 +60,13 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" (click)="onMainContentClick()">
+  <main class="main-content">
     <!-- Header -->
     <header class="header">
       <div class="header-title">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1>Reports</h1>
       </div>
       <div class="header-actions">

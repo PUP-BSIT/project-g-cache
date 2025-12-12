@@ -64,16 +64,6 @@ export class Dashboard implements OnInit {
     toggleTheme();
   }
 
-  @HostListener('document:click', ['$event'])
-  onClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.sidebar') && !target.closest('.sidebar-toggle')) {
-      if (window.innerWidth < 768) {
-        this.sidebarExpanded.set(false);
-      }
-    }
-  }
-
   ngOnInit(): void {
     this.loadDashboardMetrics();
   }
@@ -218,21 +208,6 @@ export class Dashboard implements OnInit {
           alert(`Error: ${errorMsg}`);
         }
       });
-  }
-
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (!this.sidebarExpanded()) {
-      this.sidebarExpanded.set(true);
-    }
-    if (this.router.url === route) {
-      event.preventDefault();
-    }
-  }
-
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
-    }
   }
 
   protected onLogout(): void {
