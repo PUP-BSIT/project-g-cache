@@ -65,6 +65,10 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit(): void {
+    // Auto-collapse sidebar on mobile
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      this.sidebarExpanded.set(false);
+    }
     this.loadDashboardMetrics();
   }
 
