@@ -1,4 +1,6 @@
-<div class="session-timer-page" [attr.data-phase]="currentPhase()">
+<div class="session-timer-page" 
+     [attr.data-phase]="currentPhase()"
+     [style.--activity-color]="activityColor()">
   <!-- Loading State -->
   @if (loading()) {
     <div class="loading-container">
