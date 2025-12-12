@@ -6,5 +6,6 @@ import lombok.Builder;
 public record GetSessionsCommand(
         Long user,
         Long activityId,
-        String status
+        String status,
+        Boolean deleted
 ) {}

@@ -78,19 +78,37 @@ public class SessionController {
     }
 
     @GetMapping
-    @Operation(summary = "List sessions", description = "Returns all sessions for an activity, optionally filtered by status.")
-        public ResponseEntity<SessionResponse> getAllSessions(@AuthenticationPrincipal Jwt jwt,
-                                                            @PathVariable Long activityId,
-                                                            @RequestParam(required = false) String status) {
+    @Operation(summary = "List active sessions", description = "Returns all active sessions for an activity.")
+    public ResponseEntity<SessionResponse> getAllSessions(@AuthenticationPrincipal Jwt jwt,
+                                                          @PathVariable Long activityId,
+                                                          @RequestParam(required = false) String status) {
         Long userId = requireUserId(jwt);
         List<SessionItem> items = SessionMapper.toItems(
                 sessionService.getAll(GetSessionsCommand.builder()
                         .user(userId)
                         .activityId(activityId)
                         .status(status)
+                        .deleted(false)
                         .build())
         );
         return ResponseEntity.ok(SessionMapper.toResponse(items, "Sessions retrieved successfully"));
+    }
+
+    @GetMapping("/deleted")
+    @Operation(summary = "List deleted sessions", description = "Returns all deleted sessions for an activity.")
+    public ResponseEntity<SessionResponse> getDeletedSessions(@AuthenticationPrincipal Jwt jwt,
+                                                              @PathVariable Long activityId,
+                                                              @RequestParam(required = false) String status) {
+        Long userId = requireUserId(jwt);
+        List<SessionItem> items = SessionMapper.toItems(
+                sessionService.getAll(GetSessionsCommand.builder()
+                        .user(userId)
+                        .activityId(activityId)
+                        .status(status)
+                        .deleted(true)
+                        .build())
+        );
+        return ResponseEntity.ok(SessionMapper.toResponse(items, "Deleted sessions retrieved successfully"));
     }
 
     @GetMapping("/{id}")
