@@ -1,4 +1,5 @@
 // Session Timer Page Styles - Modern 3D Design with Glassmorphism
+// CSS Variable for dynamic activity color
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -14,6 +15,8 @@ $card-shadow-hover: 0 12px 48px rgba(95, 169, 164, 0.2);
 $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .session-timer-page {
+  --activity-color: #{$primary-teal}; // Default, overridden by inline style
+  
   min-height: 100vh;
   background: $bg-gradient;
   color: $text-dark;
@@ -36,7 +39,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   &::before {
     width: 400px;
     height: 400px;
-    background: $primary-teal;
+    background: var(--activity-color);
     top: -100px;
     right: -100px;
   }
@@ -44,7 +47,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   &::after {
     width: 500px;
     height: 500px;
-    background: $primary-teal-light;
+    background: color-mix(in srgb, var(--activity-color) 80%, white 20%);
     bottom: -150px;
     left: -150px;
     animation-delay: -10s;
@@ -71,7 +74,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
   i {
     font-size: 4rem;
-    color: $primary-teal;
+    color: var(--activity-color);
   }
 
   p {
@@ -82,7 +85,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   .btn-primary {
     margin-top: 1rem;
     padding: 12px 24px;
-    background: $primary-teal;
+    background: var(--activity-color);
     color: white;
     border: none;
     border-radius: 12px;
@@ -92,7 +95,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     box-shadow: $card-shadow;
 
     &:hover {
-      background: $primary-teal-dark;
+      background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
       box-shadow: $card-shadow-hover;
       transform: translateY(-2px);
     }
@@ -142,9 +145,9 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
 
     &:hover {
-      background: $primary-teal;
+      background: var(--activity-color);
       color: $bg-white;
-      border-color: $primary-teal;
+      border-color: var(--activity-color);
       transform: translateX(-4px) scale(1.02);
       box-shadow: $card-shadow-hover;
       
@@ -158,7 +161,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     font-size: 32px;
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
+    background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 80%, black 20%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -189,8 +192,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .mascot-container {
   position: absolute;
-  left: -180px;
-  bottom: 80px;
+  left: -200px;
+  bottom: 60px;
   transform: translateX(0);
   display: flex;
   flex-direction: column;
@@ -219,8 +222,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Idle state - gentle bounce with breathing effect (lower left of timer)
   &.idle {
-    left: -180px;
-    bottom: 80px;
+    left: -200px;
+    bottom: 60px;
     transform: translateX(0);
     
     .mascot-character {
@@ -232,8 +235,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Running state - stays beside timer (lower left)
   &.bouncing {
-    left: -170px;
-    bottom: 80px;
+    left: -190px;
+    bottom: 60px;
     transform: translateX(0);
     
     .mascot-character {
@@ -261,8 +264,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Shake - stays on left side for urgency!
   &.shake {
-    left: -200px;
-    bottom: 50px;
+    left: -220px;
+    bottom: 40px;
     transform: translateX(0);
     
     .mascot-character {
@@ -322,7 +325,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     span {
       font-size: 18px;
       font-weight: 700;
-      background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
+      background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -563,7 +566,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   .session-type {
     font-size: 32px;
     font-weight: 700;
-    background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-light 100%);
+    background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 80%, white 20%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -622,14 +625,14 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       transform: translateX(-50%) scaleX(0);
       width: 60%;
       height: 3px;
-      background: linear-gradient(90deg, transparent, $primary-teal, transparent);
+      background: linear-gradient(90deg, transparent, var(--activity-color), transparent);
       border-radius: 2px;
       transition: transform 0.4s ease;
     }
 
     &.active {
-      color: $primary-teal;
-      text-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+      color: var(--activity-color);
+      text-shadow: 0 4px 12px color-mix(in srgb, var(--activity-color) 40%, transparent 60%);
       transform: scale(1.1);
       
       &::after {
@@ -641,7 +644,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       cursor: pointer;
       
       &:hover {
-        color: $primary-teal-light;
+        color: color-mix(in srgb, var(--activity-color) 80%, white 20%);
         transform: scale(1.05);
       }
     }
@@ -656,7 +659,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 }
 
 .timer-display-box {
-  background: linear-gradient(145deg, $primary-teal 0%, $primary-teal-dark 100%);
+  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
   border-radius: 24px;
   padding: 32px 56px;
   margin-bottom: 32px;
@@ -667,7 +670,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   align-items: center;
   justify-content: center;
   box-shadow: 
-    0 10px 30px rgba(95, 169, 164, 0.3),
+    0 10px 30px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
     0 1px 0 rgba(255, 255, 255, 0.3) inset,
     0 -1px 0 rgba(0, 0, 0, 0.1) inset;
   position: relative;
@@ -761,7 +764,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 }
 
 .btn-timer-control {
-  background: linear-gradient(145deg, $primary-teal 0%, $primary-teal-dark 100%);
+  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
   color: $bg-white;
   border: none;
   border-radius: 16px;
@@ -774,7 +777,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   position: relative;
   overflow: hidden;
   box-shadow: 
-    0 8px 24px rgba(95, 169, 164, 0.3),
+    0 8px 24px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
@@ -880,7 +883,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 }
 
 .btn-fast-forward {
-  background: $primary-teal;
+  background: var(--activity-color);
   color: $bg-white;
   border: none;
   border-radius: 12px;
@@ -901,7 +904,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   &:hover {
-    background: $primary-teal-dark;
+    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
     transform: translateY(-2px);
     box-shadow: $card-shadow-hover;
   }
@@ -949,7 +952,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     display: flex;
     align-items: center;
     gap: 6px;
-    background: $primary-teal;
+    background: var(--activity-color);
     border: none;
     border-radius: 8px;
     color: $bg-white;
@@ -972,7 +975,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
 
     &:hover {
-      background: $primary-teal-dark;
+      background: color-mix(in srgb, var(--activity-color) 85%, black 15%);
       transform: translateY(-1px);
       box-shadow: $card-shadow-hover;
     }
@@ -1028,7 +1031,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: $primary-teal;
+  accent-color: var(--activity-color);
   flex-shrink: 0;
 }
 
@@ -1100,8 +1103,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
   &:focus {
     background: $bg-white;
-    border-color: $primary-teal;
-    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+    border-color: var(--activity-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
   }
 }
 

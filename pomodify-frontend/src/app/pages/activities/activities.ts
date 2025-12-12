@@ -428,15 +428,6 @@ export class ActivitiesPage implements OnInit {
       });
   }
 
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (!this.sidebarExpanded()) {
-      this.sidebarExpanded.set(true);
-    }
-    if (this.router.url === route) {
-      event.preventDefault();
-    }
-  }
-
   protected openProfileModal(): void {
     console.log('[ActivitiesPage] Profile modal clicked');
   }

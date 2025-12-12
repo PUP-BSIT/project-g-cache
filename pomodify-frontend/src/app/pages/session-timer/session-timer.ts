@@ -16,6 +16,7 @@ import { timer, Subscription, of } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
+import { ActivityColorService } from '../../core/services/activity-color.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TimePickerModalComponent, TimePickerData } from '../../shared/components/time-picker-modal/time-picker-modal';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog';
@@ -43,6 +44,7 @@ export class SessionTimerComponent implements OnDestroy {
   // Injected services
   private sessionService = inject(SessionService);
   private activityService = inject(ActivityService);
+  private activityColorService = inject(ActivityColorService);
   protected router = inject(Router);
   private dialog = inject(MatDialog);
   private auth = inject(Auth);
@@ -55,6 +57,28 @@ export class SessionTimerComponent implements OnDestroy {
   activityId = signal<number | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
+
+  // Activity color from color tag
+  activityColor = computed(() => {
+    const actId = this.activityId();
+    if (!actId) return this.getColorHex('teal');
+    const colorTag = this.activityColorService.getColorTag(actId);
+    return this.getColorHex(colorTag || 'teal');
+  });
+
+  // Color mapping helper
+  private getColorHex(colorName: string): string {
+    const colorMap: Record<string, string> = {
+      'red': '#EF4444',
+      'orange': '#F97316',
+      'yellow': '#FBBF24',
+      'green': '#10B981',
+      'blue': '#3B82F6',
+      'purple': '#8B5CF6',
+      'teal': '#5FA9A4'
+    };
+    return colorMap[colorName] || colorMap['teal'];
+  }
 
   // Timer state
   currentPhase = computed(() => this.session()?.currentPhase || 'FOCUS');

@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 /**
  * Page Object Model for Login page.
@@ -20,7 +20,11 @@ export class LoginPage {
   }
 
   async clickLoginButton() {
-    await this.page.click('button[type="submit"]', { timeout: 10000 });
+    const button = this.page.locator('button[type="submit"]');
+    await button.waitFor({ state: 'visible', timeout: 10000 });
+    // Wait for button to be enabled (form validation)
+    await expect(button).toBeEnabled({ timeout: 10000 });
+    await button.click({ timeout: 5000 });
   }
 
   async login(email: string, password: string) {
