@@ -15,8 +15,7 @@
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/dashboard')">
+              [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
@@ -29,16 +28,14 @@
         }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/report')">
+              [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
       <button class="nav-icon active" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/settings')">
+              [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -57,7 +54,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" (click)="onMainContentClick()">
+  <main class="main-content">
     <!-- Header -->
     <header class="header">
       <div class="user-profile">

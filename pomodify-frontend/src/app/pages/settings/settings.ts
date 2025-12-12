@@ -249,22 +249,6 @@ export class Settings implements AfterViewInit {
     this.showAutoSaveSuccess();
   }
 
-  // Handle navigation icon click
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (this.router.url === route) {
-      event.preventDefault();
-      this.toggleSidebar();
-      return;
-    }
-  }
-
-  // Collapse sidebar when clicking main content
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
-    }
-  }
-
   protected onLogout(): void {
     this.auth.logout();
   }
