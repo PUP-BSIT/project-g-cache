@@ -209,7 +209,7 @@
           } @else {
             <div class="recent-sessions-list">
               @for (session of recentActivities(); track session.id) {
-                <div class="session-card" (click)="navigateToSession(session)">
+                <div class="session-card">
                   <div class="session-header">
                     <div class="session-icon">
                       <i class="fa-solid fa-check-circle"></i>

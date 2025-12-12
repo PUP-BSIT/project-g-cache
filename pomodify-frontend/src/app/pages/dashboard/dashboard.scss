@@ -1428,7 +1428,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
-  cursor: pointer;
 
   &::before {
     content: '';
@@ -1441,25 +1440,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  &:hover {
-    border-color: rgba(95, 169, 164, 0.3);
-    box-shadow: 0 12px 32px rgba(95, 169, 164, 0.2);
-    transform: translateY(-4px);
-
-    &::before {
-      transform: scaleX(1);
-    }
-
-    .session-icon {
-      transform: scale(1.1) rotate(5deg);
-    }
-  }
-
-  &:active {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(95, 169, 164, 0.15);
   }
 
   .session-header {
