@@ -469,11 +469,13 @@ jobs:
         if: steps.status.outputs.status == 'failure'
         continue-on-error: true
         uses: actions/github-script@v7
+        env:
+          ERROR_REPORT: ${{ steps.error_report.outputs.error_report }}
         with:
           script: |
             try {
-              // Get error report from previous step output
-              const errorReport = `${{ steps.error_report.outputs.error_report }}`;
+              // Get error report from env var to avoid syntax errors with backticks
+              const errorReport = process.env.ERROR_REPORT;
 
               const issue = await github.rest.issues.create({
                 owner: context.repo.owner,
