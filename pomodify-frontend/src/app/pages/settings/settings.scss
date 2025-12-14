@@ -940,33 +940,101 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 
-// Theme Toggle Button
-.theme-toggle-btn {
+// Modern Theme Toggle (like social media apps)
+.theme-toggle-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background-color: $primary-teal;
-  color: $text-white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+}
+
+.theme-toggle-switch {
+  position: relative;
   cursor: pointer;
-  transition: all 0.2s ease;
+  user-select: none;
   
-  i {
-    font-size: 16px;
+  .theme-toggle-track {
+    width: 80px;
+    height: 40px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border-radius: 20px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .theme-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 36px;
+      height: 36px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .theme-icon {
+        i {
+          font-size: 16px;
+          color: #FFA500;
+          transition: all 0.3s ease;
+        }
+      }
+    }
   }
   
+  .theme-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 4px;
+    
+    .theme-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: $text-light;
+      transition: all 0.3s ease;
+      
+      &.active {
+        color: $text-dark;
+        font-weight: 600;
+      }
+    }
+  }
+  
+  // Dark mode state
+  &.dark {
+    .theme-toggle-track {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      
+      .theme-toggle-thumb {
+        transform: translateX(40px);
+        
+        .theme-icon i {
+          color: #4a90e2;
+        }
+      }
+    }
+  }
+  
+  // Hover effects
   &:hover {
-    background-color: $primary-teal-dark;
-    transform: translateY(-1px);
-    box-shadow: $card-shadow-hover;
+    .theme-toggle-track {
+      transform: scale(1.02);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .theme-toggle-thumb {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
   }
   
+  // Active state
   &:active {
-    transform: translateY(0);
+    .theme-toggle-track {
+      transform: scale(0.98);
+    }
   }
 }
 
@@ -1136,9 +1204,24 @@ $toggle-bg-inactive: #D0D0D0;
     justify-content: center;
   }
   
-  .theme-toggle-btn {
-    width: 100%;
-    justify-content: center;
+  .theme-toggle-switch {
+    .theme-toggle-track {
+      width: 70px;
+      height: 36px;
+      
+      .theme-toggle-thumb {
+        width: 32px;
+        height: 32px;
+        
+        .theme-icon i {
+          font-size: 14px;
+        }
+      }
+    }
+    
+    &.dark .theme-toggle-track .theme-toggle-thumb {
+      transform: translateX(34px);
+    }
   }
 }
 
@@ -1352,3 +1435,298 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
 }
+/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+:host-context(.theme-dark) {
+  .settings-page {
+    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
+    color: #e4e6ea;
+    min-height: 100vh;
+  }
+  
+  // Sidebar - Facebook style
+  .sidebar {
+    background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
+    border-right: 1px solid #3e4042;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    
+    .logo {
+      .app-name {
+        color: #e4e6ea;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-icon {
+      color: #b0b3b8;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &::before {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      &:hover {
+        &::before {
+          background: linear-gradient(135deg, rgba(95, 169, 164, 0.15), rgba(95, 169, 164, 0.1));
+        }
+        color: #7BC4BF;
+        transform: translateX(2px);
+      }
+      
+      &.active {
+        &::before {
+          background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+          box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+        }
+        color: #FFFFFF;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-text {
+      color: inherit;
+    }
+    
+    .nav-bottom {
+      border-top: 1px solid #3e4042;
+    }
+    }
+    
+    .nav-text {
+      color: inherit;
+    }
+  }
+  
+  // Header - Facebook style
+  .header {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+    border-bottom: 1px solid #3e4042;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    
+    .page-title {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hamburger-btn {
+      background: rgba(95, 169, 164, 0.1);
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      
+      &:hover {
+        background: rgba(95, 169, 164, 0.2);
+        box-shadow: 0 2px 8px rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .theme-btn,
+    .profile-btn {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.2), rgba(95, 169, 164, 0.1));
+      color: #7BC4BF;
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.3), rgba(95, 169, 164, 0.2));
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+        transform: translateY(-1px);
+      }
+    }
+  }
+  
+  // Settings sections - Facebook style
+  .settings-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+    border: 1px solid #3e4042;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      border-color: #5FA9A4;
+      box-shadow: 0 8px 32px rgba(95, 169, 164, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .section-title {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  // Setting items - Facebook style
+  .setting-item {
+    border-bottom-color: #3e4042;
+    
+    .setting-label {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .setting-description {
+      color: #b0b3b8;
+    }
+  }
+  
+  .toggle-switch {
+    .toggle-input:checked + .toggle-label {
+      background-color: #5FA9A4;
+    }
+    
+    .toggle-label {
+      background-color: #374151;
+      
+      &::after {
+        background-color: #F3F4F6;
+      }
+    }
+  }
+  
+  .sound-select {
+    background-color: #1F2937;
+    color: #E5E7EB;
+    border-color: #374151;
+    
+    option {
+      background-color: #1F2937;
+      color: #E5E7EB;
+    }
+  }
+  
+  .volume-slider {
+    background-color: #374151;
+    
+    &::-webkit-slider-thumb {
+      background-color: #5FA9A4;
+    }
+    
+    &::-moz-range-thumb {
+      background-color: #5FA9A4;
+    }
+  }
+  
+  .test-btn {
+    background-color: rgba(95, 169, 164, 0.1);
+    color: #7BC4BF;
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &:hover {
+      background-color: rgba(95, 169, 164, 0.2);
+      border-color: rgba(95, 169, 164, 0.5);
+    }
+  }
+  
+  .theme-toggle-switch {
+    .theme-labels .theme-label {
+      color: #9CA3AF;
+      
+      &.active {
+        color: #E5E7EB;
+      }
+    }
+  }
+  
+  .data-action-item {
+    border-bottom-color: #1F2937;
+    
+    .data-action-label,
+    .account-action-label {
+      color: #E5E7EB;
+      
+      &.danger-label {
+        color: #EF4444;
+      }
+    }
+    
+    .data-action-description,
+    .account-action-description {
+      color: #9CA3AF;
+    }
+    
+    .data-action-btn,
+    .account-action-btn {
+      background-color: #374151;
+      color: #E5E7EB;
+      border-color: #4B5563;
+      
+      &:hover {
+        background-color: #4B5563;
+      }
+      
+      &.danger-btn {
+        background-color: #EF4444;
+        color: white;
+        
+        &:hover {
+          background-color: #DC2626;
+        }
+      }
+    }
+    
+    &.danger-action {
+      border-color: rgba(239, 68, 68, 0.2);
+      background-color: rgba(239, 68, 68, 0.05);
+    }
+  }
+  
+  .auto-save-indicator {
+    &.saving {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: #F59E0B;
+    }
+    
+    &.saved {
+      background-color: rgba(34, 197, 94, 0.1);
+      color: #22C55E;
+    }
+  }
+  
+  // Modal dark mode
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .modal-content {
+    background: #1F2937;
+    border: 1px solid #374151;
+    
+    .modal-title {
+      color: #E5E7EB;
+    }
+    
+    .modal-text {
+      color: #D1D5DB;
+    }
+    
+    .modal-warning {
+      color: #F59E0B;
+    }
+    
+    .delete-list li {
+      color: #D1D5DB;
+    }
+    
+    .success-text {
+      color: #22C55E;
+    }
+  }
+  
+  .modal-btn {
+    &.btn-ok {
+      background-color: #5FA9A4;
+      
+      &:hover {
+        background-color: #4D8B87;
+      }
+    }
+    
+    &.btn-cancel {
+      background-color: #374151;
+      color: #E5E7EB;
+      
+      &:hover {
+        background-color: #4B5563;
+      }
+    }
+  }
+  
+  .warning-icon {
+    filter: brightness(1.2);
+  }

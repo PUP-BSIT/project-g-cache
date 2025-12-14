@@ -70,6 +70,9 @@ export class Report implements OnInit {
   protected readonly focusProjects = signal<FocusProject[]>([]);
 
   ngOnInit(): void {
+    // Initialize theme state
+    this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
+    
     this.loadSummary(this.selectedRange());
   }
 
@@ -78,8 +81,17 @@ export class Report implements OnInit {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
+  // Theme management
+  protected readonly isDarkMode = signal(false);
+  
+  protected readonly themeIcon = computed(() => {
+    return this.isDarkMode() ? 'fa-sun' : 'fa-moon';
+  });
+
   protected onToggleTheme(): void {
     toggleTheme();
+    // Update the dark mode state
+    this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
   }
 
   protected onLogout(): void {

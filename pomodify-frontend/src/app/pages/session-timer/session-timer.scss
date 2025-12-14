@@ -1544,4 +1544,208 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       }
     }
   }
+}/*
+ -------------------- DARK MODE SUPPORT -------------------- */
+/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+:host-context(.theme-dark) {
+  .session-timer-page {
+    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
+    color: #e4e6ea;
+    min-height: 100vh;
+    
+    &::before,
+    &::after {
+      opacity: 0.1;
+    }
+  }
+  
+  .container {
+    color: #E5E7EB;
+  }
+  
+  .session-header {
+    .btn-back {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+        color: #7BC4BF;
+      }
+    }
+    
+    .activity-title {
+      color: #E5E7EB;
+    }
+  }
+  
+  .timer-circle {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .timer-top {
+      .session-type,
+      .cycle-indicator {
+        color: #D1D5DB;
+      }
+    }
+    
+    .phase-labels .phase-label {
+      color: #9CA3AF;
+      
+      &.active {
+        color: #E5E7EB;
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+      
+      &.clickable:hover {
+        background-color: rgba(95, 169, 164, 0.1);
+        color: #7BC4BF;
+      }
+    }
+    
+    .time-value {
+      color: #E5E7EB;
+    }
+    
+    .edit-icon {
+      color: #9CA3AF;
+    }
+  }
+  
+  .btn-timer-control {
+    background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+    
+    &:hover {
+      background: linear-gradient(135deg, #4D8B87, #3A6B68);
+    }
+    
+    &.paused {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+    }
+  }
+  
+  .btn-stop {
+    background-color: #EF4444;
+    
+    &:hover {
+      background-color: #DC2626;
+    }
+  }
+  
+  .btn-early-complete {
+    background-color: rgba(95, 169, 164, 0.1);
+    color: #7BC4BF;
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &:hover {
+      background-color: rgba(95, 169, 164, 0.2);
+    }
+  }
+  
+  .notes-panel {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .notes-label {
+      color: #E5E7EB;
+    }
+    
+    .btn-add-todo {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .todo-item {
+      .todo-text {
+        background-color: #1F2937;
+        color: #E5E7EB;
+        border-color: #374151;
+        
+        &::placeholder {
+          color: #6B7280;
+        }
+      }
+      
+      .btn-remove-todo {
+        color: #EF4444;
+        
+        &:hover {
+          background-color: rgba(239, 68, 68, 0.1);
+        }
+      }
+    }
+    
+    .notes-textarea {
+      background-color: #1F2937;
+      color: #E5E7EB;
+      border-color: #374151;
+      
+      &::placeholder {
+        color: #6B7280;
+      }
+    }
+  }
+  
+  .mascot-bubble {
+    background: rgba(17, 24, 39, 0.95);
+    color: #E5E7EB;
+    border: 1px solid #374151;
+  }
+  
+  // Auto-start toast dark mode
+  .auto-start-toast .toast-content {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid #374151;
+    
+    .toast-title {
+      color: #E5E7EB;
+    }
+    
+    .toast-message {
+      color: #9CA3AF;
+    }
+    
+    .toast-cancel {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+      }
+    }
+  }
+  
+  // Auto-start modal dark mode
+  .auto-start-notification.mobile-modal {
+    .auto-start-modal {
+      background: rgba(31, 41, 55, 0.95);
+      border: 1px solid #374151;
+      
+      .auto-start-title {
+        color: #E5E7EB;
+      }
+      
+      .auto-start-message {
+        color: #9CA3AF;
+      }
+      
+      .btn-cancel-auto-start {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        border-color: rgba(239, 68, 68, 0.3);
+        
+        &:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.5);
+        }
+      }
+    }
+  }
 }

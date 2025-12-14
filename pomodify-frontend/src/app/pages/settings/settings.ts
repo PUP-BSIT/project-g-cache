@@ -88,8 +88,14 @@ export class Settings implements AfterViewInit {
   }
 
   onToggleTheme(): void {
+    // Add haptic feedback for mobile devices
+    if ('vibrate' in navigator && typeof (navigator as any).vibrate === 'function') {
+      (navigator as any).vibrate(50);
+    }
+    
     toggleTheme();
     this.updateThemeState();
+    this.showAutoSaveSuccess();
   }
 
   private updateThemeState(): void {

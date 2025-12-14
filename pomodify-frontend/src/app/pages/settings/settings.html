@@ -198,15 +198,25 @@
             <h3 class="setting-label">Theme</h3>
             <p class="setting-description">Switch between light and dark mode</p>
           </div>
-          <button class="theme-toggle-btn" (click)="onToggleTheme()">
-            @if (isDarkMode()) {
-              <i class="fa-solid fa-sun"></i>
-              <span>Light Mode</span>
-            } @else {
-              <i class="fa-solid fa-moon"></i>
-              <span>Dark Mode</span>
-            }
-          </button>
+          <div class="theme-toggle-container">
+            <div class="theme-toggle-switch" [class.dark]="isDarkMode()" (click)="onToggleTheme()">
+              <div class="theme-toggle-track">
+                <div class="theme-toggle-thumb">
+                  <div class="theme-icon">
+                    @if (isDarkMode()) {
+                      <i class="fa-solid fa-moon"></i>
+                    } @else {
+                      <i class="fa-solid fa-sun"></i>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="theme-labels">
+                <span class="theme-label light" [class.active]="!isDarkMode()">Light</span>
+                <span class="theme-label dark" [class.active]="isDarkMode()">Dark</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
