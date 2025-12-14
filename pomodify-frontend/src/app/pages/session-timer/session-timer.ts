@@ -25,6 +25,7 @@ import { Auth } from '../../core/services/auth';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from '../../core/services/notification.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { environment } from '../../../environments/environment';
 
 /**
  * Session Timer Page - Main timer interface for Pomodoro sessions
@@ -53,6 +54,12 @@ export class SessionTimerComponent implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private notificationService = inject(NotificationService);
   private settingsService = inject(SettingsService);
+
+  // Auto-start functionality
+  protected showAutoStartCountdown = signal(false);
+  protected autoStartCountdown = signal(0);
+  protected autoStartCancelled = signal(false);
+  private autoStartTimeoutId: number | null = null;
 
   // State signals
   session = signal<PomodoroSession | null>(null);
@@ -198,10 +205,25 @@ export class SessionTimerComponent implements OnDestroy {
         this.handleTimerComplete();
       }
     });
+
+    // Add test method to window for development (only in development mode)
+    if (typeof window !== 'undefined' && !environment.production) {
+      (window as any).testAutoStart = () => this.testAutoStart();
+      console.log('🧪 Auto-start test method available: window.testAutoStart()');
+    }
   }
 
   ngOnDestroy() {
     this.timerSyncService.cleanup();
+    
+    // Clean up auto-start timeout
+    if (this.autoStartTimeoutId) {
+      clearTimeout(this.autoStartTimeoutId);
+      this.autoStartTimeoutId = null;
+    }
+    
+    // Hide auto-start countdown if showing
+    this.hideAutoStartCountdown();
   }
 
   /* -------------------- DATA LOADING -------------------- */
@@ -772,6 +794,9 @@ export class SessionTimerComponent implements OnDestroy {
     };
     
     await this.notificationService.handlePhaseCompletion(context);
+    
+    // Check if auto-start is enabled for the next phase
+    await this.checkAndHandleAutoStart(sess, currentPhase);
   }
 
   protected async testTimerNotification(): Promise<void> {
@@ -819,6 +844,137 @@ export class SessionTimerComponent implements OnDestroy {
     console.log('✅ Forced timer completion test complete!');
   }
 
+  // Auto-start functionality methods
+  private async checkAndHandleAutoStart(session: PomodoroSession, currentPhase: string): Promise<void> {
+    const settings = this.settingsService.getSettings();
+    
+    // Don't auto-start if session is completed
+    if (session.status === 'COMPLETED') {
+      console.log('🏁 Session completed, no auto-start needed');
+      return;
+    }
+    
+    // Check if auto-start is enabled for the next phase
+    const shouldAutoStart = 
+      (currentPhase === 'FOCUS' && settings.autoStart.autoStartBreaks) ||
+      (currentPhase === 'BREAK' && settings.autoStart.autoStartPomodoros);
+    
+    if (shouldAutoStart) {
+      console.log(`🚀 Auto-start enabled for next phase after ${currentPhase}`);
+      await this.startAutoStartCountdown();
+    } else {
+      console.log(`⏸️ Auto-start disabled for next phase after ${currentPhase}`);
+    }
+  }
 
+  private async startAutoStartCountdown(): Promise<void> {
+    const settings = this.settingsService.getSettings();
+    const countdownSeconds = settings.autoStart.countdownSeconds;
+    
+    console.log(`⏱️ Starting ${countdownSeconds}-second auto-start countdown`);
+    
+    // Reset cancellation flag and show countdown
+    this.autoStartCancelled.set(false);
+    this.showAutoStartCountdown.set(true);
+    
+    // Countdown loop
+    for (let i = countdownSeconds; i > 0; i--) {
+      this.autoStartCountdown.set(i);
+      
+      // Wait 1 second
+      await this.delay(1000);
+      
+      // Check if user cancelled
+      if (this.autoStartCancelled()) {
+        console.log('❌ Auto-start cancelled by user');
+        this.hideAutoStartCountdown();
+        return;
+      }
+    }
+    
+    // If we reach here, countdown completed - auto-start next phase
+    console.log('✅ Auto-start countdown completed, starting next phase');
+    this.hideAutoStartCountdown();
+    await this.autoStartNextPhase();
+  }
+
+  private async autoStartNextPhase(): Promise<void> {
+    const sess = this.session();
+    
+    if (!sess) {
+      console.error('❌ Cannot auto-start: missing session');
+      return;
+    }
+    
+    console.log('🚀 Auto-starting next phase...');
+    
+    // If session is paused (after phase completion), just start the timer
+    if (sess.status === 'PAUSED') {
+      console.log('✅ Auto-start: Starting timer for next phase');
+      this.timerSyncService.startTimer();
+    } else {
+      console.log('⚠️ Auto-start: Session not in expected PAUSED state, current status:', sess.status);
+      // Try to start anyway
+      this.timerSyncService.startTimer();
+    }
+  }
+
+  protected cancelAutoStart(): void {
+    console.log('🛑 User cancelled auto-start');
+    this.autoStartCancelled.set(true);
+    this.hideAutoStartCountdown();
+    
+    // Clear any pending timeout
+    if (this.autoStartTimeoutId) {
+      clearTimeout(this.autoStartTimeoutId);
+      this.autoStartTimeoutId = null;
+    }
+  }
+
+  private hideAutoStartCountdown(): void {
+    this.showAutoStartCountdown.set(false);
+    this.autoStartCountdown.set(0);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Mobile device detection (actual mobile devices, not just screen size)
+  protected isMobile(): boolean {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    
+    // Check user agent for mobile devices
+    const userAgent = navigator.userAgent.toLowerCase();
+    const mobileKeywords = [
+      'android', 'iphone', 'ipad', 'ipod', 'blackberry', 
+      'windows phone', 'mobile', 'webos', 'opera mini'
+    ];
+    
+    // Check if any mobile keyword is in user agent
+    const isMobileUserAgent = mobileKeywords.some(keyword => userAgent.includes(keyword));
+    
+    // Check for touch capability (additional mobile indicator)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    
+    // Return true if it's a mobile user agent OR (touch device AND small screen)
+    return isMobileUserAgent || (isTouchDevice && window.innerWidth <= 768);
+  }
+
+  // Test method for auto-start functionality (can be called from browser console)
+  protected testAutoStart(): void {
+    console.log('🧪 Testing auto-start functionality...');
+    const sess = this.session();
+    if (!sess) {
+      console.error('❌ No session available for testing');
+      return;
+    }
+    
+    console.log('🧪 Current session:', sess);
+    console.log('🧪 Current phase:', sess.currentPhase);
+    
+    // Simulate phase completion
+    this.checkAndHandleAutoStart(sess, sess.currentPhase || 'FOCUS');
+  }
 
 }
