@@ -38,7 +38,7 @@ public class SettingsService {
             int v = Math.max(0, Math.min(100, request.volume()));
             settings.setVolume(v);
         }
-        if (request.tickSound() != null) settings.setTickSound(request.tickSound());
+
         if (request.autoStartBreaks() != null) settings.setAutoStartBreaks(request.autoStartBreaks());
         if (request.autoStartPomodoros() != null) settings.setAutoStartPomodoros(request.autoStartPomodoros());
         if (request.theme() != null) settings.setTheme(request.theme());
@@ -59,7 +59,7 @@ public class SettingsService {
                 s.getSoundType().name(),
                 s.isNotificationSound(),
                 s.getVolume(),
-                s.isTickSound(),
+
                 s.isAutoStartBreaks(),
                 s.isAutoStartPomodoros(),
                 s.getTheme().name(),

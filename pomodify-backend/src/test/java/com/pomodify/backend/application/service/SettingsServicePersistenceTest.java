@@ -38,7 +38,6 @@ class SettingsServicePersistenceTest {
                 null,
                 45,
                 true,
-                true,
                 false,
                 AppTheme.DARK,
                 true,
@@ -48,7 +47,6 @@ class SettingsServicePersistenceTest {
 
         assertEquals(SoundType.SOFT_DING.name(), updated.soundType());
         assertEquals(45, updated.volume());
-        assertTrue(updated.tickSound());
         assertTrue(updated.autoStartBreaks());
         assertFalse(updated.autoStartPomodoros());
         assertEquals(AppTheme.DARK.name(), updated.theme());

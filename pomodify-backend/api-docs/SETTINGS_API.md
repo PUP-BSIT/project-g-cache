@@ -24,7 +24,7 @@ Response:
   "userId": 123,
   "notificationsEnabled": true,
   "notificationSound": true,
-  "tickSound": false,
+
   "soundType": "BELL",
   "volume": 80,
   "autoStartPomodoros": true,

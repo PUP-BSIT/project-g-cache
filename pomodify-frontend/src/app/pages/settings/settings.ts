@@ -55,7 +55,7 @@ export class Settings implements AfterViewInit {
   protected soundEnabled = computed(() => this.settings().sound.enabled);
   protected soundType = signal(this.settings().sound.type); // Use signal for dropdown binding
   protected volume = computed(() => this.settings().sound.volume);
-  protected tickSoundEnabled = computed(() => this.settings().sound.tickSound);
+
 
   // Auto-Start Settings
   protected autoStartBreaks = computed(() => this.settings().autoStart.autoStartBreaks);
@@ -121,11 +121,7 @@ export class Settings implements AfterViewInit {
     console.log('Volume changed to:', volume);
   }
 
-  protected toggleTickSound(): void {
-    const currentTickSound = this.tickSoundEnabled();
-    this.settingsService.updateSoundSettings({ tickSound: !currentTickSound });
-    this.showAutoSaveSuccess();
-  }
+
 
   protected testSound(): void {
     const soundType = this.soundType();

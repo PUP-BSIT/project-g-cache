@@ -4,7 +4,6 @@ export interface SoundSettings {
   enabled: boolean;
   type: 'bell' | 'chime' | 'digital' | 'soft';
   volume: number; // 0-100
-  tickSound: boolean;
 }
 
 export interface AutoStartSettings {
@@ -24,8 +23,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   sound: {
     enabled: true,
     type: 'bell',
-    volume: 70,
-    tickSound: false
+    volume: 70
   },
   autoStart: {
     autoStartBreaks: false,
@@ -110,15 +108,7 @@ export class SettingsService {
     audio.play().catch(err => console.warn('Could not play sound:', err));
   }
   
-  // Play tick sound (for timer)
-  playTickSound() {
-    const settings = this.settingsSignal();
-    if (!settings.sound.enabled || !settings.sound.tickSound) return;
-    
-    const audio = new Audio('assets/sounds/tick.wav');
-    audio.volume = (settings.sound.volume / 100) * 0.3; // Quieter than notification
-    audio.play().catch(err => console.warn('Could not play tick:', err));
-  }
+
   
   // Reset to defaults
   resetToDefaults() {
@@ -143,7 +133,11 @@ export class SettingsService {
         
         // Deep merge with defaults to handle new settings and nested objects
         const merged = {
-          sound: { ...DEFAULT_SETTINGS.sound, ...parsed.sound },
+          sound: { 
+            enabled: parsed.sound?.enabled !== undefined ? parsed.sound.enabled : DEFAULT_SETTINGS.sound.enabled,
+            type: parsed.sound?.type || DEFAULT_SETTINGS.sound.type,
+            volume: parsed.sound?.volume !== undefined ? parsed.sound.volume : DEFAULT_SETTINGS.sound.volume
+          },
           autoStart: { ...DEFAULT_SETTINGS.autoStart, ...parsed.autoStart },
           notifications: parsed.notifications !== undefined ? parsed.notifications : DEFAULT_SETTINGS.notifications,
           calendarSync: parsed.calendarSync !== undefined ? parsed.calendarSync : DEFAULT_SETTINGS.calendarSync

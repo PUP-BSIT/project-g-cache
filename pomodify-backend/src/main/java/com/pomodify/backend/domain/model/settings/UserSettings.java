@@ -37,7 +37,7 @@ public class UserSettings {
 
     private boolean notificationSound;
     private int volume;
-    private boolean tickSound;
+
 
     private boolean autoStartBreaks;
     private boolean autoStartPomodoros;
@@ -58,7 +58,7 @@ public class UserSettings {
                 .soundType(SoundType.BELL)
                 .notificationSound(true)
                 .volume(70)
-                .tickSound(false)
+
                 .autoStartBreaks(false)
                 .autoStartPomodoros(false)
                 .theme(AppTheme.SYSTEM)
