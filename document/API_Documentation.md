@@ -1382,8 +1382,7 @@ Status: **200 OK**
   "autoStartBreaks": true,
   "autoStartPomodoros": false,
   "theme": "LIGHT",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 
@@ -1416,8 +1415,7 @@ Update user settings.
   "autoStartBreaks": true,
   "autoStartPomodoros": true,
   "theme": "DARK",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 
@@ -1431,7 +1429,7 @@ Update user settings.
 | autoStartPomodoros     | boolean | No       | Auto start pomodoro timer      |
 | theme                  | string  | No       | Theme (LIGHT/DARK)             |
 | notificationsEnabled   | boolean | No       | Enable notifications           |
-| googleCalendarSync     | boolean | No       | Enable Google Calendar sync    |
+
 
 ### **Success Response**
 
@@ -1445,8 +1443,7 @@ Status: **200 OK**
   "autoStartBreaks": true,
   "autoStartPomodoros": true,
   "theme": "DARK",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 

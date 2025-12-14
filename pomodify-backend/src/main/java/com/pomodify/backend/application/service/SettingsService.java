@@ -44,7 +44,7 @@ public class SettingsService {
         if (request.theme() != null) settings.setTheme(request.theme());
         Boolean prevNotifications = settings.isNotificationsEnabled();
         if (request.notificationsEnabled() != null) settings.setNotificationsEnabled(request.notificationsEnabled());
-        if (request.googleCalendarSync() != null) settings.setGoogleCalendarSync(request.googleCalendarSync());
+
 
         UserSettings saved = settingsRepository.save(settings);
         if (request.notificationsEnabled() != null && prevNotifications != saved.isNotificationsEnabled()) {
@@ -64,7 +64,7 @@ public class SettingsService {
                 s.isAutoStartPomodoros(),
                 s.getTheme().name(),
                 s.isNotificationsEnabled(),
-                s.isGoogleCalendarSync()
+
         );
     }
 }

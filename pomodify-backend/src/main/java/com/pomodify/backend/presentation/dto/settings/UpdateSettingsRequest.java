@@ -12,5 +12,5 @@ public record UpdateSettingsRequest(
         Boolean autoStartPomodoros,
         AppTheme theme,
         Boolean notificationsEnabled,
-        Boolean googleCalendarSync
+
 ) {}

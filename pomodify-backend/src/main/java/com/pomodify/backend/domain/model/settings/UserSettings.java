@@ -46,7 +46,7 @@ public class UserSettings {
     private AppTheme theme;
 
     private boolean notificationsEnabled;
-    private boolean googleCalendarSync;
+
 
     @LastModifiedDate
     @Column(name = "updated_at")
@@ -63,7 +63,7 @@ public class UserSettings {
                 .autoStartPomodoros(false)
                 .theme(AppTheme.SYSTEM)
                 .notificationsEnabled(true)
-                .googleCalendarSync(false)
+
                 .build();
     }
 }

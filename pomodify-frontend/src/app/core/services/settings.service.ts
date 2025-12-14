@@ -16,7 +16,6 @@ export interface AppSettings {
   sound: SoundSettings;
   autoStart: AutoStartSettings;
   notifications: boolean;
-  calendarSync: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -30,8 +29,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     autoStartPomodoros: false,
     countdownSeconds: 3
   },
-  notifications: true,
-  calendarSync: false
+  notifications: true
 };
 
 @Injectable({
@@ -139,8 +137,7 @@ export class SettingsService {
             volume: parsed.sound?.volume !== undefined ? parsed.sound.volume : DEFAULT_SETTINGS.sound.volume
           },
           autoStart: { ...DEFAULT_SETTINGS.autoStart, ...parsed.autoStart },
-          notifications: parsed.notifications !== undefined ? parsed.notifications : DEFAULT_SETTINGS.notifications,
-          calendarSync: parsed.calendarSync !== undefined ? parsed.calendarSync : DEFAULT_SETTINGS.calendarSync
+          notifications: parsed.notifications !== undefined ? parsed.notifications : DEFAULT_SETTINGS.notifications
         };
         
         console.log('Merged settings result:', merged);

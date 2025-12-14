@@ -63,7 +63,7 @@ export class Settings implements AfterViewInit {
 
   // Other Settings
   protected notificationsEnabled = computed(() => this.settings().notifications);
-  protected calendarSyncEnabled = computed(() => this.settings().calendarSync);
+
 
   // Modal state
   protected showDeleteModal = signal(false);
@@ -239,11 +239,7 @@ export class Settings implements AfterViewInit {
     }
   }
 
-  protected toggleCalendarSync(): void {
-    const currentCalendarSync = this.calendarSyncEnabled();
-    this.settingsService.updateSettings({ calendarSync: !currentCalendarSync });
-    this.showAutoSaveSuccess();
-  }
+
 
   protected onLogout(): void {
     this.auth.logout();

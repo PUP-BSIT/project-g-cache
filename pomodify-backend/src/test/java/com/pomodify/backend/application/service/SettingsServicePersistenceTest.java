@@ -40,8 +40,7 @@ class SettingsServicePersistenceTest {
                 true,
                 false,
                 AppTheme.DARK,
-                true,
-                false
+                true
         );
         UserSettingsResponse updated = settingsService.updateSettings(userId, req);
 
@@ -51,7 +50,6 @@ class SettingsServicePersistenceTest {
         assertFalse(updated.autoStartPomodoros());
         assertEquals(AppTheme.DARK.name(), updated.theme());
         assertTrue(updated.notificationsEnabled());
-        assertFalse(updated.googleCalendarSync());
 
         // Retrieve and verify cached/DB reflects changes
         UserSettingsResponse again = settingsService.getSettings(userId);

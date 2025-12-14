@@ -29,7 +29,7 @@ Response:
   "volume": 80,
   "autoStartPomodoros": true,
   "autoStartBreaks": false,
-  "googleCalendarSync": false,
+
   "theme": "SYSTEM",
   "updatedAt": "2025-12-01T10:12:30Z"
 }

@@ -10,5 +10,5 @@ public record UserSettingsResponse(
         boolean autoStartPomodoros,
         String theme,
         boolean notificationsEnabled,
-        boolean googleCalendarSync
+
 ) {}
