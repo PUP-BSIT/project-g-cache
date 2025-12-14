@@ -19,28 +19,25 @@
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" (click)="navigateTo('/dashboard')">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" (click)="navigateTo('/activities')">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" (click)="navigateTo('/report')">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon active" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon active">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -77,21 +74,18 @@
 
     <!-- Settings Content -->
     <div class="settings-container">
-      <div class="settings-header">
-        <h1 class="settings-title">App Settings</h1>
-        @if (autoSaveStatus() === 'saving') {
-          <div class="auto-save-indicator saving">
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Saving...</span>
-          </div>
-        }
-        @if (autoSaveStatus() === 'saved') {
-          <div class="auto-save-indicator saved">
-            <i class="fa-solid fa-check"></i>
-            <span>Saved automatically</span>
-          </div>
-        }
-      </div>
+      @if (autoSaveStatus() === 'saving') {
+        <div class="auto-save-indicator saving">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Saving...</span>
+        </div>
+      }
+      @if (autoSaveStatus() === 'saved') {
+        <div class="auto-save-indicator saved">
+          <i class="fa-solid fa-check"></i>
+          <span>Saved automatically</span>
+        </div>
+      }
 
       <div class="settings-grid">
 
@@ -272,14 +266,23 @@
             Clear
           </button>
         </div>
+
       </section>
 
-      <!-- Actions Section -->
-      <section class="settings-section actions-section">
-        <div class="action-buttons">
-          <button class="btn btn-delete" (click)="onDeleteAccount()">
-            <i class="fa-solid fa-user-xmark"></i>
-            Delete my Account
+      <!-- Account Section -->
+      <section class="settings-section account-section">
+        <h2 class="section-title">
+          <img src="assets/images/account.png" alt="Account" class="section-icon"> Account
+        </h2>
+        
+        <div class="account-action-item danger-action">
+          <div class="account-action-info">
+            <h3 class="account-action-label danger-label">Delete Account</h3>
+            <p class="account-action-description">Permanently delete your account and all data</p>
+          </div>
+          <button class="account-action-btn danger-btn" (click)="onDeleteAccount()">
+            <img src="assets/images/delete-account.png" alt="Delete Account" class="btn-icon">
+            Delete Account
           </button>
         </div>
       </section>

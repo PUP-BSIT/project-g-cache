@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router } from '@angular/router';
 import { toggleTheme, getStoredTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,7 +11,7 @@ import { NotificationService } from '../../core/services/notification.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule],
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
@@ -243,6 +243,10 @@ export class Settings implements AfterViewInit {
 
   protected onLogout(): void {
     this.auth.logout();
+  }
+
+  protected navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
   // Open profile modal using MatDialog to match other pages

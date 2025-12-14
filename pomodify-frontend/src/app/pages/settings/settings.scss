@@ -467,26 +467,17 @@ $toggle-bg-inactive: #D0D0D0;
   width: 100%;
   height: calc(100vh - 80px); // Adjust based on header height
   overflow: hidden;
+  position: relative;
 }
 
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 40px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid $border-light;
-}
 
-.settings-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: $text-dark;
-  margin: 0;
-}
 
-// Auto-save indicator
+// Auto-save indicator positioning
 .auto-save-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -523,29 +514,29 @@ $toggle-bg-inactive: #D0D0D0;
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 40px;
-  height: calc(100% - 120px); // Account for header height
+  gap: 24px;
+  height: 100%;
   overflow: hidden;
+  margin-top: 20px; // Space for auto-save indicator
 }
 
 .settings-section {
   background: $bg-white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: $card-shadow;
   height: fit-content;
   
   &.data-section {
     border-top: none;
-    padding: 24px;
-    grid-column: span 2; // Make privacy section span 2 columns
+    padding: 20px;
+    grid-column: span 1; // Privacy section now takes 1 column
   }
   
-  &.actions-section {
+  &.account-section {
     border-top: none;
-    padding: 24px;
-    margin-bottom: 0;
-    grid-column: span 1;
+    padding: 20px;
+    grid-column: span 1; // Account section takes 1 column
   }
 }
 
@@ -683,45 +674,7 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Action Buttons
-.action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
 
-.btn {
-  padding: 16px 32px;
-  border: none;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-  
-  &-delete {
-    background-color: $red;
-    color: $text-white;
-    
-    &:hover {
-      background-color: color.adjust($red, $lightness: -10%);
-    }
-  }
-  
-  &-save {
-    background-color: $primary-teal;
-    color: $text-white;
-    
-    &:hover {
-      background-color: $primary-teal-dark;
-    }
-  }
-}
 
 // Responsive Design
 @media (max-width: 768px) {
@@ -764,24 +717,11 @@ $toggle-bg-inactive: #D0D0D0;
   
   .settings-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 20px;
     height: auto;
   }
   
-  .settings-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  
-  .settings-title {
-    font-size: 24px;
-  }
-  
-  .auto-save-indicator {
-    align-self: flex-end;
-  }
+
   
   .settings-section {
     margin-bottom: 0;
@@ -789,17 +729,9 @@ $toggle-bg-inactive: #D0D0D0;
     &.data-section {
       grid-column: span 2;
     }
-    
-    &.actions-section {
-      grid-column: span 2;
-    }
   }
   
-  .data-buttons,
-  .action-buttons {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+
   
   .header {
     padding: 16px 24px;
@@ -811,25 +743,21 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 @media (max-width: 480px) {
-  .settings-header {
-    margin-bottom: 20px;
-  }
+
   
   .settings-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
   }
   
   .settings-section {
     &.data-section,
-    &.actions-section {
+    &.account-section {
       grid-column: span 1;
     }
   }
   
-  .settings-title {
-    font-size: 20px;
-  }
+
   
   .setting-label {
     font-size: 16px;
@@ -1053,10 +981,37 @@ $toggle-bg-inactive: #D0D0D0;
   &:last-child {
     border-bottom: none;
   }
+}
+
+// Account Action Items
+.account-action-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  border-bottom: 1px solid #F0F0F0;
   
-  &.danger {
-    .data-action-label {
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &.danger-action {
+    border: 2px solid rgba(231, 76, 60, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    background-color: rgba(231, 76, 60, 0.05);
+    
+    .danger-label {
       color: $red;
+    }
+    
+    .danger-btn {
+      background-color: $red;
+      color: white;
+      
+      &:hover {
+        background-color: color.adjust($red, $lightness: -10%);
+      }
     }
   }
 }
@@ -1113,6 +1068,58 @@ $toggle-bg-inactive: #D0D0D0;
     &:hover {
       background-color: rgba($red, 0.2);
     }
+  }
+}
+
+.account-action-info {
+  flex: 1;
+}
+
+.account-action-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-dark;
+  margin: 0 0 4px 0;
+}
+
+.account-action-description {
+  font-size: 14px;
+  color: $text-light;
+  margin: 0;
+}
+
+.account-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #E0E0E0;
+  color: $text-dark;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  
+  i {
+    font-size: 14px;
+  }
+  
+  .btn-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+  }
+  
+  &:hover {
+    background-color: #D0D0D0;
+    transform: translateY(-1px);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 }
 
