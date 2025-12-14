@@ -221,18 +221,11 @@
             <h3 class="setting-label">Notifications</h3>
             <p class="setting-description">Desktop notifications when tab is closed</p>
           </div>
-          <div class="setting-control">
-            <div class="toggle-switch">
-              <input type="checkbox" id="notifications-toggle" class="toggle-input" 
-                     [checked]="notificationsEnabled()" 
-                     (change)="toggleNotifications()">
-              <label for="notifications-toggle" class="toggle-label"></label>
-            </div>
-            @if (notificationsEnabled()) {
-              <button class="test-btn" (click)="testNotification()">
-                <i class="fa-solid fa-bell"></i> Test
-              </button>
-            }
+          <div class="toggle-switch">
+            <input type="checkbox" id="notifications-toggle" class="toggle-input" 
+                   [checked]="notificationsEnabled()" 
+                   (change)="toggleNotifications()">
+            <label for="notifications-toggle" class="toggle-label"></label>
           </div>
         </div>
 

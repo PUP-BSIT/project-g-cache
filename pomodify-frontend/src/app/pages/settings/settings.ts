@@ -158,86 +158,7 @@ export class Settings implements AfterViewInit {
     }
   }
 
-  protected testNotification(): void {
-    console.log('🔔 Testing desktop notification...');
-    console.log('🔍 Current permission:', Notification.permission);
-    console.log('🔍 Notification API available:', 'Notification' in window);
-    
-    // Check if Notification API is available
-    if (!('Notification' in window)) {
-      console.log('❌ Notification API not supported in this browser');
-      alert('Notifications are not supported in this browser');
-      return;
-    }
-    
-    // Test both direct notification and service notification
-    console.log('🧪 Testing direct notification...');
-    this.testDirectNotification();
-    
-    console.log('🧪 Testing service notification...');
-    this.notificationService.testDesktopNotification();
-  }
 
-  private testDirectNotification(): void {
-    // Request permission if needed
-    if (Notification.permission === 'default') {
-      console.log('📱 Requesting notification permission...');
-      Notification.requestPermission().then(permission => {
-        console.log('📱 Permission result:', permission);
-        if (permission === 'granted') {
-          this.sendTestNotification();
-        } else {
-          console.log('❌ Notification permission denied');
-          alert('Notification permission was denied. Please enable notifications in your browser settings.');
-        }
-      });
-    } else if (Notification.permission === 'granted') {
-      console.log('✅ Permission already granted, sending notification...');
-      this.sendTestNotification();
-    } else {
-      console.log('❌ Notifications are blocked');
-      alert('Notifications are blocked. Please enable them in your browser settings and try again.');
-    }
-  }
-
-  private sendTestNotification(): void {
-    try {
-      console.log('🚀 Creating notification...');
-      
-      // Simple, guaranteed-to-work notification
-      const notification = new Notification('Pomodify Test', {
-        body: 'Desktop notification is working!',
-        icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-      });
-      
-      console.log('📦 Notification created successfully');
-      
-      notification.onclick = () => {
-        console.log('👆 Notification clicked!');
-        window.focus();
-        notification.close();
-      };
-      
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
-      
-      console.log('✅ Test notification sent successfully!');
-      
-    } catch (error) {
-      console.error('❌ Error creating notification:', error);
-      
-      // Fallback: Try even simpler notification
-      try {
-        new Notification('Pomodify Test');
-        console.log('✅ Fallback notification sent!');
-      } catch (fallbackError) {
-        console.error('❌ Fallback notification also failed:', fallbackError);
-        alert('Notification failed: ' + fallbackError);
-      }
-    }
-  }
 
 
 
@@ -339,24 +260,6 @@ export class Settings implements AfterViewInit {
       console.log('AfterViewInit: Set select value to:', this.soundType());
     }
     
-    // Add global test function for debugging
-    (window as any).testNotificationDirect = () => {
-      console.log('🧪 Direct notification test from window function');
-      if (Notification.permission === 'granted') {
-        new Notification('Direct Test', { body: 'This is a direct test!' });
-        console.log('✅ Direct notification sent');
-      } else {
-        Notification.requestPermission().then(p => {
-          if (p === 'granted') {
-            new Notification('Direct Test', { body: 'Permission granted and notification sent!' });
-            console.log('✅ Permission granted, notification sent');
-          } else {
-            console.log('❌ Permission denied');
-          }
-        });
-      }
-    };
-    
-    console.log('🔧 Added window.testNotificationDirect() function for debugging');
+
   }
 }
