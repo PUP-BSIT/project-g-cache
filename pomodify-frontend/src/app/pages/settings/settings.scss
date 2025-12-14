@@ -1195,8 +1195,9 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 .warning-icon {
-  font-size: 28px;
-  color: #F4C430;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .modal-title {
