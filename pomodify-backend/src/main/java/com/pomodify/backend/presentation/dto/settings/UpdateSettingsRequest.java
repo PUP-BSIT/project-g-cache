@@ -7,10 +7,10 @@ public record UpdateSettingsRequest(
         SoundType soundType,
         Boolean notificationSound,
         Integer volume,
-        Boolean tickSound,
+
         Boolean autoStartBreaks,
         Boolean autoStartPomodoros,
         AppTheme theme,
         Boolean notificationsEnabled,
-        Boolean googleCalendarSync
+
 ) {}

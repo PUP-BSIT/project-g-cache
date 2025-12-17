@@ -38,13 +38,13 @@ public class SettingsService {
             int v = Math.max(0, Math.min(100, request.volume()));
             settings.setVolume(v);
         }
-        if (request.tickSound() != null) settings.setTickSound(request.tickSound());
+
         if (request.autoStartBreaks() != null) settings.setAutoStartBreaks(request.autoStartBreaks());
         if (request.autoStartPomodoros() != null) settings.setAutoStartPomodoros(request.autoStartPomodoros());
         if (request.theme() != null) settings.setTheme(request.theme());
         Boolean prevNotifications = settings.isNotificationsEnabled();
         if (request.notificationsEnabled() != null) settings.setNotificationsEnabled(request.notificationsEnabled());
-        if (request.googleCalendarSync() != null) settings.setGoogleCalendarSync(request.googleCalendarSync());
+
 
         UserSettings saved = settingsRepository.save(settings);
         if (request.notificationsEnabled() != null && prevNotifications != saved.isNotificationsEnabled()) {
@@ -59,12 +59,12 @@ public class SettingsService {
                 s.getSoundType().name(),
                 s.isNotificationSound(),
                 s.getVolume(),
-                s.isTickSound(),
+
                 s.isAutoStartBreaks(),
                 s.isAutoStartPomodoros(),
                 s.getTheme().name(),
                 s.isNotificationsEnabled(),
-                s.isGoogleCalendarSync()
+
         );
     }
 }
