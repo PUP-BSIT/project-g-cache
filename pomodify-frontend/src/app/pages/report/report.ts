@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
@@ -66,9 +66,14 @@ type PeriodInfo = {
 })
 export class Report implements OnInit {
   private dialog = inject(MatDialog);
-  private router = inject(Router);
   private auth = inject(Auth);
   private reportService = inject(ReportService);
+
+  // Constants
+  private readonly HOURS_TO_MINUTES = 60;
+  private readonly DEFAULT_MAX_HOURS = 0.5;
+  private readonly CHART_SCALE_MULTIPLIER = 1.2;
+  private readonly ROUNDING_FACTOR = 2;
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -419,7 +424,7 @@ export class Report implements OnInit {
       return;
     }
 
-    const maxHours = Math.max(...points.map((p) => p.hours), 0.5);
+    const maxHours = Math.max(...points.map((p) => p.hours), this.DEFAULT_MAX_HOURS);
     
     // Determine if we should display in minutes or hours
     // If max is less than 1 hour (60 minutes), display in minutes
@@ -428,8 +433,8 @@ export class Report implements OnInit {
     
     // Keep the chart max in hours for consistency
     const chartMax = useMinutesMode
-      ? Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1)  // Keep as hours
-      : Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
+      ? Math.max(Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR, 1)  // Keep as hours
+      : Math.max(Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR, 1);
 
     const normalized = points.map((p) => ({
       ...p,
@@ -468,7 +473,7 @@ export class Report implements OnInit {
     
     if (unitMode === 'minutes') {
       // Convert hours to minutes for display
-      const totalMinutes = value * 60;
+      const totalMinutes = value * this.HOURS_TO_MINUTES;
       if (totalMinutes === 0) {
         return '0m';
       }
@@ -499,10 +504,24 @@ export class Report implements OnInit {
 
   protected getTooltipTitle(point: FocusPoint): string {
     if (point.dateKey) {
-      const date = new Date(point.dateKey + 'T00:00:00');
-      return date.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+      // Parse ISO date string (YYYY-MM-DD) without timezone issues
+      const [year, month, day] = point.dateKey.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${day}`.toUpperCase();
     }
     return point.label.toUpperCase();
+  }
+
+  /**
+   * Builds CSS class string for insight card based on type and severity
+   * @param type - The insight type (positive, warning, info)
+   * @param severity - The severity level (low, medium, high)
+   * @returns Combined class string
+   */
+  protected buildInsightCardClass(type: string, severity: string): string {
+    return `insight-${type} severity-${severity}`;
   }
 
   private generateDefaultLabels(range: ReportRange): string[] {

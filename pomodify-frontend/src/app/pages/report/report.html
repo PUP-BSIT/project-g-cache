@@ -89,7 +89,7 @@
           <!-- LEFT: Activity summary -->
           <div class="report-activity-panel">
             <section class="activity-summary-section">
-            <h2 class="section-heading">Activity Summary</h2>
+              <h2 class="section-heading">Activity Summary</h2>
 
             <div class="summary-cards">
               <div class="summary-card fade-in-up">
@@ -193,7 +193,7 @@
               <h2 class="section-heading">Insights</h2>
               <div class="insights-list">
                 @for (insight of insights(); track insight.message) {
-                  <div class="insight-card" [class]="'insight-' + insight.type" [class]="'severity-' + insight.severity">
+                  <div class="insight-card" [class]="buildInsightCardClass(insight.type, insight.severity)">
                     <div class="insight-icon">
                       <i [class]="insight.icon"></i>
                     </div>
