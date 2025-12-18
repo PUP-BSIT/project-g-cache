@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { toggleTheme, getStoredTheme } from '../../shared/theme';
+import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
@@ -15,7 +15,7 @@ import { NotificationService } from '../../core/services/notification.service';
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
-export class Settings implements AfterViewInit {
+export class Settings implements OnInit, AfterViewInit {
   @ViewChild('soundSelect') soundSelect!: ElementRef<HTMLSelectElement>;
   private settingsService = inject(SettingsService);
   private notificationService = inject(NotificationService);
@@ -49,6 +49,11 @@ export class Settings implements AfterViewInit {
     // Debug: Log current settings on component init
     console.log('Settings component initialized with:', this.settings());
     console.log('Sound type from signal:', this.soundType());
+  }
+
+  ngOnInit(): void {
+    // Update theme state when component initializes
+    this.updateThemeState();
   }
   
   // Computed signals that react to settings changes
@@ -94,12 +99,20 @@ export class Settings implements AfterViewInit {
     }
     
     toggleTheme();
-    this.updateThemeState();
+    
+    // Update theme state after a short delay to ensure DOM has been updated
+    setTimeout(() => {
+      this.updateThemeState();
+    }, 100);
+    
     this.showAutoSaveSuccess();
   }
 
   private updateThemeState(): void {
-    this.isDarkMode.set(getStoredTheme() === 'dark');
+    // Check actual DOM state instead of just localStorage
+    // This ensures the toggle reflects the actual applied theme
+    const actuallyDark = document.documentElement.classList.contains('theme-dark');
+    this.isDarkMode.set(actuallyDark);
   }
 
   // Sound Settings Methods
