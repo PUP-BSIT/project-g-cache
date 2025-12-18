@@ -415,7 +415,7 @@ export class NotificationService {
         try {
           const notification = new Notification(context.title, {
             body: context.body,
-            icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+            icon: '/assets/images/logo.png',
             tag: 'pomodify-session'
           });
           
@@ -504,7 +504,7 @@ export class NotificationService {
     console.log('🧪 Testing desktop notification from service...');
     
     const testContext: NotificationContext = {
-      title: '🍅 Pomodify Test',
+      title: 'Pomodify Test Notification',
       body: 'Test notification from NotificationService!',
       type: 'phase-complete',
       activityTitle: 'Test Activity'
