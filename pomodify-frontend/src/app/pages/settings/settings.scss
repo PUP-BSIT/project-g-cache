@@ -2151,128 +2151,152 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
   
-  // Modal dark mode
+  // Modal dark mode - OVERRIDE LIGHT MODE STYLES
   .modal-overlay {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.8) !important;
   }
   
   .modal-content {
-    background: #1F2937;
-    border: 1px solid #374151;
-    color: #E5E7EB;
+    background: #1F2937 !important;
+    border: 1px solid #374151 !important;
+    color: #E5E7EB !important;
     
     .modal-header {
-      border-bottom-color: #374151;
+      border-bottom-color: #374151 !important;
       
       .modal-title {
-        color: #E5E7EB;
+        color: #E5E7EB !important;
       }
       
       .modal-subtitle {
-        color: #9CA3AF;
+        color: #9CA3AF !important;
       }
       
       .modal-close {
-        color: #9CA3AF;
+        color: #9CA3AF !important;
         
         &:hover {
-          background: #374151;
-          color: #E5E7EB;
+          background: #374151 !important;
+          color: #E5E7EB !important;
         }
       }
     }
     
     .modal-body {
-      color: #E5E7EB;
+      color: #E5E7EB !important;
       
       .modal-text {
-        color: #D1D5DB;
+        color: #D1D5DB !important;
       }
       
       .modal-warning {
-        color: #F59E0B;
+        color: #F59E0B !important;
       }
       
       .delete-list li {
-        color: #D1D5DB;
+        color: #D1D5DB !important;
         
         &::before {
-          color: #D1D5DB;
+          color: #D1D5DB !important;
         }
       }
       
       .success-text {
-        color: #22C55E;
+        color: #22C55E !important;
       }
     }
   }
   
   .modal-btn {
     &.btn-ok {
-      background-color: #5FA9A4;
-      color: white;
+      background-color: #5FA9A4 !important;
+      color: white !important;
       
       &:hover {
-        background-color: #4D8B87;
+        background-color: #4D8B87 !important;
       }
     }
     
     &.btn-cancel {
-      background-color: #374151;
-      color: #E5E7EB;
-      border-color: #4B5563;
+      background-color: #374151 !important;
+      color: #E5E7EB !important;
+      border-color: #4B5563 !important;
       
       &:hover {
-        background-color: #4B5563;
+        background-color: #4B5563 !important;
       }
     }
   }
   
   .warning-icon {
-    filter: brightness(1.2);
+    filter: brightness(1.2) !important;
   }
   
-  // Settings modal specific dark mode styles
+  // Modal actions dark mode
+  .modal-actions {
+    .modal-btn {
+      &.btn-ok {
+        background-color: #5FA9A4 !important;
+        color: white !important;
+        
+        &:hover {
+          background-color: #4D8B87 !important;
+        }
+      }
+      
+      &.btn-cancel {
+        background-color: #374151 !important;
+        color: #E5E7EB !important;
+        border-color: #4B5563 !important;
+        
+        &:hover {
+          background-color: #4B5563 !important;
+        }
+      }
+    }
+  }
+  
+  // Settings modal specific dark mode styles - OVERRIDE LIGHT MODE
   .setting-item {
-    border-bottom-color: #374151;
+    border-bottom-color: #374151 !important;
     
     &:hover {
-      background-color: rgba(95, 169, 164, 0.05);
+      background-color: rgba(95, 169, 164, 0.05) !important;
     }
     
     .setting-label {
-      color: #E5E7EB;
+      color: #E5E7EB !important;
     }
     
     .setting-description {
-      color: #9CA3AF;
+      color: #9CA3AF !important;
     }
   }
   
   .group-title {
-    color: #E5E7EB;
-    border-bottom-color: #374151;
+    color: #E5E7EB !important;
+    border-bottom-color: #374151 !important;
   }
   
   .data-warning {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
     
     .warning-text {
-      color: #E5E7EB;
+      color: #E5E7EB !important;
     }
     
     .warning-icon {
-      color: #F59E0B;
+      color: #F59E0B !important;
     }
   }
   
   .danger-zone {
-    background: rgba(239, 68, 68, 0.05);
-    border-top-color: #374151;
+    background: rgba(239, 68, 68, 0.05) !important;
+    border-top-color: #374151 !important;
     
     .danger-title {
-      color: #EF4444;
+      color: #EF4444 !important;
     }
   }
   

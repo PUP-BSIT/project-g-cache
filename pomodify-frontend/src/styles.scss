@@ -44,11 +44,20 @@ body {
   --border: #1F2937;
 }
 
-/* Base surfaces adopt variables so pages respond to theme */
-body { 
-  background: var(--bg) !important; 
-  color: var(--text) !important; 
+/* CRITICAL: Override dark theme variables specifically for public pages */
+:root.theme-dark .landing-page,
+:root.theme-dark .login-page,
+:root.theme-dark .signup-page {
+  /* Force light theme variables to override dark theme */
+  --bg: #F8F9FA !important;
+  --card: #FFFFFF !important;
+  --text: #2C3E50 !important;
+  --muted: #6C757D !important;
+  --border: #DEE2E6 !important;
 }
+
+/* Base surfaces adopt variables ONLY for authenticated pages */
+/* Public pages (landing, login, signup) should NEVER be affected by theme system */
 
 /* Optional helpers for inputs/cards/dividers used across pages */
 .app-card { background: var(--card); border: 1px solid var(--border); }
@@ -153,6 +162,126 @@ body {
     option {
       background: #FFFFFF !important;
       color: #2C3E50 !important;
+    }
+  }
+  
+  /* Force light mode for profile modal */
+  .profile-modal {
+    background: #FFFFFF !important;
+    
+    .modal-header {
+      border-bottom-color: #DEE2E6 !important;
+    }
+    
+    .modal-footer {
+      background: #F8F9FA !important;
+      border-top-color: #DEE2E6 !important;
+    }
+    
+    .profile-picture-section {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(123, 196, 191, 0.05) 100%) !important;
+      border-color: #DEE2E6 !important;
+    }
+    
+    .profile-info-header h3 {
+      color: #2C3E50 !important;
+    }
+    
+    .profile-info-header .email-text {
+      color: #6C757D !important;
+    }
+    
+    .section-label {
+      color: #2C3E50 !important;
+    }
+    
+    .form-input {
+      background: #FFFFFF !important;
+      color: #2C3E50 !important;
+      border-color: #DEE2E6 !important;
+      
+      &:disabled {
+        background: #F8F9FA !important;
+        color: #6C757D !important;
+      }
+    }
+    
+    .helper-text {
+      color: #6C757D !important;
+    }
+    
+    .divider {
+      background: linear-gradient(90deg, transparent 0%, #DEE2E6 50%, transparent 100%) !important;
+    }
+  }
+  
+  /* Force light mode for all modals (privacy/data confirmation modals) */
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .modal-content {
+    background: #FFFFFF !important;
+    border-color: #DEE2E6 !important;
+    color: #2C3E50 !important;
+    
+    .modal-header {
+      border-bottom-color: #DEE2E6 !important;
+      
+      .modal-title {
+        color: #2C3E50 !important;
+      }
+      
+      .warning-icon {
+        filter: none !important;
+      }
+    }
+    
+    .modal-body {
+      color: #2C3E50 !important;
+      
+      .modal-text {
+        color: #2C3E50 !important;
+      }
+      
+      .modal-warning {
+        color: #E74C3C !important;
+      }
+      
+      .delete-list li {
+        color: #2C3E50 !important;
+        
+        &::before {
+          color: #2C3E50 !important;
+        }
+      }
+      
+      .success-text {
+        color: #22C55E !important;
+      }
+    }
+    
+    .modal-actions {
+      .modal-btn {
+        &.btn-ok {
+          background-color: #5FA9A4 !important;
+          color: white !important;
+          
+          &:hover {
+            background-color: #4D8B87 !important;
+          }
+        }
+        
+        &.btn-cancel {
+          background-color: #F8F9FA !important;
+          color: #2C3E50 !important;
+          border-color: #DEE2E6 !important;
+          
+          &:hover {
+            background-color: #E9ECEF !important;
+          }
+        }
+      }
     }
   }
 
@@ -460,10 +589,7 @@ body {
 }
 
 /* ULTIMATE LIGHT THEME ENFORCEMENT - HIGHEST SPECIFICITY */
-html:not(.theme-dark) body,
-html:not(.theme-dark) body * {
-  /* Force light theme on everything unless specifically dark themed */
-}
+/* Public pages are completely excluded from theme system */
 
 html:not(.theme-dark) .sidebar {
   background: #FFFFFF !important;
@@ -519,11 +645,33 @@ html:not(.theme-dark) *[class*="dark"],
 html:not(.theme-dark) *[style*="background: linear-gradient"][style*="#"] {
   background: var(--card) !important;
 }
-/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR LIGHT MODE */
+/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR LIGHT MODE - AUTHENTICATED PAGES ONLY */
 html:not(.theme-dark) {
-  /* All headings and titles */
-  h1, h2, h3, h4, h5, h6,
-  .title, .subtitle, .heading,
+  /* Exclude public pages from ALL theme overrides */
+  .landing-page,
+  .landing-page *,
+  .login-page,
+  .login-page *,
+  .signup-page,
+  .signup-page * {
+    background: initial !important;
+    color: initial !important;
+    border-color: initial !important;
+  }
+
+  /* All headings and titles - AUTHENTICATED PAGES ONLY */
+  .activities-page h1, .activities-page h2, .activities-page h3, .activities-page h4, .activities-page h5, .activities-page h6,
+  .dashboard h1, .dashboard h2, .dashboard h3, .dashboard h4, .dashboard h5, .dashboard h6,
+  .settings-page h1, .settings-page h2, .settings-page h3, .settings-page h4, .settings-page h5, .settings-page h6,
+  .sessions-page h1, .sessions-page h2, .sessions-page h3, .sessions-page h4, .sessions-page h5, .sessions-page h6,
+  .profile-page h1, .profile-page h2, .profile-page h3, .profile-page h4, .profile-page h5, .profile-page h6,
+  .report-page h1, .report-page h2, .report-page h3, .report-page h4, .report-page h5, .report-page h6,
+  .activities-page .title, .activities-page .subtitle, .activities-page .heading,
+  .dashboard .title, .dashboard .subtitle, .dashboard .heading,
+  .settings-page .title, .settings-page .subtitle, .settings-page .heading,
+  .sessions-page .title, .sessions-page .subtitle, .sessions-page .heading,
+  .profile-page .title, .profile-page .subtitle, .profile-page .heading,
+  .report-page .title, .report-page .subtitle, .report-page .heading,
   .focus-title, .timer-label,
   .quick-start-info h4,
   .modal-title, .modal-text {
@@ -675,10 +823,7 @@ html:not(.theme-dark) {
   }
 }
 /* ULTIMATE DARK THEME ENFORCEMENT - HIGHEST SPECIFICITY */
-html.theme-dark body,
-html.theme-dark body * {
-  /* Force dark theme on everything when dark mode is active */
-}
+/* Public pages are completely excluded from dark theme system */
 
 html.theme-dark .sidebar {
   background: #111827 !important;
@@ -731,11 +876,33 @@ html.theme-dark .account-action-label {
   color: #E5E7EB !important;
 }
 
-/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR DARK MODE */
+/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR DARK MODE - AUTHENTICATED PAGES ONLY */
 html.theme-dark {
-  /* All headings and titles */
-  h1, h2, h3, h4, h5, h6,
-  .title, .subtitle, .heading,
+  /* Exclude public pages from ALL dark theme overrides */
+  .landing-page,
+  .landing-page *,
+  .login-page,
+  .login-page *,
+  .signup-page,
+  .signup-page * {
+    background: initial !important;
+    color: initial !important;
+    border-color: initial !important;
+  }
+
+  /* All headings and titles - AUTHENTICATED PAGES ONLY */
+  .activities-page h1, .activities-page h2, .activities-page h3, .activities-page h4, .activities-page h5, .activities-page h6,
+  .dashboard h1, .dashboard h2, .dashboard h3, .dashboard h4, .dashboard h5, .dashboard h6,
+  .settings-page h1, .settings-page h2, .settings-page h3, .settings-page h4, .settings-page h5, .settings-page h6,
+  .sessions-page h1, .sessions-page h2, .sessions-page h3, .sessions-page h4, .sessions-page h5, .sessions-page h6,
+  .profile-page h1, .profile-page h2, .profile-page h3, .profile-page h4, .profile-page h5, .profile-page h6,
+  .report-page h1, .report-page h2, .report-page h3, .report-page h4, .report-page h5, .report-page h6,
+  .activities-page .title, .activities-page .subtitle, .activities-page .heading,
+  .dashboard .title, .dashboard .subtitle, .dashboard .heading,
+  .settings-page .title, .settings-page .subtitle, .settings-page .heading,
+  .sessions-page .title, .sessions-page .subtitle, .sessions-page .heading,
+  .profile-page .title, .profile-page .subtitle, .profile-page .heading,
+  .report-page .title, .report-page .subtitle, .report-page .heading,
   .focus-title, .timer-label,
   .quick-start-info h4,
   .modal-title, .modal-text {
@@ -885,57 +1052,136 @@ html.theme-dark .metric-card .metric-subtitle {
   flex-direction: column !important;
   align-items: center !important;
 }
-/* PUBLIC PAGES EXCLUSION - PRESERVE ORIGINAL STYLING */
-.landing-page,
-.landing-page *,
-.login-page,
-.login-page *,
-.signup-page,
-.signup-page * {
-  background: initial !important;
-  color: initial !important;
-  border-color: initial !important;
-}
+/* ========================================================================
+   PUBLIC PAGES COMPLETE ISOLATION FROM THEME SYSTEM
+   Landing, Login, and Signup pages MUST remain static regardless of theme
+   ======================================================================== */
 
-/* Ensure public pages are NEVER affected by theme overrides */
-:root:not(.theme-dark) .landing-page,
-:root:not(.theme-dark) .landing-page *,
-:root:not(.theme-dark) .login-page,
-:root:not(.theme-dark) .login-page *,
-:root:not(.theme-dark) .signup-page,
-:root:not(.theme-dark) .signup-page * {
-  background: initial !important;
-  color: initial !important;
-}
+/* NUCLEAR OPTION: Maximum specificity override for public pages */
+/* Force white theme with absolute priority */
 
-:root.theme-dark .landing-page,
-:root.theme-dark .landing-page *,
-:root.theme-dark .login-page,
-:root.theme-dark .login-page *,
-:root.theme-dark .signup-page,
-:root.theme-dark .signup-page * {
-  background: initial !important;
-  color: initial !important;
-}
-
-html:not(.theme-dark) .landing-page,
-html:not(.theme-dark) .landing-page *,
-html:not(.theme-dark) .login-page,
-html:not(.theme-dark) .login-page *,
-html:not(.theme-dark) .signup-page,
-html:not(.theme-dark) .signup-page * {
-  background: initial !important;
-  color: initial !important;
-}
-
+html.theme-dark body .landing-page,
+html.theme-dark body .login-page,
+html.theme-dark body .signup-page,
+html.theme-dark body .login-container,
+html.theme-dark body .signup-container,
+html.theme-dark body .landing-container,
 html.theme-dark .landing-page,
-html.theme-dark .landing-page *,
 html.theme-dark .login-page,
-html.theme-dark .login-page *,
 html.theme-dark .signup-page,
+html.theme-dark .login-container,
+html.theme-dark .signup-container,
+html.theme-dark .landing-container {
+  /* FORCE WHITE THEME - MAXIMUM PRIORITY */
+  --bg: #F8F9FA !important;
+  --card: #FFFFFF !important;
+  --text: #2C3E50 !important;
+  --muted: #6C757D !important;
+  --border: #DEE2E6 !important;
+  
+  /* FORCE WHITE BACKGROUNDS */
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #2C3E50 !important;
+}
+
+/* FORCE ORIGINAL CONTAINER GRADIENTS */
+html.theme-dark body .login-container,
+html.theme-dark body .signup-container,
+html.theme-dark .login-container,
+html.theme-dark .signup-container {
+  background: radial-gradient(circle at top, rgba(244, 241, 255, 0.8), rgba(237, 248, 248, 0.4)) !important;
+  color: #2C3E50 !important;
+}
+
+/* MAXIMUM SPECIFICITY: Force ALL elements to light theme */
+html.theme-dark body .landing-page *,
+html.theme-dark body .login-page *,
+html.theme-dark body .signup-page *,
+html.theme-dark .landing-page *,
+html.theme-dark .login-page *,
 html.theme-dark .signup-page * {
-  background: initial !important;
-  color: initial !important;
+  /* FORCE LIGHT THEME ON EVERYTHING */
+  background-color: transparent !important;
+  color: #2C3E50 !important;
+  border-color: #DEE2E6 !important;
+}
+
+/* MAXIMUM PRIORITY FORM ELEMENT OVERRIDES */
+html.theme-dark body .login-page input,
+html.theme-dark body .login-page textarea,
+html.theme-dark body .login-page select,
+html.theme-dark body .login-page button,
+html.theme-dark body .signup-page input,
+html.theme-dark body .signup-page textarea,
+html.theme-dark body .signup-page select,
+html.theme-dark body .signup-page button,
+html.theme-dark .login-page input,
+html.theme-dark .login-page textarea,
+html.theme-dark .login-page select,
+html.theme-dark .login-page button,
+html.theme-dark .signup-page input,
+html.theme-dark .signup-page textarea,
+html.theme-dark .signup-page select,
+html.theme-dark .signup-page button {
+  /* FORCE ORIGINAL FORM STYLING */
+  background: rgba(255, 255, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  color: #2c5f63 !important;
+  border-color: rgba(77, 161, 169, 0.35) !important;
+}
+
+/* MAXIMUM PRIORITY FOCUS STATES */
+html.theme-dark body .login-page input:focus,
+html.theme-dark body .signup-page input:focus,
+html.theme-dark .login-page input:focus,
+html.theme-dark .signup-page input:focus {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  border-color: #4da1a9 !important;
+  color: #2c5f63 !important;
+}
+
+/* MAXIMUM PRIORITY BUTTON OVERRIDES */
+html.theme-dark body .login-page .btn-login,
+html.theme-dark body .signup-page .btn-signup,
+html.theme-dark .login-page .btn-login,
+html.theme-dark .signup-page .btn-signup {
+  background: #4da1a9 !important;
+  background-color: #4da1a9 !important;
+  color: #ffffff !important;
+  border-color: #4da1a9 !important;
+}
+
+html.theme-dark body .login-page .btn-google,
+html.theme-dark .login-page .btn-google {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #2c5f63 !important;
+  border-color: rgba(91, 154, 158, 0.4) !important;
+}
+
+/* MAXIMUM PRIORITY PLACEHOLDER TEXT */
+html.theme-dark body .login-page input::placeholder,
+html.theme-dark body .signup-page input::placeholder,
+html.theme-dark .login-page input::placeholder,
+html.theme-dark .signup-page input::placeholder {
+  color: rgba(44, 95, 99, 0.7) !important;
+}
+
+/* MAXIMUM PRIORITY COMPONENT OVERRIDES */
+html.theme-dark body .login-panel,
+html.theme-dark body .signup-panel,
+html.theme-dark body .login-card,
+html.theme-dark body .signup-card,
+html.theme-dark .login-panel,
+html.theme-dark .signup-panel,
+html.theme-dark .login-card,
+html.theme-dark .signup-card {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #2C3E50 !important;
+  border-color: #DEE2E6 !important;
 }
 /* CLEAN SETTINGS STYLING */
 .settings-page {
@@ -959,4 +1205,61 @@ html.theme-dark .signup-page * {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
+}
+
+/* MAXIMUM PRIORITY ILLUSTRATION OVERRIDES */
+html.theme-dark body .login-illustration,
+html.theme-dark body .signup-illustration,
+html.theme-dark .login-illustration,
+html.theme-dark .signup-illustration {
+  background: linear-gradient(180deg, #f5fbff 0%, #d9ebf6 55%, #c2dbec 100%) !important;
+  color: #2C3E50 !important;
+}
+
+/* ULTIMATE SAFETY NET: Force text colors on ALL text elements */
+html.theme-dark body .login-page h1,
+html.theme-dark body .login-page h2,
+html.theme-dark body .login-page h3,
+html.theme-dark body .login-page h4,
+html.theme-dark body .login-page h5,
+html.theme-dark body .login-page h6,
+html.theme-dark body .login-page p,
+html.theme-dark body .login-page span,
+html.theme-dark body .login-page div,
+html.theme-dark body .login-page label,
+html.theme-dark body .login-page a,
+html.theme-dark body .signup-page h1,
+html.theme-dark body .signup-page h2,
+html.theme-dark body .signup-page h3,
+html.theme-dark body .signup-page h4,
+html.theme-dark body .signup-page h5,
+html.theme-dark body .signup-page h6,
+html.theme-dark body .signup-page p,
+html.theme-dark body .signup-page span,
+html.theme-dark body .signup-page div,
+html.theme-dark body .signup-page label,
+html.theme-dark body .signup-page a,
+html.theme-dark .login-page h1,
+html.theme-dark .login-page h2,
+html.theme-dark .login-page h3,
+html.theme-dark .login-page h4,
+html.theme-dark .login-page h5,
+html.theme-dark .login-page h6,
+html.theme-dark .login-page p,
+html.theme-dark .login-page span,
+html.theme-dark .login-page div,
+html.theme-dark .login-page label,
+html.theme-dark .login-page a,
+html.theme-dark .signup-page h1,
+html.theme-dark .signup-page h2,
+html.theme-dark .signup-page h3,
+html.theme-dark .signup-page h4,
+html.theme-dark .signup-page h5,
+html.theme-dark .signup-page h6,
+html.theme-dark .signup-page p,
+html.theme-dark .signup-page span,
+html.theme-dark .signup-page div,
+html.theme-dark .signup-page label,
+html.theme-dark .signup-page a {
+  color: #2C3E50 !important;
 }
