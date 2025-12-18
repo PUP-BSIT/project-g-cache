@@ -1,7 +1,17 @@
 <div class="report-page">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
-    <div class="logo" (click)="toggleSidebar()">
+    <!-- Close Toggle Button -->
+    <button class="sidebar-close-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="logo">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -10,32 +20,28 @@
 
     <nav class="nav-icons">
       <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/dashboard')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
       <button class="nav-icon" routerLink="/activities" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/activities')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
       <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/report')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
       <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                      (click)="onNavIconClick($event, '/settings')">
+                      [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -54,13 +60,19 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" (click)="onMainContentClick()">
+  <main class="main-content">
     <!-- Header -->
     <header class="header">
       <div class="header-title">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1>Reports</h1>
       </div>
       <div class="header-actions">
+        <button class="theme-toggle-btn" (click)="onToggleTheme()" title="Toggle Theme">
+          <i class="fa-solid" [class]="themeIcon()"></i>
+        </button>
         <div class="user-profile">
           <button class="profile-btn" (click)="openProfileModal()">
             <i class="fa-solid fa-user"></i>
@@ -78,7 +90,7 @@
             <h2 class="section-heading">Activity Summary</h2>
 
             <div class="summary-cards">
-              <div class="summary-card">
+              <div class="summary-card fade-in-up">
                 <div class="summary-main">
                   <div class="summary-label">Total Hours Focused</div>
                   <div class="summary-value">
@@ -90,7 +102,7 @@
                 </div>
               </div>
 
-              <div class="summary-card">
+              <div class="summary-card fade-in-up">
                 <div class="summary-main">
                   <div class="summary-label">Daily Avg Focus</div>
                   <div class="summary-value">
@@ -102,7 +114,7 @@
                 </div>
               </div>
 
-              <div class="summary-card">
+              <div class="summary-card fade-in-up">
                 <div class="summary-main">
                   <div class="summary-label">Day Streak</div>
                   <div class="summary-value">
@@ -222,7 +234,7 @@
           }
 
           <!-- Focus Hours -->
-          <section class="focus-panel">
+          <section class="focus-panel fade-in-up">
           <div class="focus-header">
             <div class="focus-title-group">
               <h2 class="panel-title">Focus Hours</h2>
@@ -364,7 +376,7 @@
         </div>
 
         <!-- RIGHT: Ranking -->
-        <div class="ranking-panel">
+        <div class="ranking-panel fade-in-up">
           <div class="ranking-header">
             <h2 class="panel-title">Ranking</h2>
             <div class="panel-subtitle">Most focused activities</div>

@@ -10,6 +10,11 @@ env:
   BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/pomodify-backend
   TAG_PR: pr-${{ github.event.pull_request.number }}
 
+# Ensure the workflow has permission to create issues/comments when reporting failures
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   lint-and-validate:
     name: Lint and Validate Code
@@ -462,34 +467,42 @@ jobs:
 
       - name: Create GitHub Issue on Failure
         if: steps.status.outputs.status == 'failure'
+        continue-on-error: true
         uses: actions/github-script@v7
+        env:
+          ERROR_REPORT: ${{ steps.error_report.outputs.error_report }}
         with:
           script: |
-            // Get error report from previous step output
-            const errorReport = `${{ steps.error_report.outputs.error_report }}`;
-            
-            const issue = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `❌ CI/CD Pipeline Failed - PR #${{ github.event.pull_request.number }}`,
-              body: errorReport || 'CI/CD Pipeline failed. Please check the workflow logs for details.',
-              labels: ['ci-failure', 'automated'],
-              assignees: ['${{ github.event.pull_request.user.login }}']
-            });
-            
-            console.log(`Created issue #${issue.data.number}`);
-            
-            // Add comment to PR linking to the issue
-            const prNumber = context.payload.pull_request?.number || context.issue?.number;
-            if (prNumber) {
-              await github.rest.issues.createComment({
+            try {
+              // Get error report from env var to avoid syntax errors with backticks
+              const errorReport = process.env.ERROR_REPORT;
+
+              const issue = await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: prNumber,
-                body: `⚠️ **CI/CD Pipeline Failed** ❌\n\nDetailed error report: #${issue.data.number}\n\nPlease review the issue and fix the failing checks.`
+                title: `❌ CI/CD Pipeline Failed - PR #${{ github.event.pull_request.number }}`,
+                body: errorReport || 'CI/CD Pipeline failed. Please check the workflow logs for details.',
+                labels: ['ci-failure', 'automated'],
+                assignees: ['${{ github.event.pull_request.user.login }}']
               });
-            } else {
-              console.log('Could not determine PR number, skipping PR comment');
+
+              console.log(`Created issue #${issue.data.number}`);
+
+              // Add comment to PR linking to the issue
+              const prNumber = context.payload.pull_request?.number || context.issue?.number;
+              if (prNumber) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `⚠️ **CI/CD Pipeline Failed** ❌\n\nDetailed error report: #${issue.data.number}\n\nPlease review the issue and fix the failing checks.`
+                });
+              } else {
+                console.log('Could not determine PR number, skipping PR comment');
+              }
+            } catch (err) {
+              console.error('Failed to create GitHub issue or comment from CI workflow:', err);
+              // Do not rethrow - we explicitly avoid failing the workflow here so the main CI summary step can run
             }
 
       - name: Fail workflow on CI failure

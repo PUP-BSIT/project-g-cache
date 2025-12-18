@@ -38,22 +38,18 @@ class SettingsServicePersistenceTest {
                 null,
                 45,
                 true,
-                true,
                 false,
                 AppTheme.DARK,
-                true,
-                false
+                true
         );
         UserSettingsResponse updated = settingsService.updateSettings(userId, req);
 
         assertEquals(SoundType.SOFT_DING.name(), updated.soundType());
         assertEquals(45, updated.volume());
-        assertTrue(updated.tickSound());
         assertTrue(updated.autoStartBreaks());
         assertFalse(updated.autoStartPomodoros());
         assertEquals(AppTheme.DARK.name(), updated.theme());
         assertTrue(updated.notificationsEnabled());
-        assertFalse(updated.googleCalendarSync());
 
         // Retrieve and verify cached/DB reflects changes
         UserSettingsResponse again = settingsService.getSettings(userId);

@@ -1,7 +1,7 @@
 # User Settings API
 
 Port: `8081` (local/dev and recommended default)
-Base path: `/api/v1/settings`
+Base path: `/api/v2/settings`
 
 Authentication: JWT (claim `user` holds numeric user ID). Secured under `prod` profile.
 
@@ -24,12 +24,12 @@ Response:
   "userId": 123,
   "notificationsEnabled": true,
   "notificationSound": true,
-  "tickSound": false,
+
   "soundType": "BELL",
   "volume": 80,
   "autoStartPomodoros": true,
   "autoStartBreaks": false,
-  "googleCalendarSync": false,
+
   "theme": "SYSTEM",
   "updatedAt": "2025-12-01T10:12:30Z"
 }

@@ -1,22 +1,24 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { toggleTheme, getStoredTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule],
+  imports: [CommonModule],
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
-export class Settings {
+export class Settings implements AfterViewInit {
+  @ViewChild('soundSelect') soundSelect!: ElementRef<HTMLSelectElement>;
   private settingsService = inject(SettingsService);
+  private notificationService = inject(NotificationService);
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -31,21 +33,37 @@ export class Settings {
   ) {
     // Initialize theme state
     this.updateThemeState();
+    
+    // Sync local soundType signal with settings service
+    effect(() => {
+      const currentSoundType = this.settings().sound.type;
+      this.soundType.set(currentSoundType);
+      console.log('Effect: Sound type synced to:', currentSoundType);
+      
+      // Update the select element directly if it exists
+      if (this.soundSelect?.nativeElement) {
+        this.soundSelect.nativeElement.value = currentSoundType;
+      }
+    });
+    
+    // Debug: Log current settings on component init
+    console.log('Settings component initialized with:', this.settings());
+    console.log('Sound type from signal:', this.soundType());
   }
   
-  // Sound Settings
-  protected soundEnabled = signal(this.settings().sound.enabled);
-  protected soundType = signal(this.settings().sound.type);
-  protected volume = signal(this.settings().sound.volume);
-  protected tickSoundEnabled = signal(this.settings().sound.tickSound);
+  // Computed signals that react to settings changes
+  protected soundEnabled = computed(() => this.settings().sound.enabled);
+  protected soundType = signal(this.settings().sound.type); // Use signal for dropdown binding
+  protected volume = computed(() => this.settings().sound.volume);
+
 
   // Auto-Start Settings
-  protected autoStartBreaks = signal(this.settings().autoStart.autoStartBreaks);
-  protected autoStartPomodoros = signal(this.settings().autoStart.autoStartPomodoros);
+  protected autoStartBreaks = computed(() => this.settings().autoStart.autoStartBreaks);
+  protected autoStartPomodoros = computed(() => this.settings().autoStart.autoStartPomodoros);
 
   // Other Settings
-  protected notificationsEnabled = signal(this.settings().notifications);
-  protected calendarSyncEnabled = signal(this.settings().calendarSync);
+  protected notificationsEnabled = computed(() => this.settings().notifications);
+
 
   // Modal state
   protected showDeleteModal = signal(false);
@@ -70,8 +88,14 @@ export class Settings {
   }
 
   onToggleTheme(): void {
+    // Add haptic feedback for mobile devices
+    if ('vibrate' in navigator && typeof (navigator as any).vibrate === 'function') {
+      (navigator as any).vibrate(50);
+    }
+    
     toggleTheme();
     this.updateThemeState();
+    this.showAutoSaveSuccess();
   }
 
   private updateThemeState(): void {
@@ -80,74 +104,76 @@ export class Settings {
 
   // Sound Settings Methods
   protected toggleSound(): void {
-    this.soundEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSoundSettings({ enabled: this.soundEnabled() });
+    const currentEnabled = this.soundEnabled();
+    this.settingsService.updateSoundSettings({ enabled: !currentEnabled });
+    this.showAutoSaveSuccess();
   }
 
   protected onSoundTypeChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const type = select.value as 'bell' | 'chime' | 'digital' | 'soft';
-    this.soundType.set(type);
+    console.log('Sound type changed to:', type);
+    console.log('Current soundType() before update:', this.soundType());
     this.settingsService.updateSoundSettings({ type });
+    console.log('Current soundType() after update:', this.soundType());
+    this.showAutoSaveSuccess();
   }
 
   protected onVolumeChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const volume = parseInt(input.value, 10);
-    this.volume.set(volume);
     this.settingsService.updateSoundSettings({ volume });
+    this.showAutoSaveSuccess();
     console.log('Volume changed to:', volume);
   }
 
-  protected toggleTickSound(): void {
-    this.tickSoundEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSoundSettings({ tickSound: this.tickSoundEnabled() });
-  }
+
 
   protected testSound(): void {
-    this.settingsService.playSound(this.soundType());
+    const soundType = this.soundType();
+    console.log('🔊 Testing sound:', soundType);
+    this.settingsService.playSound(soundType);
   }
 
   // Auto-Start Methods
   protected toggleAutoStartBreaks(): void {
-    this.autoStartBreaks.update((enabled: boolean) => !enabled);
-    this.settingsService.updateAutoStartSettings({ autoStartBreaks: this.autoStartBreaks() });
+    const currentAutoStartBreaks = this.autoStartBreaks();
+    this.settingsService.updateAutoStartSettings({ autoStartBreaks: !currentAutoStartBreaks });
+    this.showAutoSaveSuccess();
   }
 
   protected toggleAutoStartPomodoros(): void {
-    this.autoStartPomodoros.update((enabled: boolean) => !enabled);
-    this.settingsService.updateAutoStartSettings({ autoStartPomodoros: this.autoStartPomodoros() });
+    const currentAutoStartPomodoros = this.autoStartPomodoros();
+    this.settingsService.updateAutoStartSettings({ autoStartPomodoros: !currentAutoStartPomodoros });
+    this.showAutoSaveSuccess();
   }
 
   // Other Settings Methods
   protected toggleNotifications(): void {
-    this.notificationsEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ notifications: this.notificationsEnabled() });
-  }
-
-  protected toggleCalendarSync(): void {
-    this.calendarSyncEnabled.update((enabled: boolean) => !enabled);
-    this.settingsService.updateSettings({ calendarSync: this.calendarSyncEnabled() });
-  }
-
-  // Handle navigation icon click
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (this.router.url === route) {
-      event.preventDefault();
-      this.toggleSidebar();
-      return;
+    const currentNotifications = this.notificationsEnabled();
+    const newNotificationState = !currentNotifications;
+    
+    this.settingsService.updateSettings({ notifications: newNotificationState });
+    this.showAutoSaveSuccess();
+    
+    // If enabling notifications, initialize FCM
+    if (newNotificationState) {
+      console.log('🔔 Notifications enabled - initializing FCM...');
+      // FCM will be initialized automatically when first notification is sent
+      // This is handled in the notification service
     }
   }
 
-  // Collapse sidebar when clicking main content
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
-    }
-  }
+
+
+
 
   protected onLogout(): void {
     this.auth.logout();
+  }
+
+  protected navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
   // Open profile modal using MatDialog to match other pages
@@ -167,11 +193,17 @@ export class Settings {
       });
   }
 
-  // Save changes
-  protected onSaveChanges(): void {
-    // Settings are already saved automatically via the service
-    // This button provides user feedback
-    this.showSuccessModal.set(true);
+  // Auto-save feedback
+  protected autoSaveStatus = signal<'idle' | 'saving' | 'saved'>('idle');
+
+  private showAutoSaveSuccess(): void {
+    this.autoSaveStatus.set('saving');
+    setTimeout(() => {
+      this.autoSaveStatus.set('saved');
+      setTimeout(() => {
+        this.autoSaveStatus.set('idle');
+      }, 2000);
+    }, 300);
   }
 
   protected onCloseSuccessModal(): void {
@@ -225,5 +257,15 @@ export class Settings {
 
   protected onCancelClearActivities(): void {
     this.showClearActivitiesModal.set(false);
+  }
+
+  ngAfterViewInit(): void {
+    // Ensure the select element shows the correct value after view init
+    if (this.soundSelect?.nativeElement) {
+      this.soundSelect.nativeElement.value = this.soundType();
+      console.log('AfterViewInit: Set select value to:', this.soundType());
+    }
+    
+
   }
 }

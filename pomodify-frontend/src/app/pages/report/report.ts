@@ -104,6 +104,9 @@ export class Report implements OnInit {
   protected readonly focusProjects = signal<FocusProject[]>([]);
 
   ngOnInit(): void {
+    // Initialize theme state
+    this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
+    
     this.loadSummary(this.selectedRange());
   }
 
@@ -112,25 +115,17 @@ export class Report implements OnInit {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
   }
 
+  // Theme management
+  protected readonly isDarkMode = signal(false);
+  
+  protected readonly themeIcon = computed(() => {
+    return this.isDarkMode() ? 'fa-sun' : 'fa-moon';
+  });
+
   protected onToggleTheme(): void {
     toggleTheme();
-  }
-
-  // Handle navigation icon click - expand sidebar, no bounce
-  protected onNavIconClick(event: MouseEvent, route: string): void {
-    if (!this.sidebarExpanded()) {
-      this.sidebarExpanded.set(true);
-    }
-    if (this.router.url === route) {
-      event.preventDefault();
-    }
-  }
-
-  // Collapse sidebar when clicking main content
-  protected onMainContentClick(): void {
-    if (this.sidebarExpanded()) {
-      this.sidebarExpanded.set(false);
-    }
+    // Update the dark mode state
+    this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
   }
 
   protected onLogout(): void {

@@ -8,6 +8,12 @@ import com.pomodify.backend.presentation.dto.request.activity.CreateActivityRequ
 import com.pomodify.backend.presentation.dto.request.activity.UpdateActivityRequest;
 import com.pomodify.backend.presentation.dto.response.ActivityResponse;
 import com.pomodify.backend.presentation.mapper.ActivityMapper;
+import com.pomodify.backend.application.service.SessionService;
+import com.pomodify.backend.presentation.dto.response.ActivityBinResponse;
+import com.pomodify.backend.presentation.dto.item.SessionItem;
+import com.pomodify.backend.presentation.mapper.SessionMapper;
+import com.pomodify.backend.application.command.session.GetSessionsCommand;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,6 +36,7 @@ import org.springframework.web.bind.annotation.*;
 public class ActivityController {
 
     private final ActivityService activityService;
+    private final SessionService sessionService;
 
     /* -------------------- CREATE -------------------- */
         @PostMapping
@@ -95,6 +102,36 @@ public class ActivityController {
         ActivityItem item = ActivityMapper.toActivityItem(activityService.getActivity(command));
 
         return buildResponse(item, "Activity fetched successfully", HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/bin")
+    @Operation(summary = "Get deleted activity with sessions")
+    public ResponseEntity<ActivityBinResponse> getDeletedActivityWithSessions(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable("id") Long activityId
+    ) {
+        Long userId = jwt.getClaim("user");
+
+        GetActivityCommand activityCommand = GetActivityCommand.builder()
+                .activityId(activityId)
+                .user(userId)
+                .build();
+
+        ActivityItem activityItem = ActivityMapper.toActivityItem(activityService.getActivity(activityCommand));
+
+        List<SessionItem> sessionItems = SessionMapper.toItems(
+                sessionService.getAll(GetSessionsCommand.builder()
+                        .user(userId)
+                        .activityId(activityId)
+                        .deleted(null)
+                        .build())
+        );
+
+        return ResponseEntity.ok(ActivityBinResponse.builder()
+                .message("Deleted activity and sessions fetched successfully")
+                .activity(activityItem)
+                .sessions(sessionItems)
+                .build());
     }
 
     /* -------------------- UPDATE -------------------- */

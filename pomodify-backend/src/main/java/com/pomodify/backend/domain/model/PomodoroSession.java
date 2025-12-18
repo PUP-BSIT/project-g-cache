@@ -76,6 +76,13 @@ public class PomodoroSession {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @Column(name = "phase_started_at")
+    private LocalDateTime phaseStartedAt;
+
+    @Column(name = "total_paused_duration_seconds")
+    @Builder.Default
+    private Long totalPausedDurationSeconds = 0L;
+
     @Column(name = "cycles_completed", nullable = false)
     @Builder.Default
     private Integer cyclesCompleted = 0;
@@ -145,21 +152,35 @@ public class PomodoroSession {
     }
 
     public Duration getRemainingTime() {
-        Duration phaseDuration;
+        Duration phaseDuration = getCurrentPhaseDuration();
+        
+        if (status != SessionStatus.IN_PROGRESS || phaseStartedAt == null) {
+            return phaseDuration;
+        }
+
+        // Calculate elapsed time in current phase
+        Duration elapsedInPhase = Duration.between(phaseStartedAt, LocalDateTime.now());
+        
+        // Subtract any paused time
+        Duration totalPausedDuration = Duration.ofSeconds(totalPausedDurationSeconds != null ? totalPausedDurationSeconds : 0);
+        Duration actualElapsed = elapsedInPhase.minus(totalPausedDuration);
+        
+        Duration remaining = phaseDuration.minus(actualElapsed);
+        return remaining.isNegative() ? Duration.ZERO : remaining;
+    }
+
+    public Duration getCurrentPhaseDuration() {
         if (currentPhase == CyclePhase.FOCUS) {
-            phaseDuration = focusDuration;
+            return focusDuration;
         } else if (currentPhase == CyclePhase.LONG_BREAK && longBreakDuration != null) {
-            phaseDuration = longBreakDuration;
+            return longBreakDuration;
         } else {
-            phaseDuration = breakDuration;
+            return breakDuration;
         }
-        Duration timeSpent = elapsedTime;
+    }
 
-        if (status == SessionStatus.IN_PROGRESS && startedAt != null) {
-            timeSpent = timeSpent.plus(Duration.between(startedAt, LocalDateTime.now()));
-        }
-
-        return phaseDuration.minus(timeSpent);
+    public long getRemainingPhaseSeconds() {
+        return getRemainingTime().getSeconds();
     }
 
     // ──────────────── Domain Logic ────────────────
@@ -172,6 +193,8 @@ public class PomodoroSession {
 
         this.status = SessionStatus.IN_PROGRESS;
         this.startedAt = LocalDateTime.now();
+        this.phaseStartedAt = LocalDateTime.now();
+        this.totalPausedDurationSeconds = 0L;
     }
 
     public void resumeSession() {
@@ -183,6 +206,8 @@ public class PomodoroSession {
 
         this.status = SessionStatus.IN_PROGRESS;
         this.startedAt = LocalDateTime.now();
+        // Don't reset phaseStartedAt - keep the original phase start time
+        // totalPausedDurationSeconds already accounts for paused time
     }
 
     public void pauseSession() {
@@ -193,7 +218,13 @@ public class PomodoroSession {
         }
 
         this.status = SessionStatus.PAUSED;
-        this.elapsedTime = this.elapsedTime.plus(Duration.between(this.startedAt, LocalDateTime.now()));
+        
+        // Add the time since last resume to total paused duration
+        if (this.startedAt != null) {
+            Duration pausedDuration = Duration.between(this.startedAt, LocalDateTime.now());
+            this.totalPausedDurationSeconds = (this.totalPausedDurationSeconds != null ? this.totalPausedDurationSeconds : 0) 
+                                            + pausedDuration.getSeconds();
+        }
     }
 
     public void stopSession() {
@@ -226,8 +257,11 @@ public class PomodoroSession {
     public PomodoroSession completeCyclePhase () {
         ensureActiveAndNotCompleted();
 
+        // Reset for new phase
         this.elapsedTime = Duration.ZERO;
+        this.phaseStartedAt = LocalDateTime.now();
         this.startedAt = LocalDateTime.now();
+        this.totalPausedDurationSeconds = 0L;
 
         if (this.currentPhase == CyclePhase.FOCUS) {
             if (shouldTriggerLongBreak()) {
@@ -294,9 +328,11 @@ public class PomodoroSession {
         }
 
         this.elapsedTime = Duration.ZERO;
+        this.totalPausedDurationSeconds = 0L;
 
         if (this.status == SessionStatus.IN_PROGRESS) {
             this.startedAt = LocalDateTime.now();
+            this.phaseStartedAt = LocalDateTime.now();
         }
     }
 

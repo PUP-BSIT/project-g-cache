@@ -75,13 +75,25 @@ public class SessionService {
 
     public List<SessionResult> getAll(GetSessionsCommand command) {
         List<PomodoroSession> sessions;
+        Boolean fetchDeleted = command.deleted();
+
         if (command.activityId() != null) {
             sessions = sessionRepository.findByActivityId(command.activityId());
             sessions = sessions.stream()
                     .filter(s -> Objects.equals(s.getActivity().getUser().getId(), command.user()))
                     .collect(Collectors.toList());
         } else {
-            sessions = sessionRepository.findActiveByUserId(command.user());
+            if (Boolean.TRUE.equals(fetchDeleted)) {
+                sessions = sessionRepository.findByUserId(command.user());
+            } else {
+                sessions = sessionRepository.findActiveByUserId(command.user());
+            }
+        }
+
+        if (fetchDeleted != null) {
+            sessions = sessions.stream()
+                    .filter(s -> s.isDeleted() == fetchDeleted)
+                    .collect(Collectors.toList());
         }
 
         sessions.forEach(PomodoroSession::evaluateAbandonedIfExpired);
@@ -321,16 +333,8 @@ public class SessionService {
         }
         long totalElapsedSeconds = s.calculateTotalElapsed().getSeconds();
 
-        long remainingPhaseSeconds;
-        if (s.getCurrentPhase() != null) {
-            Duration phaseDuration = s.getCurrentPhase() == com.pomodify.backend.domain.enums.CyclePhase.FOCUS
-                ? s.getFocusDuration()
-                : s.getBreakDuration();
-            long remaining = phaseDuration.getSeconds() - totalElapsedSeconds;
-            remainingPhaseSeconds = Math.max(remaining, 0);
-        } else {
-            remainingPhaseSeconds = 0;
-        }
+        // Use the enhanced timer calculation from domain model
+        long remainingPhaseSeconds = s.getRemainingPhaseSeconds();
 
         return SessionResult.builder()
                 .id(s.getId())

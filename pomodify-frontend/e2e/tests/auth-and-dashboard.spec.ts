@@ -95,6 +95,8 @@ test.describe('Dashboard', () => {
     // There's also "Add Session" buttons on activity cards
     const buttonSelectors = [
       'button.create-button',
+      'button.btn-quick-start',
+      'button:has-text("Start Session")',
       'button:has-text("Add Session")',
       'button.add-session-btn',
       'button:has-text("Create Session")',
@@ -147,6 +149,8 @@ test.describe('Session Management', () => {
     // Or look for "Add Session" button on an activity card
     const createSelectors = [
       'button.create-button',
+      'button.btn-quick-start',
+      'button:has-text("Start Session")',
       'button.add-session-btn',
       'button:has-text("Add Session")',
       'button:has-text("Create Session")',

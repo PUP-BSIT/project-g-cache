@@ -3,12 +3,12 @@
 This guide explains how the Angular frontend integrates with Firebase Cloud Messaging (FCM) and how to use the deployed backend API to manage push tokens and preferences.
 
 ## What’s already set up
-- Backend is deployed and exposes push endpoints under `/api/v1/push`.
+- Backend is deployed and exposes push endpoints under `/api/v2/push`.
 - Firebase Admin service account JSON is configured on the backend (`fcm.service-account`), so server-side send works out-of-the-box.
 - Backend stores one token per user and respects an `enabled` flag. Invalid tokens are pruned automatically on FCM errors.
 
 ## API quick reference
-Base path: `/api/v1/push` (JWT required; token must include `user` claim)
+Base path: `/api/v2/push` (JWT required; token must include `user` claim)
 
 - `POST /register-token` — Body `{ token: string }` → `200 "Token registered"`
 - `DELETE /unregister-token` → `200 "Token unregistered"`
@@ -106,7 +106,7 @@ export class PushService {
     if (!token) return;
 
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    await this.http.post(`${environment.apiBaseUrl}/api/v1/push/register-token`, { token }, { headers }).toPromise();
+    await this.http.post(`${environment.apiBaseUrl}/api/v2/push/register-token`, { token }, { headers }).toPromise();
 
     onMessage(messaging, (payload) => {
       console.log('Foreground push:', payload);
@@ -115,25 +115,25 @@ export class PushService {
   }
 
   status(jwt: string) {
-    return this.http.get<{registered:boolean, enabled:boolean}>(`${environment.apiBaseUrl}/api/v1/push/status`, {
+    return this.http.get<{registered:boolean, enabled:boolean}>(`${environment.apiBaseUrl}/api/v2/push/status`, {
       headers: { Authorization: `Bearer ${jwt}` }
     });
   }
 
   enable(jwt: string) {
-    return this.http.put(`${environment.apiBaseUrl}/api/v1/push/enable`, {}, {
+    return this.http.put(`${environment.apiBaseUrl}/api/v2/push/enable`, {}, {
       headers: { Authorization: `Bearer ${jwt}` }, responseType: 'text'
     });
   }
 
   disable(jwt: string) {
-    return this.http.put(`${environment.apiBaseUrl}/api/v1/push/disable`, {}, {
+    return this.http.put(`${environment.apiBaseUrl}/api/v2/push/disable`, {}, {
       headers: { Authorization: `Bearer ${jwt}` }, responseType: 'text'
     });
   }
 
   unregister(jwt: string) {
-    return this.http.delete(`${environment.apiBaseUrl}/api/v1/push/unregister-token`, {
+    return this.http.delete(`${environment.apiBaseUrl}/api/v2/push/unregister-token`, {
       headers: { Authorization: `Bearer ${jwt}` }, responseType: 'text'
     });
   }
@@ -150,14 +150,14 @@ Use these to verify connectivity on your own.
 Replace `BASE` with your API host and `TOKEN` with your JWT.
 ```bash
 # Status (should be 200 with registered/enabled flags)
-curl -i -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/push/status"
+curl -i -H "Authorization: Bearer $TOKEN" "$BASE/api/v2/push/status"
 
 # Enable / Disable
-curl -i -X PUT -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/push/enable"
-curl -i -X PUT -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/push/disable"
+curl -i -X PUT -H "Authorization: Bearer $TOKEN" "$BASE/api/v2/push/enable"
+curl -i -X PUT -H "Authorization: Bearer $TOKEN" "$BASE/api/v2/push/disable"
 
 # Unregister token
-curl -i -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v1/push/unregister-token"
+curl -i -X DELETE -H "Authorization: Bearer $TOKEN" "$BASE/api/v2/push/unregister-token"
 ```
 Expected auth failures return `401`.
 
@@ -171,11 +171,11 @@ Should log `{ registered: boolean, enabled: boolean }` from the server.
 Create a `push.http` file locally:
 ```
 ### Status
-GET {{base}}/api/v1/push/status
+GET {{base}}/api/v2/push/status
 Authorization: Bearer {{token}}
 
 ### Enable
-PUT {{base}}/api/v1/push/enable
+PUT {{base}}/api/v2/push/enable
 Authorization: Bearer {{token}}
 ```
 

@@ -1,20 +1,66 @@
-// Session Timer Page Styles - Matching System Design
+// Session Timer Page Styles - Modern 3D Design with Glassmorphism
+// CSS Variable for dynamic activity color
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
+$primary-teal-glow: rgba(95, 169, 164, 0.4);
 $text-dark: #2C3E50;
 $text-light: #7F8C8D;
 $text-gray: #7F8C8D;
 $bg-white: #FFFFFF;
 $bg-light: #F5F5F5;
-$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-$card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
+$bg-gradient: linear-gradient(135deg, #E8F5F4 0%, #F0F9F8 100%);
+$card-shadow: 0 8px 32px rgba(95, 169, 164, 0.1);
+$card-shadow-hover: 0 12px 48px rgba(95, 169, 164, 0.2);
+$glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .session-timer-page {
+  --activity-color: #{$primary-teal}; // Default, overridden by inline style
+  
   min-height: 100vh;
-  background: $bg-white;
+  background: $bg-gradient;
   color: $text-dark;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+  
+  // Animated background circles
+  &::before,
+  &::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    z-index: 0;
+    animation: float 20s ease-in-out infinite;
+  }
+  
+  &::before {
+    width: 400px;
+    height: 400px;
+    background: var(--activity-color);
+    top: -100px;
+    right: -100px;
+  }
+  
+  &::after {
+    width: 500px;
+    height: 500px;
+    background: color-mix(in srgb, var(--activity-color) 80%, white 20%);
+    bottom: -150px;
+    left: -150px;
+    animation-delay: -10s;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.1);
+  }
 }
 
 .loading-container,
@@ -28,7 +74,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   i {
     font-size: 4rem;
-    color: $primary-teal;
+    color: var(--activity-color);
   }
 
   p {
@@ -39,7 +85,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   .btn-primary {
     margin-top: 1rem;
     padding: 12px 24px;
-    background: $primary-teal;
+    background: var(--activity-color);
     color: white;
     border: none;
     border-radius: 12px;
@@ -49,7 +95,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     box-shadow: $card-shadow;
 
     &:hover {
-      background: $primary-teal-dark;
+      background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
       box-shadow: $card-shadow-hover;
       transform: translateY(-2px);
     }
@@ -78,38 +124,51 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     display: flex;
     align-items: center;
     gap: 8px;
-    background: $bg-white;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(95, 169, 164, 0.2);
     color: $text-dark;
     cursor: pointer;
     font-size: 16px;
-    font-weight: 500;
-    padding: 10px 16px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    padding: 12px 20px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
     box-shadow: $card-shadow;
+    position: relative;
+    z-index: 10;
 
     i {
       font-size: 18px;
+      transition: transform 0.3s ease;
     }
 
     &:hover {
-      background: $primary-teal;
+      background: var(--activity-color);
       color: $bg-white;
-      border-color: $primary-teal;
-      transform: translateX(-2px);
+      border-color: var(--activity-color);
+      transform: translateX(-4px) scale(1.02);
       box-shadow: $card-shadow-hover;
+      
+      i {
+        transform: translateX(-2px);
+      }
     }
   }
 
   .activity-title {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 32px;
+    font-weight: 800;
     margin: 0;
-    color: $text-dark;
+    background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 80%, black 20%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     flex: 1;
     text-align: left;
+    position: relative;
+    z-index: 10;
   }
 }
 
@@ -117,14 +176,307 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .main-content-wrapper {
   display: flex;
-  gap: 32px;
+  gap: 60px;
   flex: 1;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 40px;
+  position: relative;
+  z-index: 1;
 }
 
-/* -------------------- TIMER SECTION (LEFT SIDE) -------------------- */
+/* -------------------- MASCOT CHARACTER -------------------- */
+
+.mascot-container {
+  position: absolute;
+  left: -200px;
+  bottom: 60px;
+  transform: translateX(0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: all;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  .mascot-character {
+    width: 280px;
+    height: 280px;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 45px rgba(95, 169, 164, 0.4));
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    will-change: transform;
+    
+    // Enhanced hover effect - bigger bounce and wave
+    &:hover {
+      transform: scale(1.1) rotate(-5deg) translateY(-10px);
+      filter: drop-shadow(0 25px 55px rgba(95, 169, 164, 0.6));
+      animation: wave-dance 0.6s ease-in-out;
+    }
+  }
+  
+  // Idle state - gentle bounce with breathing effect (lower left of timer)
+  &.idle {
+    left: -200px;
+    bottom: 60px;
+    transform: translateX(0);
+    
+    .mascot-character {
+      width: 280px;
+      height: 280px;
+      animation: idle-bounce 2.5s ease-in-out infinite, breathing-pulse 4s ease-in-out infinite;
+    }
+  }
+  
+  // Running state - stays beside timer (lower left)
+  &.bouncing {
+    left: -190px;
+    bottom: 60px;
+    transform: translateX(0);
+    
+    .mascot-character {
+      width: 270px;
+      height: 270px;
+      animation: energetic-bounce 1.2s ease-in-out infinite, head-bob 0.6s ease-in-out infinite;
+    }
+  }
+  
+  // Celebration - CENTERED in timer area for impact!
+  &.celebrating {
+    left: 50%;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    
+    .mascot-character {
+      width: 420px;
+      height: 420px;
+      animation: celebration-jump 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3, celebration-spin 1.2s ease-in-out 2;
+      filter: drop-shadow(0 35px 90px rgba(95, 169, 164, 0.7));
+    }
+  }
+  
+  // Shake - stays on left side for urgency!
+  &.shake {
+    left: -220px;
+    bottom: 40px;
+    transform: translateX(0);
+    
+    .mascot-character {
+      width: 300px;
+      height: 300px;
+      animation: shake-alert 0.5s ease-in-out infinite, energetic-bounce 1.2s ease-in-out infinite;
+      filter: drop-shadow(0 25px 60px rgba(255, 107, 107, 0.7));
+    }
+  }
+  
+  // Focus mode - slightly serious tilt
+  .mascot-character.focus-mode {
+    filter: drop-shadow(0 10px 30px rgba(95, 169, 164, 0.4));
+  }
+  
+  // Break mode - happy tilt
+  .mascot-character.break-mode {
+    filter: drop-shadow(0 10px 30px rgba(123, 196, 191, 0.4));
+  }
+  
+  // Speech bubble (points toward mascot from top)
+  .mascot-bubble {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.7) translateY(20px);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    padding: 12px 20px;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    white-space: nowrap;
+    border: 2px solid rgba(95, 169, 164, 0.2);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 14px solid rgba(255, 255, 255, 0.98);
+    }
+    
+    &.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1) translateY(0);
+      animation: bubble-bounce 0.6s ease-out;
+    }
+    
+    span {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+}
+
+// ========== MASCOT ANIMATIONS ==========
+
+// 1. Idle Bounce - Gentle up-down floating with subtle movement
+@keyframes idle-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+// 2. Breathing Pulse - Scale effect for breathing animation
+@keyframes breathing-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+// 3. Head Bob - Slight tilt/rotation during running
+@keyframes head-bob {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+// 4. Energetic Bounce - Active bouncing when timer is running
+@keyframes energetic-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(-25px) scale(1.08);
+  }
+  40% {
+    transform: translateY(-5px) scale(1.02);
+  }
+  60% {
+    transform: translateY(-18px) scale(1.05);
+  }
+  80% {
+    transform: translateY(-8px) scale(1.03);
+  }
+}
+
+// 5. Wave Dance - Hover effect animation
+@keyframes wave-dance {
+  0%, 100% {
+    transform: rotate(0deg) scale(1.15) translateY(-15px);
+  }
+  25% {
+    transform: rotate(-10deg) scale(1.18) translateY(-20px);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.2) translateY(-18px);
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.18) translateY(-22px);
+  }
+}
+
+// 6. Celebration Jump - Victory jump animation
+@keyframes celebration-jump {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-80px) scale(1.2) rotate(10deg);
+  }
+  60% {
+    transform: translateY(-60px) scale(1.15) rotate(-5deg);
+  }
+  80% {
+    transform: translateY(-40px) scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+// 7. Celebration Spin - Spinning during celebration
+@keyframes celebration-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(180deg) scale(1.15);
+  }
+  50% {
+    transform: rotate(360deg) scale(1.25);
+  }
+  75% {
+    transform: rotate(540deg) scale(1.15);
+  }
+  100% {
+    transform: rotate(720deg) scale(1);
+  }
+}
+
+// 8. Shake - Quick shake when time runs out (can be triggered with .shake class)
+@keyframes shake-alert {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-8px) rotate(-4deg);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(8px) rotate(4deg);
+  }
+}
+
+// 9. Bubble Bounce - Speech bubble entrance animation
+@keyframes bubble-bounce {
+  0% {
+    transform: scale(0.5) translateY(30px);
+  }
+  50% {
+    transform: scale(1.1) translateY(-5px);
+  }
+  75% {
+    transform: scale(0.95) translateY(2px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* -------------------- TIMER SECTION (CENTER-RIGHT) -------------------- */
 
 .timer-section {
   flex: 1;
@@ -132,12 +484,16 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: center;
   align-items: center;
   min-height: 600px;
+  perspective: 1000px;
+  position: relative;
+  margin-left: 100px;
+  margin-top: -40px;
 }
 
 .timer-circle {
-  width: 500px;
-  height: 500px;
-  border: 4px solid $primary-teal;
+  width: 520px;
+  height: 520px;
+  border: none;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -145,31 +501,97 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: center;
   padding: 60px;
   position: relative;
-  background: $bg-white;
-  box-shadow: $card-shadow-hover;
-  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  box-shadow: 
+    0 20px 60px rgba(95, 169, 164, 0.15),
+    0 0 0 8px rgba(95, 169, 164, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  animation: float-circle 6s ease-in-out infinite;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, 
+      rgba(95, 169, 164, 0.2) 0%,
+      rgba(123, 196, 191, 0.1) 50%,
+      rgba(95, 169, 164, 0.15) 100%
+    );
+    filter: blur(20px);
+    z-index: -1;
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  
+  &:hover {
+    transform: translateY(-8px) rotateX(2deg);
+    box-shadow: 
+      0 30px 80px rgba(95, 169, 164, 0.25),
+      0 0 0 8px rgba(95, 169, 164, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+}
+
+@keyframes float-circle {
+  0%, 100% {
+    transform: translateY(0) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(1deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 .timer-top {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 24px;
   width: 100%;
 
   .session-type {
-    font-size: 30px;
-    font-weight: 600;
-    color: $primary-teal;
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 80%, white 20%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     text-align: center;
+    animation: shimmer 3s ease-in-out infinite;
   }
 
   .cycle-indicator {
-    font-size: 25px;
-    font-weight: 500;
+    font-size: 26px;
+    font-weight: 600;
     color: $text-light;
     text-align: center;
+    padding: 6px 14px;
+    background: rgba(95, 169, 164, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
   }
 }
 
@@ -177,31 +599,53 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 28px;
+  gap: 24px;
+  margin-bottom: 32px;
   width: 100%;
 
   .phase-label {
-    font-size: 30px;
-    font-weight: 600;
-    color: $text-light;
-    transition: all 0.2s ease;
+    font-size: 32px;
+    font-weight: 700;
+    color: rgba(127, 140, 141, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 16px;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) scaleX(0);
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--activity-color), transparent);
+      border-radius: 2px;
+      transition: transform 0.4s ease;
+    }
 
     &.active {
-      color: $text-dark;
+      color: var(--activity-color);
+      text-shadow: 0 4px 12px color-mix(in srgb, var(--activity-color) 40%, transparent 60%);
+      transform: scale(1.1);
+      
+      &::after {
+        transform: translateX(-50%) scaleX(1);
+      }
     }
 
     &.clickable {
       cursor: pointer;
       
       &:hover {
-        color: $primary-teal;
-        opacity: 0.9;
+        color: color-mix(in srgb, var(--activity-color) 80%, white 20%);
+        transform: scale(1.05);
       }
     }
 
@@ -215,106 +659,170 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .timer-display-box {
-  background: $primary-teal;
-  border-radius: 16px;
-  padding: 24px 48px;
-  margin-bottom: 28px;
-  min-width: 200px;
+  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
+  border-radius: 24px;
+  padding: 32px 56px;
+  margin-bottom: 32px;
+  min-width: 240px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: $card-shadow;
+  box-shadow: 
+    0 10px 30px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.1) inset;
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(145deg, 
+      rgba(255, 255, 255, 0.3), 
+      transparent,
+      rgba(95, 169, 164, 0.3)
+    );
+    border-radius: 24px;
+    z-index: -1;
+    filter: blur(8px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
 
   .time-value {
-    font-size: 48px;
-    font-weight: 700;
+    font-size: 56px;
+    font-weight: 800;
     color: $bg-white;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 2px;
+    font-family: 'Courier New', 'SF Mono', monospace;
+    letter-spacing: 4px;
     line-height: 1.2;
     text-align: center;
+    text-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.2),
+      0 0 20px rgba(255, 255, 255, 0.3);
+    animation: pulse-time 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulse-time {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
   }
 
   .edit-icon {
     position: absolute;
-    top: 8px;
-    right: 12px;
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.6);
+    top: 12px;
+    right: 16px;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 
   &.clickable {
     cursor: pointer;
 
     &:hover {
-      background: $primary-teal-dark;
-      transform: translateY(-2px);
-      box-shadow: $card-shadow-hover;
+      transform: translateY(-4px) rotateX(5deg);
+      box-shadow: 
+        0 15px 40px rgba(95, 169, 164, 0.4),
+        0 1px 0 rgba(255, 255, 255, 0.4) inset;
+
+      &::before {
+        opacity: 1;
+      }
 
       .edit-icon {
         opacity: 1;
+        transform: rotate(10deg) scale(1.1);
       }
     }
 
     &:active {
-      transform: translateY(0);
-      box-shadow: $card-shadow;
+      transform: translateY(-1px) scale(0.98);
+      box-shadow: 
+        0 8px 20px rgba(95, 169, 164, 0.3);
     }
   }
 }
+
+
 
 .timer-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
+  margin-top: 8px;
 }
 
 .btn-timer-control {
-  background: $primary-teal;
+  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
   color: $bg-white;
   border: none;
-  border-radius: 12px;
-  padding: 14px 48px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 16px;
+  padding: 16px 52px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
-  transition: all 0.2s ease;
-  min-width: 150px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: $card-shadow;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 8px 24px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, 
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+  
+  &:hover::before {
+    transform: translateX(100%);
+  }
 
   &:hover {
-    background: $primary-teal-dark;
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 12px 32px rgba(95, 169, 164, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
   &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
+    transform: translateY(0) scale(0.98);
+    box-shadow: 
+      0 4px 16px rgba(95, 169, 164, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 }
 
 .btn-stop {
-  background: #E74C3C;
+  background: linear-gradient(145deg, #E74C3C 0%, #C0392B 100%);
   color: $bg-white;
   border: none;
-  border-radius: 12px;
-  padding: 14px 32px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 16px;
+  padding: 16px 36px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
   transition: all 0.2s ease;
@@ -377,7 +885,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .btn-fast-forward {
-  background: $primary-teal;
+  background: var(--activity-color);
   color: $bg-white;
   border: none;
   border-radius: 12px;
@@ -398,7 +906,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 
   &:hover {
-    background: $primary-teal-dark;
+    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
     transform: translateY(-2px);
     box-shadow: $card-shadow-hover;
   }
@@ -446,7 +954,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     display: flex;
     align-items: center;
     gap: 6px;
-    background: $primary-teal;
+    background: var(--activity-color);
     border: none;
     border-radius: 8px;
     color: $bg-white;
@@ -469,7 +977,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
     &:hover {
-      background: $primary-teal-dark;
+      background: color-mix(in srgb, var(--activity-color) 85%, black 15%);
       transform: translateY(-1px);
       box-shadow: $card-shadow-hover;
     }
@@ -525,7 +1033,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: $primary-teal;
+  accent-color: var(--activity-color);
   flex-shrink: 0;
 }
 
@@ -597,8 +1105,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   &:focus {
     background: $bg-white;
-    border-color: $primary-teal;
-    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+    border-color: var(--activity-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
   }
 }
 
@@ -728,3 +1236,516 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 
+
+/* -------------------- AUTO-START COUNTDOWN -------------------- */
+
+/* Desktop: Toast Notification */
+.auto-start-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  .toast-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 320px;
+    
+    .toast-icon {
+      i {
+        font-size: 24px;
+        color: var(--activity-color);
+        animation: pulse 2s ease-in-out infinite;
+      }
+    }
+    
+    .toast-info {
+      flex: 1;
+      
+      .toast-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-dark;
+        margin: 0 0 4px 0;
+      }
+      
+      .toast-message {
+        font-size: 14px;
+        color: $text-light;
+        margin: 0;
+      }
+    }
+    
+    .toast-countdown {
+      .countdown-ring {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--activity-color), color-mix(in srgb, var(--activity-color) 80%, white 20%));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: countdownPulse 1s ease-in-out infinite;
+        
+        .countdown-number {
+          font-size: 20px;
+          font-weight: 900;
+          color: white;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+    
+    .toast-cancel {
+      background: rgba(231, 76, 60, 0.1);
+      color: #E74C3C;
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba(231, 76, 60, 0.2);
+        transform: scale(1.1);
+      }
+      
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+/* Mobile: Full Modal */
+.auto-start-notification.mobile-modal {
+  .auto-start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .auto-start-modal {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .auto-start-header {
+    margin-bottom: 24px;
+    
+    .auto-start-icon {
+      font-size: 48px;
+      color: var(--activity-color);
+      margin-bottom: 12px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .auto-start-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: $text-dark;
+      margin: 0;
+    }
+  }
+
+  .auto-start-body {
+    margin-bottom: 32px;
+    
+    .countdown-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--activity-color), color-mix(in srgb, var(--activity-color) 80%, white 20%));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: countdownPulse 1s ease-in-out infinite;
+      
+      .countdown-number {
+        font-size: 48px;
+        font-weight: 900;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .auto-start-message {
+      font-size: 16px;
+      color: $text-light;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+
+  .auto-start-actions {
+    .btn-cancel-auto-start {
+      background: rgba(231, 76, 60, 0.1);
+      color: #E74C3C;
+      border: 2px solid rgba(231, 76, 60, 0.3);
+      border-radius: 16px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
+      
+      &:hover {
+        background: rgba(231, 76, 60, 0.2);
+        border-color: rgba(231, 76, 60, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+      }
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Auto-start animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes countdownPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+// Responsive design for auto-start notifications
+@media (max-width: 768px) {
+  // Desktop toast adjustments for smaller screens
+  .auto-start-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    
+    .toast-content {
+      min-width: auto;
+      padding: 16px;
+      gap: 12px;
+      
+      .toast-countdown .countdown-ring {
+        width: 40px;
+        height: 40px;
+        
+        .countdown-number {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+  
+  // Mobile modal adjustments
+  .auto-start-notification.mobile-modal {
+    .auto-start-modal {
+      padding: 24px;
+      max-width: 350px;
+      
+      .auto-start-header .auto-start-icon {
+        font-size: 40px;
+      }
+      
+      .auto-start-header .auto-start-title {
+        font-size: 20px;
+      }
+      
+      .countdown-circle {
+        width: 100px;
+        height: 100px;
+        
+        .countdown-number {
+          font-size: 40px;
+        }
+      }
+      
+      .auto-start-message {
+        font-size: 14px;
+      }
+    }
+  }
+}/*
+ -------------------- DARK MODE SUPPORT -------------------- */
+/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+:host-context(.theme-dark) {
+  .session-timer-page {
+    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
+    color: #e4e6ea;
+    min-height: 100vh;
+    
+    &::before,
+    &::after {
+      opacity: 0.1;
+    }
+  }
+  
+  .container {
+    color: #E5E7EB;
+  }
+  
+  .session-header {
+    .btn-back {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+        color: #7BC4BF;
+      }
+    }
+    
+    .activity-title {
+      color: #E5E7EB;
+    }
+  }
+  
+  .timer-circle {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .timer-top {
+      .session-type,
+      .cycle-indicator {
+        color: #D1D5DB;
+      }
+    }
+    
+    .phase-labels .phase-label {
+      color: #9CA3AF;
+      
+      &.active {
+        color: #E5E7EB;
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+      
+      &.clickable:hover {
+        background-color: rgba(95, 169, 164, 0.1);
+        color: #7BC4BF;
+      }
+    }
+    
+    .time-value {
+      color: #E5E7EB;
+    }
+    
+    .edit-icon {
+      color: #9CA3AF;
+    }
+  }
+  
+  .btn-timer-control {
+    background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+    
+    &:hover {
+      background: linear-gradient(135deg, #4D8B87, #3A6B68);
+    }
+    
+    &.paused {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+    }
+  }
+  
+  .btn-stop {
+    background-color: #EF4444;
+    
+    &:hover {
+      background-color: #DC2626;
+    }
+  }
+  
+  .btn-early-complete {
+    background-color: rgba(95, 169, 164, 0.1);
+    color: #7BC4BF;
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &:hover {
+      background-color: rgba(95, 169, 164, 0.2);
+    }
+  }
+  
+  .notes-panel {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .notes-label {
+      color: #E5E7EB;
+    }
+    
+    .btn-add-todo {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .todo-item {
+      .todo-text {
+        background-color: #1F2937;
+        color: #E5E7EB;
+        border-color: #374151;
+        
+        &::placeholder {
+          color: #6B7280;
+        }
+      }
+      
+      .btn-remove-todo {
+        color: #EF4444;
+        
+        &:hover {
+          background-color: rgba(239, 68, 68, 0.1);
+        }
+      }
+    }
+    
+    .notes-textarea {
+      background-color: #1F2937;
+      color: #E5E7EB;
+      border-color: #374151;
+      
+      &::placeholder {
+        color: #6B7280;
+      }
+    }
+  }
+  
+  .mascot-bubble {
+    background: rgba(17, 24, 39, 0.95);
+    color: #E5E7EB;
+    border: 1px solid #374151;
+  }
+  
+  // Auto-start toast dark mode
+  .auto-start-toast .toast-content {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid #374151;
+    
+    .toast-title {
+      color: #E5E7EB;
+    }
+    
+    .toast-message {
+      color: #9CA3AF;
+    }
+    
+    .toast-cancel {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+      }
+    }
+  }
+  
+  // Auto-start modal dark mode
+  .auto-start-notification.mobile-modal {
+    .auto-start-modal {
+      background: rgba(31, 41, 55, 0.95);
+      border: 1px solid #374151;
+      
+      .auto-start-title {
+        color: #E5E7EB;
+      }
+      
+      .auto-start-message {
+        color: #9CA3AF;
+      }
+      
+      .btn-cancel-auto-start {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        border-color: rgba(239, 68, 68, 0.3);
+        
+        &:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.5);
+        }
+      }
+    }
+  }
+}

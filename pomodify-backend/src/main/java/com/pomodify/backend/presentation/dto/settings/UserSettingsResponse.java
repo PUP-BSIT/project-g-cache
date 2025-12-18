@@ -5,10 +5,9 @@ public record UserSettingsResponse(
         String soundType,
         boolean notificationSound,
         int volume,
-        boolean tickSound,
+
         boolean autoStartBreaks,
         boolean autoStartPomodoros,
         String theme,
-        boolean notificationsEnabled,
-        boolean googleCalendarSync
+        boolean notificationsEnabled
 ) {}

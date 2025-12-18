@@ -37,14 +37,12 @@ class SettingsControllerWebMvcTest {
                 70,
                 false,
                 false,
-                false,
                 "SYSTEM",
-                true,
-                false
+                true
         );
         Mockito.when(settingsService.getSettings(userId)).thenReturn(resp);
 
-        MockHttpServletRequestBuilder req = get("/api/v1/settings")
+        MockHttpServletRequestBuilder req = get("/settings")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.claim("user", userId)));
 
         mockMvc.perform(req)
@@ -64,15 +62,13 @@ class SettingsControllerWebMvcTest {
                 50,
                 true,
                 true,
-                false,
                 "DARK",
-                true,
-                false
+                true
         );
         Mockito.when(settingsService.updateSettings(Mockito.eq(userId), Mockito.any(UpdateSettingsRequest.class)))
                 .thenReturn(resp);
 
-        MockHttpServletRequestBuilder req = patch("/api/v1/settings")
+        MockHttpServletRequestBuilder req = patch("/settings")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"volume\":50,\"theme\":\"DARK\",\"soundType\":\"SOFT_DING\"}")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.claim("user", userId)));

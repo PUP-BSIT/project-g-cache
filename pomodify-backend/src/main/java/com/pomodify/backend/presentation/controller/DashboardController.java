@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZoneId;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 @RestController
-@RequestMapping
+@RequestMapping("/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Motivation-focused dashboard metrics and streak badges")
 public class DashboardController {
@@ -27,12 +31,12 @@ public class DashboardController {
     private final DashboardMapper dashboardMapper;
     private final UserHelper userHelper;
 
-        @GetMapping("/dashboard")
+        @GetMapping
         @Operation(
             summary = "Get focus dashboard",
             description = "Returns a compact, positive-only dashboard with streaks, focus hours, badges, and recent sessions."
         )
-    public DashboardResponse getDashboard(
+        public DashboardResponse getDashboard(
             @AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt,
             @Parameter(
                 name = "X-Timezone",
@@ -47,7 +51,22 @@ public class DashboardController {
             )
             @org.springframework.web.bind.annotation.RequestParam(name = "layout", defaultValue = "compact") String layout
     ) {
-        Long userId = userHelper.extractUserId(jwt);
+        // Resolve Jwt from parameter or SecurityContext (tests may set principal directly)
+        Jwt resolvedJwt = jwt;
+        if (resolvedJwt == null) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth instanceof JwtAuthenticationToken jwtAuth) {
+                Object principal = jwtAuth.getToken();
+                if (principal instanceof Jwt j) resolvedJwt = j;
+            } else if (auth != null && auth.getPrincipal() instanceof Jwt p) {
+                resolvedJwt = (Jwt) auth.getPrincipal();
+            }
+        }
+
+        if (resolvedJwt == null) {
+            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
+        }
+        Long userId = userHelper.extractUserId(resolvedJwt);
         if (userId == null) {
             // Treat missing/invalid JWT claim as unauthorized
             throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");

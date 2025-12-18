@@ -1,0 +1,380 @@
+// ============================================
+// FACEBOOK-STYLE DARK MODE - SHARED STYLES
+// ============================================
+
+// Facebook Dark Mode Color Palette
+$dark-bg-primary: #18191a;
+$dark-bg-secondary: #242526;
+$dark-bg-tertiary: #3a3b3c;
+$dark-bg-quaternary: #2f3031;
+$dark-border: #3e4042;
+$dark-text-primary: #e4e6ea;
+$dark-text-secondary: #b0b3b8;
+$dark-accent: #7BC4BF;
+$dark-accent-hover: #5FA9A4;
+
+// Shared Dark Mode Mixins
+@mixin facebook-dark-page {
+  background: linear-gradient(135deg, $dark-bg-primary 0%, $dark-bg-secondary 100%);
+  color: $dark-text-primary;
+  min-height: 100vh;
+}
+
+@mixin facebook-dark-header {
+  background: linear-gradient(135deg, $dark-bg-tertiary 0%, $dark-bg-quaternary 100%);
+  border-bottom: 1px solid $dark-border;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  
+  .page-title,
+  h1 {
+    color: $dark-text-primary;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hamburger-btn {
+    background: rgba(95, 169, 164, 0.1);
+    border: 1px solid rgba(95, 169, 164, 0.2);
+    
+    &:hover {
+      background: rgba(95, 169, 164, 0.2);
+      box-shadow: 0 2px 8px rgba(95, 169, 164, 0.2);
+    }
+  }
+  
+  .theme-btn,
+  .theme-toggle-btn,
+  .profile-btn {
+    background: linear-gradient(135deg, rgba(95, 169, 164, 0.2), rgba(95, 169, 164, 0.1));
+    color: $dark-accent;
+    border: 1px solid rgba(95, 169, 164, 0.2);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.3), rgba(95, 169, 164, 0.2));
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+@mixin facebook-dark-sidebar {
+  background: linear-gradient(180deg, $dark-bg-secondary 0%, #1c1e21 100%);
+  border-right: 1px solid $dark-border;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+  
+  .logo {
+    .app-name {
+      color: $dark-text-primary;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  .nav-icon {
+    color: $dark-text-secondary;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &::before {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    &:hover {
+      &::before {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.15), rgba(95, 169, 164, 0.1));
+      }
+      color: $dark-accent;
+      transform: translateX(2px);
+    }
+    
+    &.active {
+      &::before {
+        background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+        box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+      }
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+  }
+  
+  .nav-text {
+    color: inherit;
+  }
+  
+  .nav-bottom {
+    border-top: 1px solid $dark-border;
+  }
+}
+
+@mixin facebook-dark-card {
+  background: linear-gradient(135deg, $dark-bg-tertiary 0%, $dark-bg-quaternary 100%);
+  border: 1px solid $dark-border;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: #5FA9A4;
+    box-shadow: 0 8px 32px rgba(95, 169, 164, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+@mixin facebook-dark-input {
+  background: linear-gradient(135deg, $dark-bg-tertiary 0%, $dark-bg-quaternary 100%);
+  border: 1px solid $dark-border;
+  color: $dark-text-primary;
+  
+  &:focus {
+    border-color: #5FA9A4;
+    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+  }
+  
+  &::placeholder {
+    color: $dark-text-secondary;
+  }
+}
+
+@mixin facebook-dark-button {
+  background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+  box-shadow: 0 4px 16px rgba(95, 169, 164, 0.3);
+  
+  &:hover {
+    background: linear-gradient(135deg, #7BC4BF, #5FA9A4);
+    box-shadow: 0 8px 24px rgba(95, 169, 164, 0.4);
+  }
+}
+
+@mixin facebook-dark-scrollbar {
+  &::-webkit-scrollbar-thumb {
+    background: rgba(176, 179, 184, 0.3);
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(176, 179, 184, 0.4);
+  }
+}
+
+// ============================================
+// SMOOTH THEME TRANSITIONS
+// ============================================
+
+// Global transition for theme switching
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease !important;
+}
+
+// Disable transitions during theme switch to prevent flashing
+.theme-transitioning * {
+  transition: none !important;
+}
+
+// ============================================
+// ENHANCED FOCUS STATES FOR ACCESSIBILITY
+// ============================================
+
+@mixin facebook-dark-focus {
+  &:focus-visible {
+    outline: 2px solid #7BC4BF;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(123, 196, 191, 0.1);
+  }
+}
+
+// ============================================
+// LOADING STATES
+// ============================================
+
+@mixin facebook-dark-loading {
+  .loading-shimmer {
+    background: linear-gradient(90deg, $dark-bg-quaternary 25%, $dark-bg-tertiary 50%, $dark-bg-quaternary 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  
+  .loading-spinner {
+    .spinner {
+      border-color: $dark-border;
+      border-top-color: #5FA9A4;
+    }
+    
+    .loading-text {
+      color: $dark-text-secondary;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+// ============================================
+// ENHANCED SCROLLBARS
+// ============================================
+
+:host-context(.theme-dark) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(176, 179, 184, 0.2);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(176, 179, 184, 0.4);
+  }
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.facebook-dark-text-primary {
+  color: $dark-text-primary !important;
+}
+
+.facebook-dark-text-secondary {
+  color: $dark-text-secondary !important;
+}
+
+.facebook-dark-bg-primary {
+  background: $dark-bg-primary !important;
+}
+
+.facebook-dark-bg-secondary {
+  background: $dark-bg-secondary !important;
+}
+
+.facebook-dark-border {
+  border-color: $dark-border !important;
+}
+
+// ============================================
+// ENHANCED BUTTON ANIMATIONS
+// ============================================
+
+@mixin facebook-dark-button-enhanced {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ============================================
+// THEME TOGGLE BUTTON ANIMATION
+// ============================================
+
+.theme-toggle-btn {
+  i {
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover i {
+    transform: rotate(15deg) scale(1.1);
+  }
+  
+  &:active i {
+    transform: rotate(15deg) scale(0.95);
+  }
+}
+
+// ============================================
+// CARD HOVER EFFECTS
+// ============================================
+
+@mixin facebook-dark-card-enhanced {
+  @include facebook-dark-card;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(123, 196, 191, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// ============================================
+// PULSE ANIMATION FOR ACTIVE ELEMENTS
+// ============================================
+
+@keyframes facebook-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(123, 196, 191, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(123, 196, 191, 0);
+  }
+}
+
+.facebook-pulse {
+  animation: facebook-pulse 2s infinite;
+}
+
+// ============================================
+// FLOATING ANIMATION FOR CARDS
+// ============================================
+
+@keyframes facebook-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.facebook-float {
+  animation: facebook-float 3s ease-in-out infinite;
+}
+
+// ============================================
+// GLOW EFFECT FOR INTERACTIVE ELEMENTS
+// ============================================
+
+@mixin facebook-dark-glow {
+  &:hover {
+    box-shadow: 0 0 20px rgba(123, 196, 191, 0.3);
+  }
+}

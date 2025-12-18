@@ -1,7 +1,17 @@
 <div class="settings-page">
+  <!-- Mobile Overlay Backdrop -->
+  @if (sidebarExpanded()) {
+    <div class="mobile-overlay" (click)="toggleSidebar()"></div>
+  }
+  
   <!-- Sidebar -->
   <aside class="sidebar" [class.expanded]="sidebarExpanded()">
-    <div class="logo" (click)="toggleSidebar()">
+    <!-- Close Toggle Button -->
+    <button class="sidebar-close-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="logo">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -9,31 +19,25 @@
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/dashboard')">
+      <button class="nav-icon" (click)="navigateTo('/dashboard')">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" (click)="navigateTo('/activities')">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/report')">
+      <button class="nav-icon" (click)="navigateTo('/report')">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon active" routerLink="/settings" routerLinkActive="active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              (click)="onNavIconClick($event, '/settings')">
+      <button class="nav-icon active">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -52,9 +56,15 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="main-content" (click)="onMainContentClick()">
+  <main class="main-content">
     <!-- Header -->
     <header class="header">
+      <div class="header-left">
+        <button class="hamburger-btn" (click)="toggleSidebar()" aria-label="Toggle navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 class="page-title">Settings</h1>
+      </div>
       <div class="user-profile">
         <button class="profile-btn" (click)="openProfileModal()">
           <i class="fa-solid fa-user"></i>
@@ -64,11 +74,26 @@
 
     <!-- Settings Content -->
     <div class="settings-container">
-      <h1 class="settings-title">App Settings</h1>
+      @if (autoSaveStatus() === 'saving') {
+        <div class="auto-save-indicator saving">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Saving...</span>
+        </div>
+      }
+      @if (autoSaveStatus() === 'saved') {
+        <div class="auto-save-indicator saved">
+          <i class="fa-solid fa-check"></i>
+          <span>Saved automatically</span>
+        </div>
+      }
+
+      <div class="settings-grid">
 
       <!-- Sound Settings Section -->
       <section class="settings-section">
-        <h2 class="section-title">🔊 Sound Settings</h2>
+        <h2 class="section-title">
+          <img src="assets/images/sound.png" alt="Sound" class="section-icon"> Sound Settings
+        </h2>
         
         <div class="setting-item">
           <div class="setting-info">
@@ -90,6 +115,7 @@
             </div>
             <div class="setting-control">
               <select class="sound-select" 
+                      #soundSelect
                       [value]="soundType()" 
                       (change)="onSoundTypeChange($event)">
                 @for (type of soundTypes; track type.value) {
@@ -117,24 +143,15 @@
             </div>
           </div>
 
-          <div class="setting-item">
-            <div class="setting-info">
-              <h3 class="setting-label">Tick Sound</h3>
-              <p class="setting-description">Play ticking sound while timer runs</p>
-            </div>
-            <div class="toggle-switch">
-              <input type="checkbox" id="tick-toggle" class="toggle-input" 
-                     [checked]="tickSoundEnabled()" 
-                     (change)="toggleTickSound()">
-              <label for="tick-toggle" class="toggle-label"></label>
-            </div>
-          </div>
+
         }
       </section>
 
       <!-- Auto-Start Settings Section -->
       <section class="settings-section">
-        <h2 class="section-title">▶️ Auto-Start Options</h2>
+        <h2 class="section-title">
+          <img src="assets/images/start.png" alt="Auto-Start" class="section-icon"> Auto-Start Options
+        </h2>
         
         <div class="setting-item">
           <div class="setting-info">
@@ -172,32 +189,47 @@
 
       <!-- Appearance Section -->
       <section class="settings-section">
-        <h2 class="section-title">🎨 Appearance</h2>
+        <h2 class="section-title">
+          <img src="assets/images/appearance.png" alt="Appearance" class="section-icon"> Appearance
+        </h2>
         
         <div class="setting-item">
           <div class="setting-info">
             <h3 class="setting-label">Theme</h3>
             <p class="setting-description">Switch between light and dark mode</p>
           </div>
-          <button class="theme-toggle-btn" (click)="onToggleTheme()">
-            @if (isDarkMode()) {
-              <i class="fa-solid fa-sun"></i>
-              <span>Light Mode</span>
-            } @else {
-              <i class="fa-solid fa-moon"></i>
-              <span>Dark Mode</span>
-            }
-          </button>
+          <div class="theme-toggle-container">
+            <div class="theme-toggle-switch" [class.dark]="isDarkMode()" (click)="onToggleTheme()">
+              <div class="theme-toggle-track">
+                <div class="theme-toggle-thumb">
+                  <div class="theme-icon">
+                    @if (isDarkMode()) {
+                      <i class="fa-solid fa-moon"></i>
+                    } @else {
+                      <i class="fa-solid fa-sun"></i>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="theme-labels">
+                <span class="theme-label light" [class.active]="!isDarkMode()">Light</span>
+                <span class="theme-label dark" [class.active]="isDarkMode()">Dark</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Notifications & Calendar Sync Section -->
+      <!-- Notifications Section -->
       <section class="settings-section">
-        <h2 class="section-title">🔔 Notifications & Integrations</h2>
+        <h2 class="section-title">
+          <img src="assets/images/notification.png" alt="Notifications" class="section-icon"> Notifications
+        </h2>
         
         <div class="setting-item">
           <div class="setting-info">
             <h3 class="setting-label">Notifications</h3>
+            <p class="setting-description">Desktop notifications when tab is closed</p>
           </div>
           <div class="toggle-switch">
             <input type="checkbox" id="notifications-toggle" class="toggle-input" 
@@ -207,22 +239,14 @@
           </div>
         </div>
 
-        <div class="setting-item">
-          <div class="setting-info">
-            <h3 class="setting-label">Google Calendar Sync</h3>
-          </div>
-          <div class="toggle-switch">
-            <input type="checkbox" id="calendar-toggle" class="toggle-input" 
-                   [checked]="calendarSyncEnabled()" 
-                   (change)="toggleCalendarSync()">
-            <label for="calendar-toggle" class="toggle-label"></label>
-          </div>
-        </div>
+
       </section>
 
       <!-- Privacy & Data Section -->
       <section class="settings-section data-section">
-        <h2 class="section-title">🔒 Privacy & Data</h2>
+        <h2 class="section-title">
+          <img src="assets/images/privacy.png" alt="Privacy" class="section-icon"> Privacy & Data
+        </h2>
         
         <div class="data-action-item">
           <div class="data-action-info">
@@ -245,21 +269,27 @@
             Clear
           </button>
         </div>
+
       </section>
 
-      <!-- Actions Section -->
-      <section class="settings-section actions-section">
-        <div class="action-buttons">
-          <button class="btn btn-delete" (click)="onDeleteAccount()">
-            <i class="fa-solid fa-user-xmark"></i>
-            Delete my Account
-          </button>
-          <button class="btn btn-save" (click)="onSaveChanges()">
-            <i class="fa-solid fa-check"></i>
-            Save changes
+      <!-- Account Section -->
+      <section class="settings-section account-section">
+        <h2 class="section-title">
+          <img src="assets/images/account.png" alt="Account" class="section-icon"> Account
+        </h2>
+        
+        <div class="account-action-item danger-action">
+          <div class="account-action-info">
+            <h3 class="account-action-label danger-label">Delete Account</h3>
+            <p class="account-action-description">Permanently delete your account and all data</p>
+          </div>
+          <button class="account-action-btn danger-btn" (click)="onDeleteAccount()">
+            <img src="assets/images/delete-account.png" alt="Delete Account" class="btn-icon">
+            Delete Account
           </button>
         </div>
       </section>
+      </div> <!-- Close settings-grid -->
     </div>
   </main>
 
@@ -268,7 +298,7 @@
     <div class="modal-overlay" (click)="onCancelDelete()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <img src="assets/images/warning.png" alt="Warning" class="warning-icon">
           <h2 class="modal-title">WARNING: Delete Account</h2>
         </div>
         
@@ -311,7 +341,7 @@
     <div class="modal-overlay" (click)="onCancelClearSessions()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <img src="assets/images/warning.png" alt="Warning" class="warning-icon">
           <h2 class="modal-title">Clear Session History</h2>
         </div>
         
@@ -333,7 +363,7 @@
     <div class="modal-overlay" (click)="onCancelClearActivities()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+          <img src="assets/images/warning.png" alt="Warning" class="warning-icon">
           <h2 class="modal-title">Clear Activity Data</h2>
         </div>
         
