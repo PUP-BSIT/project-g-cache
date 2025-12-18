@@ -9,6 +9,5 @@ public record UserSettingsResponse(
         boolean autoStartBreaks,
         boolean autoStartPomodoros,
         String theme,
-        boolean notificationsEnabled,
-
+        boolean notificationsEnabled
 ) {}
