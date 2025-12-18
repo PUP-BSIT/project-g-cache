@@ -63,8 +63,7 @@ public class SettingsService {
                 s.isAutoStartBreaks(),
                 s.isAutoStartPomodoros(),
                 s.getTheme().name(),
-                s.isNotificationsEnabled(),
-
+                s.isNotificationsEnabled()
         );
     }
 }

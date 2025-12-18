@@ -11,6 +11,5 @@ public record UpdateSettingsRequest(
         Boolean autoStartBreaks,
         Boolean autoStartPomodoros,
         AppTheme theme,
-        Boolean notificationsEnabled,
-
+        Boolean notificationsEnabled
 ) {}

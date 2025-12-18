@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
-import { ReportRange, ReportService, SummaryItem } from '../../core/services/report.service';
+import { ReportRange, ReportService, SummaryItem, SummaryItem as SummaryItemType } from '../../core/services/report.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -35,6 +35,28 @@ type FocusProject = {
   totalMinutes: number;
 };
 
+type TrendDisplay = {
+  label: string;
+  current: number;
+  previous: number;
+  changePercent: number;
+  icon: string;
+};
+
+type InsightDisplay = {
+  type: 'positive' | 'warning' | 'info';
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+  actionable: string;
+  icon: string;
+};
+
+type PeriodInfo = {
+  startDate: string;
+  endDate: string;
+  range: string;
+};
+
 @Component({
   selector: 'app-report',
   standalone: true,
@@ -44,35 +66,58 @@ type FocusProject = {
 })
 export class Report implements OnInit {
   private dialog = inject(MatDialog);
-  private router = inject(Router);
   private auth = inject(Auth);
   private reportService = inject(ReportService);
+
+  // Constants
+  private readonly HOURS_TO_MINUTES = 60;
+  private readonly DEFAULT_MAX_HOURS = 0.5;
+  private readonly CHART_SCALE_MULTIPLIER = 1.2;
+  private readonly ROUNDING_FACTOR = 2;
+  private readonly MINUTES_THRESHOLD = 1; // 1 hour threshold to switch from minutes to hours
+  private readonly MIN_TICKS = 5; // Minimum number of ticks to display
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
 
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
+  protected readonly totalBreakHours = signal(0);
   protected readonly dailyAverageFocusHours = signal(0);
   protected readonly streakDays = signal(0);
+  protected readonly completionRate = signal(0);
+  protected readonly sessionsCount = signal(0);
+
+  // Period info
+  protected readonly periodInfo = signal<PeriodInfo | null>(null);
+
+  // Trends
+  protected readonly trends = signal<TrendDisplay[]>([]);
+
+  // Insights
+  protected readonly insights = signal<InsightDisplay[]>([]);
 
   // Chart + range state
   protected readonly selectedRange = signal<ReportRange>(ReportRange.WEEK);
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
-  protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
+  protected readonly chartTicks = signal<number[]>([]);
   protected readonly expiredSessionFocusChecked = signal(false);
-  protected readonly mockExpiredSessionsCount = signal(5); // Mock data - will be replaced with backend
+  protected readonly expiredSessionsCount = signal(0);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
   protected readonly activityRanking = signal<ActivityRank[]>([]);
   protected readonly focusProjects = signal<FocusProject[]>([]);
+  
+  // Chart unit mode: 'hours' or 'minutes'
+  protected readonly chartUnitMode = signal<'hours' | 'minutes'>('hours');
 
   ngOnInit(): void {
     // Initialize theme state
     this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
     
+    // Load data from backend based on selected range
     this.loadSummary(this.selectedRange());
   }
 
@@ -151,38 +196,58 @@ export class Report implements OnInit {
   private loadSummary(range: ReportRange): void {
     this.reportService.getSummary(range).subscribe({
       next: (summary) => this.updateFromSummary(summary),
-      error: () => {
+      error: (error) => {
+        console.error('Error loading report summary:', error);
+        // Clear all data when there's an error - only show backend data
         this.totalFocusHours.set(0);
+        this.totalBreakHours.set(0);
         this.dailyAverageFocusHours.set(0);
         this.streakDays.set(0);
+        this.completionRate.set(0);
+        this.sessionsCount.set(0);
+        this.expiredSessionsCount.set(0);
+        this.periodInfo.set(null);
         
-        // Generate default labels even when there's an error
-        const labels = this.generateDefaultLabels(range);
-        const points: FocusPoint[] = labels.map((label) => ({
-          label,
-          hours: 0,
-          percentage: 0,
-          activities: [],
-        }));
-        this.rebuildSeries(points);
-        
+        // Clear chart data - show nothing instead of empty placeholders
+        this.focusSeries.set([]);
+        this.chartTicks.set([]);
         this.currentRangeTotalHours.set(0);
         this.activityRanking.set([]);
         this.focusProjects.set([]);
+        this.trends.set([]);
+        this.insights.set([]);
       },
     });
   }
 
-  private updateFromSummary(summary: SummaryItem): void {
+  private updateFromSummary(summary: SummaryItemType): void {
+    // Guard against undefined summary
+    if (!summary) {
+      console.error('Summary is undefined');
+      return;
+    }
+
     const metrics = summary.metrics;
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
     const recentSessions = summary.recentSessions ?? [];
+    const meta = summary.meta;
+    const trendData = summary.trends;
+    const insightData = summary.insights;
+
+    // Update period info
+    if (meta) {
+      this.periodInfo.set({
+        startDate: meta.startDate,
+        endDate: meta.endDate,
+        range: meta.range,
+      });
+    }
 
     // Generate labels if not provided or empty
     const labels = chartData?.labels && chartData.labels.length > 0
       ? chartData.labels
-      : this.generateDefaultLabels(this.selectedRange());
+      : [];
 
     const focusHours = chartData?.datasets?.focus ?? [];
     // Ensure focusHours array matches labels length
@@ -193,7 +258,21 @@ export class Report implements OnInit {
 
     const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
-    this.totalFocusHours.set(metrics?.totalFocusedHours ?? 0);
+    // Guard against undefined metrics
+    if (metrics) {
+      this.totalFocusHours.set(metrics.totalFocusedHours ?? 0);
+      this.totalBreakHours.set(metrics.totalBreakHours ?? 0);
+      this.completionRate.set(metrics.completionRate ?? 0);
+      this.sessionsCount.set(metrics.sessionsCount ?? 0);
+      this.expiredSessionsCount.set(metrics.expiredSessionsCount ?? 0);
+    } else {
+      // Reset to defaults if metrics is undefined
+      this.totalFocusHours.set(0);
+      this.totalBreakHours.set(0);
+      this.completionRate.set(0);
+      this.sessionsCount.set(0);
+      this.expiredSessionsCount.set(0);
+    }
 
     const labelCount = labels.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
@@ -210,7 +289,7 @@ export class Report implements OnInit {
     this.streakDays.set(streak);
 
     // Build activity breakdown for each label based on recentSessions
-    const points: FocusPoint[] = labels.map((label, index) => {
+    const points: FocusPoint[] = labels.map((label: string, index: number) => {
       let displayLabel = label;
       let dateKey: string | undefined = undefined;
       if (this.selectedRange() === ReportRange.WEEK) {
@@ -256,6 +335,42 @@ export class Report implements OnInit {
 
     this.activityRanking.set(ranking);
     this.focusProjects.set(projects);
+
+    // Process trends if available
+    if (trendData) {
+      const trendDisplay: TrendDisplay[] = [];
+      
+      if (trendData.focusHours) {
+        trendDisplay.push({
+          label: 'Focus Hours',
+          current: trendData.focusHours.current,
+          previous: trendData.focusHours.previous,
+          changePercent: trendData.focusHours.changePercent,
+          icon: 'fa-solid fa-clock',
+        });
+      }
+      
+      if (trendData.completionRate) {
+        trendDisplay.push({
+          label: 'Completion Rate',
+          current: trendData.completionRate.current,
+          previous: trendData.completionRate.previous,
+          changePercent: trendData.completionRate.changePercent,
+          icon: 'fa-solid fa-check-circle',
+        });
+      }
+      
+      this.trends.set(trendDisplay);
+    }
+
+    // Process insights if available
+    if (insightData && insightData.length > 0) {
+      const insightDisplay: InsightDisplay[] = insightData.map((insight: any) => ({
+        ...insight,
+        icon: this.getInsightIcon(insight.type, insight.severity),
+      }));
+      this.insights.set(insightDisplay);
+    }
   }
 
   private getActivitiesForDateLabel(label: string, index: number, sessions: any[], dateKey?: string): ActivityBreakdown[] {
@@ -309,12 +424,19 @@ export class Report implements OnInit {
     if (!points.length) {
       this.focusSeries.set([]);
       this.currentRangeTotalHours.set(0);
-      this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
+      this.chartTicks.set([]);
+      this.chartUnitMode.set('hours');
       return;
     }
 
-    const maxHours = Math.max(...points.map((p) => p.hours), 0.5);
-    const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
+    const maxHours = Math.max(...points.map((p) => p.hours), this.DEFAULT_MAX_HOURS);
+    
+    // Determine if we should display in minutes or hours based on max value
+    const useMinutesMode = maxHours < this.MINUTES_THRESHOLD;
+    this.chartUnitMode.set(useMinutesMode ? 'minutes' : 'hours');
+    
+    // Calculate appropriate chart max and ticks
+    const { chartMax, ticks } = this.calculateChartTicks(maxHours, useMinutesMode);
 
     const normalized = points.map((p) => ({
       ...p,
@@ -322,14 +444,52 @@ export class Report implements OnInit {
     }));
 
     this.focusSeries.set(normalized);
-
-    const ticks: number[] = [];
-    const step = chartMax / 4;
-    for (let i = 0; i <= 4; i++) {
-      const value = +(i * step).toFixed(1);
-      ticks.push(value);
-    }
     this.chartTicks.set(ticks);
+  }
+
+  /**
+   * Calculates appropriate chart max value and tick intervals based on data
+   * @param maxHours - Maximum hours value from the data
+   * @param useMinutesMode - Whether to display in minutes or hours
+   * @returns Object containing chartMax and array of ticks
+   */
+  private calculateChartTicks(maxHours: number, useMinutesMode: boolean): { chartMax: number; ticks: number[] } {
+    if (useMinutesMode) {
+      // For minutes mode: show ticks at 0, 15, 30, 45, 60 minutes (and potentially more if needed)
+      const maxMinutes = maxHours * this.HOURS_TO_MINUTES;
+      const ticks: number[] = [];
+      
+      // Generate minute-based ticks
+      for (let minutes = 0; minutes <= maxMinutes; minutes += 15) {
+        ticks.push(minutes / this.HOURS_TO_MINUTES); // Convert back to hours for internal representation
+      }
+      
+      // Ensure we have at least MIN_TICKS
+      if (ticks.length < this.MIN_TICKS) {
+        const lastTick = ticks[ticks.length - 1];
+        ticks.push(lastTick + 0.25); // Add another 15-minute interval
+      }
+      
+      return {
+        chartMax: ticks[ticks.length - 1] || 1,
+        ticks,
+      };
+    } else {
+      // For hours mode: intelligently distribute ticks based on max hours
+      const chartMax = Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR;
+      const ticks: number[] = [];
+      const step = chartMax / (this.MIN_TICKS - 1); // Divide into MIN_TICKS intervals
+      
+      for (let i = 0; i < this.MIN_TICKS; i++) {
+        const value = +(i * step).toFixed(2);
+        ticks.push(value);
+      }
+      
+      return {
+        chartMax,
+        ticks,
+      };
+    }
   }
 
   protected formatMinutes(totalMinutes: number): string {
@@ -349,17 +509,29 @@ export class Report implements OnInit {
   }
 
   protected formatTickLabel(value: number): string {
-    if (value <= 0) {
-      return '0h';
-    }
-    // Always format as hours, using decimal notation when needed
-    const hours = Math.floor(value);
-    const decimalPart = value - hours;
+    const unitMode = this.chartUnitMode();
     
-    if (Math.abs(decimalPart) < 0.01) {
-      return `${hours}h`;
+    if (unitMode === 'minutes') {
+      // Convert hours to minutes for display
+      const totalMinutes = value * this.HOURS_TO_MINUTES;
+      if (totalMinutes === 0) {
+        return '0m';
+      }
+      const minutes = Math.round(totalMinutes);
+      return `${minutes}m`;
+    } else {
+      // Display as hours (original logic)
+      if (value <= 0) {
+        return '0h';
+      }
+      const hours = Math.floor(value);
+      const decimalPart = value - hours;
+      
+      if (Math.abs(decimalPart) < 0.01) {
+        return `${hours}h`;
+      }
+      return `${value.toFixed(1)}h`;
     }
-    return `${value.toFixed(1)}h`;
   }
 
   protected formatHours(hours: number): string {
@@ -372,33 +544,29 @@ export class Report implements OnInit {
 
   protected getTooltipTitle(point: FocusPoint): string {
     if (point.dateKey) {
-      const date = new Date(point.dateKey + 'T00:00:00');
-      return date.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase();
+      // Parse ISO date string (YYYY-MM-DD) without timezone issues
+      const [year, month, day] = point.dateKey.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${day}`.toUpperCase();
     }
     return point.label.toUpperCase();
   }
 
-  private generateDefaultLabels(range: ReportRange): string[] {
-    if (range === ReportRange.WEEK) {
-      // Generate ISO date strings for the last 7 days ending today
-      const today = new Date();
-      const labels: string[] = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        labels.push(date.toISOString().slice(0, 10));
-      }
-      return labels;
-    } else if (range === ReportRange.MONTH) {
-      return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    } else {
-      const startingYear = 2025;
-      const currentYear = new Date().getFullYear();
-      const labels: string[] = [];
-      for (let year = startingYear; year <= currentYear; year++) {
-        labels.push(year.toString());
-      }
-      return labels;
-    }
+  /**
+   * Builds CSS class string for insight card based on type and severity
+   * @param type - The insight type (positive, warning, info)
+   * @param severity - The severity level (low, medium, high)
+   * @returns Combined class string
+   */
+  protected buildInsightCardClass(type: string, severity: string): string {
+    return `insight-${type} severity-${severity}`;
+  }
+
+  private getInsightIcon(type: 'positive' | 'warning' | 'info', severity: 'low' | 'medium' | 'high'): string {
+    if (type === 'positive') return 'fa-solid fa-thumbs-up';
+    if (type === 'warning') return 'fa-solid fa-triangle-exclamation';
+    return 'fa-solid fa-circle-info';
   }
 }
