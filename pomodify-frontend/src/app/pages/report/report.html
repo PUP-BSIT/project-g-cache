@@ -185,33 +185,7 @@
             </section>
           }
 
-          <!-- Trends Section -->
-          @if (trends().length > 0) {
-            <section class="trends-section">
-              <h2 class="section-heading">Trends</h2>
-              <div class="trends-grid">
-                @for (trend of trends(); track trend.label) {
-                  <div class="trend-card">
-                    <div class="trend-icon">
-                      <i [class]="trend.icon"></i>
-                    </div>
-                    <div class="trend-content">
-                      <div class="trend-label">{{ trend.label }}</div>
-                      <div class="trend-comparison">
-                        <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
-                        <span class="trend-vs">vs</span>
-                        <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
-                      </div>
-                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
-                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
-                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            </section>
-          }
+
 
           <!-- Insights Section -->
           @if (insights().length > 0) {
@@ -375,40 +349,34 @@
         </section>
         </div>
 
-        <!-- RIGHT: Ranking -->
-        <div class="ranking-panel fade-in-up">
-          <div class="ranking-header">
-            <h2 class="panel-title">Ranking</h2>
-            <div class="panel-subtitle">Most focused activities</div>
-          </div>
-
-          <div class="ranking-list">
-            @if (activityRanking().length === 0) {
-              <div class="empty-state">
-                No sessions yet. Start a focus session to see your rankings here.
-              </div>
-            } @else {
-              @for (item of activityRanking(); track item.id; let i = $index) {
-                <div class="ranking-row">
-                  <div class="rank-number">#{{ i + 1 }}</div>
-                  <div class="rank-main">
-                    <div class="rank-text">
-                      <div class="rank-name">
-                        {{ item.name }}
+        <!-- RIGHT: Trends Section -->
+        <div class="trends-panel fade-in-up">
+          @if (trends().length > 0) {
+            <section class="trends-section">
+              <h2 class="section-heading">Trends</h2>
+              <div class="trends-grid">
+                @for (trend of trends(); track trend.label) {
+                  <div class="trend-card">
+                    <div class="trend-icon">
+                      <i [class]="trend.icon"></i>
+                    </div>
+                    <div class="trend-content">
+                      <div class="trend-label">{{ trend.label }}</div>
+                      <div class="trend-comparison">
+                        <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
+                        <span class="trend-vs">vs</span>
+                        <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
                       </div>
-                      <div class="rank-meta">
-                        {{ item.totalHours | number: '1.0-1' }} hrs ·
-                        {{ item.sessions }} session{{ item.sessions !== 1 ? 's' : '' }}
+                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
+                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
+                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
                       </div>
                     </div>
                   </div>
-                  <div class="rank-hours">
-                    {{ item.totalHours | number: '1.0-1' }}h
-                  </div>
-                </div>
-              }
-            }
-          </div>
+                }
+              </div>
+            </section>
+          }
         </div>
       </section>
     </div>
