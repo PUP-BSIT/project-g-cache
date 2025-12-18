@@ -126,11 +126,21 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: flex-start;
   position: relative;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 8px 12px;
   width: 72px;
   box-sizing: border-box;
   height: 52px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.2s ease;
+  border-radius: 6px;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
   
   img {
     display: block;
@@ -138,7 +148,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     height: 36px;
     flex-shrink: 0;
     min-width: 36px;
-    margin-left: 18px;
+    margin-left: 6px;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -163,7 +173,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       width: 40px;
       height: 40px;
       min-width: 40px;
-      margin-left: 16px;
+      margin-left: 8px;
     }
     
     .app-name {
