@@ -16,10 +16,24 @@ export function getStoredTheme(): Theme {
 export function applyTheme(theme: Theme): void {
   const isDark = theme === 'dark';
   
-  // Add transition class for smooth theme switching
+  // Check if we're on a public page (landing, login, signup)
+  const currentPath = window.location.pathname;
+  const isPublicPage = currentPath === '/' || 
+                      currentPath === '/login' || 
+                      currentPath === '/signup' ||
+                      currentPath.startsWith('/landing');
+  
+  // If on public page, NEVER apply dark theme
+  if (isPublicPage) {
+    document.documentElement.classList.remove('theme-dark');
+    document.documentElement.classList.remove('theme-transitioning');
+    return;
+  }
+  
+  // Add transition class for smooth theme switching (authenticated pages only)
   document.documentElement.classList.add('theme-transitioning');
   
-  // Apply the theme
+  // Apply the theme (authenticated pages only)
   document.documentElement.classList.toggle('theme-dark', isDark);
   
   // Remove transition class after animation completes
@@ -30,6 +44,21 @@ export function applyTheme(theme: Theme): void {
 
 export function initTheme(): void {
   try {
+    // Check if we're on a public page
+    const currentPath = window.location.pathname;
+    const isPublicPage = currentPath === '/' || 
+                        currentPath === '/login' || 
+                        currentPath === '/signup' ||
+                        currentPath.startsWith('/landing');
+    
+    if (isPublicPage) {
+      // Force remove any theme classes from public pages
+      document.documentElement.classList.remove('theme-dark');
+      document.documentElement.classList.remove('theme-transitioning');
+      return;
+    }
+    
+    // Apply theme only for authenticated pages
     const theme = getStoredTheme();
     applyTheme(theme);
   } catch {
@@ -47,4 +76,18 @@ export function setTheme(theme: Theme): void {
 export function toggleTheme(): void {
   const next: Theme = document.documentElement.classList.contains('theme-dark') ? 'light' : 'dark';
   setTheme(next);
+}
+
+// Force public pages to always be light theme
+export function ensurePublicPageLightTheme(): void {
+  const currentPath = window.location.pathname;
+  const isPublicPage = currentPath === '/' || 
+                      currentPath === '/login' || 
+                      currentPath === '/signup' ||
+                      currentPath.startsWith('/landing');
+  
+  if (isPublicPage) {
+    document.documentElement.classList.remove('theme-dark');
+    document.documentElement.classList.remove('theme-transitioning');
+  }
 }

@@ -4,7 +4,7 @@
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--card);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
@@ -16,8 +16,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 24px 28px;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #4b9fa8 0%, #3d8490 100%);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%);
 
   h2 {
     font-size: 24px;
@@ -165,7 +165,7 @@
 .section-label {
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
@@ -182,28 +182,29 @@
 .form-input {
   width: 100%;
   padding: 12px 14px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border);
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  color: #1f2937;
+  color: var(--text);
   transition: all 0.2s ease;
-  background: white;
+  background: var(--card);
 
   &:focus {
     outline: none;
-    border-color: #4b9fa8;
-    box-shadow: 0 0 0 4px rgba(75, 159, 168, 0.1);
+    border-color: #5FA9A4;
+    box-shadow: 0 0 0 4px rgba(95, 169, 164, 0.1);
   }
 
   &::placeholder {
-    color: #9ca3af;
+    color: var(--muted);
   }
 
   &:disabled {
-    background: #f9fafb;
-    color: #9ca3af;
+    background: var(--muted);
+    color: var(--muted);
     cursor: not-allowed;
+    opacity: 0.6;
   }
 }
 
@@ -220,7 +221,7 @@
 
 .btn-save-inline {
   padding: 12px 20px;
-  background: #4b9fa8;
+  background: #5FA9A4;
   color: white;
   border: none;
   border-radius: 8px;
@@ -231,8 +232,8 @@
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: #3d8490;
-    box-shadow: 0 4px 12px rgba(75, 159, 168, 0.25);
+    background: #4D8B87;
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
     transform: translateY(-1px);
   }
 
@@ -256,13 +257,14 @@
   top: 50%;
   transform: translateY(-50%);
   padding: 4px 10px;
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
   font-size: 11px;
   font-weight: 600;
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 // Password display
@@ -274,9 +276,9 @@
 
 .btn-change-password {
   padding: 12px 20px;
-  background: white;
-  color: #4b9fa8;
-  border: 2px solid #4b9fa8;
+  background: var(--card);
+  color: #5FA9A4;
+  border: 2px solid #5FA9A4;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -285,9 +287,9 @@
   white-space: nowrap;
 
   &:hover {
-    background: #4b9fa8;
+    background: #5FA9A4;
     color: white;
-    box-shadow: 0 4px 12px rgba(75, 159, 168, 0.25);
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
     transform: translateY(-1px);
   }
 }
@@ -596,23 +598,24 @@
 }
 
 .btn-cancel-modal {
-  background: white;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
+  background: var(--card);
+  color: var(--muted);
+  border: 2px solid var(--border);
 
   &:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
+    background: var(--muted);
+    border-color: var(--muted);
+    color: var(--text);
   }
 }
 
 .btn-save-modal {
-  background: linear-gradient(135deg, #4b9fa8 0%, #3d8490 100%);
+  background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(75, 159, 168, 0.25);
+  box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
 
   &:hover {
-    box-shadow: 0 6px 20px rgba(75, 159, 168, 0.35);
+    box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
     transform: translateY(-2px);
   }
 
@@ -691,79 +694,82 @@
   }
 }
 
-// Dark theme support
-:host-context(.theme-dark) {
-  .profile-modal {
-    background: #1f2937;
+// Update other elements to use CSS custom properties
+.profile-info-header {
+  h3 {
+    color: var(--text);
   }
 
-  .modal-content {
-    &::-webkit-scrollbar-track {
-      background: #374151;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #4b5563;
-
-      &:hover {
-        background: #6b7280;
-      }
-    }
+  .email-text {
+    color: var(--muted);
   }
+}
 
-  .profile-picture-section {
-    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-    border-color: #374151;
-  }
+.divider {
+  background: linear-gradient(90deg, transparent 0%, var(--border) 50%, transparent 100%);
+}
 
-  .profile-info-header {
-    h3 {
-      color: #f9fafb;
-    }
+.modal-footer {
+  background: var(--bg);
+  border-color: var(--border);
+}
 
-    .email-text {
-      color: #9ca3af;
-    }
-  }
+.backup-email-form {
+  background: var(--bg);
+  border-color: var(--border);
+}
 
-  .divider {
-    background: linear-gradient(90deg, transparent 0%, #374151 50%, transparent 100%);
-  }
+.verification-container {
+  background: rgba(95, 169, 164, 0.05);
+  border-color: #5FA9A4;
+}
 
-  .section-label {
-    color: #d1d5db;
-  }
-
-  .form-input {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f9fafb;
-
-    &:disabled {
-      background: #1f2937;
-      color: #6b7280;
+.verification-info {
+  background: var(--card);
+  border-left-color: #5FA9A4;
+  
+  p {
+    color: var(--text);
+    
+    strong {
+      color: var(--text);
     }
   }
+  
+  i {
+    color: #5FA9A4;
+  }
+}
 
-  .backup-email-form {
-    background: #374151;
-    border-color: #4b5563;
+.password-form {
+  background: var(--card);
+}
+
+.form-group label {
+  color: var(--text);
+}
+
+.helper-text {
+  color: var(--muted);
+}
+
+// Update scrollbar for theme consistency
+.modal-content {
+  &::-webkit-scrollbar-track {
+    background: var(--bg);
   }
 
-  .verification-container {
-    background: #374151;
-  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
 
-  .verification-info {
-    background: #1f2937;
+    &:hover {
+      background: var(--muted);
+    }
   }
+}
 
-  .password-form {
-    background: #1f2937;
-  }
-
-  .modal-footer {
-    background: #111827;
-    border-color: #374151;
-  }
+// Ensure profile picture section uses theme colors
+.profile-picture-section {
+  background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(123, 196, 191, 0.05) 100%);
+  border: 2px solid var(--border);
 }
