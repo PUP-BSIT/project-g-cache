@@ -84,9 +84,11 @@
     <!-- Report Content -->
     <div class="report-content">
       <section class="report-main-grid">
-        <!-- LEFT: Activity summary + Focus hours -->
-        <div class="report-left">
-          <section class="activity-summary-section">
+        <!-- TOP ROW: Activity Summary (Left) and Trends (Right) -->
+        <div class="report-top-row">
+          <!-- LEFT: Activity summary -->
+          <div class="report-activity-panel">
+            <section class="activity-summary-section">
             <h2 class="section-heading">Activity Summary</h2>
 
             <div class="summary-cards">
@@ -185,8 +187,6 @@
             </section>
           }
 
-
-
           <!-- Insights Section -->
           @if (insights().length > 0) {
             <section class="insights-section">
@@ -206,8 +206,39 @@
               </div>
             </section>
           }
+          </div>
 
-          <!-- Focus Hours -->
+          <!-- RIGHT: Trends Section (Top Right) -->
+          <section class="trends-section fade-in-up">
+            @if (trends().length > 0) {
+              <h2 class="section-heading">Trends</h2>
+              <div class="trends-grid">
+                @for (trend of trends(); track trend.label) {
+                  <div class="trend-card">
+                    <div class="trend-icon">
+                      <i [class]="trend.icon"></i>
+                    </div>
+                    <div class="trend-content">
+                      <div class="trend-label">{{ trend.label }}</div>
+                      <div class="trend-comparison">
+                        <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
+                        <span class="trend-vs">vs</span>
+                        <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
+                      </div>
+                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
+                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
+                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <!-- BOTTOM: Focus Hours (Full Width) -->
+        <div class="report-bottom-row">
           <section class="focus-panel fade-in-up">
           <div class="focus-header">
             <div class="focus-title-group">
@@ -346,37 +377,7 @@
               }
             </div>
           </div>
-        </section>
-        </div>
-
-        <!-- RIGHT: Trends Section -->
-        <div class="trends-panel fade-in-up">
-          @if (trends().length > 0) {
-            <section class="trends-section">
-              <h2 class="section-heading">Trends</h2>
-              <div class="trends-grid">
-                @for (trend of trends(); track trend.label) {
-                  <div class="trend-card">
-                    <div class="trend-icon">
-                      <i [class]="trend.icon"></i>
-                    </div>
-                    <div class="trend-content">
-                      <div class="trend-label">{{ trend.label }}</div>
-                      <div class="trend-comparison">
-                        <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
-                        <span class="trend-vs">vs</span>
-                        <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
-                      </div>
-                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
-                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
-                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
-            </section>
-          }
+          </section>
         </div>
       </section>
     </div>

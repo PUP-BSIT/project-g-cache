@@ -583,6 +583,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-top: 45px;
 
   .section-heading {
     font-size: 18px;
@@ -790,9 +791,28 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .report-main-grid {
   display: grid;
-  grid-template-columns: 2fr 1.1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
+}
+
+.report-top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.report-activity-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.report-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
 }
 
 .report-left {
@@ -1294,7 +1314,23 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   gap: 6px;
 }
 
-// Ranking panel
+// Trends panel (replaces ranking panel)
+.trends-panel {
+  background: $bg-white;
+  border-radius: 18px;
+  padding: 24px 24px 25px 28px;
+  box-shadow: $card-shadow;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: $card-shadow-hover;
+  }
+}
+
+// Keep ranking panel styles for backward compatibility
 .ranking-panel {
   background: $bg-white;
   border-radius: 18px;
@@ -1438,7 +1474,15 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 
   .report-main-grid {
-    grid-template-columns: 1.7fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .report-top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .report-bottom-row {
+    grid-template-columns: 1fr;
   }
 
   .bar {
