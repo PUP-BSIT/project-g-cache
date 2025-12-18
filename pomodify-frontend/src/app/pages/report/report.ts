@@ -101,7 +101,7 @@ export class Report implements OnInit {
   protected readonly selectedRange = signal<ReportRange>(ReportRange.WEEK);
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
-  protected readonly chartTicks = signal<number[]>([0, 0.5, 1, 1.5, 2]);
+  protected readonly chartTicks = signal<number[]>([]);
   protected readonly expiredSessionFocusChecked = signal(false);
   protected readonly expiredSessionsCount = signal(0);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
@@ -117,6 +117,7 @@ export class Report implements OnInit {
     // Initialize theme state
     this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
     
+    // Load data from backend based on selected range
     this.loadSummary(this.selectedRange());
   }
 
@@ -195,24 +196,26 @@ export class Report implements OnInit {
   private loadSummary(range: ReportRange): void {
     this.reportService.getSummary(range).subscribe({
       next: (summary) => this.updateFromSummary(summary),
-      error: () => {
+      error: (error) => {
+        console.error('Error loading report summary:', error);
+        // Clear all data when there's an error - only show backend data
         this.totalFocusHours.set(0);
+        this.totalBreakHours.set(0);
         this.dailyAverageFocusHours.set(0);
         this.streakDays.set(0);
+        this.completionRate.set(0);
+        this.sessionsCount.set(0);
+        this.expiredSessionsCount.set(0);
+        this.periodInfo.set(null);
         
-        // Generate default labels even when there's an error
-        const labels = this.generateDefaultLabels(range);
-        const points: FocusPoint[] = labels.map((label) => ({
-          label,
-          hours: 0,
-          percentage: 0,
-          activities: [],
-        }));
-        this.rebuildSeries(points);
-        
+        // Clear chart data - show nothing instead of empty placeholders
+        this.focusSeries.set([]);
+        this.chartTicks.set([]);
         this.currentRangeTotalHours.set(0);
         this.activityRanking.set([]);
         this.focusProjects.set([]);
+        this.trends.set([]);
+        this.insights.set([]);
       },
     });
   }
@@ -244,7 +247,7 @@ export class Report implements OnInit {
     // Generate labels if not provided or empty
     const labels = chartData?.labels && chartData.labels.length > 0
       ? chartData.labels
-      : this.generateDefaultLabels(this.selectedRange());
+      : [];
 
     const focusHours = chartData?.datasets?.focus ?? [];
     // Ensure focusHours array matches labels length
@@ -286,7 +289,7 @@ export class Report implements OnInit {
     this.streakDays.set(streak);
 
     // Build activity breakdown for each label based on recentSessions
-    const points: FocusPoint[] = labels.map((label, index) => {
+    const points: FocusPoint[] = labels.map((label: string, index: number) => {
       let displayLabel = label;
       let dateKey: string | undefined = undefined;
       if (this.selectedRange() === ReportRange.WEEK) {
@@ -421,7 +424,7 @@ export class Report implements OnInit {
     if (!points.length) {
       this.focusSeries.set([]);
       this.currentRangeTotalHours.set(0);
-      this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
+      this.chartTicks.set([]);
       this.chartUnitMode.set('hours');
       return;
     }
@@ -559,30 +562,6 @@ export class Report implements OnInit {
    */
   protected buildInsightCardClass(type: string, severity: string): string {
     return `insight-${type} severity-${severity}`;
-  }
-
-  private generateDefaultLabels(range: ReportRange): string[] {
-    if (range === ReportRange.WEEK) {
-      // Generate ISO date strings for the last 7 days ending today
-      const today = new Date();
-      const labels: string[] = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        labels.push(date.toISOString().slice(0, 10));
-      }
-      return labels;
-    } else if (range === ReportRange.MONTH) {
-      return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    } else {
-      const startingYear = 2025;
-      const currentYear = new Date().getFullYear();
-      const labels: string[] = [];
-      for (let year = startingYear; year <= currentYear; year++) {
-        labels.push(year.toString());
-      }
-      return labels;
-    }
   }
 
   private getInsightIcon(type: 'positive' | 'warning' | 'info', severity: 'low' | 'medium' | 'high'): string {
