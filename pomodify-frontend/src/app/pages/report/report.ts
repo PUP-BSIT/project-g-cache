@@ -114,6 +114,11 @@ export class Report implements OnInit {
   protected readonly chartUnitMode = signal<'hours' | 'minutes'>('hours');
 
   ngOnInit(): void {
+    // Auto-collapse sidebar on mobile
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      this.sidebarExpanded.set(false);
+    }
+    
     // Initialize theme state
     this.isDarkMode.set(document.documentElement.classList.contains('theme-dark'));
     
