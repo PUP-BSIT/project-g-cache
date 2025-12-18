@@ -303,7 +303,7 @@ export class TimerSyncService {
     const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
     
     const context = {
-      title: `${currentPhase === 'FOCUS' ? '🧠' : '☕'} ${currentPhase} Complete!`,
+      title: `${currentPhase} Phase Complete!`,
       body: `Time for a ${nextPhase.toLowerCase()}!`,
       sessionId: this.currentSession.id,
       activityId: this.currentSession.activityId,

@@ -387,15 +387,9 @@ export class NotificationService {
       data: modalData
     });
 
-    // Auto-close after 10 seconds if user doesn't interact
-    setTimeout(() => {
-      if (dialogRef.componentInstance) {
-        dialogRef.close('auto-close');
-      }
-    }, 10000);
-
+    // No auto-close - let user decide when to dismiss
     dialogRef.afterClosed().subscribe(result => {
-      console.log('📱 Notification modal closed:', result);
+      console.log('📱 Notification modal closed by user:', result);
     });
   }
 
@@ -421,7 +415,7 @@ export class NotificationService {
         try {
           const notification = new Notification(context.title, {
             body: context.body,
-            icon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+            icon: '/assets/images/logo.png',
             tag: 'pomodify-session'
           });
           
@@ -432,10 +426,7 @@ export class NotificationService {
             notification.close();
           };
           
-          // Auto-close after 10 seconds
-          setTimeout(() => {
-            notification.close();
-          }, 10000);
+          // No auto-close - let user decide when to dismiss
           
           console.log('🎉 Desktop notification sent successfully!');
           
@@ -513,7 +504,7 @@ export class NotificationService {
     console.log('🧪 Testing desktop notification from service...');
     
     const testContext: NotificationContext = {
-      title: '🍅 Pomodify Test',
+      title: 'Pomodify Test Notification',
       body: 'Test notification from NotificationService!',
       type: 'phase-complete',
       activityTitle: 'Test Activity'
