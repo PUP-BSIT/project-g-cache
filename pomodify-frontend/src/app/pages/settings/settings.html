@@ -11,7 +11,7 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="logo">
+    <div class="logo" (click)="toggleSidebar()" title="Toggle Sidebar" role="button" tabindex="0">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -19,25 +19,25 @@
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" (click)="navigateTo('/dashboard')">
+      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" (click)="navigateTo('/activities')">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" (click)="navigateTo('/report')">
+      <button class="nav-icon" routerLink="/report" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon active">
+      <button class="nav-icon" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="toggleSidebar()">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
