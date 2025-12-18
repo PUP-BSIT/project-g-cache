@@ -102,6 +102,9 @@ export class Report implements OnInit {
 
   protected readonly activityRanking = signal<ActivityRank[]>([]);
   protected readonly focusProjects = signal<FocusProject[]>([]);
+  
+  // Chart unit mode: 'hours' or 'minutes'
+  protected readonly chartUnitMode = signal<'hours' | 'minutes'>('hours');
 
   ngOnInit(): void {
     // Initialize theme state
@@ -412,11 +415,21 @@ export class Report implements OnInit {
       this.focusSeries.set([]);
       this.currentRangeTotalHours.set(0);
       this.chartTicks.set([0, 0.5, 1, 1.5, 2]);
+      this.chartUnitMode.set('hours');
       return;
     }
 
     const maxHours = Math.max(...points.map((p) => p.hours), 0.5);
-    const chartMax = Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
+    
+    // Determine if we should display in minutes or hours
+    // If max is less than 1 hour (60 minutes), display in minutes
+    const useMinutesMode = maxHours < 1;
+    this.chartUnitMode.set(useMinutesMode ? 'minutes' : 'hours');
+    
+    // Keep the chart max in hours for consistency
+    const chartMax = useMinutesMode
+      ? Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1)  // Keep as hours
+      : Math.max(Math.ceil(maxHours * 1.2 * 2) / 2, 1);
 
     const normalized = points.map((p) => ({
       ...p,
@@ -428,7 +441,7 @@ export class Report implements OnInit {
     const ticks: number[] = [];
     const step = chartMax / 4;
     for (let i = 0; i <= 4; i++) {
-      const value = +(i * step).toFixed(1);
+      const value = +(i * step).toFixed(2);
       ticks.push(value);
     }
     this.chartTicks.set(ticks);
@@ -451,17 +464,29 @@ export class Report implements OnInit {
   }
 
   protected formatTickLabel(value: number): string {
-    if (value <= 0) {
-      return '0h';
-    }
-    // Always format as hours, using decimal notation when needed
-    const hours = Math.floor(value);
-    const decimalPart = value - hours;
+    const unitMode = this.chartUnitMode();
     
-    if (Math.abs(decimalPart) < 0.01) {
-      return `${hours}h`;
+    if (unitMode === 'minutes') {
+      // Convert hours to minutes for display
+      const totalMinutes = value * 60;
+      if (totalMinutes === 0) {
+        return '0m';
+      }
+      const minutes = Math.round(totalMinutes);
+      return `${minutes}m`;
+    } else {
+      // Display as hours (original logic)
+      if (value <= 0) {
+        return '0h';
+      }
+      const hours = Math.floor(value);
+      const decimalPart = value - hours;
+      
+      if (Math.abs(decimalPart) < 0.01) {
+        return `${hours}h`;
+      }
+      return `${value.toFixed(1)}h`;
     }
-    return `${value.toFixed(1)}h`;
   }
 
   protected formatHours(hours: number): string {
