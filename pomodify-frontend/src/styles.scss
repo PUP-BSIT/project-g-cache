@@ -143,6 +143,18 @@ body {
     color: #2C3E50 !important;
     border-bottom-color: #DEE2E6 !important;
   }
+  
+  /* Force light mode for sound select */
+  .sound-select {
+    background: #FFFFFF !important;
+    color: #2C3E50 !important;
+    border-color: #DEE2E6 !important;
+    
+    option {
+      background: #FFFFFF !important;
+      color: #2C3E50 !important;
+    }
+  }
 
   /* Sidebar styling */
   .sidebar {

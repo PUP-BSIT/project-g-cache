@@ -91,24 +91,24 @@
         </div>
       }
 
-      <!-- Full-Width Row-Based Settings Layout -->
+      <!-- Full-Width Row-Based Layout -->
       <div class="settings-header">
-        <h1 class="settings-title">Settings</h1>
-        <p class="settings-subtitle">Manage your preferences</p>
+        <h1 class="settings-title">Preferences</h1>
+        <p class="settings-subtitle">Customize your Pomodify experience</p>
       </div>
 
       <!-- Settings Sections in Row Layout -->
       <div class="settings-sections">
         
-        <!-- Notifications & Sound Section -->
+        <!-- Notifications, Sound and Appearance Section -->
         <div class="settings-section-card">
           <div class="section-header">
+            <div class="section-title-group">
+              <h2 class="section-title">Notifications, Sound and Appearance</h2>
+              <p class="section-description">Manage alerts, audio and theme preferences</p>
+            </div>
             <div class="section-icon">
               <i class="fa-solid fa-bell"></i>
-            </div>
-            <div class="section-title-group">
-              <h2 class="section-title">Notifications & Sound</h2>
-              <p class="section-description">Manage alerts and audio preferences</p>
             </div>
           </div>
           
@@ -175,22 +175,7 @@
                 </div>
               </div>
             }
-          </div>
-        </div>
 
-        <!-- Theme & Auto-Start Section -->
-        <div class="settings-section-card">
-          <div class="section-header">
-            <div class="section-icon">
-              <i class="fa-solid fa-palette"></i>
-            </div>
-            <div class="section-title-group">
-              <h2 class="section-title">Appearance & Automation</h2>
-              <p class="section-description">Theme and auto-start preferences</p>
-            </div>
-          </div>
-          
-          <div class="section-content">
             <div class="setting-row">
               <div class="setting-info">
                 <h3 class="setting-label">Dark Mode</h3>
@@ -216,51 +201,20 @@
                 </div>
               </div>
             </div>
-
-            <div class="setting-row">
-              <div class="setting-info">
-                <h3 class="setting-label">Auto-start Breaks</h3>
-                <p class="setting-description">Automatically start break after pomodoro completes</p>
-              </div>
-              <div class="toggle-switch">
-                <input type="checkbox" id="auto-break-toggle" class="toggle-input" 
-                       [checked]="autoStartBreaks()" 
-                       (change)="toggleAutoStartBreaks()">
-                <label for="auto-break-toggle" class="toggle-label"></label>
-              </div>
-            </div>
-
-            <div class="setting-row">
-              <div class="setting-info">
-                <h3 class="setting-label">Auto-start Pomodoros</h3>
-                <p class="setting-description">Automatically start next pomodoro after break</p>
-              </div>
-              <div class="toggle-switch">
-                <input type="checkbox" id="auto-pomodoro-toggle" class="toggle-input" 
-                       [checked]="autoStartPomodoros()" 
-                       (change)="toggleAutoStartPomodoros()">
-                <label for="auto-pomodoro-toggle" class="toggle-label"></label>
-              </div>
-            </div>
-
-            @if (autoStartBreaks() || autoStartPomodoros()) {
-              <div class="info-box">
-                <i class="fa-solid fa-info-circle"></i>
-                <p>You'll see a 3-second countdown before auto-start. You can cancel anytime.</p>
-              </div>
-            }
           </div>
         </div>
+
+
 
         <!-- Privacy & Data Section -->
         <div class="settings-section-card">
           <div class="section-header">
-            <div class="section-icon">
-              <i class="fa-solid fa-shield-halved"></i>
-            </div>
             <div class="section-title-group">
               <h2 class="section-title">Privacy & Data</h2>
               <p class="section-description">Manage your data and privacy</p>
+            </div>
+            <div class="section-icon">
+              <i class="fa-solid fa-shield-halved"></i>
             </div>
           </div>
           
