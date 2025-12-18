@@ -1378,12 +1378,11 @@ Status: **200 OK**
   "soundType": "DEFAULT",
   "notificationSound": true,
   "volume": 80,
-  "tickSound": true,
+
   "autoStartBreaks": true,
   "autoStartPomodoros": false,
   "theme": "LIGHT",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 
@@ -1413,12 +1412,10 @@ Update user settings.
   "soundType": "NATURE",
   "notificationSound": true,
   "volume": 75,
-  "tickSound": false,
   "autoStartBreaks": true,
   "autoStartPomodoros": true,
   "theme": "DARK",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 
@@ -1427,12 +1424,12 @@ Update user settings.
 | soundType              | string  | No       | Sound type preference          |
 | notificationSound      | boolean | No       | Enable notification sounds     |
 | volume                 | number  | No       | Volume level (0-100)           |
-| tickSound              | boolean | No       | Enable tick sounds             |
+
 | autoStartBreaks        | boolean | No       | Auto start break timer         |
 | autoStartPomodoros     | boolean | No       | Auto start pomodoro timer      |
 | theme                  | string  | No       | Theme (LIGHT/DARK)             |
 | notificationsEnabled   | boolean | No       | Enable notifications           |
-| googleCalendarSync     | boolean | No       | Enable Google Calendar sync    |
+
 
 ### **Success Response**
 
@@ -1443,12 +1440,10 @@ Status: **200 OK**
   "soundType": "NATURE",
   "notificationSound": true,
   "volume": 75,
-  "tickSound": false,
   "autoStartBreaks": true,
   "autoStartPomodoros": true,
   "theme": "DARK",
-  "notificationsEnabled": true,
-  "googleCalendarSync": false
+  "notificationsEnabled": true
 }
 ```
 

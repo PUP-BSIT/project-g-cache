@@ -37,10 +37,8 @@ class SettingsControllerWebMvcTest {
                 70,
                 false,
                 false,
-                false,
                 "SYSTEM",
-                true,
-                false
+                true
         );
         Mockito.when(settingsService.getSettings(userId)).thenReturn(resp);
 
@@ -64,10 +62,8 @@ class SettingsControllerWebMvcTest {
                 50,
                 true,
                 true,
-                false,
                 "DARK",
-                true,
-                false
+                true
         );
         Mockito.when(settingsService.updateSettings(Mockito.eq(userId), Mockito.any(UpdateSettingsRequest.class)))
                 .thenReturn(resp);

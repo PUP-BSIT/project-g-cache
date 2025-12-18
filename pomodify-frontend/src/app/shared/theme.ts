@@ -15,7 +15,17 @@ export function getStoredTheme(): Theme {
 
 export function applyTheme(theme: Theme): void {
   const isDark = theme === 'dark';
+  
+  // Add transition class for smooth theme switching
+  document.documentElement.classList.add('theme-transitioning');
+  
+  // Apply the theme
   document.documentElement.classList.toggle('theme-dark', isDark);
+  
+  // Remove transition class after animation completes
+  setTimeout(() => {
+    document.documentElement.classList.remove('theme-transitioning');
+  }, 300);
 }
 
 export function initTheme(): void {

@@ -333,16 +333,8 @@ public class SessionService {
         }
         long totalElapsedSeconds = s.calculateTotalElapsed().getSeconds();
 
-        long remainingPhaseSeconds;
-        if (s.getCurrentPhase() != null) {
-            Duration phaseDuration = s.getCurrentPhase() == com.pomodify.backend.domain.enums.CyclePhase.FOCUS
-                ? s.getFocusDuration()
-                : s.getBreakDuration();
-            long remaining = phaseDuration.getSeconds() - totalElapsedSeconds;
-            remainingPhaseSeconds = Math.max(remaining, 0);
-        } else {
-            remainingPhaseSeconds = 0;
-        }
+        // Use the enhanced timer calculation from domain model
+        long remainingPhaseSeconds = s.getRemainingPhaseSeconds();
 
         return SessionResult.builder()
                 .id(s.getId())

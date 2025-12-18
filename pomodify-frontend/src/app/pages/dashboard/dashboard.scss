@@ -1859,3 +1859,566 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .stats-section {
   display: none;
 }
+
+/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+:host-context(.theme-dark) {
+  .dashboard {
+    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
+    color: #e4e6ea;
+    min-height: 100vh;
+  }
+  
+  // Facebook-style metric cards
+  .metric-card {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      border-color: #5FA9A4;
+      box-shadow: 0 8px 32px rgba(95, 169, 164, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .metric-header h3 {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .metric-value {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .metric-subtitle {
+      color: #b0b3b8;
+    }
+    
+    // Override all specific card types with dark gradients
+    &.streak {
+      background: linear-gradient(135deg, #7C2D12 0%, #991B1B 100%) !important;
+    }
+    
+    &.streak-best {
+      background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
+    }
+    
+    &.primary {
+      background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
+    }
+    
+    &.activities {
+      background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
+    }
+  }
+  
+  // Override the yellow "Ready to Focus?" section
+  .quick-start-card {
+    background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
+    
+    .quick-start-info {
+      h4 {
+        color: #FEF3C7;
+      }
+      
+      p {
+        color: #FDE68A;
+      }
+    }
+    
+    .btn-quick-start {
+      background: rgba(255, 255, 255, 0.9) !important;
+      color: #92400E !important;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 1) !important;
+      }
+    }
+  }
+  
+  // Sidebar - Facebook style
+  .sidebar {
+    background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
+    border-right: 1px solid #3e4042;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    
+    .logo {
+      .app-name {
+        color: #e4e6ea;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-icon {
+      color: #b0b3b8;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &::before {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      &:hover {
+        &::before {
+          background: linear-gradient(135deg, rgba(95, 169, 164, 0.15), rgba(95, 169, 164, 0.1));
+        }
+        color: #7BC4BF;
+        transform: translateX(2px);
+      }
+      
+      &.active {
+        &::before {
+          background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+          box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+        }
+        color: #FFFFFF;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-text {
+      color: inherit;
+    }
+    
+    .nav-bottom {
+      border-top: 1px solid #3e4042;
+    }
+  }
+  
+  // Header - Facebook style
+  .header {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+    border-bottom: 1px solid #3e4042;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    
+    .page-title {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hamburger-btn {
+      background: rgba(95, 169, 164, 0.1);
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      
+      &:hover {
+        background: rgba(95, 169, 164, 0.2);
+        box-shadow: 0 2px 8px rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .theme-btn,
+    .profile-btn {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.2), rgba(95, 169, 164, 0.1));
+      color: #7BC4BF;
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.3), rgba(95, 169, 164, 0.2));
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+        transform: translateY(-1px);
+      }
+    }
+  }
+  
+  .dashboard-container {
+    .dashboard-header {
+      .dashboard-title {
+        color: #E5E7EB;
+      }
+      
+      .welcome-message {
+        color: #9CA3AF;
+      }
+    }
+    
+    .stats-grid {
+      .stat-card {
+        background: #111827;
+        border: 1px solid #1F2937;
+        
+        &:hover {
+          border-color: #374151;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stat-icon {
+          background-color: rgba(95, 169, 164, 0.1);
+          color: #7BC4BF;
+        }
+        
+        .stat-value {
+          color: #E5E7EB;
+        }
+        
+        .stat-label {
+          color: #9CA3AF;
+        }
+        
+        .stat-change {
+          &.positive {
+            color: #22C55E;
+          }
+          
+          &.negative {
+            color: #EF4444;
+          }
+        }
+      }
+    }
+    
+    .dashboard-content {
+      .content-section {
+        background: #111827;
+        border: 1px solid #1F2937;
+        
+        .section-header {
+          border-bottom-color: #1F2937;
+          
+          .section-title {
+            color: #E5E7EB;
+          }
+          
+          .section-action {
+            color: #7BC4BF;
+            
+            &:hover {
+              color: #5FA9A4;
+            }
+          }
+        }
+        
+        .section-content {
+          .activity-item {
+            border-bottom-color: #1F2937;
+            
+            .activity-name {
+              color: #E5E7EB;
+            }
+            
+            .activity-stats {
+              color: #9CA3AF;
+            }
+            
+            .activity-progress {
+              background-color: #374151;
+              
+              .progress-bar {
+                background-color: #5FA9A4;
+              }
+            }
+          }
+          
+          .session-item {
+            border-bottom-color: #1F2937;
+            
+            .session-title {
+              color: #E5E7EB;
+            }
+            
+            .session-time {
+              color: #9CA3AF;
+            }
+            
+            .session-status {
+              &.completed {
+                color: #22C55E;
+              }
+              
+              &.in-progress {
+                color: #F59E0B;
+              }
+              
+              &.pending {
+                color: #6B7280;
+              }
+            }
+          }
+          
+          .chart-container {
+            background-color: #1F2937;
+            border: 1px solid #374151;
+            
+            .chart-title {
+              color: #E5E7EB;
+            }
+            
+            .chart-legend {
+              .legend-item {
+                color: #9CA3AF;
+              }
+            }
+          }
+          
+          .quick-actions {
+            .action-btn {
+              background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+              color: white;
+              
+              &:hover {
+                background: linear-gradient(135deg, #4D8B87, #3A6B68);
+              }
+              
+              &.secondary {
+                background-color: #374151;
+                color: #E5E7EB;
+                
+                &:hover {
+                  background-color: #4B5563;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .empty-state {
+      color: #9CA3AF;
+      
+      .empty-icon {
+        color: #6B7280;
+      }
+      
+      .empty-title {
+        color: #E5E7EB;
+      }
+      
+      .empty-description {
+        color: #9CA3AF;
+      }
+      
+      .btn-get-started {
+        background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+        
+        &:hover {
+          background: linear-gradient(135deg, #4D8B87, #3A6B68);
+        }
+      }
+    }
+  }
+  
+  // Time picker and other modals
+  .time-display {
+    background-color: #1F2937;
+    color: #E5E7EB;
+    border-color: #374151;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+    
+    &:hover {
+      background: linear-gradient(135deg, #4D8B87, #3A6B68);
+    }
+  }
+  
+  .btn-secondary {
+    background-color: #374151;
+    color: #E5E7EB;
+    border-color: #4B5563;
+    
+    &:hover {
+      background-color: #4B5563;
+    }
+  }
+}  
+  
+// Sidebar - Facebook style (duplicate section)
+  .sidebar {
+    background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
+    border-right: 1px solid #3e4042;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+    
+    .logo {
+      .app-name {
+        color: #e4e6ea;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-icon {
+      color: #b0b3b8;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &::before {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      &:hover {
+        &::before {
+          background: linear-gradient(135deg, rgba(95, 169, 164, 0.15), rgba(95, 169, 164, 0.1));
+        }
+        color: #7BC4BF;
+        transform: translateX(2px);
+      }
+      
+      &.active {
+        &::before {
+          background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+          box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+        }
+        color: #FFFFFF;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .nav-text {
+      color: inherit;
+    }
+    
+    .nav-bottom {
+      border-top: 1px solid #3e4042;
+    }
+  }
+  
+  // Header - Facebook style (duplicate section)
+  .header {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+    border-bottom: 1px solid #3e4042;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    
+    .page-title {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .hamburger-btn {
+      background: rgba(95, 169, 164, 0.1);
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      
+      &:hover {
+        background: rgba(95, 169, 164, 0.2);
+        box-shadow: 0 2px 8px rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .theme-btn,
+    .profile-btn {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.2), rgba(95, 169, 164, 0.1));
+      color: #7BC4BF;
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.3), rgba(95, 169, 164, 0.2));
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+        transform: translateY(-1px);
+      }
+    }
+  }
+  
+  .page-content {
+    .section-header {
+      .section-title {
+        color: #E5E7EB;
+      }
+      
+      .section-subtitle {
+        color: #9CA3AF;
+      }
+    }
+    
+    .activities-section {
+      background: #111827;
+      border: 1px solid #1F2937;
+      
+      .section-header {
+        border-bottom-color: #1F2937;
+      }
+      
+      .activities-list {
+        .activity-card {
+          background: #1F2937;
+          border: 1px solid #374151;
+          
+          &:hover {
+            border-color: #4B5563;
+          }
+          
+          .activity-name {
+            color: #E5E7EB;
+          }
+          
+          .activity-stats {
+            color: #9CA3AF;
+          }
+        }
+      }
+      
+      .view-all-btn {
+        background-color: rgba(95, 169, 164, 0.1);
+        color: #7BC4BF;
+        border-color: rgba(95, 169, 164, 0.3);
+        
+        &:hover {
+          background-color: rgba(95, 169, 164, 0.2);
+        }
+      }
+    }
+    
+    .recent-sessions-section {
+      background: #111827;
+      border: 1px solid #1F2937;
+      
+      .section-header {
+        border-bottom-color: #1F2937;
+      }
+      
+      .session-item {
+        border-bottom-color: #1F2937;
+        
+        .session-title {
+          color: #E5E7EB;
+        }
+        
+        .session-time {
+          color: #9CA3AF;
+        }
+        
+        .session-status {
+          &.completed {
+            color: #22C55E;
+          }
+          
+          &.in-progress {
+            color: #F59E0B;
+          }
+          
+          &.pending {
+            color: #6B7280;
+          }
+        }
+      }
+    }
+    
+    .empty-state {
+      color: #9CA3AF;
+      
+      .empty-icon {
+        color: #6B7280;
+      }
+      
+      .empty-hint {
+        color: #9CA3AF;
+      }
+    }
+  }
+  
+  // Loading and error states
+  .loading-container {
+    color: #9CA3AF;
+    
+    .loading-spinner {
+      border-color: #374151;
+      border-top-color: #5FA9A4;
+    }
+  }
+  
+  .error-container {
+    color: #EF4444;
+    
+    i {
+      color: #EF4444;
+    }
+  }

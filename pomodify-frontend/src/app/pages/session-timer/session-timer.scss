@@ -754,6 +754,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 }
 
+
+
 .timer-controls {
   display: flex;
   align-items: center;
@@ -1234,3 +1236,516 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 }
 
 
+
+/* -------------------- AUTO-START COUNTDOWN -------------------- */
+
+/* Desktop: Toast Notification */
+.auto-start-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
+  animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  .toast-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 320px;
+    
+    .toast-icon {
+      i {
+        font-size: 24px;
+        color: var(--activity-color);
+        animation: pulse 2s ease-in-out infinite;
+      }
+    }
+    
+    .toast-info {
+      flex: 1;
+      
+      .toast-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: $text-dark;
+        margin: 0 0 4px 0;
+      }
+      
+      .toast-message {
+        font-size: 14px;
+        color: $text-light;
+        margin: 0;
+      }
+    }
+    
+    .toast-countdown {
+      .countdown-ring {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--activity-color), color-mix(in srgb, var(--activity-color) 80%, white 20%));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: countdownPulse 1s ease-in-out infinite;
+        
+        .countdown-number {
+          font-size: 20px;
+          font-weight: 900;
+          color: white;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+    
+    .toast-cancel {
+      background: rgba(231, 76, 60, 0.1);
+      color: #E74C3C;
+      border: none;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba(231, 76, 60, 0.2);
+        transform: scale(1.1);
+      }
+      
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+/* Mobile: Full Modal */
+.auto-start-notification.mobile-modal {
+  .auto-start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .auto-start-modal {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .auto-start-header {
+    margin-bottom: 24px;
+    
+    .auto-start-icon {
+      font-size: 48px;
+      color: var(--activity-color);
+      margin-bottom: 12px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .auto-start-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: $text-dark;
+      margin: 0;
+    }
+  }
+
+  .auto-start-body {
+    margin-bottom: 32px;
+    
+    .countdown-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--activity-color), color-mix(in srgb, var(--activity-color) 80%, white 20%));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: countdownPulse 1s ease-in-out infinite;
+      
+      .countdown-number {
+        font-size: 48px;
+        font-weight: 900;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    .auto-start-message {
+      font-size: 16px;
+      color: $text-light;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+
+  .auto-start-actions {
+    .btn-cancel-auto-start {
+      background: rgba(231, 76, 60, 0.1);
+      color: #E74C3C;
+      border: 2px solid rgba(231, 76, 60, 0.3);
+      border-radius: 16px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 auto;
+      
+      &:hover {
+        background: rgba(231, 76, 60, 0.2);
+        border-color: rgba(231, 76, 60, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+      }
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Auto-start animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes countdownPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+// Responsive design for auto-start notifications
+@media (max-width: 768px) {
+  // Desktop toast adjustments for smaller screens
+  .auto-start-toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    
+    .toast-content {
+      min-width: auto;
+      padding: 16px;
+      gap: 12px;
+      
+      .toast-countdown .countdown-ring {
+        width: 40px;
+        height: 40px;
+        
+        .countdown-number {
+          font-size: 18px;
+        }
+      }
+    }
+  }
+  
+  // Mobile modal adjustments
+  .auto-start-notification.mobile-modal {
+    .auto-start-modal {
+      padding: 24px;
+      max-width: 350px;
+      
+      .auto-start-header .auto-start-icon {
+        font-size: 40px;
+      }
+      
+      .auto-start-header .auto-start-title {
+        font-size: 20px;
+      }
+      
+      .countdown-circle {
+        width: 100px;
+        height: 100px;
+        
+        .countdown-number {
+          font-size: 40px;
+        }
+      }
+      
+      .auto-start-message {
+        font-size: 14px;
+      }
+    }
+  }
+}/*
+ -------------------- DARK MODE SUPPORT -------------------- */
+/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+:host-context(.theme-dark) {
+  .session-timer-page {
+    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
+    color: #e4e6ea;
+    min-height: 100vh;
+    
+    &::before,
+    &::after {
+      opacity: 0.1;
+    }
+  }
+  
+  .container {
+    color: #E5E7EB;
+  }
+  
+  .session-header {
+    .btn-back {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+        color: #7BC4BF;
+      }
+    }
+    
+    .activity-title {
+      color: #E5E7EB;
+    }
+  }
+  
+  .timer-circle {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .timer-top {
+      .session-type,
+      .cycle-indicator {
+        color: #D1D5DB;
+      }
+    }
+    
+    .phase-labels .phase-label {
+      color: #9CA3AF;
+      
+      &.active {
+        color: #E5E7EB;
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+      
+      &.clickable:hover {
+        background-color: rgba(95, 169, 164, 0.1);
+        color: #7BC4BF;
+      }
+    }
+    
+    .time-value {
+      color: #E5E7EB;
+    }
+    
+    .edit-icon {
+      color: #9CA3AF;
+    }
+  }
+  
+  .btn-timer-control {
+    background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+    
+    &:hover {
+      background: linear-gradient(135deg, #4D8B87, #3A6B68);
+    }
+    
+    &.paused {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+    }
+  }
+  
+  .btn-stop {
+    background-color: #EF4444;
+    
+    &:hover {
+      background-color: #DC2626;
+    }
+  }
+  
+  .btn-early-complete {
+    background-color: rgba(95, 169, 164, 0.1);
+    color: #7BC4BF;
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &:hover {
+      background-color: rgba(95, 169, 164, 0.2);
+    }
+  }
+  
+  .notes-panel {
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid #374151;
+    
+    .notes-label {
+      color: #E5E7EB;
+    }
+    
+    .btn-add-todo {
+      background-color: rgba(95, 169, 164, 0.1);
+      color: #7BC4BF;
+      border-color: rgba(95, 169, 164, 0.3);
+      
+      &:hover {
+        background-color: rgba(95, 169, 164, 0.2);
+      }
+    }
+    
+    .todo-item {
+      .todo-text {
+        background-color: #1F2937;
+        color: #E5E7EB;
+        border-color: #374151;
+        
+        &::placeholder {
+          color: #6B7280;
+        }
+      }
+      
+      .btn-remove-todo {
+        color: #EF4444;
+        
+        &:hover {
+          background-color: rgba(239, 68, 68, 0.1);
+        }
+      }
+    }
+    
+    .notes-textarea {
+      background-color: #1F2937;
+      color: #E5E7EB;
+      border-color: #374151;
+      
+      &::placeholder {
+        color: #6B7280;
+      }
+    }
+  }
+  
+  .mascot-bubble {
+    background: rgba(17, 24, 39, 0.95);
+    color: #E5E7EB;
+    border: 1px solid #374151;
+  }
+  
+  // Auto-start toast dark mode
+  .auto-start-toast .toast-content {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid #374151;
+    
+    .toast-title {
+      color: #E5E7EB;
+    }
+    
+    .toast-message {
+      color: #9CA3AF;
+    }
+    
+    .toast-cancel {
+      background: rgba(239, 68, 68, 0.1);
+      color: #EF4444;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+      }
+    }
+  }
+  
+  // Auto-start modal dark mode
+  .auto-start-notification.mobile-modal {
+    .auto-start-modal {
+      background: rgba(31, 41, 55, 0.95);
+      border: 1px solid #374151;
+      
+      .auto-start-title {
+        color: #E5E7EB;
+      }
+      
+      .auto-start-message {
+        color: #9CA3AF;
+      }
+      
+      .btn-cancel-auto-start {
+        background: rgba(239, 68, 68, 0.1);
+        color: #EF4444;
+        border-color: rgba(239, 68, 68, 0.3);
+        
+        &:hover {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.5);
+        }
+      }
+    }
+  }
+}

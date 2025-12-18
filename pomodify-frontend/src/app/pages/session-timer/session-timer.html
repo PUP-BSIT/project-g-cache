@@ -97,6 +97,8 @@
               }
             </div>
 
+
+
             <!-- Start/Pause and Stop Buttons -->
             <div class="timer-controls">
               <button 
@@ -190,6 +192,60 @@
             placeholder="Add your notes here..."></textarea>
         </div>
       </div>
+    </div>
+  }
+
+  <!-- Auto-Start Countdown - Desktop: Toast, Mobile: Modal -->
+  @if (showAutoStartCountdown()) {
+    <div class="auto-start-notification" [class.mobile-modal]="isMobile()">
+      @if (isMobile()) {
+        <!-- Mobile: Full Modal -->
+        <div class="auto-start-overlay">
+          <div class="auto-start-modal">
+            <div class="auto-start-header">
+              <i class="fa-solid fa-play-circle auto-start-icon"></i>
+              <h3 class="auto-start-title">Auto-Starting Next Phase</h3>
+            </div>
+            
+            <div class="auto-start-body">
+              <div class="countdown-circle">
+                <span class="countdown-number">{{ autoStartCountdown() }}</span>
+              </div>
+              <p class="auto-start-message">
+                The next phase will start automatically in {{ autoStartCountdown() }} second{{ autoStartCountdown() === 1 ? '' : 's' }}
+              </p>
+            </div>
+            
+            <div class="auto-start-actions">
+              <button class="btn-cancel-auto-start" (click)="cancelAutoStart()">
+                <i class="fa-solid fa-times"></i>
+                Cancel Auto-Start
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Desktop: Toast Notification -->
+        <div class="auto-start-toast">
+          <div class="toast-content">
+            <div class="toast-icon">
+              <i class="fa-solid fa-play-circle"></i>
+            </div>
+            <div class="toast-info">
+              <h4 class="toast-title">Auto-Starting Next Phase</h4>
+              <p class="toast-message">Starting in {{ autoStartCountdown() }}s</p>
+            </div>
+            <div class="toast-countdown">
+              <div class="countdown-ring">
+                <span class="countdown-number">{{ autoStartCountdown() }}</span>
+              </div>
+            </div>
+            <button class="toast-cancel" (click)="cancelAutoStart()" title="Cancel Auto-Start">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+        </div>
+      }
     </div>
   }
 </div>
