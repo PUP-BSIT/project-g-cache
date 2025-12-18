@@ -587,8 +587,21 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   .section-heading {
     font-size: 18px;
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
+}
+
+.trends-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trends-description {
+  font-size: 12px;
+  color: $text-light;
+  margin: 0;
+  font-weight: 400;
 }
 
 .trends-grid {
@@ -642,20 +655,34 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   color: $text-light;
 }
 
+.trend-value-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.trend-value-label {
+  font-size: 9px;
+  color: $text-light;
+  font-weight: 400;
+}
+
 .trend-current {
   font-weight: 700;
   color: $text-dark;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .trend-vs {
   color: $text-light;
+  font-weight: 400;
 }
 
 .trend-previous {
   font-weight: 600;
   color: $text-dark;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .trend-change {
