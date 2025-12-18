@@ -387,15 +387,9 @@ export class NotificationService {
       data: modalData
     });
 
-    // Auto-close after 10 seconds if user doesn't interact
-    setTimeout(() => {
-      if (dialogRef.componentInstance) {
-        dialogRef.close('auto-close');
-      }
-    }, 10000);
-
+    // No auto-close - let user decide when to dismiss
     dialogRef.afterClosed().subscribe(result => {
-      console.log('📱 Notification modal closed:', result);
+      console.log('📱 Notification modal closed by user:', result);
     });
   }
 
@@ -432,10 +426,7 @@ export class NotificationService {
             notification.close();
           };
           
-          // Auto-close after 10 seconds
-          setTimeout(() => {
-            notification.close();
-          }, 10000);
+          // No auto-close - let user decide when to dismiss
           
           console.log('🎉 Desktop notification sent successfully!');
           
