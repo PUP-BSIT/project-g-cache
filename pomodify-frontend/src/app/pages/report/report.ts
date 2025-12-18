@@ -74,6 +74,8 @@ export class Report implements OnInit {
   private readonly DEFAULT_MAX_HOURS = 0.5;
   private readonly CHART_SCALE_MULTIPLIER = 1.2;
   private readonly ROUNDING_FACTOR = 2;
+  private readonly MINUTES_THRESHOLD = 1; // 1 hour threshold to switch from minutes to hours
+  private readonly MIN_TICKS = 5; // Minimum number of ticks to display
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -426,15 +428,12 @@ export class Report implements OnInit {
 
     const maxHours = Math.max(...points.map((p) => p.hours), this.DEFAULT_MAX_HOURS);
     
-    // Determine if we should display in minutes or hours
-    // If max is less than 1 hour (60 minutes), display in minutes
-    const useMinutesMode = maxHours < 1;
+    // Determine if we should display in minutes or hours based on max value
+    const useMinutesMode = maxHours < this.MINUTES_THRESHOLD;
     this.chartUnitMode.set(useMinutesMode ? 'minutes' : 'hours');
     
-    // Keep the chart max in hours for consistency
-    const chartMax = useMinutesMode
-      ? Math.max(Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR, 1)  // Keep as hours
-      : Math.max(Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR, 1);
+    // Calculate appropriate chart max and ticks
+    const { chartMax, ticks } = this.calculateChartTicks(maxHours, useMinutesMode);
 
     const normalized = points.map((p) => ({
       ...p,
@@ -442,14 +441,52 @@ export class Report implements OnInit {
     }));
 
     this.focusSeries.set(normalized);
-
-    const ticks: number[] = [];
-    const step = chartMax / 4;
-    for (let i = 0; i <= 4; i++) {
-      const value = +(i * step).toFixed(2);
-      ticks.push(value);
-    }
     this.chartTicks.set(ticks);
+  }
+
+  /**
+   * Calculates appropriate chart max value and tick intervals based on data
+   * @param maxHours - Maximum hours value from the data
+   * @param useMinutesMode - Whether to display in minutes or hours
+   * @returns Object containing chartMax and array of ticks
+   */
+  private calculateChartTicks(maxHours: number, useMinutesMode: boolean): { chartMax: number; ticks: number[] } {
+    if (useMinutesMode) {
+      // For minutes mode: show ticks at 0, 15, 30, 45, 60 minutes (and potentially more if needed)
+      const maxMinutes = maxHours * this.HOURS_TO_MINUTES;
+      const ticks: number[] = [];
+      
+      // Generate minute-based ticks
+      for (let minutes = 0; minutes <= maxMinutes; minutes += 15) {
+        ticks.push(minutes / this.HOURS_TO_MINUTES); // Convert back to hours for internal representation
+      }
+      
+      // Ensure we have at least MIN_TICKS
+      if (ticks.length < this.MIN_TICKS) {
+        const lastTick = ticks[ticks.length - 1];
+        ticks.push(lastTick + 0.25); // Add another 15-minute interval
+      }
+      
+      return {
+        chartMax: ticks[ticks.length - 1] || 1,
+        ticks,
+      };
+    } else {
+      // For hours mode: intelligently distribute ticks based on max hours
+      const chartMax = Math.ceil(maxHours * this.CHART_SCALE_MULTIPLIER * this.ROUNDING_FACTOR) / this.ROUNDING_FACTOR;
+      const ticks: number[] = [];
+      const step = chartMax / (this.MIN_TICKS - 1); // Divide into MIN_TICKS intervals
+      
+      for (let i = 0; i < this.MIN_TICKS; i++) {
+        const value = +(i * step).toFixed(2);
+        ticks.push(value);
+      }
+      
+      return {
+        chartMax,
+        ticks,
+      };
+    }
   }
 
   protected formatMinutes(totalMinutes: number): string {
