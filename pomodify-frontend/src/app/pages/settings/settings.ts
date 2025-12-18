@@ -193,6 +193,8 @@ export class Settings implements AfterViewInit {
       });
   }
 
+  // Modal states removed - now using full-width layout
+
   // Auto-save feedback
   protected autoSaveStatus = signal<'idle' | 'saving' | 'saved'>('idle');
 
