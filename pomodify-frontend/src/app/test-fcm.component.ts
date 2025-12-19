@@ -95,12 +95,6 @@ export class TestFcmComponent {
   async initializeFCM() {
     this.addLog('🔔 Initializing FCM...');
     try {
-      const jwt = this.authService.getAccessToken();
-      if (!jwt) {
-        this.addLog('❌ No JWT token available. Please login first.');
-        return;
-      }
-      
       // Step 1: Check notification permission
       this.addLog('📱 Checking notification permission...');
       const permission = await Notification.requestPermission();
@@ -121,7 +115,7 @@ export class TestFcmComponent {
       
       // Step 3: Initialize FCM service
       this.addLog('🔧 Initializing FCM service...');
-      await this.fcmService.initializeFCM(jwt);
+        await this.fcmService.initializeFCM('dummy-jwt');
       this.addLog('✅ FCM service initialized successfully');
       
       this.refreshStatus();
