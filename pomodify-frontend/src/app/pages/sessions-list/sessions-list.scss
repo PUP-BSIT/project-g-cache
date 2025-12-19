@@ -1,6 +1,6 @@
 .sessions-list-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
+  background: var(--bg);
   padding: 2rem;
   position: relative;
 }
@@ -11,13 +11,13 @@
   align-items: center;
   margin-bottom: 2.5rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFB 100%);
+  background: var(--card);
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(95, 169, 164, 0.12);
-  border: 1px solid rgba(95, 169, 164, 0.1);
+  border: 1px solid var(--border);
 
   h1 {
-    color: #5FA9A4;
+    color: var(--text);
     font-size: 2.25rem;
     font-weight: 700;
     margin: 0;
@@ -43,9 +43,9 @@
   }
 
   .back-btn {
-    background: #FFFFFF;
-    color: #2C3E50;
-    border: 2px solid #E0E0E0;
+    background: var(--card);
+    color: var(--text);
+    border: 2px solid var(--border);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 
     &:hover {
@@ -92,7 +92,7 @@
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-  color: #2C3E50;
+  color: var(--text);
 
   i {
     font-size: 4rem;
@@ -107,7 +107,7 @@
 
   p {
     font-size: 1.1rem;
-    color: #7F8C8D;
+    color: var(--muted);
     margin-bottom: 2rem;
   }
 
@@ -362,242 +362,53 @@
   }
 }
 /* -------------------- DARK MODE SUPPORT -------------------- */
-/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
-:host-context(.theme-dark) {
+:root.theme-dark {
   .sessions-list-container {
-    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
-    color: #e4e6ea;
-    min-height: 100vh;
+    background: var(--bg) !important;
+    color: var(--text) !important;
   }
   
-  // Sessions header - Facebook style
   .sessions-header {
-    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
-    border: 1px solid #3e4042;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
     
     h1 {
-      color: #e4e6ea;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      color: var(--text) !important;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
     }
     
     .back-btn {
-      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
-      color: #e4e6ea;
-      border: 2px solid #3e4042;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      
-      &:hover {
-        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
-        color: white;
-        border-color: #5FA9A4;
-        transform: translateX(-5px);
-        box-shadow: 0 6px 20px rgba(95, 169, 164, 0.3);
-      }
-    }
-    
-    .create-session-btn {
-      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
-      color: white;
-      box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
-      
-      &:hover {
-        background: linear-gradient(135deg, #4D8B87 0%, #5FA9A4 100%);
-        transform: translateY(-3px);
-        box-shadow: 0 8px 28px rgba(95, 169, 164, 0.45);
-      }
+      background: var(--card) !important;
+      color: var(--text) !important;
+      border: 2px solid var(--border) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
   }
   
-  // Sidebar - Facebook style
-  .sidebar {
-    background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
-    border-right: 1px solid #3e4042;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.3);
+  .loading-state,
+  .error-state,
+  .empty-state {
+    color: var(--text) !important;
     
-    .logo {
-      .app-name {
-        color: #e4e6ea;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-      }
+    h3 {
+      color: var(--text) !important;
     }
     
-    .nav-icon {
-      color: #b0b3b8;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      
-      &::before {
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      &:hover {
-        &::before {
-          background: linear-gradient(135deg, rgba(95, 169, 164, 0.15), rgba(95, 169, 164, 0.1));
-        }
-        color: #7BC4BF;
-        transform: translateX(2px);
-      }
-      
-      &.active {
-        background-color: #4D8B87;
-        color: #FFFFFF;
-      }
+    p {
+      color: var(--muted) !important;
     }
   }
   
-  // Header - Facebook style
-  .header {
-    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
-    border-bottom: 1px solid #3e4042;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  .session-card {
+    // Keep the teal gradient for session cards - they should stay colorful
+    // Only override if we want them to match the dark card style
+    // background: var(--card) !important;
+    // border: 1px solid var(--border) !important;
     
-    .page-title {
-      color: #e4e6ea;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    
-    .hamburger-btn {
-      background: rgba(95, 169, 164, 0.1);
-      border: 1px solid rgba(95, 169, 164, 0.2);
-      
-      &:hover {
-        background: rgba(95, 169, 164, 0.2);
-        box-shadow: 0 2px 8px rgba(95, 169, 164, 0.2);
-      }
-    }
-    
-    .theme-btn,
-    .profile-btn {
-      background: linear-gradient(135deg, rgba(95, 169, 164, 0.2), rgba(95, 169, 164, 0.1));
-      color: #7BC4BF;
-      border: 1px solid rgba(95, 169, 164, 0.2);
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: linear-gradient(135deg, rgba(95, 169, 164, 0.3), rgba(95, 169, 164, 0.2));
-        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
-        transform: translateY(-1px);
-      }
-    }
-  }
-  
-  .sessions-container {
-    .sessions-header {
-      .sessions-title {
-        color: #E5E7EB;
-      }
-      
-      .btn-new-session {
-        background: linear-gradient(135deg, #5FA9A4, #4D8B87);
-        
-        &:hover {
-          background: linear-gradient(135deg, #4D8B87, #3A6B68);
-        }
-      }
-    }
-    
-    .filter-tabs {
-      .filter-tab {
-        color: #9CA3AF;
-        border-bottom-color: transparent;
-        
-        &.active {
-          color: #5FA9A4;
-          border-bottom-color: #5FA9A4;
-        }
-        
-        &:hover:not(.active) {
-          color: #7BC4BF;
-        }
-      }
-    }
-    
-    .sessions-grid {
-      .session-card {
-        background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
-        border: 1px solid #3e4042;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        
-        &:hover {
-          border-color: #5FA9A4;
-          box-shadow: 0 8px 32px rgba(95, 169, 164, 0.2);
-          transform: translateY(-2px);
-        }
-        
-        .session-header {
-          .activity-name {
-            color: #E5E7EB;
-          }
-          
-          .session-type {
-            background-color: rgba(95, 169, 164, 0.1);
-            color: #7BC4BF;
-          }
-        }
-        
-        .session-info {
-          .info-item {
-            .info-label {
-              color: #9CA3AF;
-            }
-            
-            .info-value {
-              color: #E5E7EB;
-            }
-          }
-        }
-        
-        .session-actions {
-          border-top-color: #1F2937;
-          
-          .btn-action {
-            color: #9CA3AF;
-            
-            &:hover {
-              color: #7BC4BF;
-              background-color: rgba(95, 169, 164, 0.1);
-            }
-            
-            &.btn-start {
-              background: linear-gradient(135deg, #5FA9A4, #4D8B87);
-              color: white;
-              
-              &:hover {
-                background: linear-gradient(135deg, #4D8B87, #3A6B68);
-              }
-            }
-            
-            &.btn-delete {
-              color: #EF4444;
-              
-              &:hover {
-                background-color: rgba(239, 68, 68, 0.1);
-              }
-            }
-          }
-        }
-      }
-    }
-    
-    .empty-state {
-      color: #9CA3AF;
-      
-      .empty-icon {
-        color: #6B7280;
-      }
-      
-      .empty-title {
-        color: #E5E7EB;
-      }
-      
-      .btn-create-first {
-        background: linear-gradient(135deg, #5FA9A4, #4D8B87);
-        
-        &:hover {
-          background: linear-gradient(135deg, #4D8B87, #3A6B68);
-        }
-      }
+    .session-note {
+      background: var(--card) !important;
+      color: var(--text) !important;
     }
   }
 }

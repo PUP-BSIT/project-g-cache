@@ -23,7 +23,7 @@
   text-decoration: none;
   color: #24425A;
   font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 28px;
 }
 .tagline { margin: 6px 0 12px; color: #6a8597; font-size: 14px; }
@@ -33,7 +33,7 @@
 
 .right { justify-self: end; text-align: left; }
 .subscribe-card { background: #eef8fa; border: 1px solid #d8f0f4; padding: 16px; border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
-.subscribe-title { font-family: 'Montserrat', sans-serif; color: #24425A; font-weight: 700; margin-bottom: 8px; }
+.subscribe-title { font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #24425A; font-weight: 700; margin-bottom: 8px; }
 .subscribe-row { display: flex; gap: 10px; }
 .subscribe-row input {
   width: 320px;

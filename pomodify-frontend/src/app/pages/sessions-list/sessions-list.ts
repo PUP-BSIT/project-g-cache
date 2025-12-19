@@ -85,7 +85,7 @@ export class SessionsListComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(CreateSessionDialogComponent, {
-      width: '450px',
+      width: '420px',
       disableClose: false,
       panelClass: 'create-session-dialog-panel'
     });

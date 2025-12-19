@@ -22,7 +22,7 @@ $toggle-bg-inactive: #D0D0D0;
   display: flex;
   min-height: 100vh;
   background-color: var(--bg);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow-x: hidden;
   position: relative;
 }
@@ -310,10 +310,11 @@ $toggle-bg-inactive: #D0D0D0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  gap: 16px;
+  padding: 24px 60px;
+  gap: 32px;
   background-color: var(--card);
   border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-left {
@@ -324,34 +325,31 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--text);
   margin: 0;
-  line-height: 1;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .hamburger-btn {
   display: none;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: none;
+  border: none;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
   padding: 8px;
-  width: 40px;
-  height: 40px;
   border-radius: 8px;
-  align-items: center;
-  justify-content: center;
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: var(--muted);
+    background-color: rgba(0, 0, 0, 0.1);
   }
   
   &:active {
-    background-color: var(--border);
+    background-color: rgba(0, 0, 0, 0.15);
   }
   
   i {
@@ -361,9 +359,14 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 .theme-btn,
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
 .profile-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
   background: var(--card);
   border-radius: 50%;
@@ -372,10 +375,16 @@ $toggle-bg-inactive: #D0D0D0;
   align-items: center;
   justify-content: center;
   color: var(--text);
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  font-size: 18px;
   
   &:hover {
     background: var(--muted);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 

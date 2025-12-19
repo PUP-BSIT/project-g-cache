@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Add Montserrat font to the entire app */
+/* Add Montserrat and Inter fonts to the entire app */
 body {
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #1a1a1a;
@@ -23,6 +23,15 @@ body {
 /* Material overrides */
 .mat-mdc-dialog-surface {
   border-radius: 16px !important;
+}
+
+/* Create Session Dialog Styles */
+.create-session-dialog-panel {
+  .mat-mdc-dialog-surface {
+    border-radius: 16px !important;
+    padding: 0;
+    overflow: hidden;
+  }
 }
 
 /* Add any other global styles below */
@@ -217,7 +226,18 @@ body {
   
   /* Force light mode for all modals (privacy/data confirmation modals) */
   .modal-overlay {
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Angular Material modal overlays - light mode */
+  .cdk-overlay-backdrop,
+  .mat-overlay-backdrop {
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .cdk-overlay-backdrop.cdk-overlay-backdrop-showing,
+  .mat-overlay-backdrop.mat-overlay-backdrop-showing {
+    background: rgba(0, 0, 0, 0.3) !important;
   }
   
   .modal-content {
@@ -302,7 +322,6 @@ body {
   .activity-card,
   .focus-card,
   .status-card,
-  .metric-card,
   .session-card,
   .content-section,
   .stat-card {
@@ -310,6 +329,8 @@ body {
     border-color: var(--border) !important;
     color: var(--text) !important;
   }
+  
+  /* Preserve metric card colors in light mode - don't override them */
   
   /* Exclude landing page components */
   .landing-page .feature-box,
@@ -362,6 +383,8 @@ body {
   .settings-grid {
     background: transparent !important;
   }
+  
+  /* Metric cards now have their colors defined in the theme-specific sections above */
 }
 
 /* COMPREHENSIVE DARK THEME OVERRIDES - AUTHENTICATED PAGES ONLY */
@@ -402,7 +425,6 @@ body {
   .activity-card,
   .focus-card,
   .status-card,
-  .metric-card,
   .session-card,
   .content-section,
   .stat-card,
@@ -412,6 +434,8 @@ body {
     border-color: var(--border) !important;
     color: var(--text) !important;
   }
+  
+  /* Preserve metric card colors in dark mode - they have their own styling */
 
   /* Navigation elements */
   .nav-icon {
@@ -501,7 +525,6 @@ body {
   }
 
   /* FORCE LIGHT SECTIONS */
-  .recent-sessions-section,
   .activities-section,
   .focus-section,
   .status-section,
@@ -510,6 +533,8 @@ body {
     border: 1px solid var(--border) !important;
     color: var(--text) !important;
   }
+  
+  /* Recent sessions section stays borderless like quick-start */
 
   /* Fix hardcoded button colors */
   .btn-create-activity,
@@ -560,6 +585,8 @@ body {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
   }
+  
+  /* Metric cards should keep their original colored styling */
 
   /* Fix any gradient backgrounds in light mode */
   .activities-page,
@@ -581,11 +608,12 @@ body {
   .sidebar,
   .header,
   .settings-section,
-  .metric-card,
   .quick-start-card {
     background: var(--card) !important;
     border: 1px solid var(--border) !important;
   }
+  
+  /* Preserve metric card gradients in light mode */
 }
 
 /* ULTIMATE LIGHT THEME ENFORCEMENT - HIGHEST SPECIFICITY */
@@ -611,12 +639,69 @@ html:not(.theme-dark) .nav-icon.active {
   color: #FFFFFF !important;
 }
 
-html:not(.theme-dark) .recent-sessions-section,
+html:not(.theme-dark) .recent-sessions-section {
+  background: transparent !important;
+  border: none !important;
+}
+
 html:not(.theme-dark) .activities-section,
 html:not(.theme-dark) .focus-section,
 html:not(.theme-dark) .content-section {
   background: #FFFFFF !important;
   border: 1px solid #DEE2E6 !important;
+}
+
+/* PRESERVE METRIC CARD COLORS IN LIGHT MODE - SAME AS DARK MODE */
+html:not(.theme-dark) .metric-card {
+  /* Default teal gradient for base metric cards */
+  background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+}
+
+html:not(.theme-dark) .metric-card.streak {
+  /* Red gradient for streak cards */
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%) !important;
+}
+
+html:not(.theme-dark) .metric-card.streak-best {
+  /* Orange gradient for best streak cards */
+  background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%) !important;
+}
+
+html:not(.theme-dark) .metric-card.primary {
+  /* Teal gradient for primary cards */
+  background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+}
+
+html:not(.theme-dark) .metric-card.secondary {
+  /* Light teal gradient for secondary cards */
+  background: linear-gradient(135deg, #7BC4BF 0%, #9DD9D5 100%) !important;
+}
+
+html:not(.theme-dark) .metric-card.activities {
+  /* Teal gradient for activities cards */
+  background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+}
+
+/* Ensure all metric card text stays white on colored backgrounds in light mode */
+html:not(.theme-dark) .metric-card,
+html:not(.theme-dark) .metric-card *,
+html:not(.theme-dark) .metric-card .metric-header h3,
+html:not(.theme-dark) .metric-card .metric-value,
+html:not(.theme-dark) .metric-card .metric-subtitle {
+  color: #FFFFFF !important;
+}
+
+/* Add consistent shadows and hover effects for metric cards in light mode */
+html:not(.theme-dark) .metric-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease !important;
+}
+
+html:not(.theme-dark) .metric-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
 }
 
 html:not(.theme-dark) .section-title,
@@ -776,10 +861,11 @@ html:not(.theme-dark) {
   .dashboard .section-title,
   .dashboard .activity-name,
   .dashboard .session-title,
-  .dashboard .metric-value,
   .dashboard .status-number {
     color: #2C3E50 !important;
   }
+  
+  /* Metric values should stay white on colored backgrounds */
 
   /* Settings page elements */
   .settings-page .setting-label,
@@ -797,13 +883,15 @@ html:not(.theme-dark) {
   }
 
   /* Ensure readability on white cards */
-  .activity-card, .session-card, .metric-card, .status-card {
+  .activity-card, .session-card, .status-card {
     color: #2C3E50 !important;
   }
 
-  .activity-card *, .session-card *, .metric-card *, .status-card * {
+  .activity-card *, .session-card *, .status-card * {
     color: inherit !important;
   }
+  
+  /* Metric cards keep their own text colors (white on colored backgrounds) */
 
   /* Fix any remaining invisible text */
   .recent-sessions-section *,
@@ -811,6 +899,11 @@ html:not(.theme-dark) {
   .focus-section *,
   .status-section * {
     color: #2C3E50 !important;
+  }
+  
+  /* Exception: metric cards should keep their white text on colored backgrounds */
+  .metric-card * {
+    color: #FFFFFF !important;
   }
 
   /* Exception for elements that should stay white */
@@ -851,18 +944,23 @@ html.theme-dark .nav-icon.active {
   color: #FFFFFF !important;
 }
 
-html.theme-dark .recent-sessions-section,
+html.theme-dark .recent-sessions-section {
+  background: transparent !important;
+  border: none !important;
+}
+
 html.theme-dark .activities-section,
 html.theme-dark .focus-section,
 html.theme-dark .content-section,
 html.theme-dark .settings-section,
-html.theme-dark .metric-card,
 html.theme-dark .activity-card,
 html.theme-dark .session-card,
 html.theme-dark .status-card {
   background: #111827 !important;
   border: 1px solid #1F2937 !important;
 }
+
+/* Metric cards have their own colored styling in dark mode */
 
 html.theme-dark .section-title,
 html.theme-dark .page-title,
@@ -971,10 +1069,12 @@ html.theme-dark {
   }
 
   /* Ensure all card content is visible */
-  .activity-card *, .session-card *, .metric-card *, .status-card *,
+  .activity-card *, .session-card *, .status-card *,
   .recent-sessions-section *, .activities-section *, .focus-section *, .status-section * {
     color: #E5E7EB !important;
   }
+  
+  /* Metric cards keep their own white text styling */
 
   /* Exception for elements that should stay white */
   .nav-icon.active *,
@@ -1008,29 +1108,57 @@ html.theme-dark .quick-start-card .btn-quick-start:hover {
   background: rgba(255, 255, 255, 1) !important;
 }
 
-/* FIX METRIC CARDS IN DARK MODE */
+/* METRIC CARDS IN DARK MODE - DARKER VARIANTS OF SAME COLORS */
 html.theme-dark .metric-card {
-  background: linear-gradient(135deg, #1F2937 0%, #111827 100%) !important;
-  border: 1px solid #374151 !important;
+  /* Default darker teal gradient */
+  background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
+  border: none !important;
+  color: #FFFFFF !important;
 }
 
 html.theme-dark .metric-card.streak {
+  /* Darker red gradient for streak cards */
   background: linear-gradient(135deg, #7C2D12 0%, #991B1B 100%) !important;
 }
 
 html.theme-dark .metric-card.streak-best {
+  /* Darker orange gradient for best streak cards */
   background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
 }
 
-html.theme-dark .metric-card.primary,
-html.theme-dark .metric-card.activities {
+html.theme-dark .metric-card.primary {
+  /* Darker teal gradient for primary cards */
   background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
 }
 
+html.theme-dark .metric-card.secondary {
+  /* Darker light teal gradient for secondary cards */
+  background: linear-gradient(135deg, #134E4A 0%, #155E56 100%) !important;
+}
+
+html.theme-dark .metric-card.activities {
+  /* Darker teal gradient for activities cards */
+  background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
+}
+
+/* Ensure all metric card text stays white on colored backgrounds in dark mode */
+html.theme-dark .metric-card,
+html.theme-dark .metric-card *,
 html.theme-dark .metric-card .metric-header h3,
 html.theme-dark .metric-card .metric-value,
 html.theme-dark .metric-card .metric-subtitle {
   color: #FFFFFF !important;
+}
+
+/* Add consistent shadows and hover effects for metric cards in dark mode */
+html.theme-dark .metric-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.3s ease !important;
+}
+
+html.theme-dark .metric-card:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* FORCE NEW SETTINGS LAYOUT */
@@ -1262,4 +1390,67 @@ html.theme-dark .signup-page div,
 html.theme-dark .signup-page label,
 html.theme-dark .signup-page a {
   color: #2C3E50 !important;
+}
+
+/* PRESERVE METRIC CARD DECORATIVE ELEMENTS IN BOTH MODES */
+html:not(.theme-dark) .metric-card::before,
+html.theme-dark .metric-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 100px !important;
+  height: 100px !important;
+  border-radius: 50% !important;
+  transform: translate(30%, -30%) !important;
+  pointer-events: none !important;
+}
+
+/* Light mode decorative elements */
+html:not(.theme-dark) .metric-card::before {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+html:not(.theme-dark) .metric-card.streak::before {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+html:not(.theme-dark) .metric-card.streak-best::before {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+html:not(.theme-dark) .metric-card.activities::before {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Dark mode decorative elements */
+html.theme-dark .metric-card::before {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+html.theme-dark .metric-card.streak::before {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.theme-dark .metric-card.streak-best::before {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.theme-dark .metric-card.activities::before {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* DARK MODE MODAL OVERLAYS */
+html.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.theme-dark .cdk-overlay-backdrop,
+html.theme-dark .mat-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.theme-dark .cdk-overlay-backdrop.cdk-overlay-backdrop-showing,
+html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
+  background: rgba(0, 0, 0, 0.6) !important;
 }
