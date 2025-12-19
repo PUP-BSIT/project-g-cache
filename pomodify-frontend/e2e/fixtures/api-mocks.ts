@@ -139,7 +139,7 @@ async function setupApiMocks(page: Page) {
   });
 
   // Mock user profile endpoint
-  await page.route('**/api/v2/users/me*', async (route) => {
+  await page.route('**/api/v2/auth/users/me*', async (route) => {
     console.log('[MOCK] Intercepted user profile request');
     await route.fulfill({
       status: 200,
