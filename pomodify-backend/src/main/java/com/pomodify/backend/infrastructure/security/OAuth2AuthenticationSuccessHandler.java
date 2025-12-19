@@ -58,33 +58,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.info("Set-Cookie header for accessToken: {}", accessTokenCookie);
             log.info("Set-Cookie header for refreshToken: {}", refreshTokenCookie);
 
-            // Respond with 200 OK and JS redirect to the correct frontend
-            String targetUrl;
-            String serverName = request.getServerName();
-            // Only use production frontend if the backend itself is being called (not Google or other OAuth providers)
-            if (serverName != null && (serverName.equals("pomodify.site") || serverName.equals("www.pomodify.site"))) {
-                targetUrl = "https://pomodify.site/oauth2/redirect";
-            } else {
-                // Dev or callback from Google: use dynamic or localhost
-                String origin = request.getHeader("Origin");
-                String referer = request.getHeader("Referer");
-                String frontendBase = null;
-                if (origin != null && (origin.startsWith("http://") || origin.startsWith("https://"))) {
-                    frontendBase = origin;
-                } else if (referer != null && (referer.startsWith("http://") || referer.startsWith("https://"))) {
-                    try {
-                        java.net.URI refUri = new java.net.URI(referer);
-                        frontendBase = refUri.getScheme() + "://" + refUri.getHost();
-                        if (refUri.getPort() != -1 && refUri.getPort() != 80 && refUri.getPort() != 443) {
-                            frontendBase += ":" + refUri.getPort();
-                        }
-                    } catch (Exception ignore) {}
-                }
-                if (frontendBase == null) {
-                    frontendBase = "http://localhost:4200";
-                }
-                targetUrl = frontendBase + "/oauth2/redirect";
-            }
+            // Respond with 200 OK and JS redirect
+            String targetUrl = "http://localhost:4200/oauth2/redirect";
             response.setContentType("text/html;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_OK);
             String html = "<html><head><script>window.location.replace('" + targetUrl + "');</script></head><body>Redirecting...</body></html>";
