@@ -6,7 +6,19 @@
  */
 
 // 1. BASE URL
-const BASE_URL = "https://api.pomodify.site";
+// In development/test: use relative path to go through proxy
+// In production: use external API
+const getBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return ''; // Use relative path for local dev (goes through proxy)
+  }
+  return "https://api.pomodify.site";
+};
+
+const BASE_URL = getBaseUrl();
+
+// Use this for frontend OAuth2 redirects (not proxied)
+export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
 
 // 2. API VERSION
 // ------------------------
@@ -15,7 +27,7 @@ const API_VERSION = "/api/v2";
 
 // 3. ROOT URL CONSTRUCTION
 // ------------------------
-// Combines "https://api.pomodify.site" + "/api/v2"
+// Combines BASE_URL + "/api/v2"
 const ROOT = `${BASE_URL}${API_VERSION}`;
 
 // 4. ENDPOINTS
@@ -25,18 +37,21 @@ export const API = {
   // General Info
   ROOT: ROOT, // Useful for health checks and base reference
 
+
+
   // Auth Resource
   AUTH: {
     LOGIN: `${ROOT}/auth/login`,
     REGISTER: `${ROOT}/auth/register`,
     REFRESH: `${ROOT}/auth/refresh`,
     LOGOUT: `${ROOT}/auth/logout`,
+    OAUTH2_GOOGLE: `${ROOT}/auth/oauth2/google`,
   },
 
   // User Resource
   USER: {
-    PROFILE: `${ROOT}/users/me`,
-    UPDATE_PROFILE: `${ROOT}/users/me`,
+    PROFILE: `${ROOT}/auth/users/me`,
+    UPDATE_PROFILE: `${ROOT}/auth/users/me`,
     VERIFY_EMAIL: `${ROOT}/users/verify-email`,
   },
 

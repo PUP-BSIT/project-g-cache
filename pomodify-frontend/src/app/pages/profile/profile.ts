@@ -1,4 +1,6 @@
 import { Component, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { API } from '../../core/config/api.config';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
@@ -24,6 +26,7 @@ export class Profile {
   @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
   // Form states
+  private http = inject(HttpClient);
   profileForm!: FormGroup;
   backupEmailForm!: FormGroup;
   passwordForm!: FormGroup;
@@ -45,9 +48,9 @@ export class Profile {
   private timerInterval?: ReturnType<typeof setInterval>;
   
   ngOnInit(): void {
-    // Load user data from localStorage
-    this.loadUserData();
-    
+    // Fetch user data from backend and update UI
+    this.fetchUserProfile();
+
     // Initialize profile form
     this.profileForm = this.fb.group({
       name: [
@@ -102,50 +105,41 @@ export class Profile {
   }
   
   /**
-   * Load user data from localStorage and update the component state
+   * Fetch user profile from backend and update UI (cookie-based auth)
    */
-  private loadUserData(): void {
-    try {
-      const currentUserStr = localStorage.getItem('currentUser');
-      if (currentUserStr) {
-        const currentUser = JSON.parse(currentUserStr);
-        
-        // Update user name and email from stored data
-        if (currentUser.firstName && currentUser.lastName) {
-          this.userName.set(`${currentUser.firstName} ${currentUser.lastName}`);
+  private fetchUserProfile(): void {
+    this.http.get(API.USER.PROFILE, { withCredentials: true }).subscribe({
+      next: (user: any) => {
+        if (user.firstName && user.lastName) {
+          const fullName = `${user.firstName} ${user.lastName}`;
+          this.userName.set(fullName);
+          if (this.profileForm) {
+            this.profileForm.patchValue({ name: fullName });
+          }
         }
-        if (currentUser.email) {
-          this.userEmail.set(currentUser.email);
+        if (user.email) {
+          this.userEmail.set(user.email);
         }
-        
-        console.log('[Profile] User data loaded:', currentUser.email);
-      } else {
-        console.warn('[Profile] No user data found in localStorage');
+      },
+      error: () => {
+        // Optionally clear UI or show error
+        this.userName.set('');
+        this.userEmail.set('');
       }
-    } catch (error) {
-      console.error('[Profile] Error loading user data:', error);
-    }
+    });
   }
-  
-  ngOnDestroy(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-  }
-  
+
   // Profile image handling
   protected onImageUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
       const reader = new FileReader();
-      
       reader.onload = (e: ProgressEvent<FileReader>) => {
         if (e.target?.result) {
           this.profileImage.set(e.target.result as string);
         }
       };
-      
       reader.readAsDataURL(file);
     }
   }

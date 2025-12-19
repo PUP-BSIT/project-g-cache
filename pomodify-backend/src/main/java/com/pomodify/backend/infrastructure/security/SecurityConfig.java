@@ -1,0 +1,144 @@
+package com.pomodify.backend.infrastructure.security;
+
+import com.pomodify.backend.application.service.CustomOAuth2UserService;
+import com.pomodify.backend.infrastructure.config.CustomJwtDecoder;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityConfig {
+
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomJwtDecoder customJwtDecoder;
+    private final CustomOAuth2UserService customOAuth2UserService;
+        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    // ============================
+    // DEV PROFILE (no auth)
+    // ============================
+    @Bean
+    @Profile("dev")
+    public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        return http.build();
+    }
+
+    // ============================
+    // PROD PROFILE (with auth)
+    // ============================
+    @Bean
+    @Profile("prod")
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                        .csrf(csrf -> csrf
+                                .ignoringRequestMatchers(
+                                        "/api/v2/auth/logout",
+                                        "/api/v2/auth/login",
+                                        "/api/v2/auth/register",
+                                        "/api/v2/auth/refresh",
+                                        "/api/v2/auth/oauth2/google"
+                                )
+                        )
+                        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                        .authorizeHttpRequests(auth -> auth
+                                .requestMatchers(
+                                        "/api/v2/auth/register",
+                                        "/api/v2/auth/login",
+                                        "/api/v2/auth/refresh",
+                                        "/api/v2/auth/oauth2/google",
+                                        "/actuator/health",
+                                        "/actuator/info",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui.html",
+                                        "/swagger-ui/**"
+                                ).permitAll()
+                                .anyRequest().authenticated()
+                        )
+                        .sessionManagement(session ->
+                                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        )
+                        .oauth2Login(oauth2 -> oauth2
+                                .userInfoEndpoint(userInfo -> userInfo
+                                        .userService(customOAuth2UserService)
+                                )
+                                .successHandler(oAuth2AuthenticationSuccessHandler)
+                        )
+                        // Register JwtCookieToAuthHeaderFilter before BearerTokenAuthenticationFilter
+                        .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
+                        // Register SkipJwtRequestFilter before the JWT filter
+                        .addFilterBefore(new SkipJwtRequestFilter(), BearerTokenAuthenticationFilter.class);
+
+
+        http.logout(AbstractHttpConfigurer::disable);
+
+        http.oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(jwt -> jwt
+                        .decoder(customJwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                )
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+        );
+
+        return http.build();
+    }
+
+    // ============================
+    // JWT Converter
+    // ============================
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setPrincipalClaimName("user");
+        return converter;
+    }
+
+    // ============================
+    // GLOBAL CORS CONFIGURATION
+    // ============================
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // Explicitly allow frontend dev and prod origins for credentials
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "https://pomodify.site"
+        ));
+        config.setAllowCredentials(true);
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type"
+        ));
+        config.setExposedHeaders(List.of("Authorization"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+                return source;
+        }
+
+}

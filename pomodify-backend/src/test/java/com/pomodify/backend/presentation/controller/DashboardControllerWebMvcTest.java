@@ -8,7 +8,8 @@ import com.pomodify.backend.presentation.dto.item.RecentSessionItem;
 import com.pomodify.backend.presentation.dto.response.DashboardResponse;
 import com.pomodify.backend.presentation.mapper.DashboardMapper;
 import com.pomodify.backend.infrastructure.config.CustomJwtDecoder;
-import com.pomodify.backend.infrastructure.config.JwtAuthenticationEntryPoint;
+import com.pomodify.backend.infrastructure.security.JwtAuthenticationEntryPoint;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;

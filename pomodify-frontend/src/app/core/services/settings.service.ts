@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   providedIn: 'root'
 })
 export class SettingsService {
+  // Only app settings (not tokens) are stored in localStorage
   private readonly STORAGE_KEY = 'pomodify_settings';
   
   // Signals for reactive state

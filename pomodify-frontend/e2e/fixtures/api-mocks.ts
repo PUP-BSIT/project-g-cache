@@ -47,181 +47,160 @@ const mockActivities = [
 
 /**
  * Setup API route mocking for a page
- * Routes are matched in order - more specific routes first
  */
 async function setupApiMocks(page: Page) {
-  // Enable request interception logging for debugging
-  page.on('request', (request) => {
-    if (request.url().includes('/api/v2/')) {
-      console.log(`[MOCK] Request: ${request.method()} ${request.url()}`);
-    }
-  });
+  // Intercept all requests and handle API mocking
+  await page.route('**/*', async (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
 
-  page.on('response', (response) => {
-    if (response.url().includes('/api/v2/')) {
-      console.log(`[MOCK] Response: ${response.status()} ${response.url()}`);
-    }
-  });
-
-  // Mock login endpoint
-  await page.route('**/api/v2/auth/login', async (route) => {
-    // Handle OPTIONS preflight requests
-    if (route.request().method() === 'OPTIONS') {
-      await route.fulfill({
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-      return;
+    // Only mock API routes
+    if (!url.includes('/api/')) {
+      return route.continue();
     }
 
-    console.log('[MOCK] Intercepted login request');
-    const request = route.request();
-    let postData;
-    try {
-      postData = request.postDataJSON();
-    } catch (e) {
-      postData = null;
-    }
-    
-    // Check credentials
-    if (postData?.email === 'test@example.com' && postData?.password === 'Password123!') {
-      console.log('[MOCK] Returning success response for login');
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-        body: JSON.stringify(mockAuthResponse),
-      });
-    } else {
-      console.log('[MOCK] Returning error response for login');
-      // Invalid credentials
-      await route.fulfill({
+    console.log(`[MOCK] Intercepting: ${method} ${url}`);
+
+    // Login endpoint
+    if (url.includes('/api/v2/auth/login')) {
+      if (method === 'OPTIONS') {
+        return route.fulfill({
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        });
+      }
+
+      try {
+        const postData = route.request().postDataJSON();
+        if (postData?.email === 'test@example.com' && postData?.password === 'Password123!') {
+          console.log('[MOCK] Login: returning success');
+          return route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockAuthResponse),
+          });
+        }
+      } catch (e) {
+        console.log('[MOCK] Login: error parsing request data');
+      }
+      console.log('[MOCK] Login: returning error');
+      return route.fulfill({
         status: 401,
         contentType: 'application/json',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
         body: JSON.stringify({ message: 'Invalid credentials' }),
       });
     }
-  });
 
-  // Mock register endpoint
-  await page.route('**/api/v2/auth/register', async (route) => {
-    await route.fulfill({
-      status: 201,
-      contentType: 'application/json',
-      body: JSON.stringify(mockAuthResponse),
-    });
-  });
-
-  // Mock dashboard endpoint (match with or without query params)
-  await page.route('**/api/v2/dashboard*', async (route) => {
-    console.log('[MOCK] Intercepted dashboard request');
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-      body: JSON.stringify(mockDashboardData),
-    });
-  });
-
-  // Mock user profile endpoint
-  await page.route('**/api/v2/users/me*', async (route) => {
-    console.log('[MOCK] Intercepted user profile request');
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-      body: JSON.stringify(mockUser),
-    });
-  });
-
-  // Mock activities endpoint
-  await page.route('**/api/v2/activities*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(mockActivities),
-    });
-  });
-
-  // Mock settings endpoint
-  await page.route('**/api/v2/settings*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        pomodoroDuration: 25,
-        shortBreakDuration: 5,
-        longBreakDuration: 15,
-      }),
-    });
-  });
-
-  // Mock categories endpoint
-  await page.route('**/api/v2/categories*', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([
-        { id: 1, name: 'Work' },
-        { id: 2, name: 'Study' },
-      ]),
-    });
-  });
-
-  // Mock refresh token endpoint
-  await page.route('**/api/v2/auth/refresh', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        accessToken: 'new-mock-access-token',
-      }),
-    });
-  });
-
-  // Mock logout endpoint
-  await page.route('**/api/v2/auth/logout', async (route) => {
-    // Handle OPTIONS preflight
-    if (route.request().method() === 'OPTIONS') {
-      await route.fulfill({
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
+    // Register endpoint
+    if (url.includes('/api/v2/auth/register')) {
+      return route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify(mockAuthResponse),
       });
-      return;
     }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-      body: JSON.stringify({ message: 'Logged out successfully' }),
-    });
+
+    // Dashboard endpoint
+    if (url.includes('/api/v2/dashboard')) {
+      console.log('[MOCK] Dashboard: returning mock data');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockDashboardData),
+      });
+    }
+
+    // User profile endpoint
+    if (url.includes('/api/v2/auth/users/me')) {
+      if (method === 'OPTIONS') {
+        return route.fulfill({
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        });
+      }
+      console.log('[MOCK] Profile: returning mock user');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockUser),
+      });
+    }
+
+    // Activities endpoint
+    if (url.includes('/api/v2/activities')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockActivities),
+      });
+    }
+
+    // Settings endpoint
+    if (url.includes('/api/v2/settings')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          pomodoroDuration: 25,
+          shortBreakDuration: 5,
+          longBreakDuration: 15,
+        }),
+      });
+    }
+
+    // Categories endpoint
+    if (url.includes('/api/v2/categories')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { id: 1, name: 'Work' },
+          { id: 2, name: 'Study' },
+        ]),
+      });
+    }
+
+    // Refresh token endpoint
+    if (url.includes('/api/v2/auth/refresh')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          accessToken: 'new-mock-access-token',
+        }),
+      });
+    }
+
+    // Logout endpoint
+    if (url.includes('/api/v2/auth/logout')) {
+      if (method === 'OPTIONS') {
+        return route.fulfill({
+          status: 200,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        });
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Logged out successfully' }),
+      });
+    }
+
+    // Unmapped API route - log and block
+    console.log(`[MOCK] No handler for: ${method} ${url}`);
+    return route.abort('blockedbyclient');
   });
 }
 

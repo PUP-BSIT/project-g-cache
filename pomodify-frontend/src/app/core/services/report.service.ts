@@ -90,17 +90,9 @@ export class ReportService {
   constructor(private http: HttpClient) {}
 
   getSummary(range: ReportRange): Observable<SummaryItem> {
-    const token = localStorage.getItem('accessToken');
-
-    const headers = token
-      ? new HttpHeaders({
-          Authorization: `Bearer ${token}`,
-        })
-      : undefined;
-
     const params = new HttpParams().set('range', range);
     return this.http
-      .get<any>(API.REPORTS.SUMMARY, { params, headers })
+      .get<SummaryResponse>(API.REPORTS.SUMMARY, { params, withCredentials: true })
       .pipe(
         map((response: any) => {
           // Handle both response.item (legacy) and response.report (current API spec)

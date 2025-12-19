@@ -176,6 +176,8 @@ jobs:
               -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
               -e JWT_ACCESS_EXPIRATION='${{ secrets.JWT_ACCESS_EXPIRATION }}' \
               -e JWT_REFRESH_TOKEN_EXPIRATION='${{ secrets.JWT_REFRESH_EXPIRATION }}' \
+              -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+              -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
               $FIREBASE_ENV \
               $FIREBASE_MOUNT \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
