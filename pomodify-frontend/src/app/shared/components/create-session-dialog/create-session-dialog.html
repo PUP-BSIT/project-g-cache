@@ -1,0 +1,70 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Create New Session</h2>
+    <button class="close-btn" (click)="onCancel()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  
+  <div class="modal-form">
+    <!-- Session Type -->
+    <div class="form-group">
+      <label for="sessionType">Session Type <span class="required">*</span></label>
+      <select 
+        id="sessionType"
+        class="form-input" 
+        [(ngModel)]="formData.sessionType">
+        <option value="CLASSIC">Classic</option>
+        <option value="FREESTYLE">Freestyle</option>
+      </select>
+    </div>
+
+    <!-- Focus Time -->
+    <div class="form-group">
+      <label for="focusTime">Focus Time (minutes) <span class="required">*</span></label>
+      <input 
+        id="focusTime"
+        class="form-input"
+        type="number" 
+        [(ngModel)]="formData.focusTimeInMinutes"
+        min="1"
+        max="120"
+        placeholder="25">
+    </div>
+
+    <!-- Break Time -->
+    <div class="form-group">
+      <label for="breakTime">Break Time (minutes) <span class="required">*</span></label>
+      <input 
+        id="breakTime"
+        class="form-input"
+        type="number" 
+        [(ngModel)]="formData.breakTimeInMinutes"
+        min="1"
+        max="60"
+        placeholder="5">
+    </div>
+
+    <!-- Cycles (hidden for FREESTYLE) -->
+    @if (formData.sessionType === 'CLASSIC') {
+      <div class="form-group">
+        <label for="cycles">Cycles <span class="required">*</span></label>
+        <input 
+          id="cycles"
+          class="form-input"
+          type="number" 
+          [(ngModel)]="formData.cycles"
+          min="1"
+          max="12"
+          placeholder="4">
+      </div>
+    }
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button class="btn btn-primary" (click)="onConfirm()">
+      Create Session
+    </button>
+  </div>
+</div>

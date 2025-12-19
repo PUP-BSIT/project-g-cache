@@ -25,6 +25,15 @@ body {
   border-radius: 16px !important;
 }
 
+/* Create Session Dialog Styles */
+.create-session-dialog-panel {
+  .mat-mdc-dialog-surface {
+    border-radius: 16px !important;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
 /* Add any other global styles below */
 
 /* Global light/dark CSS variables */
