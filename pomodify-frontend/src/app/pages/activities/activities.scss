@@ -298,6 +298,8 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   background-color: var(--card);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 101;
 }
 
 .header-left {
@@ -2062,4 +2064,28 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
       box-shadow: 0 8px 24px rgba(95, 169, 164, 0.4);
     }
   }
+}
+
+// ============================================
+// MODAL Z-INDEX FIX FOR ACTIVITIES PAGE
+// ============================================
+
+// Ensure all modals appear above activities page content
+:global(.cdk-overlay-container),
+:global(.modal-overlay),
+:global(.mat-dialog-container),
+:global(.profile-modal-overlay) {
+  z-index: 1000 !important;
+}
+
+:global(.cdk-overlay-backdrop),
+:global(.mat-overlay-backdrop) {
+  z-index: 999 !important;
+}
+
+// Profile modal specific fix
+:global(.profile-modal),
+:global(.modal-content) {
+  z-index: 1001 !important;
+  position: relative;
 }

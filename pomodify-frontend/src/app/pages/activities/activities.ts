@@ -15,6 +15,7 @@ import { CreateActivityModal, ActivityData as CreateActivityModalData } from '..
 import { EditActivityModal } from '../../shared/components/edit-activity-modal/edit-activity-modal';
 import { DeleteActivityModal } from '../../shared/components/delete-activity-modal/delete-activity-modal';
 import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
+import { Profile, ProfileData } from '../profile/profile';
 import { IconMapper } from '../../core/services/icon-mapper';
 
 @Component({
@@ -427,6 +428,18 @@ export class ActivitiesPage implements OnInit {
   }
 
   protected openProfileModal(): void {
-    console.log('[ActivitiesPage] Profile modal clicked');
+    console.log('[ActivitiesPage] Opening profile modal');
+    this.dialog
+      .open(Profile, {
+        width: '550px',
+        maxWidth: '90vw',
+        panelClass: 'profile-dialog',
+      })
+      .afterClosed()
+      .subscribe((result: ProfileData) => {
+        if (result) {
+          console.log('[ActivitiesPage] Profile updated:', result);
+        }
+      });
   }
 }
