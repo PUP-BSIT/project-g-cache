@@ -20,7 +20,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   min-height: 100vh;
   background-color: $bg-light;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   overflow-x: hidden;
   position: relative;
 }
@@ -287,76 +287,86 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  background-color: $primary-teal;
+  padding: 24px 60px;
+  gap: 32px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.header-title {
+.header-left {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 16px;
-  flex: 1;
-
-  h1 {
-    font-size: 24px;
+  
+  .page-title {
+    font-size: 28px;
     font-weight: 700;
-    color: $text-white;
+    color: var(--text);
     margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 }
 
 .hamburger-btn {
   display: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  color: $text-white;
+  color: var(--text);
   font-size: 24px;
   cursor: pointer;
   padding: 8px;
-  width: 40px;
-  height: 40px;
   border-radius: 8px;
-  align-items: center;
-  justify-content: center;
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.1);
   }
   
   &:active {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(0, 0, 0, 0.15);
   }
   
   i {
     display: block;
-    font-size: 18px;
   }
 }
 
-.header-actions {
+.header-right {
   display: flex;
-  gap: 16px;
   align-items: center;
+  gap: 16px;
 }
 
 .theme-toggle-btn,
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
 .profile-btn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $text-white;
-  transition: all 0.2s ease;
+  color: var(--text);
+  transition: all 0.3s ease;
+  font-size: 18px;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
+    background: var(--muted);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -1834,6 +1844,165 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     .tooltip-activity {
+      color: #b0b3b8;
+    }
+  }
+  
+  // Period Info Section - Facebook style
+  .period-info-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .period-row {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+    }
+    
+    .period-label {
+      color: #e4e6ea;
+    }
+    
+    .period-value {
+      color: #b0b3b8;
+    }
+  }
+  
+  // Trends Section - Facebook style
+  .trends-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .trends-description {
+      color: #b0b3b8;
+    }
+    
+    .trend-card {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+        border-color: rgba(95, 169, 164, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+    
+    .trend-icon {
+      background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+      color: white;
+      box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+    }
+    
+    .trend-label {
+      color: #e4e6ea;
+    }
+    
+    .trend-current {
+      color: #e4e6ea;
+    }
+    
+    .trend-previous {
+      color: #b0b3b8;
+    }
+    
+    .trend-vs {
+      color: #b0b3b8;
+    }
+    
+    .trend-value-label {
+      color: #b0b3b8;
+    }
+    
+    .trend-comparison {
+      color: #b0b3b8;
+    }
+    
+    .trend-change {
+      &.positive {
+        color: #22C55E;
+        background: rgba(34, 197, 94, 0.1);
+      }
+      
+      &.negative {
+        color: #EF4444;
+        background: rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+  
+  // Insights Section - Facebook style
+  .insights-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .insight-card {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+        border-color: rgba(95, 169, 164, 0.3);
+      }
+      
+      &.insight-positive {
+        background: rgba(34, 197, 94, 0.05);
+        border-left-color: #22C55E;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        
+        .insight-icon {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22C55E;
+        }
+      }
+      
+      &.insight-warning {
+        background: rgba(251, 191, 36, 0.05);
+        border-left-color: #FBBF24;
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        
+        .insight-icon {
+          background: rgba(251, 191, 36, 0.15);
+          color: #FBBF24;
+        }
+      }
+      
+      &.insight-info {
+        background: rgba(95, 169, 164, 0.05);
+        border-left-color: #5FA9A4;
+        border: 1px solid rgba(95, 169, 164, 0.2);
+        
+        .insight-icon {
+          background: rgba(95, 169, 164, 0.15);
+          color: #7BC4BF;
+        }
+      }
+    }
+    
+    .insight-message {
+      color: #e4e6ea;
+    }
+    
+    .insight-actionable {
       color: #b0b3b8;
     }
   }

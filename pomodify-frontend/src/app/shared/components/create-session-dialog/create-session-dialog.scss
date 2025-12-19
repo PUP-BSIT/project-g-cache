@@ -1,14 +1,7 @@
-$primary-teal: #5FA9A4;
-$primary-teal-light: #7BC4BF;
-$primary-teal-dark: #4D8B87;
-$text-dark: #2C3E50;
-$text-white: #FFFFFF;
-$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-/* Copy of create-activity-modal styles for identical look */
 .modal-container {
   padding: 0;
-  min-width: 500px;
-  max-width: 500px;
+  min-width: 420px;
+  max-width: 450px;
   background: var(--card);
   color: var(--text);
 }
@@ -17,12 +10,12 @@ $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border);
   background: var(--card);
 
   h2 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 600;
     color: #4b9fa8;
     margin: 0;
@@ -51,17 +44,17 @@ $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .modal-form {
-  padding: 24px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   background: var(--card);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 
   label {
     font-size: 14px;
@@ -80,7 +73,7 @@ $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .form-input {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 14px;
@@ -98,36 +91,18 @@ $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   &::placeholder {
     color: var(--muted);
   }
-}
-
-.textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.color-picker {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.color-option {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    border-color: rgba(75, 159, 168, 0.4);
   }
+}
 
-  &.selected {
-    border-color: var(--text);
-    box-shadow: 0 0 0 4px rgba(75, 159, 168, 0.2);
+select.form-input {
+  cursor: pointer;
+  
+  option {
+    background: var(--card);
+    color: var(--text);
   }
 }
 
@@ -140,14 +115,14 @@ $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 .modal-actions {
   display: flex;
   gap: 12px;
-  padding: 24px;
+  padding: 16px 24px 20px;
   border-top: 1px solid var(--border);
   justify-content: flex-end;
   background: var(--card);
 }
 
 .btn {
-  padding: 10px 24px;
+  padding: 8px 20px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
