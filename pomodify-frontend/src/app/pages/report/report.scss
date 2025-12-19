@@ -287,76 +287,86 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  background-color: $primary-teal;
+  padding: 24px 60px;
+  gap: 32px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.header-title {
+.header-left {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 16px;
-  flex: 1;
-
-  h1 {
-    font-size: 24px;
+  
+  .page-title {
+    font-size: 28px;
     font-weight: 700;
-    color: $text-white;
+    color: var(--text);
     margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 }
 
 .hamburger-btn {
   display: none;
-  background: rgba(255, 255, 255, 0.2);
+  background: none;
   border: none;
-  color: $text-white;
+  color: var(--text);
   font-size: 24px;
   cursor: pointer;
   padding: 8px;
-  width: 40px;
-  height: 40px;
   border-radius: 8px;
-  align-items: center;
-  justify-content: center;
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.1);
   }
   
   &:active {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: rgba(0, 0, 0, 0.15);
   }
   
   i {
     display: block;
-    font-size: 18px;
   }
 }
 
-.header-actions {
+.header-right {
   display: flex;
-  gap: 16px;
   align-items: center;
+  gap: 16px;
 }
 
 .theme-toggle-btn,
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
 .profile-btn {
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $text-white;
-  transition: all 0.2s ease;
+  color: var(--text);
+  transition: all 0.3s ease;
+  font-size: 18px;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-1px);
+    background: var(--muted);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
