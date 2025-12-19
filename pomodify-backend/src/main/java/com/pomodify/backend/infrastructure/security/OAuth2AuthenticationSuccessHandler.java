@@ -61,11 +61,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             // Respond with 200 OK and JS redirect to the correct frontend
             String targetUrl;
             String serverName = request.getServerName();
-            if (serverName != null && serverName.contains("pomodify.site")) {
-                // Always use production frontend
+            // Only use production frontend if the backend itself is being called (not Google or other OAuth providers)
+            if (serverName != null && (serverName.equals("pomodify.site") || serverName.equals("www.pomodify.site"))) {
                 targetUrl = "https://pomodify.site/oauth2/redirect";
             } else {
-                // Dev: try to infer from Origin/Referer, fallback to localhost
+                // Dev or callback from Google: use dynamic or localhost
                 String origin = request.getHeader("Origin");
                 String referer = request.getHeader("Referer");
                 String frontendBase = null;
