@@ -1476,29 +1476,15 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .session-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
-  border: 2px solid transparent;
+  border: none;
   border-radius: 16px;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #52C97C 0%, $primary-teal 50%, #5FA9A4 100%);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
 
   .session-header {
     display: flex;
@@ -1515,7 +1501,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 6px 16px rgba(82, 201, 124, 0.3);
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     i {
@@ -1561,7 +1547,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     display: flex;
     gap: 20px;
     padding-top: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
 
     .meta-item {
       display: flex;
@@ -2378,8 +2363,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     .recent-sessions-section {
-      background: #111827;
-      border: 1px solid #1F2937;
+      background: transparent;
+      border: none;
       
       .section-header {
         border-bottom-color: #1F2937;
