@@ -28,5 +28,10 @@ export class App implements OnInit {
     setTimeout(() => {
       ensurePublicPageLightTheme();
     }, 0);
+
+    // Handle OAuth2 redirect page
+    if (window.location.pathname === '/oauth2/redirect') {
+      this.router.navigate(['/dashboard']);
+    }
   }
 }

@@ -1,44 +1,31 @@
 import { Injectable, inject } from '@angular/core';
+import { API } from '../config/api.config';
 import { Router, CanActivateFn, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { HistoryService } from '../services/history.service';
+import { Auth } from '../services/auth';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuardService {
   private router = inject(Router);
-  private historyService = inject(HistoryService);
+  private auth = inject(Auth);
+  private static profileChecked = false;
 
-  canActivate(): boolean {
-    const token = localStorage.getItem('accessToken');
-
-    if (!token) {
-      // No token found, redirect to login
-      console.warn('[AuthGuard] No access token found, redirecting to login');
-      this.router.navigate(['/login']);
+  async canActivate(): Promise<boolean> {
+    if (AuthGuardService.profileChecked) {
+      // Prevent infinite loop
       return false;
     }
-
-    // Basic validation: check if token is a non-empty string
-    if (typeof token !== 'string' || token.trim().length === 0) {
-      console.warn('[AuthGuard] Invalid token format, redirecting to login');
-      this.clearAuthData();
-      this.router.navigate(['/login']);
-      return false;
-    }
-
-    // Token exists and has basic validity
-    // The auth-error interceptor will handle expired/invalid tokens on API calls
-    return true;
-  }
-
-  private clearAuthData(): void {
+    AuthGuardService.profileChecked = true;
     try {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('currentUser');
+      await this.auth.fetchAndStoreUserProfile();
+      AuthGuardService.profileChecked = false;
+      return true;
     } catch (e) {
-      console.warn('[AuthGuard] Unable to clear auth data', e);
+      AuthGuardService.profileChecked = false;
+      // Redirect to login page if not authenticated
+      this.router.navigate(['/login']);
+      return false;
     }
   }
 }
@@ -46,24 +33,16 @@ export class AuthGuardService {
 /**
  * Protects authenticated routes - requires valid auth token
  */
-export const authGuard: CanActivateFn = (route, state) => {
-  return inject(AuthGuardService).canActivate();
+export const authGuard: CanActivateFn = async (route, state) => {
+  return await inject(AuthGuardService).canActivate();
 };
 
 /**
  * Prevents authenticated users from accessing public pages (login, signup)
  * Redirects them to dashboard instead
  */
-export const publicPageGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
-  const router = inject(Router);
-  const token = localStorage.getItem('accessToken');
-
-  if (token) {
-    // User is logged in, redirect to dashboard
-    router.navigate(['/dashboard']);
-    return false;
-  }
-
-  // User is not logged in, allow access to public page
+export const publicPageGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+  // Do not check profile or call any API on public pages (e.g., login, signup)
+  // If you want to redirect authenticated users away from login, you can check a local signal/flag if available
   return true;
 };

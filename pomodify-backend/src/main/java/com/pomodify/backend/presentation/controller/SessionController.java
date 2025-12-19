@@ -9,7 +9,6 @@ import com.pomodify.backend.presentation.dto.request.session.SessionRequest;
 import com.pomodify.backend.presentation.dto.request.session.UpdateSessionRequest;
 import com.pomodify.backend.presentation.dto.response.SessionResponse;
 import com.pomodify.backend.presentation.mapper.SessionMapper;
-import com.pomodify.backend.presentation.mapper.SessionNoteMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

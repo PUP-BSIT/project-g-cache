@@ -8,6 +8,9 @@
 // 1. BASE URL
 const BASE_URL = "https://api.pomodify.site";
 
+// Use this for frontend OAuth2 redirects (not proxied)
+export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
+
 // 2. API VERSION
 // ------------------------
 // Changing this one string updates every endpoint in the app to v2, etc.
@@ -31,12 +34,13 @@ export const API = {
     REGISTER: `${ROOT}/auth/register`,
     REFRESH: `${ROOT}/auth/refresh`,
     LOGOUT: `${ROOT}/auth/logout`,
+    OAUTH2_GOOGLE: `${ROOT}/auth/oauth2/google`,
   },
 
   // User Resource
   USER: {
-    PROFILE: `${ROOT}/users/me`,
-    UPDATE_PROFILE: `${ROOT}/users/me`,
+    PROFILE: `${ROOT}/auth/users/me`,
+    UPDATE_PROFILE: `${ROOT}/auth/users/me`,
     VERIFY_EMAIL: `${ROOT}/users/verify-email`,
   },
 

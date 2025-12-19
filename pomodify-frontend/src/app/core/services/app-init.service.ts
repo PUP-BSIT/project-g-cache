@@ -1,3 +1,14 @@
+// Clear old tokens from localStorage on app start (migration to cookie-based auth)
+(() => {
+  try {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('currentUser');
+    console.log('[AppInit] Cleared legacy tokens from localStorage');
+  } catch (e) {
+    console.warn('[AppInit] Unable to clear legacy tokens', e);
+  }
+})();
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FcmService } from './fcm.service';

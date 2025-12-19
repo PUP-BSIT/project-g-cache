@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
+import { API, OAUTH2_GOOGLE_URL } from '../../core/config/api.config';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
 
 @Component({
@@ -86,7 +87,8 @@ export class Login implements OnInit {
   }
 
   onGoogleSignIn(): void {
-    console.log('Google sign in clicked');
+    // Use the full backend URL for OAuth2 redirect
+    window.location.href = OAUTH2_GOOGLE_URL;
   }
 
   onForgotPassword(event: Event): void {

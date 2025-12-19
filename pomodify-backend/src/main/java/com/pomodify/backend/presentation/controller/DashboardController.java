@@ -58,7 +58,7 @@ public class DashboardController {
             if (auth instanceof JwtAuthenticationToken jwtAuth) {
                 Object principal = jwtAuth.getToken();
                 if (principal instanceof Jwt j) resolvedJwt = j;
-            } else if (auth != null && auth.getPrincipal() instanceof Jwt p) {
+            } else if (auth != null && auth.getPrincipal() instanceof Jwt) {
                 resolvedJwt = (Jwt) auth.getPrincipal();
             }
         }
