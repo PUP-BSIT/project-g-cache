@@ -37,6 +37,26 @@ import org.springframework.web.context.request.RequestContextHolder;
 @Slf4j
 public class AuthController {
 
+    // Utility method for manual Set-Cookie header (matches OAuth2 handler)
+    private void setAuthCookieHeaders(HttpServletResponse response, String accessToken, String refreshToken, boolean isSecure) {
+    String accessTokenCookie = String.format(
+        "accessToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        accessToken,
+        60 * 60,
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60 * 60))
+    );
+    String refreshTokenCookie = String.format(
+        "refreshToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        refreshToken,
+        7 * 24 * 60 * 60,
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
+    );
+    response.setHeader("Set-Cookie", accessTokenCookie);
+    response.addHeader("Set-Cookie", refreshTokenCookie);
+    log.info("Set-Cookie header for accessToken set");
+    log.info("Set-Cookie header for refreshToken set");
+    }
+
     private final AuthService authService;
     private final JwtService jwtService;
 
@@ -67,33 +87,13 @@ public class AuthController {
     @Operation(summary = "Login with email and password")
     public ResponseEntity<Void> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) {
         log.info("Login request received for: {}", request.email());
-
         LoginUserCommand command = LoginUserCommand.builder()
                 .email(request.email())
                 .password(request.password())
                 .build();
-
         AuthResponse authResponse = AuthMapper.toAuthResponse(authService.loginUser(command));
-
-        // Set HTTP-only cookies for access and refresh tokens
-        boolean isSecure = ((HttpServletRequest) RequestContextHolder.getRequestAttributes().resolveReference("request")).isSecure();
-        Cookie accessTokenCookie = new Cookie("accessToken", authResponse.accessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 1 hour
-        accessTokenCookie.setSecure(isSecure);
-        accessTokenCookie.setAttribute("SameSite", "None");
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", authResponse.refreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-        refreshTokenCookie.setSecure(isSecure);
-        refreshTokenCookie.setAttribute("SameSite", "None");
-
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-
+        boolean isSecure = true; // Always secure in production
+        setAuthCookieHeaders(response, authResponse.accessToken(), authResponse.refreshToken(), isSecure);
         log.info("User logged in successfully: {} (tokens set as HTTP-only cookies)", request.email());
         return ResponseEntity.ok().build();
     }
@@ -102,26 +102,17 @@ public class AuthController {
     @Operation(summary = "Logout current user by revoking token")
     public ResponseEntity<LogoutResponse> logout(HttpServletRequest request, HttpServletResponse response) {
         log.info("Logout request received");
-
-        // Always clear cookies, never redirect
-        boolean isSecure = request.isSecure();
-        Cookie accessTokenCookie = new Cookie("accessToken", "");
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(0);
-        accessTokenCookie.setSecure(isSecure);
-        accessTokenCookie.setAttribute("SameSite", "Strict");
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", "");
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(0);
-        refreshTokenCookie.setSecure(isSecure);
-        refreshTokenCookie.setAttribute("SameSite", "Strict");
-
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-
+        // Clear cookies using manual Set-Cookie headers
+        String clearAccessToken = String.format(
+                "accessToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
+        );
+        String clearRefreshToken = String.format(
+                "refreshToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
+        );
+        response.setHeader("Set-Cookie", clearAccessToken);
+        response.addHeader("Set-Cookie", clearRefreshToken);
         // Optionally, invalidate the token in backend if present
         String token = null;
         if (request.getCookies() != null) {
@@ -172,24 +163,9 @@ public class AuthController {
         RefreshTokensCommand command = new RefreshTokensCommand(refreshToken);
         AuthResponse authResponse = AuthMapper.toAuthResponse(authService.refreshTokens(command));
 
-        // Set new HTTP-only cookies for access and refresh tokens
-        boolean isSecure = ((HttpServletRequest) RequestContextHolder.getRequestAttributes().resolveReference("request")).isSecure();
-        Cookie accessTokenCookie = new Cookie("accessToken", authResponse.accessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 1 hour
-        accessTokenCookie.setSecure(isSecure);
-        accessTokenCookie.setAttribute("SameSite", "None");
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", authResponse.refreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 7 days
-        refreshTokenCookie.setSecure(isSecure);
-        refreshTokenCookie.setAttribute("SameSite", "None");
-
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
+        // Set new cookies using manual Set-Cookie headers
+        boolean isSecure = true;
+        setAuthCookieHeaders(response, authResponse.accessToken(), authResponse.refreshToken(), isSecure);
 
         log.info("Tokens refreshed successfully");
         return ResponseEntity.ok(authResponse);
@@ -199,7 +175,8 @@ public class AuthController {
     @Operation(summary = "Trigger Google OAuth2 login")
     public void googleOAuth2Login(HttpServletResponse response) throws IOException {
         // Redirect to Spring Security's OAuth2 login flow for Google
-        response.sendRedirect("/oauth2/authorization/google");
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader("Location", "/oauth2/authorization/google");
     }
 
     // ──────────────── Current User ──────────────q──
@@ -216,15 +193,19 @@ public class AuthController {
             }
         }
         if (token == null || token.isEmpty()) {
-            throw new AuthenticationCredentialsNotFoundException("Missing accessToken cookie");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null);
         }
-
-        String email = jwtService.extractUserEmailFrom(token);
-
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null);
+        }
         log.info("/users/me request received for user with email: {}", email);
-
         UserResponse userResponse = UserMapper.toUserResponse(authService.getCurrentUser(email));
-
         log.info("Current user retrieved successfully");
         return ResponseEntity.ok(userResponse);
     }
