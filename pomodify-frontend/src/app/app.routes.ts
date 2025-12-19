@@ -1,3 +1,4 @@
+
 import { Routes } from '@angular/router';
 import { authGuard, publicPageGuard } from './core/guards/auth.guard';
 
@@ -50,5 +51,9 @@ export const routes: Routes = [
     path: 'activities/:activityTitle/sessions/:sessionId',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/session-timer/session-timer').then(m => m.SessionTimerComponent),
-  }
+  },
+  {
+    path: 'oauth2/redirect',
+    loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
+  },
 ];
