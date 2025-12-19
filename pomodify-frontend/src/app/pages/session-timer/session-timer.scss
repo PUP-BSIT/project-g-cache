@@ -1544,172 +1544,217 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       }
     }
   }
-}/*
- -------------------- DARK MODE SUPPORT -------------------- */
-/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
-:host-context(.theme-dark) {
+}/* -------------------- DARK MODE SUPPORT - CONSISTENT WITH OTHER PAGES -------------------- */
+
+/* Light Mode - Default styling is already light */
+:root:not(.theme-dark) {
   .session-timer-page {
-    background: linear-gradient(135deg, #18191a 0%, #242526 100%);
-    color: #e4e6ea;
-    min-height: 100vh;
+    background: $bg-gradient;
+    color: $text-dark;
+  }
+}
+
+/* Dark Mode - Using CSS Variables for Consistency */
+:root.theme-dark {
+  .session-timer-page {
+    background: linear-gradient(135deg, var(--bg) 0%, #0F172A 100%);
+    color: var(--text);
     
     &::before,
     &::after {
-      opacity: 0.1;
+      opacity: 0.08;
     }
   }
   
   .container {
-    color: #E5E7EB;
+    color: var(--text);
   }
   
   .session-header {
     .btn-back {
-      background-color: rgba(95, 169, 164, 0.1);
-      color: #7BC4BF;
-      border-color: rgba(95, 169, 164, 0.3);
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
       
       &:hover {
-        background-color: rgba(95, 169, 164, 0.2);
-        color: #7BC4BF;
+        background: var(--muted);
+        color: var(--text);
       }
     }
     
     .activity-title {
-      color: #E5E7EB;
+      color: var(--text);
     }
   }
   
   .timer-circle {
-    background: rgba(17, 24, 39, 0.8);
-    border: 1px solid #374151;
+    background: var(--card);
+    border: 1px solid var(--border);
     
     .timer-top {
       .session-type,
       .cycle-indicator {
-        color: #D1D5DB;
+        color: var(--text);
+      }
+      
+      .cycle-indicator {
+        background: rgba(95, 169, 164, 0.1);
       }
     }
     
     .phase-labels .phase-label {
-      color: #9CA3AF;
+      color: var(--muted);
       
       &.active {
-        color: #E5E7EB;
-        background-color: rgba(95, 169, 164, 0.2);
+        color: var(--text);
+        background-color: rgba(95, 169, 164, 0.1);
       }
       
       &.clickable:hover {
-        background-color: rgba(95, 169, 164, 0.1);
+        background-color: rgba(95, 169, 164, 0.05);
         color: #7BC4BF;
       }
     }
     
     .time-value {
-      color: #E5E7EB;
+      color: #FFFFFF;
     }
     
     .edit-icon {
-      color: #9CA3AF;
+      color: rgba(255, 255, 255, 0.7);
     }
   }
   
   .btn-timer-control {
-    background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+    background: linear-gradient(145deg, #4b9fa8 0%, #3d8490 100%);
     
     &:hover {
-      background: linear-gradient(135deg, #4D8B87, #3A6B68);
-    }
-    
-    &.paused {
-      background: linear-gradient(135deg, #22C55E, #16A34A);
+      background: linear-gradient(145deg, #3d8490 0%, #2f6a75 100%);
     }
   }
   
   .btn-stop {
-    background-color: #EF4444;
+    background: linear-gradient(145deg, #EF4444 0%, #DC2626 100%);
     
     &:hover {
-      background-color: #DC2626;
+      background: linear-gradient(145deg, #DC2626 0%, #B91C1C 100%);
     }
   }
   
   .btn-early-complete {
-    background-color: rgba(95, 169, 164, 0.1);
-    color: #7BC4BF;
-    border-color: rgba(95, 169, 164, 0.3);
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
     
     &:hover {
-      background-color: rgba(95, 169, 164, 0.2);
+      background: var(--muted);
+    }
+  }
+  
+  .btn-fast-forward {
+    background: #4b9fa8;
+    
+    &:hover {
+      background: #3d8490;
     }
   }
   
   .notes-panel {
-    background: rgba(17, 24, 39, 0.8);
-    border: 1px solid #374151;
+    background: var(--card);
+    border: 1px solid var(--border);
     
     .notes-label {
-      color: #E5E7EB;
+      color: var(--text);
     }
     
     .btn-add-todo {
-      background-color: rgba(95, 169, 164, 0.1);
-      color: #7BC4BF;
-      border-color: rgba(95, 169, 164, 0.3);
+      background: #4b9fa8;
+      color: white;
       
       &:hover {
-        background-color: rgba(95, 169, 164, 0.2);
+        background: #3d8490;
+      }
+      
+      .todo-label {
+        color: white;
       }
     }
     
     .todo-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      
+      &:hover {
+        background: var(--card);
+      }
+      
       .todo-text {
-        background-color: #1F2937;
-        color: #E5E7EB;
-        border-color: #374151;
+        background: transparent;
+        color: var(--text);
+        
+        &:focus {
+          background: rgba(75, 159, 168, 0.05);
+        }
         
         &::placeholder {
-          color: #6B7280;
+          color: var(--muted);
         }
       }
       
       .btn-remove-todo {
-        color: #EF4444;
+        color: var(--muted);
         
         &:hover {
-          background-color: rgba(239, 68, 68, 0.1);
+          background: rgba(239, 68, 68, 0.1);
+          color: #EF4444;
         }
       }
     }
     
     .notes-textarea {
-      background-color: #1F2937;
-      color: #E5E7EB;
-      border-color: #374151;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      
+      &:focus {
+        background: var(--card);
+        border-color: #4b9fa8;
+      }
       
       &::placeholder {
-        color: #6B7280;
+        color: var(--muted);
       }
     }
   }
   
   .mascot-bubble {
-    background: rgba(17, 24, 39, 0.95);
-    color: #E5E7EB;
-    border: 1px solid #374151;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    
+    &::before {
+      border-top-color: var(--card);
+    }
+    
+    span {
+      background: linear-gradient(135deg, #4b9fa8 0%, #3d8490 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
   }
   
   // Auto-start toast dark mode
   .auto-start-toast .toast-content {
-    background: rgba(31, 41, 55, 0.95);
-    border: 1px solid #374151;
+    background: var(--card);
+    border: 1px solid var(--border);
     
     .toast-title {
-      color: #E5E7EB;
+      color: var(--text);
     }
     
     .toast-message {
-      color: #9CA3AF;
+      color: var(--muted);
     }
     
     .toast-cancel {
@@ -1725,15 +1770,15 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   // Auto-start modal dark mode
   .auto-start-notification.mobile-modal {
     .auto-start-modal {
-      background: rgba(31, 41, 55, 0.95);
-      border: 1px solid #374151;
+      background: var(--card);
+      border: 1px solid var(--border);
       
       .auto-start-title {
-        color: #E5E7EB;
+        color: var(--text);
       }
       
       .auto-start-message {
-        color: #9CA3AF;
+        color: var(--muted);
       }
       
       .btn-cancel-auto-start {
