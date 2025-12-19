@@ -226,7 +226,18 @@ body {
   
   /* Force light mode for all modals (privacy/data confirmation modals) */
   .modal-overlay {
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  /* Angular Material modal overlays - light mode */
+  .cdk-overlay-backdrop,
+  .mat-overlay-backdrop {
+    background: rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .cdk-overlay-backdrop.cdk-overlay-backdrop-showing,
+  .mat-overlay-backdrop.mat-overlay-backdrop-showing {
+    background: rgba(0, 0, 0, 0.3) !important;
   }
   
   .modal-content {
@@ -1427,4 +1438,19 @@ html.theme-dark .metric-card.streak-best::before {
 
 html.theme-dark .metric-card.activities::before {
   background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* DARK MODE MODAL OVERLAYS */
+html.theme-dark .modal-overlay {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.theme-dark .cdk-overlay-backdrop,
+html.theme-dark .mat-overlay-backdrop {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.theme-dark .cdk-overlay-backdrop.cdk-overlay-backdrop-showing,
+html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
+  background: rgba(0, 0, 0, 0.6) !important;
 }
