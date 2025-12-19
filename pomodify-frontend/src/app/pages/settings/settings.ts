@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,7 +11,7 @@ import { NotificationService } from '../../core/services/notification.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
@@ -52,6 +52,11 @@ export class Settings implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Auto-collapse sidebar on mobile
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      this.sidebarExpanded.set(false);
+    }
+    
     // Update theme state when component initializes
     this.updateThemeState();
   }
