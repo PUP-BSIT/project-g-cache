@@ -1848,6 +1848,165 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
   }
   
+  // Period Info Section - Facebook style
+  .period-info-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .period-row {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+    }
+    
+    .period-label {
+      color: #e4e6ea;
+    }
+    
+    .period-value {
+      color: #b0b3b8;
+    }
+  }
+  
+  // Trends Section - Facebook style
+  .trends-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .trends-description {
+      color: #b0b3b8;
+    }
+    
+    .trend-card {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+        border-color: rgba(95, 169, 164, 0.3);
+        transform: translateY(-2px);
+      }
+    }
+    
+    .trend-icon {
+      background: linear-gradient(135deg, #5FA9A4, #4D8B87);
+      color: white;
+      box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
+    }
+    
+    .trend-label {
+      color: #e4e6ea;
+    }
+    
+    .trend-current {
+      color: #e4e6ea;
+    }
+    
+    .trend-previous {
+      color: #b0b3b8;
+    }
+    
+    .trend-vs {
+      color: #b0b3b8;
+    }
+    
+    .trend-value-label {
+      color: #b0b3b8;
+    }
+    
+    .trend-comparison {
+      color: #b0b3b8;
+    }
+    
+    .trend-change {
+      &.positive {
+        color: #22C55E;
+        background: rgba(34, 197, 94, 0.1);
+      }
+      
+      &.negative {
+        color: #EF4444;
+        background: rgba(239, 68, 68, 0.1);
+      }
+    }
+  }
+  
+  // Insights Section - Facebook style
+  .insights-section {
+    background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    .section-heading {
+      color: #e4e6ea;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .insight-card {
+      background: linear-gradient(135deg, #242526 0%, #1c1e21 100%);
+      border: 1px solid #3e4042;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
+        border-color: rgba(95, 169, 164, 0.3);
+      }
+      
+      &.insight-positive {
+        background: rgba(34, 197, 94, 0.05);
+        border-left-color: #22C55E;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        
+        .insight-icon {
+          background: rgba(34, 197, 94, 0.15);
+          color: #22C55E;
+        }
+      }
+      
+      &.insight-warning {
+        background: rgba(251, 191, 36, 0.05);
+        border-left-color: #FBBF24;
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        
+        .insight-icon {
+          background: rgba(251, 191, 36, 0.15);
+          color: #FBBF24;
+        }
+      }
+      
+      &.insight-info {
+        background: rgba(95, 169, 164, 0.05);
+        border-left-color: #5FA9A4;
+        border: 1px solid rgba(95, 169, 164, 0.2);
+        
+        .insight-icon {
+          background: rgba(95, 169, 164, 0.15);
+          color: #7BC4BF;
+        }
+      }
+    }
+    
+    .insight-message {
+      color: #e4e6ea;
+    }
+    
+    .insight-actionable {
+      color: #b0b3b8;
+    }
+  }
+  
   // Loading states - Facebook style
   .loading-spinner {
     .spinner {
