@@ -11,7 +11,7 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="logo">
+    <div class="logo" (click)="toggleSidebar()" title="Toggle Sidebar" role="button" tabindex="0">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -19,29 +19,25 @@
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/report" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" routerLink="/report" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="toggleSidebar()">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/settings" routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -70,9 +66,6 @@
         <h1>Reports</h1>
       </div>
       <div class="header-actions">
-        <button class="theme-toggle-btn" (click)="onToggleTheme()" title="Toggle Theme">
-          <i class="fa-solid" [class]="themeIcon()"></i>
-        </button>
         <div class="user-profile">
           <button class="profile-btn" (click)="openProfileModal()">
             <i class="fa-solid fa-user"></i>
@@ -84,10 +77,12 @@
     <!-- Report Content -->
     <div class="report-content">
       <section class="report-main-grid">
-        <!-- LEFT: Activity summary + Focus hours -->
-        <div class="report-left">
-          <section class="activity-summary-section">
-            <h2 class="section-heading">Activity Summary</h2>
+        <!-- TOP ROW: Activity Summary (Left) and Trends (Right) -->
+        <div class="report-top-row">
+          <!-- LEFT: Activity summary -->
+          <div class="report-activity-panel">
+            <section class="activity-summary-section">
+              <h2 class="section-heading">Activity Summary</h2>
 
             <div class="summary-cards">
               <div class="summary-card fade-in-up">
@@ -125,10 +120,124 @@
                   <i class="fa-solid fa-fire"></i>
                 </div>
               </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Total Break Hours</div>
+                  <div class="summary-value">
+                    {{ formatHours(totalBreakHours()) }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-pause"></i>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Completion Rate</div>
+                  <div class="summary-value">
+                    {{ completionRate() }}%
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-check-circle"></i>
+                </div>
+              </div>
+
+              <div class="summary-card">
+                <div class="summary-main">
+                  <div class="summary-label">Total Sessions</div>
+                  <div class="summary-value">
+                    {{ sessionsCount() }}
+                  </div>
+                </div>
+                <div class="summary-icon">
+                  <i class="fa-solid fa-list-check"></i>
+                </div>
+              </div>
             </div>
           </section>
 
-          <!-- Focus Hours -->
+          <!-- Period Info Section -->
+          @if (periodInfo()) {
+            <section class="period-info-section">
+              <h2 class="section-heading">Report Period</h2>
+              <div class="period-card">
+                <div class="period-row">
+                  <span class="period-label">Start Date:</span>
+                  <span class="period-value">{{ periodInfo()!.startDate }}</span>
+                </div>
+                <div class="period-row">
+                  <span class="period-label">End Date:</span>
+                  <span class="period-value">{{ periodInfo()!.endDate }}</span>
+                </div>
+                <div class="period-row">
+                  <span class="period-label">Range:</span>
+                  <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
+                </div>
+              </div>
+            </section>
+          }
+
+          <!-- Insights Section -->
+          @if (insights().length > 0) {
+            <section class="insights-section">
+              <h2 class="section-heading">Insights</h2>
+              <div class="insights-list">
+                @for (insight of insights(); track insight.message) {
+                  <div class="insight-card" [class]="buildInsightCardClass(insight.type, insight.severity)">
+                    <div class="insight-icon">
+                      <i [class]="insight.icon"></i>
+                    </div>
+                    <div class="insight-content">
+                      <div class="insight-message">{{ insight.message }}</div>
+                      <div class="insight-actionable">{{ insight.actionable }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+          </div>
+
+          <!-- RIGHT: Trends Section (Top Right) -->
+          <section class="trends-section fade-in-up">
+            @if (trends().length > 0) {
+              <h2 class="section-heading">Trends</h2>
+              <div class="trends-grid">
+                @for (trend of trends(); track trend.label) {
+                  <div class="trend-card">
+                    <div class="trend-icon">
+                      <i [class]="trend.icon"></i>
+                    </div>
+                    <div class="trend-content">
+                      <div class="trend-label">{{ trend.label }}</div>
+                      <div class="trend-comparison">
+                        <div class="trend-value-group">
+                          <span class="trend-value-label">Current</span>
+                          <span class="trend-current">{{ trend.current | number: '1.0-1' }}</span>
+                        </div>
+                        <span class="trend-vs">vs</span>
+                        <div class="trend-value-group">
+                          <span class="trend-value-label">Previous</span>
+                          <span class="trend-previous">{{ trend.previous | number: '1.0-1' }}</span>
+                        </div>
+                      </div>
+                      <div class="trend-change" [class.positive]="trend.changePercent >= 0" [class.negative]="trend.changePercent < 0">
+                        <i [class]="trend.changePercent >= 0 ? 'fa-solid fa-arrow-trend-up' : 'fa-solid fa-arrow-trend-down'"></i>
+                        <span>{{ trend.changePercent | number: '1.1-1' }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <!-- BOTTOM: Focus Hours (Full Width) -->
+        <div class="report-bottom-row">
           <section class="focus-panel fade-in-up">
           <div class="focus-header">
             <div class="focus-title-group">
@@ -182,7 +291,7 @@
               <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
               <span class="meta-value">
                 @if (expiredSessionFocusChecked()) {
-                  {{ mockExpiredSessionsCount() }} expired
+                  {{ expiredSessionsCount() }} expired
                 } @else {
                   {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
                 }
@@ -225,7 +334,7 @@
                 </div>
 
                 <div class="chart-bars">
-                  @for (point of focusSeries(); track point.label) {
+                  @for (point of focusSeries(); track $index) {
                     <div 
                             class="bar-wrapper"
                             (mouseenter)="onBarHover(point, $event)"
@@ -241,7 +350,7 @@
                 </div>
               </div>
               <div class="chart-labels">
-                @for (point of focusSeries(); track point.label) {
+                @for (point of focusSeries(); track $index) {
                   <div class="bar-label">{{ point.label }}</div>
                 }
               </div>
@@ -267,43 +376,7 @@
               }
             </div>
           </div>
-        </section>
-        </div>
-
-        <!-- RIGHT: Ranking -->
-        <div class="ranking-panel fade-in-up">
-          <div class="ranking-header">
-            <h2 class="panel-title">Ranking</h2>
-            <div class="panel-subtitle">Most focused activities</div>
-          </div>
-
-          <div class="ranking-list">
-            @if (activityRanking().length === 0) {
-              <div class="empty-state">
-                No sessions yet. Start a focus session to see your rankings here.
-              </div>
-            } @else {
-              @for (item of activityRanking(); track item.id; let i = $index) {
-                <div class="ranking-row">
-                  <div class="rank-number">#{{ i + 1 }}</div>
-                  <div class="rank-main">
-                    <div class="rank-text">
-                      <div class="rank-name">
-                        {{ item.name }}
-                      </div>
-                      <div class="rank-meta">
-                        {{ item.totalHours | number: '1.0-1' }} hrs ·
-                        {{ item.sessions }} session{{ item.sessions !== 1 ? 's' : '' }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="rank-hours">
-                    {{ item.totalHours | number: '1.0-1' }}h
-                  </div>
-                </div>
-              }
-            }
-          </div>
+          </section>
         </div>
       </section>
     </div>

@@ -19,7 +19,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: $bg-light;
+  background-color: var(--bg);
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
   position: relative;
@@ -56,8 +56,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .sidebar {
   width: 72px;
   min-width: 72px;
-  background-color: $sidebar-bg;
-  border-right: 1px solid #E0E0E0;
+  background-color: var(--card);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -126,11 +126,21 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: flex-start;
   position: relative;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 8px 12px;
   width: 72px;
   box-sizing: border-box;
   height: 52px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.2s ease;
+  border-radius: 6px;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
   
   img {
     display: block;
@@ -138,7 +148,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     height: 36px;
     flex-shrink: 0;
     min-width: 36px;
-    margin-left: 18px;
+    margin-left: 6px;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -163,7 +173,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       width: 40px;
       height: 40px;
       min-width: 40px;
-      margin-left: 16px;
+      margin-left: 8px;
     }
     
     .app-name {
@@ -391,7 +401,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   align-items: center;
   padding: 24px 60px;
   gap: 32px;
-  background-color: $primary-teal;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -404,7 +415,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   .page-title {
     font-size: 28px;
     font-weight: 700;
-    color: $text-white;
+    color: var(--text);
     margin: 0;
     letter-spacing: -0.5px;
   }
@@ -414,7 +425,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: none;
   background: none;
   border: none;
-  color: $text-white;
+  color: var(--text);
   font-size: 24px;
   cursor: pointer;
   padding: 8px;
@@ -422,11 +433,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
   }
   
   &:active {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.15);
   }
   
   i {
@@ -467,19 +478,19 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .profile-btn {
   width: 44px;
   height: 44px;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: $text-white;
+  color: var(--text);
   transition: all 0.3s ease;
   font-size: 18px;
   
   &:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: var(--muted);
     transform: scale(1.05);
   }
   
@@ -515,7 +526,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .section-title {
   font-size: 18px;
   font-weight: 600;
-  color: $text-dark;
+  color: var(--text);
   margin: 0;
 }
 
@@ -579,8 +590,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: $primary-teal;
-  border: none;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -593,7 +604,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   &.active {
-    background: $primary-teal-dark;
+    background: $primary-teal;
+    border-color: $primary-teal;
+    
+    .activity-name,
+    .activity-time {
+      color: $text-white;
+    }
   }
 }
 
@@ -616,13 +633,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .activity-name {
   font-size: 16px;
   font-weight: 600;
-  color: $text-white;
+  color: var(--text);
   margin: 0 0 4px 0;
 }
 
 .activity-time {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--muted);
   margin: 0;
 }
 
@@ -634,7 +651,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .focus-card {
-  background: $primary-teal-light;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 40px;
   box-shadow: $card-shadow;
@@ -647,7 +665,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .focus-title {
   font-size: 20px;
   font-weight: 600;
-  color: $text-white;
+  color: var(--text);
   margin: 0;
 }
 
@@ -682,8 +700,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     option {
-      background: $bg-white;
-      color: $text-dark;
+      background: var(--card);
+      color: var(--text);
     }
   }
 }
@@ -692,7 +710,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: $bg-white;
+  background: var(--card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -706,14 +724,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .timer-value {
   font-size: 72px;
   font-weight: 700;
-  color: $text-dark;
+  color: var(--text);
   margin-bottom: 8px;
   letter-spacing: -2px;
 }
 
 .timer-label {
   font-size: 16px;
-  color: $text-light;
+  color: var(--muted);
   font-weight: 500;
 }
 
@@ -780,7 +798,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
-  color: $text-dark;
+  color: var(--text);
   text-align: center;
   margin: 0;
 }
@@ -792,7 +810,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .status-card {
-  background: $primary-teal;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
   text-align: center;
@@ -807,7 +826,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .status-label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--muted);
   margin-bottom: 12px;
   font-weight: 500;
 }
@@ -822,14 +841,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .status-number {
   font-size: 36px;
   font-weight: 700;
-  color: $text-white;
+  color: var(--text);
   line-height: 1;
 }
 
 .status-unit {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--muted);
 }
 
 // Responsive Design
@@ -922,8 +941,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .search-bar {
   display: flex;
   align-items: center;
-  background: $bg-white;
-  border: 1px solid #E0E0E0;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 16px;
   gap: 12px;
@@ -936,7 +955,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   
   .search-icon {
     font-size: 18px;
-    color: $text-light;
+    color: var(--muted);
     flex-shrink: 0;
   }
   
@@ -946,11 +965,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     outline: none;
     font-size: 14px;
     font-family: inherit;
-    color: $text-dark;
+    color: var(--text);
     background: transparent;
     
     &::placeholder {
-      color: $text-light;
+      color: var(--muted);
     }
   }
 }
@@ -964,8 +983,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .category-dropdown-btn {
   width: 100%;
   padding: 12px 16px;
-  background: $bg-white;
-  border: 1px solid #E0E0E0;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -973,7 +992,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   gap: 10px;
-  color: $text-dark;
+  color: var(--text);
   transition: all 0.2s ease;
   
   i {
@@ -999,8 +1018,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   top: 100%;
   left: 0;
   right: 0;
-  background: $bg-white;
-  border: 1px solid #E0E0E0;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-top: none;
   border-radius: 0 0 8px 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -1015,13 +1034,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 12px 16px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #F0F0F0;
+  border-bottom: 1px solid var(--border);
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 12px;
-  color: $text-dark;
+  color: var(--text);
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -1032,7 +1051,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   
   i {
     font-size: 16px;
-    color: $text-light;
+    color: var(--muted);
     width: 20px;
     text-align: center;
     flex-shrink: 0;
@@ -1077,13 +1096,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .filter-chip {
   padding: 8px 16px;
-  border: 1px solid #E0E0E0;
-  background: $bg-white;
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 20px;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: $text-dark;
+  color: var(--text);
   font-weight: 500;
   
   &:hover {
@@ -1123,7 +1142,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: center;
   padding: 60px 24px;
   margin: 0 60px;
-  background: $bg-white;
+  background: var(--card);
   border-radius: 12px;
   box-shadow: $card-shadow;
   gap: 16px;
@@ -1357,7 +1376,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   .btn-quick-start {
     padding: 14px 32px;
-    background: #fff;
+    background: var(--card);
     color: #FFC107;
     border: none;
     border-radius: 8px;
@@ -1372,7 +1391,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     white-space: nowrap;
 
     &:hover {
-      background: #f5f5f5;
+      background: var(--muted);
       transform: scale(1.05);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
@@ -1608,7 +1627,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: space-between;
   align-items: flex-end;
   gap: 12px;
-  background: $bg-white;
+  background: var(--card);
+  border: 1px solid var(--border);
   padding: 24px;
   border-radius: 12px;
   box-shadow: $card-shadow;
@@ -1647,24 +1667,24 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   .bar-label {
     font-size: 13px;
     font-weight: 600;
-    color: $text-dark;
+    color: var(--text);
   }
 
   .bar-value {
     font-size: 12px;
-    color: $text-light;
+    color: var(--muted);
     font-weight: 500;
   }
 }
 
 // Empty State (used in recent sessions)
 .empty-recent {
-  background: $bg-white;
+  background: var(--card);
   padding: 48px 24px;
   border-radius: 12px;
   box-shadow: $card-shadow;
   text-align: center;
-  color: $text-light;
+  color: var(--muted);
 
   i {
     font-size: 48px;
@@ -1677,11 +1697,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     margin: 0 0 8px 0;
     font-size: 15px;
     font-weight: 500;
-    color: $text-dark;
+    color: var(--text);
 
     &.empty-hint {
       font-size: 13px;
-      color: $text-light;
+      color: var(--muted);
       font-weight: 400;
       margin-top: 8px;
     }
@@ -1695,8 +1715,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .recent-activity-item {
-  background: $bg-white;
-  border: 1px solid #E0E0E0;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -1716,13 +1736,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     h4 {
       font-size: 15px;
       font-weight: 600;
-      color: $text-dark;
+      color: var(--text);
       margin: 0 0 6px 0;
     }
 
     .session-details {
       font-size: 13px;
-      color: $text-light;
+      color: var(--muted);
       margin: 0;
       display: flex;
       align-items: center;
@@ -1782,13 +1802,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   gap: 16px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--border);
 }
 
 .pagination-button {
   padding: 8px 12px;
-  background: $bg-white;
-  border: 1px solid #E0E0E0;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   color: $primary-teal;
@@ -1810,7 +1830,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .pagination-info {
   font-size: 14px;
-  color: $text-dark;
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -1861,7 +1881,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
-:host-context(.theme-dark) {
+:root.theme-dark {
   .dashboard {
     background: linear-gradient(135deg, #18191a 0%, #242526 100%);
     color: #e4e6ea;

@@ -5,7 +5,7 @@ import { Router, RouterLink, RouterLinkActive, RouterModule } from '@angular/rou
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
-import { toggleTheme } from '../../shared/theme';
+
 import { Auth } from '../../core/services/auth';
 import { API } from '../../core/config/api.config';
 import { ActivityService, ActivityData, ActivityResponse, CreateActivityRequest, UpdateActivityRequest } from '../../core/services/activity.service';
@@ -413,9 +413,7 @@ export class ActivitiesPage implements OnInit {
     this.sidebarExpanded.update(expanded => !expanded);
   }
 
-  protected onToggleTheme(): void {
-    toggleTheme();
-  }
+
 
   protected onLogout(): void {
     console.log('[ActivitiesPage] Logout initiated');

@@ -113,9 +113,9 @@ export class TestFcmComponent {
       
       // Step 2: Test manual notification
       this.addLog('🧪 Testing manual notification...');
-      new Notification('🔔 FCM Test', {
+      new Notification('FCM Test', {
         body: 'Testing notification system - this should appear!',
-        icon: '/favicon.ico'
+        icon: '/assets/images/logo.png'
       });
       this.addLog('✅ Manual notification sent');
       

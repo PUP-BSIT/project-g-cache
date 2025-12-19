@@ -11,7 +11,7 @@
   display: flex;
   width: min(960px, 100%);
   border-radius: 30px;
-  background: #ffffff;
+  background: #FFFFFF;
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.12);
   overflow: hidden;
 }
@@ -21,8 +21,8 @@
   flex: 1 1 50%;
   min-height: 600px;
   padding: 60px 52px 52px;
-  background: #ffffff;
-  color: #2c5f63;
+  background: #FFFFFF;
+  color: #2C3E50;
 }
 
 .close-btn {
@@ -138,7 +138,7 @@
 
     &:focus {
       border-color: #4da1a9;
-      background: #ffffff;
+      background: #FFFFFF;
     }
 
     &.invalid {

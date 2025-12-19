@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
+import { ensurePublicPageLightTheme } from '../../shared/theme';
 
 @Component({
   standalone: true,
@@ -11,7 +12,7 @@ import { Auth } from '../../core/services/auth';
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
 })
-export class Login {
+export class Login implements OnInit {
   private router = inject(Router);
   private auth = inject(Auth);
   private fb = inject(FormBuilder);
@@ -36,6 +37,11 @@ export class Login {
   errorMessage = '';
   passwordVisible = false;
   credentialsRejected = false; // Track if last login attempt failed
+
+  ngOnInit(): void {
+    // Force light theme on login page
+    ensurePublicPageLightTheme();
+  }
 
   get passwordInputType(): 'password' | 'text' {
     return this.passwordVisible ? 'text' : 'password';

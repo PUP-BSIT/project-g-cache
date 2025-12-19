@@ -11,7 +11,7 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="logo">
+    <div class="logo" (click)="toggleSidebar()" title="Toggle Sidebar" role="button" tabindex="0">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if(sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -19,25 +19,25 @@
     </div>
 
     <nav class="nav-icons">
-      <button class="nav-icon" (click)="navigateTo('/dashboard')">
+      <button class="nav-icon" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-layer-group"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" (click)="navigateTo('/activities')">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-list-check"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Activities</span>
         }
       </button>
-      <button class="nav-icon" (click)="navigateTo('/report')">
+      <button class="nav-icon" routerLink="/report" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
         <i class="fa-solid fa-chart-line"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Reports</span>
         }
       </button>
-      <button class="nav-icon active">
+      <button class="nav-icon" routerLink="/settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="toggleSidebar()">
         <i class="fa-solid fa-gear"></i>
         @if(sidebarExpanded()) {
           <span class="nav-text">Settings</span>
@@ -75,19 +75,189 @@
     <!-- Settings Content -->
     <div class="settings-container">
       @if (autoSaveStatus() === 'saving') {
-        <div class="auto-save-indicator saving">
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <span>Saving...</span>
+        <div class="loading-overlay">
+          <div class="loading-spinner">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Saving...</span>
+          </div>
         </div>
       }
       @if (autoSaveStatus() === 'saved') {
-        <div class="auto-save-indicator saved">
-          <i class="fa-solid fa-check"></i>
-          <span>Saved automatically</span>
+        <div class="loading-overlay">
+          <div class="loading-spinner saved">
+            <i class="fa-solid fa-check"></i>
+            <span>Saved</span>
+          </div>
         </div>
       }
 
-      <div class="settings-grid">
+      <!-- Full-Width Row-Based Layout -->
+      <div class="settings-header">
+        <h1 class="settings-title">Preferences</h1>
+        <p class="settings-subtitle">Customize your Pomodify experience</p>
+      </div>
+
+      <!-- Settings Sections in Row Layout -->
+      <div class="settings-sections">
+        
+        <!-- Notifications, Sound and Appearance Section -->
+        <div class="settings-section-card">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h2 class="section-title">Notifications, Sound and Appearance</h2>
+              <p class="section-description">Manage alerts, audio and theme preferences</p>
+            </div>
+            <div class="section-icon">
+              <i class="fa-solid fa-bell"></i>
+            </div>
+          </div>
+          
+          <div class="section-content">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Desktop Notifications</h3>
+                <p class="setting-description">Show notifications when tab is closed</p>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="notifications-toggle" class="toggle-input" 
+                       [checked]="notificationsEnabled()" 
+                       (change)="toggleNotifications()">
+                <label for="notifications-toggle" class="toggle-label"></label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Notification Sound</h3>
+                <p class="setting-description">Play sound when timer completes</p>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="sound-toggle" class="toggle-input" 
+                       [checked]="soundEnabled()" 
+                       (change)="toggleSound()">
+                <label for="sound-toggle" class="toggle-label"></label>
+              </div>
+            </div>
+
+            @if (soundEnabled()) {
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h3 class="setting-label">Sound Type</h3>
+                  <p class="setting-description">Choose notification sound</p>
+                </div>
+                <div class="setting-control">
+                  <select class="sound-select" 
+                          #soundSelect
+                          [value]="soundType()" 
+                          (change)="onSoundTypeChange($event)">
+                    @for (type of soundTypes; track type.value) {
+                      <option [value]="type.value">{{ type.label }}</option>
+                    }
+                  </select>
+                  <button class="test-btn" (click)="testSound()">
+                    <i class="fa-solid fa-volume-high"></i> Test
+                  </button>
+                </div>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <h3 class="setting-label">Volume</h3>
+                  <p class="setting-description">{{ volume() }}%</p>
+                </div>
+                <div class="setting-control">
+                  <input type="range" 
+                         min="0" 
+                         max="100" 
+                         [value]="volume()" 
+                         (input)="onVolumeChange($event)" 
+                         class="volume-slider">
+                </div>
+              </div>
+            }
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Dark Mode</h3>
+                <p class="setting-description">Switch between light and dark theme</p>
+              </div>
+              <div class="theme-toggle-container">
+                <div class="theme-toggle-switch" [class.dark]="isDarkMode()" (click)="onToggleTheme()">
+                  <div class="theme-toggle-track">
+                    <div class="theme-toggle-thumb">
+                      <div class="theme-icon">
+                        @if (isDarkMode()) {
+                          <i class="fa-solid fa-moon"></i>
+                        } @else {
+                          <i class="fa-solid fa-sun"></i>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="theme-labels">
+                    <span class="theme-label light" [class.active]="!isDarkMode()">Light</span>
+                    <span class="theme-label dark" [class.active]="isDarkMode()">Dark</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Privacy & Data Section -->
+        <div class="settings-section-card">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h2 class="section-title">Privacy & Data</h2>
+              <p class="section-description">Manage your data and privacy</p>
+            </div>
+            <div class="section-icon">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+          </div>
+          
+          <div class="section-content">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Clear Session History</h3>
+                <p class="setting-description">Delete all past pomodoro sessions</p>
+              </div>
+              <button class="action-btn" (click)="onClearSessions()">
+                <i class="fa-solid fa-trash"></i>
+                Clear
+              </button>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Clear Activity Data</h3>
+                <p class="setting-description">Delete all activities and tasks</p>
+              </div>
+              <button class="action-btn" (click)="onClearActivities()">
+                <i class="fa-solid fa-trash"></i>
+                Clear
+              </button>
+            </div>
+
+            <div class="setting-row danger-row">
+              <div class="setting-info">
+                <h3 class="setting-label danger-label">Delete Account</h3>
+                <p class="setting-description">Permanently delete your account and all data</p>
+              </div>
+              <button class="action-btn danger-btn" (click)="onDeleteAccount()">
+                <i class="fa-solid fa-user-slash"></i>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hide old settings grid -->
+      <div class="settings-grid" style="display: none;">
 
       <!-- Sound Settings Section -->
       <section class="settings-section">
@@ -379,4 +549,6 @@
       </div>
     </div>
   }
+
+
 </div>
