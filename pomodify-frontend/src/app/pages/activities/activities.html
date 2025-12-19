@@ -12,7 +12,7 @@
       <i class="fa-solid fa-xmark"></i>
     </button>
 
-    <div class="logo">
+    <div class="logo" (click)="toggleSidebar()" title="Toggle Sidebar" role="button" tabindex="0">
       <img src="assets/images/logo.png" alt="Pomodify Logo" width="32" height="32">
       @if (sidebarExpanded()) {
         <span class="app-name">Pomodify</span>
@@ -26,7 +26,7 @@
           <span class="nav-text">Dashboard</span>
         }
       </button>
-      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <button class="nav-icon" routerLink="/activities" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="toggleSidebar()">
         <i class="fa-solid fa-list-check"></i>
         @if (sidebarExpanded()) {
           <span class="nav-text">Activities</span>
@@ -67,9 +67,6 @@
         <h1 class="page-title">Activities</h1>
       </div>
       <div class="header-right">
-        <button class="theme-btn" (click)="onToggleTheme()" title="Toggle Theme">
-          <i class="fa-solid fa-moon"></i>
-        </button>
         <div class="user-profile">
           <button class="profile-btn" (click)="openProfileModal()">
             <i class="fa-solid fa-user"></i>

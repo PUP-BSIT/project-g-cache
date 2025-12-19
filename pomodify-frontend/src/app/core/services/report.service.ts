@@ -18,8 +18,11 @@ type SummaryItemMeta = {
 
 type SummaryItemMetrics = {
   totalFocusedHours: number;
+  totalBreakHours: number;
   completionRate: number;
   avgSessionMinutes: number;
+  sessionsCount: number;
+  expiredSessionsCount?: number;
 };
 
 type SummaryItemChartData = {
@@ -47,10 +50,30 @@ type TopActivity = {
   sessionCount: number;
 };
 
+type TrendMetric = {
+  current: number;
+  previous: number;
+  changePercent: number;
+};
+
+type Trends = {
+  focusHours: TrendMetric;
+  completionRate: TrendMetric;
+};
+
+type Insight = {
+  type: 'positive' | 'warning' | 'info';
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+  actionable: string;
+};
+
 export type SummaryItem = {
   meta: SummaryItemMeta;
   metrics: SummaryItemMetrics;
   chartData: SummaryItemChartData;
+  trends?: Trends;
+  insights?: Insight[];
   recentSessions: RecentSession[];
   topActivities: TopActivity[];
 };
@@ -70,6 +93,11 @@ export class ReportService {
     const params = new HttpParams().set('range', range);
     return this.http
       .get<SummaryResponse>(API.REPORTS.SUMMARY, { params, withCredentials: true })
-      .pipe(map((response: SummaryResponse) => response.item));
+      .pipe(
+        map((response: any) => {
+          // Handle both response.item (legacy) and response.report (current API spec)
+          return response.item || response.report || response;
+        })
+      );
   }
 }

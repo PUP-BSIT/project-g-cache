@@ -1,5 +1,7 @@
-import { Component, signal, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, signal, OnInit, inject } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { ensurePublicPageLightTheme } from './shared/theme';
 
 @Component({
   selector: 'app-root',
@@ -7,20 +9,28 @@ import { Router, RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App {
+export class App implements OnInit {
   protected readonly title = signal('pomodify-frontend');
-
   private router = inject(Router);
 
-  constructor() {
-    this.handleOAuthRedirect();
-  }
+  ngOnInit(): void {
+    // Listen for navigation events to ensure public pages are always light theme
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => {
+        // Force public pages to light theme after navigation
+        setTimeout(() => {
+          ensurePublicPageLightTheme();
+        }, 0);
+      });
 
-  private handleOAuthRedirect() {
-    // Check if we are on the OAuth2 redirect page
+    // Also ensure current page is handled on app init
+    setTimeout(() => {
+      ensurePublicPageLightTheme();
+    }, 0);
+
+    // Handle OAuth2 redirect page
     if (window.location.pathname === '/oauth2/redirect') {
-      // No need to store tokens; backend sets httpOnly cookies
-      // Optionally, fetch user info here or just redirect to dashboard
       this.router.navigate(['/dashboard']);
     }
   }

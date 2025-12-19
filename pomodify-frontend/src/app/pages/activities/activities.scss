@@ -21,7 +21,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #f0f4f8 0%, #e8eef3 100%);
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
   overflow-x: hidden;
 }
@@ -293,13 +293,13 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
-  background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
+  padding: 24px 60px;
+  gap: 32px;
+  background-color: var(--card);
+  border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  gap: 12px;
+  position: relative;
+  z-index: 101;
 }
 
 .header-left {
@@ -316,56 +316,59 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .hamburger-btn {
-  background: rgba(255, 255, 255, 0.2);
+  display: none;
+  background: none;
   border: none;
-  cursor: pointer;
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: none; // Hidden by default on desktop
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-
+  
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.1);
   }
-
+  
+  &:active {
+    background-color: rgba(0, 0, 0, 0.15);
+  }
+  
   i {
-    font-size: 18px;
+    display: block;
   }
 }
 
 .page-title {
   font-size: 28px;
   font-weight: 700;
-  color: white;
+  color: var(--text);
   margin: 0;
-  line-height: 1;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .theme-btn,
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
 .profile-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  cursor: pointer;
-  color: white;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: var(--card);
   border-radius: 50%;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-
+  color: var(--text);
+  transition: all 0.3s ease;
+  font-size: 18px;
+  
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
+    background: var(--muted);
+    transform: scale(1.05);
   }
-
-  i {
-    font-size: 16px;
+  
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -822,16 +825,17 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 .progress-bar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.4);
+  background: linear-gradient(90deg, #FFFFFF, rgba(255, 255, 255, 0.9));
   border-radius: 3px;
   transition: width 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 // Action Buttons
@@ -879,18 +883,21 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   color: white;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(0, 0, 0, 0.4);
     transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   }
 
   i {
@@ -2057,4 +2064,28 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
       box-shadow: 0 8px 24px rgba(95, 169, 164, 0.4);
     }
   }
+}
+
+// ============================================
+// MODAL Z-INDEX FIX FOR ACTIVITIES PAGE
+// ============================================
+
+// Ensure all modals appear above activities page content
+:global(.cdk-overlay-container),
+:global(.modal-overlay),
+:global(.mat-dialog-container),
+:global(.profile-modal-overlay) {
+  z-index: 1000 !important;
+}
+
+:global(.cdk-overlay-backdrop),
+:global(.mat-overlay-backdrop) {
+  z-index: 999 !important;
+}
+
+// Profile modal specific fix
+:global(.profile-modal),
+:global(.modal-content) {
+  z-index: 1001 !important;
+  position: relative;
 }

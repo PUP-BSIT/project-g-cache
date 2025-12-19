@@ -24,8 +24,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || 'Pomodify';
   const notificationOptions = {
     body: payload.notification?.body || 'Session completed!',
-    icon: '/assets/icons/icon-192x192.png',
-    badge: '/assets/icons/badge-72x72.png',
+    icon: '/assets/images/logo.png',
+    badge: '/assets/images/logo.png',
     tag: 'pomodify-session',
     requireInteraction: true,
     actions: [

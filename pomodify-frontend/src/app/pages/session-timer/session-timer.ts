@@ -763,7 +763,7 @@ export class SessionTimerComponent implements OnDestroy {
     const activityTitle = this.activityTitle();
     
     const context = {
-      title: '🎉 Session Complete!',
+      title: 'Session Complete!',
       body: `Great work! You completed your session for "${activityTitle}"`,
       sessionId: sess.id,
       activityId: sess.activityId,
@@ -785,7 +785,7 @@ export class SessionTimerComponent implements OnDestroy {
     const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
     
     const context = {
-      title: `${currentPhase === 'FOCUS' ? '🧠' : '☕'} ${currentPhase} Complete!`,
+      title: `${currentPhase} Phase Complete!`,
       body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
       sessionId: sess.id,
       activityId: sess.activityId,
@@ -822,7 +822,7 @@ export class SessionTimerComponent implements OnDestroy {
     const activityTitle = this.activityTitle();
     
     const testContext = {
-      title: '🧪 FORCE TEST: Timer Complete!',
+      title: 'FORCE TEST: Timer Complete!',
       body: `Force test notification for "${activityTitle}" (bypassing settings)`,
       sessionId: sess.id,
       activityId: sess.activityId
