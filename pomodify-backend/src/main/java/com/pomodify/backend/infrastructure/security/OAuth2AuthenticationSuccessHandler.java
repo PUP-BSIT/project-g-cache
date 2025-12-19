@@ -58,8 +58,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.info("Set-Cookie header for accessToken: {}", accessTokenCookie);
             log.info("Set-Cookie header for refreshToken: {}", refreshTokenCookie);
 
-            // Respond with 200 OK and JS redirect
-            String targetUrl = "http://localhost:4200/oauth2/redirect";
+            // Respond with 200 OK and JS redirect to the correct frontend
+            String origin = request.getHeader("Origin");
+            String referer = request.getHeader("Referer");
+            String frontendBase = null;
+            if (origin != null && (origin.startsWith("http://") || origin.startsWith("https://"))) {
+                frontendBase = origin;
+            } else if (referer != null && (referer.startsWith("http://") || referer.startsWith("https://"))) {
+                // Remove path from referer
+                try {
+                    java.net.URI refUri = new java.net.URI(referer);
+                    frontendBase = refUri.getScheme() + "://" + refUri.getHost();
+                    if (refUri.getPort() != -1 && refUri.getPort() != 80 && refUri.getPort() != 443) {
+                        frontendBase += ":" + refUri.getPort();
+                    }
+                } catch (Exception ignore) {}
+            }
+            if (frontendBase == null) {
+                frontendBase = "http://localhost:4200";
+            }
+            String targetUrl = frontendBase + "/oauth2/redirect";
             response.setContentType("text/html;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_OK);
             String html = "<html><head><script>window.location.replace('" + targetUrl + "');</script></head><body>Redirecting...</body></html>";
