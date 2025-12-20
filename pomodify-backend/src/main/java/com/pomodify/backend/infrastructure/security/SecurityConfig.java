@@ -54,15 +54,7 @@ public class SecurityConfig {
         @Profile("prod")
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                        .csrf(csrf -> csrf
-                                .ignoringRequestMatchers(
-                                        "/api/v2/auth/logout",
-                                        "/api/v2/auth/login",
-                                        "/api/v2/auth/register",
-                                        "/api/v2/auth/refresh",
-                                        "/api/v2/auth/oauth2/google"
-                                )
-                        )
+                        .csrf(AbstractHttpConfigurer::disable)
                         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                         .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
