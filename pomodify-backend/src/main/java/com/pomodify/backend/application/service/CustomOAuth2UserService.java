@@ -45,19 +45,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // 3. Find or Create User (and capture the result!)
-        User user = userRepository.findByEmail(new Email(emailStr))
-                .orElseGet(() -> {
-                    log.info("User {} not found, registering new user.", emailStr);
-                    User newUser = User.builder()
-                            .email(new Email(emailStr))
-                            .firstName(finalFirstName)
-                            .lastName(finalLastName)
-                            .passwordHash(UUID.randomUUID().toString()) // Dummy password
-                            .isEmailVerified(true) // Verified by Google
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(newUser);
-                });
+
+        User user = userRepository.findByEmail(new Email(emailStr)).map(existingUser -> {
+            // If user exists and is not verified, trust Google and update
+            if (!existingUser.isEmailVerified()) {
+                existingUser.setEmailVerified(true);
+            }
+            // Always set authProvider to GOOGLE on Google login
+            existingUser.setAuthProvider(User.AuthProvider.GOOGLE);
+            return userRepository.save(existingUser);
+        }).orElseGet(() -> {
+            log.info("User {} not found, registering new Google user.", emailStr);
+            User newUser = User.builder()
+                    .email(new Email(emailStr))
+                    .firstName(finalFirstName)
+                    .lastName(finalLastName)
+                    .passwordHash(UUID.randomUUID().toString()) // Dummy password
+                    .isEmailVerified(true) // Verified by Google
+                    .isActive(true)
+                    .authProvider(User.AuthProvider.GOOGLE)
+                    .build();
+            return userRepository.save(newUser);
+        });
 
         log.info("User successfully loaded/saved: {}", user.getId());
 

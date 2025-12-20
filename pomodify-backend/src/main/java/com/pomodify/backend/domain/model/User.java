@@ -1,6 +1,7 @@
 package com.pomodify.backend.domain.model;
 
 import com.pomodify.backend.domain.valueobject.Email;
+import com.pomodify.backend.domain.model.AuthProvider;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -51,6 +52,11 @@ public class User {
     @Column(name = "is_email_verified", nullable = false)
     @Builder.Default
     private boolean isEmailVerified = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
