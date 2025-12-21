@@ -11,9 +11,8 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-    "spring.profiles.active=test"
-})
+@SpringBootTest
+@org.springframework.test.context.ActiveProfiles("h2")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class SettingsServicePersistenceTest {
 

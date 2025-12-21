@@ -7,6 +7,7 @@ public record AuthResult(
         String firstName,
         String lastName,
         String email,
+        boolean isEmailVerified,
         String accessToken,
         String refreshToken) {
 }

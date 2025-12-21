@@ -1,6 +1,7 @@
 package com.pomodify.backend.application.service;
 
 import com.pomodify.backend.domain.model.User;
+import com.pomodify.backend.domain.enums.AuthProvider;
 import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
 import com.pomodify.backend.infrastructure.security.CustomOAuth2User; // Import from your config package
@@ -45,19 +46,28 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // 3. Find or Create User (and capture the result!)
-        User user = userRepository.findByEmail(new Email(emailStr))
-                .orElseGet(() -> {
-                    log.info("User {} not found, registering new user.", emailStr);
-                    User newUser = User.builder()
-                            .email(new Email(emailStr))
-                            .firstName(finalFirstName)
-                            .lastName(finalLastName)
-                            .passwordHash(UUID.randomUUID().toString()) // Dummy password
-                            .isEmailVerified(true) // Verified by Google
-                            .isActive(true)
-                            .build();
-                    return userRepository.save(newUser);
-                });
+
+        User user = userRepository.findByEmail(new Email(emailStr)).map(existingUser -> {
+            // If user exists and is not verified, trust Google and update
+            if (!existingUser.isEmailVerified()) {
+                existingUser.setEmailVerified(true);
+            }
+            // Always set authProvider to GOOGLE on Google login
+            existingUser.setAuthProvider(AuthProvider.GOOGLE);
+            return userRepository.save(existingUser);
+        }).orElseGet(() -> {
+            log.info("User {} not found, registering new Google user.", emailStr);
+            User newUser = User.builder()
+                    .email(new Email(emailStr))
+                    .firstName(finalFirstName)
+                    .lastName(finalLastName)
+                    .passwordHash(UUID.randomUUID().toString()) // Dummy password
+                    .isEmailVerified(true) // Verified by Google
+                    .isActive(true)
+                    .authProvider(AuthProvider.GOOGLE)
+                    .build();
+            return userRepository.save(newUser);
+        });
 
         log.info("User successfully loaded/saved: {}", user.getId());
 

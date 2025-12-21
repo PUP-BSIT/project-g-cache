@@ -50,71 +50,62 @@ public class SecurityConfig {
     // ============================
     // PROD PROFILE (with auth)
     // ============================
-    @Bean
-    @Profile("prod")
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        @Profile("prod")
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                        .csrf(csrf -> csrf
-                                .ignoringRequestMatchers(
-                                        "/api/v2/auth/logout",
-                                        "/api/v2/auth/login",
-                                        "/api/v2/auth/register",
-                                        "/api/v2/auth/refresh",
-                                        "/api/v2/auth/oauth2/google"
-                                )
-                        )
+                        .csrf(AbstractHttpConfigurer::disable)
                         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                         .authorizeHttpRequests(auth -> auth
                                 .requestMatchers(
                                         "/api/v2/auth/register",
                                         "/api/v2/auth/login",
                                         "/api/v2/auth/refresh",
-                                        "/api/v2/auth/oauth2/google",
+                                        "/api/v2/auth/verify",
                                         "/actuator/health",
                                         "/actuator/info",
                                         "/v3/api-docs/**",
                                         "/swagger-ui.html",
                                         "/swagger-ui/**"
                                 ).permitAll()
+                                .requestMatchers("/api/v2/auth/oauth2/google").permitAll()
                                 .anyRequest().authenticated()
                         )
                         .sessionManagement(session ->
                                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         )
+                        // Register JwtCookieToAuthHeaderFilter before BearerTokenAuthenticationFilter
+                        .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
                         .oauth2Login(oauth2 -> oauth2
+                                .loginPage("/api/v2/auth/oauth2/google")
                                 .userInfoEndpoint(userInfo -> userInfo
                                         .userService(customOAuth2UserService)
                                 )
                                 .successHandler(oAuth2AuthenticationSuccessHandler)
+                        );
+
+                http.logout(AbstractHttpConfigurer::disable);
+
+                http.oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(customJwtDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
-                        // Register JwtCookieToAuthHeaderFilter before BearerTokenAuthenticationFilter
-                        .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
-                        // Register SkipJwtRequestFilter before the JWT filter
-                        .addFilterBefore(new SkipJwtRequestFilter(), BearerTokenAuthenticationFilter.class);
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                );
 
+                return http.build();
+        }
 
-        http.logout(AbstractHttpConfigurer::disable);
-
-        http.oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                        .decoder(customJwtDecoder)
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                )
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-        );
-
-        return http.build();
-    }
-
-    // ============================
-    // JWT Converter
-    // ============================
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-        converter.setPrincipalClaimName("user");
-        return converter;
-    }
+        // ============================
+        // JWT Converter
+        // ============================
+        @Bean
+        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+                JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+                converter.setPrincipalClaimName("user");
+                return converter;
+        }
 
     // ============================
     // GLOBAL CORS CONFIGURATION
