@@ -25,6 +25,11 @@
     </properties>
 
     <dependencies>
+                        <!-- Email support -->
+                        <dependency>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-starter-mail</artifactId>
+                        </dependency>
                 <!-- Servlet API for test usage (Cookie) -->
                 <dependency>
                     <groupId>javax.servlet</groupId>
@@ -80,11 +85,17 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- PostgreSQL driver -->
+        <!-- PostgreSQL JDBC driver for Flyway and runtime -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <version>42.7.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>11.7.2</version>
         </dependency>
 
         <!-- JWT -->
