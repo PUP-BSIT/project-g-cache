@@ -9,13 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import jakarta.servlet.http.Cookie;
 
@@ -25,33 +23,25 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 /**
  * Integration test for Google OAuth2 login/registration flow.
  * This test simulates a successful OAuth2 login and verifies user creation/merge logic.
+ * Uses H2 in-memory database for fast testing.
  */
-
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Testcontainers
 @TestPropertySource(properties = {
+        "spring.datasource.url=jdbc:h2:mem:pomodify_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
         "jwt.secret=snbjkqPUj2M/2av9VIsPSPrHGCff30mz1NYCrEB7Guu7AT64rXrcjO+L0hawY0fV",
         "jwt.access-token-expiration=900000",
         "jwt.refresh-token-expiration=2592000000",
-        "spring.datasource.url=jdbc:h2:mem:pomodify_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
-        "spring.datasource.driverClassName=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "fcm.service-account="
 })
-@ActiveProfiles("prod")
+@ActiveProfiles("test")
 class GoogleOAuth2IntegrationTest {
-
-        @DynamicPropertySource
-        static void configureProperties(DynamicPropertyRegistry registry) {
-                registry.add("jwt.secret", () -> "snbjkqPUj2M/2av9VIsPSPrHGCff30mz1NYCrEB7Guu7AT64rXrcjO+L0hawY0fV");
-                registry.add("jwt.access-token-expiration", () -> "900000");
-                registry.add("jwt.refresh-token-expiration", () -> "2592000000");
-        }
 
     @Autowired
     private MockMvc mockMvc;
