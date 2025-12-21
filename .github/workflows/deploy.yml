@@ -186,8 +186,8 @@ jobs:
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
 
             # Wait for backend to fully start
-            echo "Waiting for backend to initialize (90 seconds)..."
-            sleep 90  # give Spring Boot enough time for JPA initialization and servlet initialization
+            echo "Waiting for backend to initialize (120 seconds)..."
+            sleep 120  # give Spring Boot enough time for JPA initialization, servlet initialization, and SMTP configuration
 
             # Health check with retries for frontend
             echo "Checking frontend health..."
@@ -207,14 +207,14 @@ jobs:
 
             # Health check with retries for backend - with detailed diagnostics
             echo "Checking backend health at http://localhost:8081/actuator/health..."
-            retries=20
+            retries=30
             until curl -f -s -m 5 http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up" || wget --quiet --timeout=5 -O- http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up"; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Backend health check failed after 20 retries"
+                echo "❌ Backend health check failed after 30 retries"
                 echo "Backend is still not responding to health checks."
-                echo "Backend container logs (last 80 lines):"
-                sudo docker logs pomodify-backend | tail -80
+                echo "Backend container logs (last 100 lines):"
+                sudo docker logs pomodify-backend | tail -100
                 echo ""
                 echo "Checking if backend container is still running..."
                 if sudo docker ps | grep -q pomodify-backend; then
