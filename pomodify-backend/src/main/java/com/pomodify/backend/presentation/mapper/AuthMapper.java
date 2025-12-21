@@ -12,9 +12,10 @@ public class AuthMapper {
         if (result == null) return null;
 
         UserResponse userResponse = new UserResponse(
-                result.firstName(),
-                result.lastName(),
-                result.email()
+            result.firstName(),
+            result.lastName(),
+            result.email(),
+            result.isEmailVerified()
         );
 
         return new AuthResponse(
