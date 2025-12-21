@@ -27,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests push notification registration, management, and status endpoints.
  * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
-@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
