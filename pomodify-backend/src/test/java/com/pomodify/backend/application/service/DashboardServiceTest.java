@@ -50,6 +50,7 @@ public class DashboardServiceTest {
                 .lastName("B")
                 .passwordHash("x")
                 .email(new com.pomodify.backend.domain.valueobject.Email("a@b.com"))
+                .authProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL)
                 .build();
 
         when(userRepository.findUser(userId)).thenReturn(Optional.of(user));

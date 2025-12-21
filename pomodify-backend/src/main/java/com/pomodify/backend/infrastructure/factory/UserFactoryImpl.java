@@ -34,6 +34,7 @@ public class UserFactoryImpl implements UserFactory {
                 .passwordHash(passwordHash)
                 .isEmailVerified(false)
                 .isActive(true)
+                .authProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL)
                 .build();
     }
 }
