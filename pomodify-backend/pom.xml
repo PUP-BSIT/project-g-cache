@@ -25,6 +25,13 @@
     </properties>
 
     <dependencies>
+                <!-- Servlet API for test usage (Cookie) -->
+                <dependency>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>javax.servlet-api</artifactId>
+                    <version>4.0.1</version>
+                    <scope>test</scope>
+                </dependency>
         <!-- Test DB: H2 for Spring context tests -->
         <dependency>
             <groupId>com.h2database</groupId>
