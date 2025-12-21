@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
+@Disabled("Requires Docker Desktop to be running")
 class AuthControllerIntegrationTest {
 
     @Container
@@ -49,13 +50,13 @@ class AuthControllerIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-                registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-                // Provide a test JWT secret so JwtService bean can be created during tests
-                // Must be long enough for HMAC-SHA algorithms (HS512 needs >= 512 bits / 64 bytes).
-                registry.add("jwt.secret", () -> "test-secret-that-is-long-enough-for-hs512-please-change-if-needed-0123456789");
-                // Provide token expiration properties required by JwtService
-                registry.add("jwt.access-token-expiration", () -> "900000");
-                registry.add("jwt.refresh-token-expiration", () -> "2592000000");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        // Provide a test JWT secret so JwtService bean can be created during tests
+        // Must be long enough for HMAC-SHA algorithms (HS512 needs >= 512 bits / 64 bytes).
+        registry.add("jwt.secret", () -> "test-secret-that-is-long-enough-for-hs512-please-change-if-needed-0123456789");
+        // Provide token expiration properties required by JwtService
+        registry.add("jwt.access-token-expiration", () -> "900000");
+        registry.add("jwt.refresh-token-expiration", () -> "2592000000");
     }
 
     @Autowired
@@ -87,9 +88,9 @@ class AuthControllerIntegrationTest {
 
     @Test
     void testRegisterUser_DuplicateEmail() throws Exception {
-                String email = "dup+" + System.currentTimeMillis() + "@example.com";
-                RegisterRequest request1 = new RegisterRequest("John", "Doe", email, "Password123!");
-                RegisterRequest request2 = new RegisterRequest("Jane", "Smith", email, "Password456!");
+        String email = "dup+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest request1 = new RegisterRequest("John", "Doe", email, "Password123!");
+        RegisterRequest request2 = new RegisterRequest("Jane", "Smith", email, "Password456!");
 
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -107,8 +108,8 @@ class AuthControllerIntegrationTest {
     @Test
     void testLoginUser_Success() throws Exception {
         // Register user first
-                String email = "login+" + System.currentTimeMillis() + "@example.com";
-                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
+        String email = "login+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest))
@@ -132,9 +133,9 @@ class AuthControllerIntegrationTest {
     @Test
     void testLoginUser_InvalidCredentials() throws Exception {
         // Register user
-                String email = "invalid+" + System.currentTimeMillis() + "@example.com";
-                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
-                mockMvc.perform(post("/auth/register")
+        String email = "invalid+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
+        mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest))
                 .with(csrf()))
@@ -228,17 +229,19 @@ class AuthControllerIntegrationTest {
     @Test
     void testLogout_Success() throws Exception {
         // Register, login, and logout
-                String email = "logout+" + System.currentTimeMillis() + "@example.com";
-                RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
-                mockMvc.perform(post("/auth/register")
+        String email = "logout+" + System.currentTimeMillis() + "@example.com";
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", email, "Password123!");
+        mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(registerRequest)))
+                .content(objectMapper.writeValueAsString(registerRequest))
+                .with(csrf()))
                 .andExpect(status().isCreated());
 
         LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequest)))
+                .content(objectMapper.writeValueAsString(loginRequest))
+                .with(csrf()))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -248,7 +251,8 @@ class AuthControllerIntegrationTest {
         String accessToken = null;
         for (String setCookie : setCookies) {
             if (setCookie.startsWith("accessToken=")) {
-                accessToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
                 break;
             }
         }
@@ -288,7 +292,8 @@ class AuthControllerIntegrationTest {
         String refreshToken = null;
         for (String setCookie : setCookies) {
             if (setCookie.startsWith("refreshToken=")) {
-                refreshToken = setCookie.substring("refreshToken=".length()).split(";")[0];
+                String encodedToken = setCookie.substring("refreshToken=".length()).split(";")[0];
+                refreshToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
                 break;
             }
         }
