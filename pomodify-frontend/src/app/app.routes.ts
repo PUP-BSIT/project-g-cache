@@ -53,6 +53,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/session-timer/session-timer').then(m => m.SessionTimerComponent),
   },
   {
+    path: 'verify',
+    loadComponent: () => import('./verify/verify.component').then(m => m.VerifyComponent),
+  },
+  {
     path: 'oauth2/redirect',
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
