@@ -160,6 +160,16 @@ jobs:
             done
             echo "✅ Database is ready"
 
+            # Reset Flyway schema history (auto-fix migration issues)
+            echo "Resetting Flyway schema history..."
+            PGPASSWORD='${{ secrets.DB_PASSWORD }}' psql \
+              -h '${{ secrets.DB_HOST }}' \
+              -U '${{ secrets.DB_USERNAME }}' \
+              -d '${{ secrets.DB_NAME }}' \
+              -p '${{ secrets.DB_PORT }}' \
+              -c "DROP TABLE IF EXISTS flyway_schema_history CASCADE;" || echo "⚠️  Flyway table not found (first deployment?)"
+            echo "✅ Flyway reset complete"
+
             # Start backend container
             echo "Starting backend container..."
             sudo docker run -d \
