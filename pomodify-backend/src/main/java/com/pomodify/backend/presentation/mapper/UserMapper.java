@@ -9,11 +9,11 @@ public class UserMapper {
 
     public static UserResponse toUserResponse(UserResult result) {
         if (result == null) return null;
-
         return new UserResponse(
                 result.firstName(),
                 result.lastName(),
-                result.email()
+                result.email(),
+                result.isEmailVerified()
         );
     }
 }
