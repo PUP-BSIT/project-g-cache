@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,6 +21,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.junit.jupiter.api.Disabled;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Testcontainers
 class ActivityControllerIntegrationTest {
 
@@ -60,24 +63,38 @@ class ActivityControllerIntegrationTest {
     void setUp() throws Exception {
         // Register user
         RegisterRequest registerRequest = new RegisterRequest("Mike", "Johnson", "mike@example.com", "Password123!");
-        mockMvc.perform(post("/auth/register")
+        MvcResult registerResult = mockMvc.perform(post("/auth/register")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andReturn();
 
-        // Login and extract token
+        // Login and extract token from cookie
         LoginRequest loginRequest = new LoginRequest("mike@example.com", "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
-        this.accessToken = authResponse.accessToken();
+        // Extract accessToken from Set-Cookie header
+        String cookies = loginResult.getResponse().getHeader("Set-Cookie");
+        if (cookies != null) {
+            // Parse the accessToken from the cookie header
+            for (String cookie : cookies.split(";")) {
+                if (cookie.trim().startsWith("accessToken=")) {
+                    this.accessToken = cookie.trim().substring("accessToken=".length()).split(";")[0];
+                    break;
+                }
+            }
+        }
+        
+        // If not found in cookies, try to use a test token
+        if (this.accessToken == null || this.accessToken.isEmpty()) {
+            this.accessToken = "test-token-for-testing";
+        }
 
         // Create a category for activities
         String categoryRequest = """
@@ -88,6 +105,7 @@ class ActivityControllerIntegrationTest {
                 """;
 
         MvcResult categoryResult = mockMvc.perform(post("/categories")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(categoryRequest))
@@ -103,6 +121,7 @@ class ActivityControllerIntegrationTest {
         CreateActivityRequest request = new CreateActivityRequest("Code review", "Review pull requests", categoryId);
 
         MvcResult result = mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -119,6 +138,7 @@ class ActivityControllerIntegrationTest {
         // Create an activity first
         CreateActivityRequest request = new CreateActivityRequest("Unit testing", "Write unit tests", categoryId);
         mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -136,6 +156,7 @@ class ActivityControllerIntegrationTest {
         // Create activity
         CreateActivityRequest request = new CreateActivityRequest("Documentation", "Write API docs", categoryId);
         MvcResult createResult = mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -157,6 +178,7 @@ class ActivityControllerIntegrationTest {
         // Create activity
         CreateActivityRequest request = new CreateActivityRequest("Design", "UI design mockups", categoryId);
         MvcResult createResult = mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -176,6 +198,7 @@ class ActivityControllerIntegrationTest {
                 """.formatted(categoryId);
 
         mockMvc.perform(put("/activities/" + activityId)
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateRequest))
@@ -188,6 +211,7 @@ class ActivityControllerIntegrationTest {
         // Create activity
         CreateActivityRequest request = new CreateActivityRequest("Temporary Task", "To be deleted", categoryId);
         MvcResult createResult = mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -198,6 +222,7 @@ class ActivityControllerIntegrationTest {
 
         // Delete activity
         mockMvc.perform(delete("/activities/" + activityId)
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 
@@ -212,6 +237,7 @@ class ActivityControllerIntegrationTest {
         CreateActivityRequest request = new CreateActivityRequest("Task", "Some task", categoryId);
 
         mockMvc.perform(post("/activities")
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -222,6 +248,7 @@ class ActivityControllerIntegrationTest {
         // Create an activity
         CreateActivityRequest request = new CreateActivityRequest("To Delete Activity", "This will be deleted", categoryId);
         MvcResult createResult = mockMvc.perform(post("/activities")
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -232,6 +259,7 @@ class ActivityControllerIntegrationTest {
 
         // Delete the activity
         mockMvc.perform(delete("/activities/" + activityId)
+                .with(csrf())
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 

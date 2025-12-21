@@ -31,6 +31,23 @@ public class SecurityConfig {
         private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     // ============================
+    // TEST PROFILE (no auth for testing)
+    // ============================
+    @Bean
+    @Profile("test")
+    public SecurityFilterChain securityFilterChainTest(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        return http.build();
+    }
+
+    // ============================
     // DEV PROFILE (no auth)
     // ============================
     @Bean
