@@ -42,7 +42,7 @@ export const API = {
   USER: {
     PROFILE: `${ROOT}/auth/users/me`,
     UPDATE_PROFILE: `${ROOT}/auth/users/me`,
-    VERIFY_EMAIL: `${ROOT}/users/verify-email`,
+    VERIFY_EMAIL: `${ROOT}/auth/verify`,
   },
 
   // Activities Resource
