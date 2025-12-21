@@ -1,6 +1,7 @@
 package com.pomodify.backend.application.service;
 
 import com.pomodify.backend.domain.model.User;
+import com.pomodify.backend.domain.enums.AuthProvider;
 import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
 import com.pomodify.backend.infrastructure.security.CustomOAuth2User; // Import from your config package
@@ -52,7 +53,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 existingUser.setEmailVerified(true);
             }
             // Always set authProvider to GOOGLE on Google login
-            existingUser.setAuthProvider(User.AuthProvider.GOOGLE);
+            existingUser.setAuthProvider(AuthProvider.GOOGLE);
             return userRepository.save(existingUser);
         }).orElseGet(() -> {
             log.info("User {} not found, registering new Google user.", emailStr);
@@ -63,7 +64,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .passwordHash(UUID.randomUUID().toString()) // Dummy password
                     .isEmailVerified(true) // Verified by Google
                     .isActive(true)
-                    .authProvider(User.AuthProvider.GOOGLE)
+                    .authProvider(AuthProvider.GOOGLE)
                     .build();
             return userRepository.save(newUser);
         });

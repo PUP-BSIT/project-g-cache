@@ -1,7 +1,8 @@
 package com.pomodify.backend.domain.model;
 
+import com.pomodify.backend.domain.enums.AuthProvider;
 import com.pomodify.backend.domain.valueobject.Email;
-import com.pomodify.backend.domain.model.AuthProvider;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,18 +10,18 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 @Table(
-        name = "app_user",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "unique_email", columnNames = "email")
-        }
+    name = "app_user",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "unique_email", columnNames = "email")
+    }
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -44,7 +45,7 @@ public class User {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
+        @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
     })
     private Email email;
 
@@ -70,7 +71,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
-
 
     // ──────────────── Timestamps ────────────────
     @CreationTimestamp
@@ -200,5 +200,12 @@ public class User {
         return best;
     }
 
+    // Setters for hybrid auth logic
+    public void setAuthProvider(AuthProvider authProvider) {
+        this.authProvider = authProvider;
+    }
 
+    public void setEmailVerified(boolean isEmailVerified) {
+        this.isEmailVerified = isEmailVerified;
+    }
 }

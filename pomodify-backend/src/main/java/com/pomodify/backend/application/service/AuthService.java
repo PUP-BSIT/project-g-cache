@@ -48,7 +48,10 @@ public class AuthService {
         }
 
         String passwordHash = passwordEncoder.encode(command.password());
-        User savedUser = userRepository.save(userFactory.createUser(command.firstName(), command.lastName(), emailVO, passwordHash));
+        User user = userFactory.createUser(command.firstName(), command.lastName(), emailVO, passwordHash);
+        user.setAuthProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL);
+        user.setEmailVerified(false);
+        User savedUser = userRepository.save(user);
 
         return UserResult.builder()
                 .firstName(savedUser.getFirstName())
