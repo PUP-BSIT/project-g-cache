@@ -2,8 +2,8 @@
 -- These fields enable precise timer state tracking across sessions
 
 ALTER TABLE pomodoro_session 
-ADD COLUMN phase_started_at TIMESTAMP,
-ADD COLUMN total_paused_duration_seconds BIGINT DEFAULT 0;
+ADD COLUMN IF NOT EXISTS phase_started_at TIMESTAMP,
+ADD COLUMN IF NOT EXISTS total_paused_duration_seconds BIGINT DEFAULT 0;
 
 -- Update existing sessions to have default values
 UPDATE pomodoro_session 
