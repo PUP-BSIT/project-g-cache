@@ -6,6 +6,7 @@ import lombok.Builder;
 public record UserResult(
         String firstName,
         String lastName,
-        String email
+        String email,
+        boolean isEmailVerified
 ) {
 }
