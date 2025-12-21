@@ -1,9 +1,11 @@
 -- V9__create_pomodoro_session_table.sql
--- Create pomodoro_session table to replace deprecated session_note table
+-- Create pomodoro_session table (NEW DESIGN)
+-- SAFE VERSION: Does NOT drop session_note table
 -- This migration is fully idempotent and safe to run multiple times
 
--- Drop deprecated session_note table if it exists
-DROP TABLE IF EXISTS session_note CASCADE;
+-- NOTE: session_note table is kept for safety
+-- You can drop it manually later if needed with:
+-- DROP TABLE IF EXISTS session_note CASCADE;
 
 -- Drop old sequence if it exists
 DROP SEQUENCE IF EXISTS pomodoro_session_id_seq CASCADE;
@@ -99,7 +101,7 @@ CREATE INDEX IF NOT EXISTS idx_pomodoro_session_session_type ON pomodoro_session
 CREATE INDEX IF NOT EXISTS idx_pomodoro_session_current_phase ON pomodoro_session(current_phase);
 
 -- Add table and column comments for documentation
-COMMENT ON TABLE pomodoro_session IS 'Stores pomodoro session data with timer state tracking. Replaces deprecated session_note table.';
+COMMENT ON TABLE pomodoro_session IS 'Stores pomodoro session data with timer state tracking. New design replacing session_note table.';
 COMMENT ON COLUMN pomodoro_session.session_title IS 'Title or name of the pomodoro session';
 COMMENT ON COLUMN pomodoro_session.session_type IS 'Type of session: STANDARD, CUSTOM, etc.';
 COMMENT ON COLUMN pomodoro_session.status IS 'Session status: ACTIVE, COMPLETED, PAUSED, CANCELLED';
@@ -115,3 +117,7 @@ COMMENT ON COLUMN pomodoro_session.cycles_completed IS 'Number of completed pomo
 COMMENT ON COLUMN pomodoro_session.is_deleted IS 'Soft delete flag';
 COMMENT ON COLUMN pomodoro_session.phase_started_at IS 'Timestamp when current phase started (for timer sync)';
 COMMENT ON COLUMN pomodoro_session.total_paused_duration_seconds IS 'Total seconds paused in current phase (for timer sync)';
+
+-- Note: session_note table is NOT dropped in this migration
+-- If you want to drop it later, run manually:
+-- DROP TABLE IF EXISTS session_note CASCADE;
