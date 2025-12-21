@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests session CRUD operations and state transitions (start, pause, resume, stop, etc.).
  * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
-@Disabled("Requires Docker Desktop for PostgreSQL container")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @Testcontainers
