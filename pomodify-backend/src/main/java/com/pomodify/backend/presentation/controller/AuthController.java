@@ -19,18 +19,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-
+import org.springframework.http.MediaType;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Auth", description = "User registration, login and token management")
@@ -67,7 +62,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
-    public ResponseEntity<UserResponse> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<UserResponse> register(@RequestBody @Valid RegisterRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
         log.info("Registration request received for user with email: {}", request.email());
 
         RegisterUserCommand command = RegisterUserCommand.builder()
@@ -77,7 +72,8 @@ public class AuthController {
                 .password(request.password())
                 .build();
 
-        UserResponse response = UserMapper.toUserResponse(authService.registerUser(command));
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        UserResponse response = UserMapper.toUserResponse(authService.registerUser(command, baseUrl));
 
         log.info("User registered successfully: {}", request.email());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -208,5 +204,50 @@ public class AuthController {
         UserResponse userResponse = UserMapper.toUserResponse(authService.getCurrentUser(email));
         log.info("Current user retrieved successfully");
         return ResponseEntity.ok(userResponse);
+    }
+
+        // ──────────────── Email Verification ────────────────
+    @GetMapping(value = "/verify", produces = "application/json")
+    @Operation(summary = "Verify user email with token")
+    public ResponseEntity<?> verifyEmail(@RequestParam("token") String token) {
+        try {
+            authService.verifyEmailToken(token);
+            return ResponseEntity.ok(new VerificationResponse(true, "Account verified successfully."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new VerificationResponse(false, e.getMessage()));
+        }
+    }
+
+    public static class VerificationResponse {
+        public final boolean success;
+        public final String message;
+        public VerificationResponse(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+    }
+
+    // ──────────────── Password Reset Request ────────────────
+    @PostMapping(value = "/request-password-reset", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Request password reset (sends email)")
+    public ResponseEntity<String> requestPasswordReset(@RequestBody String email) {
+        try {
+            authService.requestPasswordReset(email.replaceAll("\"", ""));
+            return ResponseEntity.ok("Password reset instructions sent (if user exists)");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    // ──────────────── Verify and Reset ────────────────
+    @GetMapping("/verify-and-reset")
+    @Operation(summary = "Verify email and redirect to password reset")
+    public ResponseEntity<String> verifyAndReset(@RequestParam("token") String token) {
+        try {
+            String result = authService.verifyAndReset(token);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

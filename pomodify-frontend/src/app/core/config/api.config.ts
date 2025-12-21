@@ -6,23 +6,13 @@
  */
 
 // 1. BASE URL
-// In development/test: use relative path to go through proxy
-// In production: use external API
-const getBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return ''; // Use relative path for local dev (goes through proxy)
-  }
-  return "https://api.pomodify.site";
-};
+const BASE_URL = "https://api.pomodify.site";
+// const BASE_URL = "http://localhost:8081";
 
-const BASE_URL = getBaseUrl();
-
-// Use this for frontend OAuth2 redirects (not proxied)
 export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
 
 // 2. API VERSION
 // ------------------------
-// Changing this one string updates every endpoint in the app to v2, etc.
 const API_VERSION = "/api/v2";
 
 // 3. ROOT URL CONSTRUCTION
@@ -52,7 +42,7 @@ export const API = {
   USER: {
     PROFILE: `${ROOT}/auth/users/me`,
     UPDATE_PROFILE: `${ROOT}/auth/users/me`,
-    VERIFY_EMAIL: `${ROOT}/users/verify-email`,
+    VERIFY_EMAIL: `${ROOT}/auth/verify`,
   },
 
   // Activities Resource
@@ -149,17 +139,3 @@ export const API = {
   },
 };
 
-/**
- * EXAMPLE USAGE:
- * 
- * import { API } from '@core/config/api.config';
- * 
- * // Static endpoints
- * this.http.post(API.AUTH.LOGIN, credentials);
- * this.http.get(API.DASHBOARD.GET_DATA);
- * 
- * // Dynamic endpoints with IDs
- * this.http.get(API.ACTIVITIES.DETAILS(123));
- * this.http.post(API.ACTIVITIES.SESSIONS.CREATE(123), sessionData);
- * this.http.delete(API.ACTIVITIES.NOTES.DELETE(123, 456));
- */
