@@ -31,7 +31,7 @@ public class SecurityConfig {
         private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     // ============================
-    // TEST PROFILE (no auth for testing)
+    // TEST PROFILE (with JWT processing for testing)
     // ============================
     @Bean
     @Profile("test")
@@ -39,9 +39,19 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
+                        .permitAll()
+                        .anyRequest().authenticated()  // Require authentication for all other endpoints
+                )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(customJwtDecoder)
+                                .jwtAuthenticationConverter(new JwtAuthenticationConverter())
+                        )
                 );
 
         return http.build();
