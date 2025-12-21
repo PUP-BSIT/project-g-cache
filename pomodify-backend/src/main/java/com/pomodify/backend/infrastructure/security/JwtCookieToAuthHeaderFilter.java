@@ -43,7 +43,9 @@ public class JwtCookieToAuthHeaderFilter extends OncePerRequestFilter {
                         return;
                     }
                 }
-                logger.info("[JwtCookieToAuthHeaderFilter] No accessToken cookie found for URI: {}", uri);
+                if (!uri.contains("/auth/verify")) {
+                    logger.info("[JwtCookieToAuthHeaderFilter] No accessToken cookie found for URI: {}", uri);
+                }
             } else {
                 logger.info("[JwtCookieToAuthHeaderFilter] No cookies present for URI: {}", uri);
             }
