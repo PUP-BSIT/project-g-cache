@@ -13,6 +13,9 @@ import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
 import com.pomodify.backend.domain.model.RevokedToken;
 import com.pomodify.backend.domain.repository.RevokedTokenRepository;
+import com.pomodify.backend.infrastructure.mail.EmailService;
+import com.pomodify.backend.domain.model.VerificationToken;
+import com.pomodify.backend.domain.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -37,9 +41,12 @@ public class AuthService {
 
     private final RevokedTokenRepository revokedTokenRepository;
 
+    private final EmailService emailService;
+    private final VerificationTokenRepository tokenRepository;
+
     // Register
     @Transactional
-    public UserResult registerUser(RegisterUserCommand command) {
+    public UserResult registerUser(RegisterUserCommand command, String baseUrl) {
         registrationValidator.validateRegistration(command.firstName(), command.lastName(), command.email(), command.password());
 
         Email emailVO = Email.of(command.email());
@@ -53,11 +60,72 @@ public class AuthService {
         user.setEmailVerified(false);
         User savedUser = userRepository.save(user);
 
+        // Token Rotation: Delete existing token if any
+        tokenRepository.findByUser(savedUser).ifPresent(tokenRepository::delete);
+        // Generate new token (24h expiry handled in Entity constructor)
+        VerificationToken newToken = new VerificationToken(savedUser);
+        tokenRepository.save(newToken);
+
+        // Send verification email
+        try {
+            emailService.sendVerificationEmail(savedUser.getEmail().getValue(), newToken.getToken(), baseUrl);
+        } catch (Exception e) {
+            log.warn("Failed to send verification email to {}: {}", savedUser.getEmail().getValue(), e.getMessage());
+        }
+
         return UserResult.builder()
-                .firstName(savedUser.getFirstName())
-                .lastName(savedUser.getLastName())
-                .email(savedUser.getEmail().getValue())
-                .build();
+            .firstName(savedUser.getFirstName())
+            .lastName(savedUser.getLastName())
+            .email(savedUser.getEmail().getValue())
+            .isEmailVerified(savedUser.isEmailVerified())
+            .build();
+
+    }
+
+    // Email verification logic
+    @Transactional
+    public String verifyEmailToken(String token) {
+        VerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Token"));
+        if (verificationToken.isExpired()) {
+            throw new IllegalArgumentException("Token Expired");
+        }
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        tokenRepository.delete(verificationToken);
+        return "Email verified successfully";
+    }
+
+    // Password reset request
+    @Transactional
+    public void requestPasswordReset(String email) {
+        Email emailVO = Email.of(email);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.isEmailVerified()) {
+            emailService.sendPasswordResetEmail(user.getEmail().getValue());
+        } else {
+            // Deadlock Fix: Send "Verify & Reset"
+            tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
+            VerificationToken newToken = new VerificationToken(user);
+            tokenRepository.save(newToken);
+            emailService.sendVerifyAndResetEmail(user.getEmail().getValue(), newToken.getToken());
+        }
+    }
+
+    // Verify and reset
+    @Transactional
+    public String verifyAndReset(String token) {
+        VerificationToken verificationToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Token"));
+        if (verificationToken.isExpired()) throw new IllegalArgumentException("Token Expired");
+        User user = verificationToken.getUser();
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        tokenRepository.delete(verificationToken);
+        // In a real app, generate a short-lived "Reset Session Token" here
+        return "REDIRECT_TO_FRONTEND_RESET_PASSWORD";
     }
 
     // Login
@@ -76,12 +144,13 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthResult.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail().getValue())
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
+            .email(user.getEmail().getValue())
+            .isEmailVerified(user.isEmailVerified())
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .build();
     }
 
     // Refresh Tokens
@@ -107,12 +176,13 @@ public class AuthService {
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
         return AuthResult.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail().getValue())
-                .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
-                .build();
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
+            .email(user.getEmail().getValue())
+            .isEmailVerified(user.isEmailVerified())
+            .accessToken(newAccessToken)
+            .refreshToken(newRefreshToken)
+            .build();
     }
 
     // Logout
@@ -138,9 +208,10 @@ public class AuthService {
         }
 
         return UserResult.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail().getValue())
-                .build();
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
+            .email(user.getEmail().getValue())
+            .isEmailVerified(user.isEmailVerified())
+            .build();
     }
 }
