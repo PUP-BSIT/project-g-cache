@@ -6,15 +6,13 @@
  */
 
 // 1. BASE URL
-// const BASE_URL = "https://api.pomodify.site";
-const BASE_URL = "http://localhost:8081";
+const BASE_URL = "https://api.pomodify.site";
+// const BASE_URL = "http://localhost:8081";
 
-// Use this for frontend OAuth2 redirects (not proxied)
 export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
 
 // 2. API VERSION
 // ------------------------
-// Changing this one string updates every endpoint in the app to v2, etc.
 const API_VERSION = "/api/v2";
 
 // 3. ROOT URL CONSTRUCTION
@@ -139,17 +137,3 @@ export const API = {
   },
 };
 
-/**
- * EXAMPLE USAGE:
- * 
- * import { API } from '@core/config/api.config';
- * 
- * // Static endpoints
- * this.http.post(API.AUTH.LOGIN, credentials);
- * this.http.get(API.DASHBOARD.GET_DATA);
- * 
- * // Dynamic endpoints with IDs
- * this.http.get(API.ACTIVITIES.DETAILS(123));
- * this.http.post(API.ACTIVITIES.SESSIONS.CREATE(123), sessionData);
- * this.http.delete(API.ACTIVITIES.NOTES.DELETE(123, 456));
- */
