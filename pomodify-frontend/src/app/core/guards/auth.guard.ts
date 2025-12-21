@@ -12,18 +12,24 @@ export class AuthGuardService {
   private static profileChecked = false;
 
   async canActivate(): Promise<boolean> {
+    console.log('[AuthGuard] Checking authentication, profileChecked:', AuthGuardService.profileChecked);
     if (AuthGuardService.profileChecked) {
       // Prevent infinite loop
+      console.log('[AuthGuard] Already checking profile, preventing infinite loop');
       return false;
     }
     AuthGuardService.profileChecked = true;
     try {
+      console.log('[AuthGuard] Attempting to fetch user profile');
       await this.auth.fetchAndStoreUserProfile();
+      console.log('[AuthGuard] Profile fetched successfully, granting access');
       AuthGuardService.profileChecked = false;
       return true;
     } catch (e) {
+      console.error('[AuthGuard] Profile fetch failed:', e);
       AuthGuardService.profileChecked = false;
       // Redirect to login page if not authenticated
+      console.log('[AuthGuard] Redirecting to login');
       this.router.navigate(['/login']);
       return false;
     }

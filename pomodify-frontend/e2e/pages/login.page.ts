@@ -31,36 +31,44 @@ export class LoginPage {
     await this.fillEmail(email);
     await this.fillPassword(password);
     await this.clickLoginButton();
-    // Wait for API response and navigation or error
+    // Wait for API response
     try {
       // Wait for network to be idle (API call completed)
       await this.page.waitForLoadState('networkidle', { timeout: 10000 });
-      
-      // Wait for either success (dashboard URL) or error message
-      // Wrap promises to prevent false failures in trace
-      const dashboardPromise = this.page.waitForURL(/.*\/dashboard/, { timeout: 10000 })
-        .then(() => 'success')
-        .catch(() => null);
-      
-      const errorPromise = this.page.waitForSelector('text=Invalid credentials, text=Error, .error', { timeout: 5000 })
-        .then(() => 'error')
-        .catch(() => null);
-      
-      // Race both promises - whichever resolves first wins
-      // The losing promise will resolve to null instead of throwing
-      const result = await Promise.race([dashboardPromise, errorPromise]);
-      
-      // If both timed out, that's okay - test will check state
-      if (!result) {
-        console.log('[LoginPage] Login wait completed - neither condition met within timeout');
-      }
+      console.log('[LoginPage] Network idle reached');
     } catch (error) {
-      // Timeout is acceptable - test will check state
-      console.log('[LoginPage] Login wait completed with timeout');
+      console.log('[LoginPage] Network idle timeout, continuing...');
+    }
+    // Wait for either successful navigation to dashboard or error to appear
+    try {
+      // Try to wait for dashboard URL, but don't fail if it doesn't happen
+      await this.page.waitForURL(/.*\/dashboard/, { timeout: 5000 }).catch(() => {
+        console.log('[LoginPage] Dashboard URL not reached within 5s');
+      });
+    } catch (error) {
+      console.log('[LoginPage] URL check error:', error);
     }
   }
 
   async isErrorVisible() {
-    return await this.page.isVisible('text=Invalid credentials', { timeout: 5000 }).catch(() => false);
+    try {
+      // Check for various error message selectors
+      const errorSelectors = [
+        '.form-error',
+        'text=Invalid email or password',
+        'text=Invalid credentials',
+        '.error-message',
+        '[role="alert"]',
+        '.mat-mdc-form-field-error',
+      ];
+      
+      for (const selector of errorSelectors) {
+        const isVisible = await this.page.isVisible(selector).catch(() => false);
+        if (isVisible) return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 }
