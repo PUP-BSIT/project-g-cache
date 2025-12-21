@@ -206,13 +206,15 @@ class PushNotificationControllerIntegrationTest {
 
         mockMvc.perform(post("/push/register-token")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(pushTokenRequest))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetPushStatus_Unauthenticated() throws Exception {
-        mockMvc.perform(post("/push/register-token"))
+        mockMvc.perform(post("/push/register-token")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 

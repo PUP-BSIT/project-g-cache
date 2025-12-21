@@ -198,6 +198,7 @@ class CategoryControllerIntegrationTest {
 
         mockMvc.perform(post("/categories")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }

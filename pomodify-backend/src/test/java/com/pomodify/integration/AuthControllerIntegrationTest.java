@@ -172,6 +172,7 @@ class AuthControllerIntegrationTest {
         LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
                 .with(csrf()))
                 .andExpect(status().isOk())
@@ -185,14 +186,33 @@ class AuthControllerIntegrationTest {
         String accessToken = null;
         for (String setCookie : setCookies) {
             if (setCookie.startsWith("accessToken=")) {
-                accessToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                // URL decode the token in case it's encoded
+                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
                 break;
             }
         }
         assertThat(accessToken).isNotNull();
+        System.out.println("[TEST] Token extracted and decoded: " + accessToken.substring(0, Math.min(50, accessToken.length())) + "...");
 
         // Get current user with token in Authorization header (Spring Security requires this)
+        MvcResult result = mockMvc.perform(get("/auth/users/me")
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken))
+                .andReturn();
+        
+        System.out.println("[TEST] Response status: " + result.getResponse().getStatus());
+        System.out.println("[TEST] Response headers: ");
+        result.getResponse().getHeaderNames().forEach(h -> 
+            System.out.println("  " + h + ": " + result.getResponse().getHeader(h)));
+        if (result.getResponse().getStatus() != 200) {
+            String errorBody = result.getResponse().getContentAsString();
+            System.out.println("[TEST] Error response: " + errorBody);
+            System.out.println("[TEST] Exception: " + result.getResolvedException());
+        }
+        
         mockMvc.perform(get("/auth/users/me")
+                .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
@@ -200,7 +220,8 @@ class AuthControllerIntegrationTest {
 
     @Test
     void testGetCurrentUser_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/auth/users/me"))
+        mockMvc.perform(get("/auth/users/me")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 

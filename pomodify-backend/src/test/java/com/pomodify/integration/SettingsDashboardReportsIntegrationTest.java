@@ -130,19 +130,22 @@ class SettingsDashboardReportsIntegrationTest {
 
     @Test
     void testGetSettings_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/settings"))
+        mockMvc.perform(get("/settings")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetDashboard_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/dashboard")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetReportsSummary_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/reports/summary"))
+        mockMvc.perform(get("/reports/summary")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 }
