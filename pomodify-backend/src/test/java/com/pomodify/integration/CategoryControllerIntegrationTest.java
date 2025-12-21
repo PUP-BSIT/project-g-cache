@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Testcontainers
 class CategoryControllerIntegrationTest {
 
@@ -53,30 +55,31 @@ class CategoryControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String testEmail;
     private String accessToken;
 
     @BeforeEach
     void setUp() throws Exception {
+        // Generate unique email per test run
+        testEmail = "jane" + System.currentTimeMillis() + "@example.com";
+        
         // Register user
-        RegisterRequest registerRequest = new RegisterRequest("Jane", "Smith", "jane@example.com", "Password123!");
+        RegisterRequest registerRequest = new RegisterRequest("Jane", "Smith", testEmail, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        // Login and extract token
-        LoginRequest loginRequest = new LoginRequest("jane@example.com", "Password123!");
+        // Login and extract token from cookie
+        LoginRequest loginRequest = new LoginRequest(testEmail, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
-        this.accessToken = authResponse.accessToken();
+        // Extract accessToken from cookies
+        this.accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
     }
 
     @Test
@@ -195,6 +198,7 @@ class CategoryControllerIntegrationTest {
 
         mockMvc.perform(post("/categories")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }

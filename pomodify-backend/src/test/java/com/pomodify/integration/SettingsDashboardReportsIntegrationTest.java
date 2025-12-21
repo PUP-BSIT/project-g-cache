@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Testcontainers
 class SettingsDashboardReportsIntegrationTest {
 
@@ -52,30 +54,31 @@ class SettingsDashboardReportsIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String testEmail;
     private String accessToken;
 
     @BeforeEach
     void setUp() throws Exception {
+        // Generate unique email per test run
+        testEmail = "john" + System.currentTimeMillis() + "@example.com";
+        
         // Register user
-        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", "john@example.com", "Password123!");
+        RegisterRequest registerRequest = new RegisterRequest("John", "Doe", testEmail, "Password123!");
         mockMvc.perform(post("/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated());
 
-        // Login and extract token
-        LoginRequest loginRequest = new LoginRequest("john@example.com", "Password123!");
+        // Login and extract token from cookie
+        LoginRequest loginRequest = new LoginRequest(testEmail, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
-        this.accessToken = authResponse.accessToken();
+        // Extract accessToken from cookies
+        this.accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
     }
 
     @Test
@@ -99,7 +102,7 @@ class SettingsDashboardReportsIntegrationTest {
                 }
                 """;
 
-        mockMvc.perform(put("/settings")
+        mockMvc.perform(patch("/settings")
                 .header("Authorization", "Bearer " + accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(settingsRequest))
@@ -112,8 +115,8 @@ class SettingsDashboardReportsIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalSessions").isNumber())
-                .andExpect(jsonPath("$.totalFocusTime").isNumber())
-                .andExpect(jsonPath("$.completedSessionsToday").isNumber());
+                .andExpect(jsonPath("$.focusHoursThisWeek").isNumber())
+                .andExpect(jsonPath("$.currentStreak").isNumber());
     }
 
     @Test
@@ -121,25 +124,28 @@ class SettingsDashboardReportsIntegrationTest {
         mockMvc.perform(get("/reports/summary")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalSessionsCompleted").isNumber())
-                .andExpect(jsonPath("$.totalFocusTime").isNumber());
+                .andExpect(jsonPath("$.report.overview.sessionsCount").isNumber())
+                .andExpect(jsonPath("$.report.overview.totalFocusHours").isNumber());
     }
 
     @Test
     void testGetSettings_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/settings"))
+        mockMvc.perform(get("/settings")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetDashboard_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/dashboard"))
+        mockMvc.perform(get("/dashboard")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testGetReportsSummary_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/reports/summary"))
+        mockMvc.perform(get("/reports/summary")
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
 }
