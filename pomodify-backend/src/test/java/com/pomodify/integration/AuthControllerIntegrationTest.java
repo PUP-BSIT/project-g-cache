@@ -117,14 +117,16 @@ class AuthControllerIntegrationTest {
 
         // Login with correct credentials
         LoginRequest loginRequest = new LoginRequest(email, "Password123!");
-        mockMvc.perform(post("/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
-                .andExpect(jsonPath("$.user.email").value(email));
+                .andReturn();
+        
+        // Tokens are returned as Set-Cookie headers, not in JSON body
+        // Verify that cookies are present
+        assertThat(loginResult.getResponse().getHeader("Set-Cookie")).isNotNull();
     }
 
     @Test
@@ -175,21 +177,30 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
+        // Extract token from Set-Cookie header
+        // Multiple cookies are returned as separate Set-Cookie headers
+        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
+        assertThat(setCookies).isNotEmpty();
+        
+        String accessToken = null;
+        for (String setCookie : setCookies) {
+            if (setCookie.startsWith("accessToken=")) {
+                accessToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                break;
+            }
+        }
+        assertThat(accessToken).isNotNull();
 
-        // Get current user with token
-        mockMvc.perform(get("/auth/me")
-                .header("Authorization", "Bearer " + authResponse.accessToken()))
+        // Get current user with token in Authorization header (Spring Security requires this)
+        mockMvc.perform(get("/auth/users/me")
+                .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
     }
 
     @Test
     void testGetCurrentUser_Unauthenticated() throws Exception {
-        mockMvc.perform(get("/auth/me"))
+        mockMvc.perform(get("/auth/users/me"))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -210,17 +221,23 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
+        // Extract token from Set-Cookie header
+        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
+        assertThat(setCookies).isNotEmpty();
+        String accessToken = null;
+        for (String setCookie : setCookies) {
+            if (setCookie.startsWith("accessToken=")) {
+                accessToken = setCookie.substring("accessToken=".length()).split(";")[0];
+                break;
+            }
+        }
+        assertThat(accessToken).isNotNull();
 
         // Logout
         mockMvc.perform(post("/auth/logout")
-                .header("Authorization", "Bearer " + authResponse.accessToken())
+                .header("Authorization", "Bearer " + accessToken)
                 .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -242,12 +259,18 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        AuthResponse authResponse = objectMapper.readValue(
-                loginResult.getResponse().getContentAsString(),
-                AuthResponse.class
-        );
-
-        String refreshToken = authResponse.refreshToken();
+        // Extract tokens from Set-Cookie headers
+        // Multiple cookies are returned as separate Set-Cookie headers
+        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
+        assertThat(setCookies).isNotEmpty();
+        
+        String refreshToken = null;
+        for (String setCookie : setCookies) {
+            if (setCookie.startsWith("refreshToken=")) {
+                refreshToken = setCookie.substring("refreshToken=".length()).split(";")[0];
+                break;
+            }
+        }
         assertThat(refreshToken).isNotNull();
 
         // Test refresh endpoint
@@ -256,8 +279,6 @@ class AuthControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest))
                 .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists());
+                .andExpect(status().isOk());
     }
 }

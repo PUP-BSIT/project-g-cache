@@ -75,8 +75,8 @@ class GoogleOAuth2IntegrationTest {
                         userRepository.save(user);
                 }
 
-        // JWT secret for debug
-        String jwtSecret = "snbjkqPUj2M/2av9VIsPSPrHGCff30mz1NYCrEB7Guu7AT64rXrcjO+L0hawY0fV";
+        // JWT secret for debug - must match jwt.secret in application-test.properties
+        String jwtSecret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
         System.out.println("[TEST DEBUG] Using JWT secret: " + jwtSecret);
 
         // Generate a JWT with Google claims and set it as a cookie
@@ -90,8 +90,8 @@ class GoogleOAuth2IntegrationTest {
                 .compact();
         System.out.println("[TEST DEBUG] Generated JWT: " + jwt);
 
-        MockHttpServletRequestBuilder request = get("/api/v2/auth/users/me")
-                .cookie(new Cookie("accessToken", jwt));
+        MockHttpServletRequestBuilder request = get("/auth/users/me")
+                .header("Authorization", "Bearer " + jwt);
 
         // The first call should create the user
         try {
