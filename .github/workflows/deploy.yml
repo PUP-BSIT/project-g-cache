@@ -98,8 +98,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 360s
-          command_timeout: 20m
+          timeout: 600s
+          command_timeout: 30m
           script: |
             set -e
 
@@ -170,28 +170,33 @@ jobs:
               --network pomodify-net \
               --restart unless-stopped \
               -p 8081:8081 \
-              -e SPRING_PROFILES_ACTIVE='prod' \
-              -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require' \
-              -e DDL_AUTO='none' \
-              -e SPRING_FLYWAY_ENABLED='true' \
-              -e SPRING_FLYWAY_BASELINE_ON_MIGRATE='true' \
-              -e SHOW_SQL='${{ secrets.SHOW_SQL }}' \
-              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-              -e JWT_ACCESS_EXPIRATION='${{ secrets.JWT_ACCESS_EXPIRATION }}' \
-              -e JWT_REFRESH_TOKEN_EXPIRATION='${{ secrets.JWT_REFRESH_EXPIRATION }}' \
-              -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
-              -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
-              -e SMTP_USERNAME='${{ secrets.SMTP_USERNAME }}' \
-              -e SMTP_PASSWORD='${{ secrets.SMTP_PASSWORD }}' \
-              -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DDL_AUTO=none \
+              -e SHOW_SQL=${{ secrets.SHOW_SQL }} \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }} \
+              -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
+              -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+              -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+              -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
+              -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+              -e GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
               $FIREBASE_ENV \
               $FIREBASE_MOUNT \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
 
             # Wait for backend to initialize and run Flyway migrations
             echo "Waiting for backend to initialize (Flyway migrations + Spring Boot startup)..."
-            echo "This may take 2-3 minutes for database migrations and application startup..."
-            sleep 180
+            echo "This may take 3-5 minutes for database migrations and application startup..."
+            sleep 60
+            
+            # Show initial backend logs to verify startup
+            echo ""
+            echo "Backend startup logs (first 50 lines):"
+            sudo docker logs pomodify-backend 2>&1 | head -50
 
             # Health check for frontend with detailed logging
             echo "Checking frontend health..."
@@ -211,11 +216,11 @@ jobs:
 
             # Health check for backend with detailed diagnostics
             echo "Checking backend health at http://localhost:8081/actuator/health..."
-            retries=50
+            retries=90
             until curl -f -s -m 5 http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up" || wget --quiet --timeout=5 -O- http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up"; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Backend health check failed after 50 retries"
+                echo "❌ Backend health check failed after 90 retries"
                 echo ""
                 echo "═══════════════════════════════════════════════════════════"
                 echo "Backend Diagnostics"
@@ -224,25 +229,25 @@ jobs:
                 # Check if container is running
                 echo ""
                 echo "Container Status:"
-                if sudo docker ps | grep -q pomodoro-backend; then
+                if sudo docker ps | grep -q pomodify-backend; then
                   echo "✓ Backend container is running"
-                  sudo docker ps | grep pomodoro-backend
+                  sudo docker ps | grep pomodify-backend
                 else
                   echo "✗ Backend container is NOT running!"
-                  sudo docker ps -a | grep pomodoro-backend
+                  sudo docker ps -a | grep pomodify-backend
                 fi
                 
                 # Show backend logs
                 echo ""
                 echo "Backend Container Logs (last 200 lines):"
                 echo "─────────────────────────────────────────────────────────────"
-                sudo docker logs pomodoro-backend 2>&1 | tail -200
+                sudo docker logs pomodify-backend 2>&1 | tail -200
                 
                 # Check for specific error patterns
                 echo ""
                 echo "Error Analysis:"
                 echo "─────────────────────────────────────────────────────────────"
-                sudo docker logs pomodoro-backend 2>&1 | grep -i "error\|exception\|failed\|flyway" | tail -30
+                sudo docker logs pomodify-backend 2>&1 | grep -i "error\|exception\|failed\|flyway" | tail -30
                 
                 # Try direct connection
                 echo ""
@@ -255,7 +260,7 @@ jobs:
                 exit 1
               fi
               echo "⏳ Backend not ready, retrying... ($retries retries left)"
-              sleep 4
+              sleep 5
             done
             echo "✅ Backend is healthy and responding"
 
