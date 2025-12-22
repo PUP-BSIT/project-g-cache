@@ -98,7 +98,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 600s
+          timeout: 30m
           command_timeout: 30m
           script: |
             set -e
@@ -174,7 +174,7 @@ jobs:
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DDL_AUTO=update \
+              -e DDL_AUTO=validate \
               -e SHOW_SQL=${{ secrets.SHOW_SQL }} \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
               -e JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }} \
@@ -190,8 +190,8 @@ jobs:
 
             # Wait for backend to initialize and run Flyway migrations
             echo "Waiting for backend to initialize (Flyway migrations + Spring Boot startup)..."
-            echo "This may take 3-5 minutes for database migrations and application startup..."
-            sleep 60
+            echo "This may take 2-3 minutes for database migrations and application startup..."
+            sleep 45
             
             # Show initial backend logs to verify startup
             echo ""
@@ -216,11 +216,11 @@ jobs:
 
             # Health check for backend with detailed diagnostics
             echo "Checking backend health at http://localhost:8081/actuator/health..."
-            retries=90
+            retries=60
             until curl -f -s -m 5 http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up" || wget --quiet --timeout=5 -O- http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up"; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Backend health check failed after 90 retries"
+                echo "❌ Backend health check failed after 60 retries (5 minutes)"
                 echo ""
                 echo "═══════════════════════════════════════════════════════════"
                 echo "Backend Diagnostics"
