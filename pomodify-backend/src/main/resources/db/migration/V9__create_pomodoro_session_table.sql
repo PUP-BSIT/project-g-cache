@@ -7,8 +7,7 @@
 -- You can drop it manually later if needed with:
 -- DROP TABLE IF EXISTS session_note CASCADE;
 
--- Drop old sequence if it exists
-DROP SEQUENCE IF EXISTS pomodoro_session_id_seq CASCADE;
+-- NOTE: Do NOT drop pomodoro_session_id_seq - it's managed by the IDENTITY column
 
 -- Create pomodoro_session table if it doesn't exist
 CREATE TABLE IF NOT EXISTS pomodoro_session (
