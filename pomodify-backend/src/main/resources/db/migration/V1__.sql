@@ -36,6 +36,5 @@ BEGIN
     END IF;
 END $$;
 
--- Drop tables and sequences only if they exist
+-- Drop old tables only if they exist (sequences are managed by identity columns)
 DROP TABLE IF EXISTS session_note CASCADE;
-DROP SEQUENCE IF EXISTS pomodoro_session_id_seq CASCADE;
