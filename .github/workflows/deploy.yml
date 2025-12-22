@@ -171,10 +171,13 @@ jobs:
               --restart unless-stopped \
               -p 8081:8081 \
               -e SPRING_PROFILES_ACTIVE='prod' \
-              -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require' \
-              -e DDL_AUTO='none' \
+              -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' \
+              -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
+              -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+              -e DDL_AUTO='validate' \
               -e SPRING_FLYWAY_ENABLED='true' \
               -e SPRING_FLYWAY_BASELINE_ON_MIGRATE='true' \
+              -e SPRING_FLYWAY_BASELINE_VERSION='0' \
               -e SHOW_SQL='${{ secrets.SHOW_SQL }}' \
               -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
               -e JWT_ACCESS_EXPIRATION='${{ secrets.JWT_ACCESS_EXPIRATION }}' \
