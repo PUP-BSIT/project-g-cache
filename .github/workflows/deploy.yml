@@ -174,8 +174,8 @@ jobs:
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DDL_AUTO=validate \
-              -e SHOW_SQL=${{ secrets.SHOW_SQL }} \
+              -e DDL_AUTO=none \
+              -e SHOW_SQL=false \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
               -e JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }} \
               -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
