@@ -31,5 +31,20 @@ COPY --from=build /workspace/target/*.jar app.jar
 # Expose application port
 EXPOSE 8081
 
-# Run the jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Health check - verify the application is responding
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+  CMD curl -f http://localhost:8081/actuator/health || exit 1
+
+# JVM tuning for containerized environment
+# -XX:+UseContainerSupport: Respect container memory limits
+# -XX:MaxRAMPercentage=75: Use up to 75% of container memory for heap
+# -XX:+UseG1GC: Use G1 garbage collector for better latency
+# -XX:+ExitOnOutOfMemoryError: Exit on OOM instead of hanging
+# -Djava.security.egd: Faster random number generation for startup
+ENTRYPOINT ["java", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=75.0", \
+  "-XX:+UseG1GC", \
+  "-XX:+ExitOnOutOfMemoryError", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-jar", "app.jar"]
