@@ -1,6 +1,28 @@
-# Deployment Fixes Applied
+# Deployment Fixes Applied - UPDATED
 
-## Issues Identified
+## Root Cause Analysis
+
+The deployment was failing because of **Flyway migration issues**:
+
+1. **V1 migration is incomplete** - Only creates `pomodoro_session` table, not the base schema (`app_user`, `activity`, etc.)
+2. **V1 was not idempotent** - Used `CREATE TABLE` without `IF NOT EXISTS` and `DROP` without `IF EXISTS`
+3. **V2 referenced non-existent table** - Tried to alter `user_push_token` which doesn't exist in fresh database
+4. **V6 and V7 not idempotent** - Used `DROP COLUMN` without `IF EXISTS`
+5. **DDL_AUTO was set to 'none'** - Prevented JPA from creating base schema
+6. **Container name mismatch** - Diagnostics checked wrong container name
+7. **Timeout too short** - Not enough time for migrations + startup
+
+## Critical Fix: Schema Creation Strategy
+
+The database schema was originally created by JPA's `ddl-auto=update`, not by Flyway migrations. V1-V9 are incremental changes, not a complete schema definition.
+
+**Solution**: Changed `DDL_AUTO=none` to `DDL_AUTO=update` in production deployment to allow JPA to create/update the base schema, then Flyway applies incremental migrations on top.
+
+This hybrid approach:
+- ✅ JPA creates base tables from entity definitions
+- ✅ Flyway applies incremental schema changes
+- ✅ Works on both fresh and existing databases
+- ✅ Maintains schema version tracking
 
 ### 1. Command Timeout Too Short
 **Problem**: The SSH action had `command_timeout: 20m` which wasn't enough for the full deployment process including Flyway migrations.
@@ -52,9 +74,29 @@ command_timeout: 30m   # Increased from 20m
 ### Backend Container Environment Variables
 - Added: `DB_USERNAME`
 - Removed quotes from all values
-- Removed: `SPRING_FLYWAY_ENABLED` (already in application.properties)
-- Removed: `SPRING_FLYWAY_BASELINE_ON_MIGRATE` (already in application.properties)
+- **Changed: `DDL_AUTO=update`** (was `none`) - Critical fix to allow JPA schema creation
 - Fixed: `JWT_REFRESH_EXPIRATION` (was `JWT_REFRESH_TOKEN_EXPIRATION`)
+
+### Migration Files Made Idempotent
+All migration files now use safe SQL patterns:
+
+**V1__.sql**:
+- Changed `CREATE TABLE` to `CREATE TABLE IF NOT EXISTS`
+- Changed `DROP TABLE` to `DROP TABLE IF EXISTS`
+- Changed `DROP SEQUENCE` to `DROP SEQUENCE IF EXISTS`
+- Wrapped `ALTER TABLE ADD CONSTRAINT` in conditional block
+
+**V2__add_user_push_token_enabled.sql**:
+- Wrapped in `DO $$ BEGIN ... END $$` block
+- Checks if `user_push_token` table exists before altering
+
+**V6__remove_tick_sound_column.sql**:
+- Changed `DROP COLUMN` to `DROP COLUMN IF EXISTS`
+
+**V7__remove_google_calendar_sync_column.sql**:
+- Changed `DROP COLUMN` to `DROP COLUMN IF EXISTS`
+
+**V9** was already idempotent with proper `IF NOT EXISTS` checks.
 
 ### Health Check Configuration
 - Initial wait: 60 seconds (reduced from 180s)
@@ -68,11 +110,33 @@ command_timeout: 30m   # Increased from 20m
 
 ## Expected Behavior
 
-1. Backend container starts with proper environment variables
-2. Flyway migrations run automatically (configured in application.properties)
-3. Spring Boot application starts
-4. Health check endpoint becomes available at `/actuator/health`
-5. Deployment completes successfully within 30 minutes
+1. Backend container starts with `DDL_AUTO=update`
+2. JPA creates/updates base schema from entity definitions
+3. Flyway runs incremental migrations (V1-V9) to add columns, indexes, etc.
+4. Spring Boot application completes startup
+5. Health check endpoint becomes available at `/actuator/health`
+6. Deployment completes successfully
+
+## Why This Approach Works
+
+### Hybrid Schema Management
+- **JPA (ddl-auto=update)**: Creates base tables from `@Entity` classes
+  - `app_user`, `activity`, `pomodoro_session`, `user_settings`, etc.
+  - Handles entity relationships and constraints
+  - Safe for production (only adds, never drops)
+
+- **Flyway**: Applies incremental changes
+  - Column additions (V2, V5, V8)
+  - Column removals (V6, V7)
+  - Table restructuring (V9)
+  - Maintains version history in `flyway_schema_history`
+
+### Benefits
+- ✅ Works on fresh databases (JPA creates schema)
+- ✅ Works on existing databases (Flyway tracks applied migrations)
+- ✅ All migrations are idempotent (safe to re-run)
+- ✅ No manual schema setup required
+- ✅ Version controlled schema changes
 
 ## Flyway Configuration
 
