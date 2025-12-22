@@ -174,7 +174,7 @@ jobs:
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e DDL_AUTO=none \
+              -e DDL_AUTO=update \
               -e SHOW_SQL=false \
               -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
               -e JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }} \
@@ -191,12 +191,21 @@ jobs:
             # Wait for backend to initialize and run Flyway migrations
             echo "Waiting for backend to initialize (Flyway migrations + Spring Boot startup)..."
             echo "This may take 2-3 minutes for database migrations and application startup..."
-            sleep 45
+            sleep 30
             
             # Show initial backend logs to verify startup
             echo ""
-            echo "Backend startup logs (first 50 lines):"
-            sudo docker logs pomodify-backend 2>&1 | head -50
+            echo "Backend startup logs (first 100 lines):"
+            sudo docker logs pomodify-backend 2>&1 | head -100
+            
+            # Check if container is still running
+            if ! sudo docker ps | grep -q pomodify-backend; then
+              echo "❌ Backend container crashed during startup!"
+              echo ""
+              echo "Full container logs:"
+              sudo docker logs pomodify-backend 2>&1
+              exit 1
+            fi
 
             # Health check for frontend with detailed logging
             echo "Checking frontend health..."
