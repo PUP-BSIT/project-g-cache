@@ -92,41 +92,48 @@
     <h3 class="feature-eyebrow">Your Time. Your Flow</h3>
     <h2 class="feature-title">Features</h2>
 
-    <div class="feature-grid-wrap">
-        <article class="feature-box" id="activities">
-        <h4>Create and manage activities</h4>
-        <p>Users can add, edit, rename, or delete activities such as “Learn Angular” or “Study Math.”</p>
-        <img src="assets/images/create_manage.png" alt="Create and manage activities" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/activities">Learn More</a>
-        </article>
+    <div class="feature-slider-container">
+        <div class="feature-slider-track" [style.transform]="'translateX(' + getSlideOffset() + ')'">
+            <article class="feature-box" id="activities">
+            <h4>Create and manage activities</h4>
+            <p>Users can add, edit, rename, or delete activities such as "Learn Angular" or "Study Math."</p>
+            <img src="assets/images/create_manage.png" alt="Create and manage activities" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="timers">
-        <h4>Start and track Pomodoro sessions</h4>
-        <p>Set custom work and break durations, run consecutive cycles, and associate each session with an activity.</p>
-        <img src="assets/images/start_track.png" alt="Start and track sessions" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/timers">Learn More</a>
-        </article>
+            <article class="feature-box" id="timers">
+            <h4>Start and track Pomodoro sessions</h4>
+            <p>Set custom work and break durations, run consecutive cycles, and associate each session with an activity.</p>
+            <img src="assets/images/start_track.png" alt="Start and track sessions" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="notes">
-        <h4>Add session notes</h4>
-        <p>After each session, jot down what you accomplished. Notes can be viewed, edited, or deleted later.</p>
-        <img src="assets/images/add_session.png" alt="Add session notes" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/notes">Learn More</a>
-        </article>
+            <article class="feature-box" id="notes">
+            <h4>Add session notes</h4>
+            <p>After each session, jot down what you accomplished. Notes can be viewed, edited, or deleted later.</p>
+            <img src="assets/images/add_session.png" alt="Add session notes" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="reports">
-        <h4>View reports and progress</h4>
-        <p>See summaries of sessions, hours per activity, and progress over time.</p>
-        <img src="assets/images/view_reports.png" alt="View reports and progress" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/reports">Learn More</a>
-        </article>
+            <article class="feature-box" id="reports">
+            <h4>View reports and progress</h4>
+            <p>See summaries of sessions, hours per activity, and progress over time.</p>
+            <img src="assets/images/view_reports.png" alt="View reports and progress" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="accounts">
-        <h4>Manage user accounts securely</h4>
-        <p>Register, log in, update your profile, and manage your account securely.</p>
-        <img src="assets/images/manage_user.png" alt="Manage user accounts" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/account">Learn More</a>
-        </article>
+            <article class="feature-box" id="accounts">
+            <h4>Manage user accounts securely</h4>
+            <p>Register, log in, update your profile, and manage your account securely.</p>
+            <img src="assets/images/manage_user.png" alt="Manage user accounts" loading="lazy" decoding="async" />
+            </article>
+        </div>
+    </div>
+
+    <div class="slider-pagination">
+        <button 
+            *ngFor="let slide of slides; let i = index" 
+            class="pagination-dot" 
+            [class.active]="currentSlide === i"
+            (click)="goToSlide(i)"
+            [attr.aria-label]="'Go to slide ' + (i + 1)">
+        </button>
     </div>
     </section>
 
