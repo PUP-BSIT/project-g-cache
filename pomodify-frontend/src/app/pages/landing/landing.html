@@ -80,6 +80,25 @@
     </div>
     </section>
 
-    <app-footer></app-footer>
+        <section class="faq-section">
+            <div class="faq-inner">
+                <h3 class="faq-eyebrow">Got questions?</h3>
+                <h2 class="faq-title">Frequently Asked Questions</h2>
+
+                <div class="faq-list">
+                    <div *ngFor="let f of faqs; let i = index" class="faq-item">
+                        <button class="faq-question" (click)="toggleFaq(i)" [attr.aria-expanded]="isOpen(i)">
+                            <span class="q-text">{{ f.q }}</span>
+                            <span class="q-icon" aria-hidden="true">{{ isOpen(i) ? '−' : '+' }}</span>
+                        </button>
+                        <div class="faq-answer" [class.open]="isOpen(i)" [attr.aria-hidden]="!isOpen(i)">
+                            <p>{{ f.a }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <app-footer></app-footer>
 
 </main>
