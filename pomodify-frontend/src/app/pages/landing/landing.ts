@@ -28,6 +28,10 @@ export class Landing implements OnInit, OnDestroy {
     { q: 'How do I get help or report bugs?', a: 'Use the support or feedback links in the app or visit the project repository to open an issue — we appreciate bug reports and suggestions.' },
   ];
   faqOpen: boolean[] = this.faqs.map(() => false);
+  // Pagination for FAQ: show N per page
+  readonly faqPageSize = 5;
+  currentFaqPage = 0; // zero-based
+  animateFaq = false;
   private autoPlayInterval: any;
   private readonly AUTO_PLAY_DELAY = 5000; // 5 seconds
 
@@ -38,7 +42,45 @@ export class Landing implements OnInit, OnDestroy {
   }
 
   toggleFaq(index: number): void {
-    this.faqOpen[index] = !this.faqOpen[index];
+    // allow only one open at a time for compact layout
+    const currentlyOpen = this.faqOpen[index];
+    this.faqOpen = this.faqs.map(() => false);
+    this.faqOpen[index] = !currentlyOpen;
+  }
+
+  // FAQ pagination helpers
+  get faqPageCount(): number {
+    return Math.ceil(this.faqs.length / this.faqPageSize);
+  }
+
+  // Returns array of items with their global index for the current page
+  get pagedFaqs(): Array<{ item: { q: string; a: string }; index: number }> {
+    const start = this.currentFaqPage * this.faqPageSize;
+    return this.faqs.slice(start, start + this.faqPageSize).map((it, idx) => ({ item: it, index: start + idx }));
+  }
+
+  get faqPages(): number[] {
+    return Array.from({ length: this.faqPageCount }, (_, i) => i);
+  }
+
+  goToFaqPage(page: number): void {
+    if (page < 0 || page >= this.faqPageCount) return;
+    // trigger a small page transition animation
+    this.animateFaq = true;
+    setTimeout(() => {
+      this.currentFaqPage = page;
+      // ensure any open FAQ on previous page is closed
+      this.faqOpen = this.faqs.map(() => false);
+      this.animateFaq = false;
+    }, 260);
+  }
+
+  nextFaqPage(): void {
+    this.goToFaqPage((this.currentFaqPage + 1) % this.faqPageCount);
+  }
+
+  prevFaqPage(): void {
+    this.goToFaqPage((this.currentFaqPage - 1 + this.faqPageCount) % this.faqPageCount);
   }
 
   isOpen(index: number): boolean {
