@@ -1,10 +1,17 @@
 <div class="signup-container">
+  <div class="signup-header">
+    <div class="header-brand">
+      <img src="assets/images/logo-with-name.png" alt="Pomodify" class="brand-logo-icon" />
+    </div>
+    <nav class="header-nav">
+      <a href="#" class="nav-link" (click)="onNavigate('home', $event)">Home</a>
+      <a href="#" class="nav-link" (click)="onNavigate('contact', $event)">Contact Us</a>
+      <a href="#" class="nav-link" (click)="onNavigate('privacy', $event)">Privacy Policy</a>
+    </nav>
+  </div>
+
   <div class="signup-panel">
     <div class="signup-card">
-    <button class="close-btn" (click)="onClose()">
-      <i class="fa-solid fa-arrow-left-long"></i>
-    </button>
-
     <h1 class="page-title">Create an Account</h1>
 
     <div class="tab-toggle">
@@ -133,13 +140,6 @@
         <a href="#" (click)="onLogin($event)">Log In</a>
       </p>
     </form>
-    </div>
-
-    <div class="signup-illustration">
-      <div class="illustration-logo">
-        <img src="assets/images/logo-with-name.png" alt="Pomodify logo" />
-      </div>
-      <img src="assets/images/login-signup-design.png" alt="Pomodify productivity illustration" />
     </div>
   </div>
 </div>
