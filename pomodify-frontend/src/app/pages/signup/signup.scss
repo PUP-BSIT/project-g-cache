@@ -7,6 +7,7 @@
   padding: 0;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 .signup-header {
@@ -16,17 +17,14 @@
   align-items: center;
   padding: 24px 48px 24px 24px;
   background: transparent;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  position: relative;
 }
 
 .header-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: 30px;
 }
 
 .brand-logo-icon {
@@ -40,7 +38,7 @@
   display: flex;
   gap: 32px;
   align-items: center;
-  margin-right: 80px;
+  margin-right: 20px;
 }
 
 .nav-link {
@@ -65,7 +63,7 @@
   background: #FFFFFF;
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin-top: 100px;
+  margin-top: 20px;
   margin-bottom: 50px;
 }
 
