@@ -104,6 +104,25 @@ export class Login implements OnInit {
     this.router.navigate(['/signup']);
   }
 
+  onNavigate(page: string, event: Event): void {
+    event.preventDefault();
+    console.log(`Navigating to ${page}`);
+    // Handle navigation for Home, Contact Us, Privacy Policy
+    switch (page) {
+      case 'home':
+        this.router.navigate(['/']);
+        break;
+      case 'contact':
+        // Navigate to contact page or scroll to contact section
+        console.log('Contact us page');
+        break;
+      case 'privacy':
+        // Navigate to privacy policy page or open in new tab
+        console.log('Privacy policy page');
+        break;
+    }
+  }
+
   onClose(): void {
     this.router.navigate(['/']);
   }
