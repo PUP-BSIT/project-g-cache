@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Header } from '../../shared/components/header/header';
 import { RouterLink } from '@angular/router';
 import { Footer } from '../../shared/components/footer/footer';
@@ -8,7 +9,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [Header, RouterLink, Footer, CommonModule],
+  imports: [Header, RouterLink, Footer, CommonModule, FormsModule],
   templateUrl: './landing.html',
   styleUrls: ['./landing.scss'],
 })
@@ -33,6 +34,10 @@ export class Landing implements OnInit, OnDestroy, AfterViewInit {
   currentFaqPage = 0; // zero-based
   animateFaq = false;
   faqVectorHeight = 0;
+  // contact form state
+  contactOpen = false;
+  contactData = { name: '', email: '', reason: '', message: '' };
+  contactFormError = '';
   private autoPlayInterval: any;
   private readonly AUTO_PLAY_DELAY = 5000; // 5 seconds
 
@@ -47,6 +52,29 @@ export class Landing implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit(): void {
     // measure collapsed FAQ height after view stabilizes
     setTimeout(() => this.updateFaqVectorHeight(), 60);
+  }
+
+  toggleContact(): void {
+    this.contactOpen = !this.contactOpen;
+  }
+
+  closeContact(): void {
+    this.contactOpen = false;
+  }
+
+  submitContact(): void {
+    // simple required-fields validation
+    const { name, email, reason, message } = this.contactData;
+    if (!name || !email || !reason || !message) {
+      this.contactFormError = 'Please complete all required fields.';
+      return;
+    }
+    this.contactFormError = '';
+    // TODO: wire to API — for now log and close
+    // eslint-disable-next-line no-console
+    console.log('Contact form submitted', this.contactData);
+    this.contactOpen = false;
+    this.contactData = { name: '', email: '', reason: '', message: '' };
   }
 
   @HostListener('window:resize')

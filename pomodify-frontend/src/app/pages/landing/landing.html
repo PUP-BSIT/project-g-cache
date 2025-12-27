@@ -122,6 +122,42 @@
             </div>
         </section>
 
+        <!-- Contact trigger + panel -->
+        <button class="contact-trigger" aria-label="Contact us" (click)="toggleContact()">
+            <i class="fa fa-headphones" aria-hidden="true"></i>
+        </button>
+
+        <div class="contact-panel" *ngIf="contactOpen" role="dialog" aria-modal="true" aria-label="Contact us form">
+            <header>
+                <strong>Contact Us</strong>
+                <button class="close-btn" aria-label="Close contact form" (click)="closeContact()"><i class="fa fa-times" aria-hidden="true"></i></button>
+            </header>
+
+            <form (ngSubmit)="submitContact()" #contactForm="ngForm" novalidate>
+                <label for="c-name">Name</label>
+                <input id="c-name" name="name" [(ngModel)]="contactData.name" required />
+
+                <label for="c-email">Email</label>
+                <input id="c-email" name="email" type="email" [(ngModel)]="contactData.email" required />
+
+                <label for="c-reason">Reason for Contact</label>
+                <select id="c-reason" name="reason" [(ngModel)]="contactData.reason" required>
+                  <option value="">Select a reason</option>
+                  <option value="support">Support</option>
+                  <option value="bug">Report a bug</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <label for="c-message">Message</label>
+                <textarea id="c-message" name="message" rows="4" [(ngModel)]="contactData.message" required></textarea>
+
+                <div class="form-error" *ngIf="contactFormError">{{ contactFormError }}</div>
+
+                <button type="submit" class="submit">Send</button>
+            </form>
+        </div>
+
         <app-footer></app-footer>
 
 </main>
