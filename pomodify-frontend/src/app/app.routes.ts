@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
   },
   {
+    path: 'overview',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
     path: 'docs',
     loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
   },
