@@ -320,11 +320,12 @@
   .faq-grid {
     grid-template-columns: 1fr;
   }
+  /* show the visual first on mobile, then the FAQ content */
   .faq-visual {
-    order: 2;
+    order: 1;
   }
   .faq-content {
-    order: 1;
+    order: 2;
   }
   .faq-pager.arrow {
     width: 40px;
@@ -338,16 +339,26 @@
   }
   /* mobile: restore vector to natural size and stacking behavior */
   .vector-card {
-    height: auto;
-    transform: translateY(-18px);
+    /* feature-like card on mobile: centered with gutters, padded, and elevated */
+    width: 100%;
+    max-width: 360px; /* keeps a pleasant width on phones */
+    margin: 18px auto; /* center with vertical breathing room */
+    padding: 14px; /* inset so image doesn't touch edges */
+    background: linear-gradient(180deg, #ffffff, #fbfeff);
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(36,66,90,0.08), 0 6px 18px rgba(77,161,169,0.04);
+    border: 1px solid rgba(36,66,90,0.04);
     display: block;
-    padding: 12px 18px;
+    overflow: hidden;
   }
   .faq-vector {
     width: 100%;
-    max-width: 280px;
     height: auto;
-    margin: 0 auto;
+    display: block;
+    border-radius: 10px; /* slightly round the inner image like features */
+    object-fit: cover;
+    object-position: center;
+    box-shadow: 0 8px 20px rgba(36,66,90,0.06);
   }
 }
 
