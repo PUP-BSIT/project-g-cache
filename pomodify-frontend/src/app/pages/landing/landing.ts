@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { Header } from '../../shared/components/header/header';
 import { RouterLink } from '@angular/router';
 import { Footer } from '../../shared/components/footer/footer';
@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './landing.html',
   styleUrls: ['./landing.scss'],
 })
-export class Landing implements OnInit, OnDestroy {
+export class Landing implements OnInit, OnDestroy, AfterViewInit {
   currentSlide = 0;
   slides = [0, 1, 2, 3, 4]; // 5 feature cards
   faqs: Array<{ q: string; a: string }> = [
@@ -32,6 +32,7 @@ export class Landing implements OnInit, OnDestroy {
   readonly faqPageSize = 5;
   currentFaqPage = 0; // zero-based
   animateFaq = false;
+  faqVectorHeight = 0;
   private autoPlayInterval: any;
   private readonly AUTO_PLAY_DELAY = 5000; // 5 seconds
 
@@ -39,6 +40,18 @@ export class Landing implements OnInit, OnDestroy {
     // Force light theme on landing page
     ensurePublicPageLightTheme();
     this.startAutoPlay();
+  }
+
+  @ViewChild('faqList', { static: false }) faqListRef?: ElementRef<HTMLElement>;
+
+  ngAfterViewInit(): void {
+    // measure collapsed FAQ height after view stabilizes
+    setTimeout(() => this.updateFaqVectorHeight(), 60);
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateFaqVectorHeight();
   }
 
   toggleFaq(index: number): void {
@@ -72,6 +85,8 @@ export class Landing implements OnInit, OnDestroy {
       // ensure any open FAQ on previous page is closed
       this.faqOpen = this.faqs.map(() => false);
       this.animateFaq = false;
+      // measure after page transition
+      setTimeout(() => this.updateFaqVectorHeight(), 40);
     }, 260);
   }
 
@@ -89,6 +104,28 @@ export class Landing implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopAutoPlay();
+  }
+
+  private updateFaqVectorHeight(): void {
+    try {
+      const el = this.faqListRef && this.faqListRef.nativeElement;
+      if (el) {
+        // measure collapsed height (assume faqOpen is closed when measuring)
+        // temporarily ensure collapsed before measuring only if necessary
+        const prevOpen = this.faqOpen.slice();
+        // collapse all to measure the default (closed) height
+        this.faqOpen = this.faqs.map(() => false);
+        // force layout read
+        const h = el.offsetHeight;
+        if (h && h !== this.faqVectorHeight) {
+          this.faqVectorHeight = h;
+        }
+        // restore previous open state
+        this.faqOpen = prevOpen;
+      }
+    } catch (e) {
+      // ignore measurement errors
+    }
   }
 
   startAutoPlay(): void {

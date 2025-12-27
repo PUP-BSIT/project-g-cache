@@ -87,13 +87,13 @@
 
                         <div class="faq-grid">
                             <div class="faq-visual">
-                                <div class="vector-card">
-                                    <img src="assets/images/faq-vector.png" alt="FAQ illustration" class="faq-vector" loading="lazy" decoding="async" />
+                                <div class="vector-card" [style.height.px]="faqVectorHeight || null">
+                                    <img src="assets/images/faqs-vector-2.png" alt="FAQ illustration" class="faq-vector" loading="lazy" decoding="async" />
                                 </div>
                             </div>
 
                             <div class="faq-content">
-                                <div class="faq-list" [class.animating]="animateFaq">
+                                <div class="faq-list" #faqList [class.animating]="animateFaq">
                                     <div *ngFor="let f of pagedFaqs" class="faq-item">
                                         <button class="faq-question" (click)="toggleFaq(f.index)" [attr.aria-expanded]="isOpen(f.index)">
                                             <span class="q-text">{{ f.item.q }}</span>
