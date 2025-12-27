@@ -17,6 +17,12 @@ import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../sha
   styleUrls: ['./sessions-list.scss']
 })
 export class SessionsListComponent implements OnInit {
+
+    getNoteText(note: any): string {
+      if (typeof note === 'string') return note;
+      if (note && typeof note === 'object' && 'text' in note && typeof note.text === 'string') return note.text;
+      return '';
+    }
   protected router = inject(Router);
   private sessionService = inject(SessionService);
   private activityService = inject(ActivityService);

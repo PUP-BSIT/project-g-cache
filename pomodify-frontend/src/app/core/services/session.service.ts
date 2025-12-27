@@ -55,6 +55,14 @@ export interface PhaseChangeEvent {
   providedIn: 'root'
 })
 export class SessionService {
+
+    saveTodos(activityId: number, sessionId: number, todos: any[]): Observable<void> {
+      return this.http.post<void>(API.ACTIVITIES.SESSIONS.TODOS.SAVE(activityId, sessionId), todos);
+    }
+
+    getTodos(activityId: number, sessionId: number): Observable<any[]> {
+      return this.http.get<any[]>(API.ACTIVITIES.SESSIONS.TODOS.GET(activityId, sessionId));
+    }
   private http = inject(HttpClient);
 
   /**
@@ -139,14 +147,6 @@ export class SessionService {
     );
   }
 
-  /**
-   * Cancel the entire session (invalidates all cycles)
-   */
-  cancelSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
-    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.CANCEL(activityId, sessionId), null).pipe(
-      map(response => extractSession(response))
-    );
-  }
 
   /**
    * Complete the current phase (FOCUS or BREAK)
@@ -178,7 +178,9 @@ export class SessionService {
    * Update session note
    */
   updateNote(activityId: number, sessionId: number, note: string): Observable<PomodoroSession> {
-    const params = new HttpParams().set('note', note);
+    // Always send a string for note (never undefined or null)
+    const safeNote = typeof note === 'string' ? note : (note == null ? '' : String(note));
+    const params = new HttpParams().set('note', safeNote);
     return this.http.put<SessionResponse>(API.ACTIVITIES.SESSIONS.UPDATE_NOTE(activityId, sessionId), null, { params }).pipe(
       map(response => extractSession(response))
     );

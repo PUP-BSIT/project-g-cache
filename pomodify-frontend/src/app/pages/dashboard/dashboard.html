@@ -250,6 +250,16 @@
             </div>
           }
         </div>
+
+        <!-- Smart Action Button -->
+        <app-smart-action (actionSelected)="onSmartActionSelected($event)"></app-smart-action>
+
+        <!-- Smart Action Wizard Modal -->
+        <app-smart-action-wizard
+          [open]="smartActionWizardOpen"
+          (closed)="onSmartActionWizardClosed()"
+          (confirmed)="onSmartActionWizardConfirmed($event)">
+        </app-smart-action-wizard>
       }
     </div>
   </main>

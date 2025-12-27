@@ -1,0 +1,19 @@
+<button class="smart-action-btn" (click)="openMenu()">
+  <span class="icon">+</span>
+</button>
+@if (open) {
+  <div class="smart-action-modal">
+    <div class="modal-content">
+      <button class="action-tier primary" (click)="select('wizard')">
+        <span class="icon">✨</span> Generate a Plan
+      </button>
+      <button class="action-tier secondary" (click)="select('quick')">
+        <span class="icon">⚡</span> Quick Focus
+      </button>
+      <button class="action-tier tertiary" (click)="select('custom')">
+        <span class="icon">📝</span> Custom Activity
+      </button>
+      <button class="close-btn" (click)="closeMenu()">Close</button>
+    </div>
+  </div>
+}
