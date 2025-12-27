@@ -89,4 +89,13 @@ public interface PomodoroSessionRepository {
 
     /** Last 5 completed sessions ordered by completedAt desc */
     List<PomodoroSession> findRecentCompletedByUserId(Long userId, int limit);
+
+    /**
+     * Fetches the most recent session notes for a given activity, limited by count.
+     *
+     * @param activityId The activity ID.
+     * @param limit The maximum number of notes to fetch.
+     * @return List of notes (most recent first).
+     */
+    List<String> findRecentNotesByActivityId(Long activityId, int limit);
 }

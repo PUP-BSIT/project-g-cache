@@ -35,4 +35,7 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
 
     @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status order by s.completedAt desc")
     List<PomodoroSession> findRecentCompletedByUserId(@Param("userId") Long userId, @Param("status") SessionStatus status, Pageable pageable);
+
+    @Query("SELECT n.content FROM PomodoroSession s JOIN s.note n WHERE s.activity.id = :activityId AND n.content IS NOT NULL ORDER BY s.completedAt DESC")
+    List<String> findRecentNotesByActivityId(@Param("activityId") Long activityId, Pageable pageable);
 }

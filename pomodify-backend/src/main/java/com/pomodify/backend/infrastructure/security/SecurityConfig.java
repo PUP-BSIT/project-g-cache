@@ -31,10 +31,10 @@ public class SecurityConfig {
         private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     // ============================
-    // DEV PROFILE (no auth)
+    // DEFAULT / DEV PROFILE (no auth) - Used when no profile or "dev" profile is active
     // ============================
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "default"})
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)

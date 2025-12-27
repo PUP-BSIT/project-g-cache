@@ -38,6 +38,20 @@ public class ActivityController {
     private final ActivityService activityService;
     private final SessionService sessionService;
 
+    /* -------------------- HELPER -------------------- */
+    private Long getUserId(Jwt jwt) {
+        if (jwt == null) {
+            return 1L; // Dev mode fallback
+        }
+        Object claim = jwt.getClaim("user");
+        if (claim instanceof Integer i) return i.longValue();
+        if (claim instanceof Long l) return l;
+        if (claim instanceof String s) {
+            try { return Long.parseLong(s); } catch (NumberFormatException ignored) {}
+        }
+        return 1L; // Fallback
+    }
+
     /* -------------------- CREATE -------------------- */
         @PostMapping
         @Operation(summary = "Create a new activity")
@@ -45,7 +59,7 @@ public class ActivityController {
             @RequestBody @Valid CreateActivityRequest request,
             @AuthenticationPrincipal Jwt jwt
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
         log.info("Create activity request received: {} from user: {}", request.title(), userId);
 
         CreateActivityCommand command = CreateActivityCommand.builder()
@@ -92,7 +106,7 @@ public class ActivityController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
 
         GetActivityCommand command = GetActivityCommand.builder()
                 .activityId(activityId)
@@ -110,7 +124,7 @@ public class ActivityController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
 
         GetActivityCommand activityCommand = GetActivityCommand.builder()
                 .activityId(activityId)
@@ -142,7 +156,7 @@ public class ActivityController {
             @PathVariable("id") Long activityId,
             @RequestBody @Valid UpdateActivityRequest request
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
         log.info("Update request for activity {} by user {}", activityId, userId);
 
         UpdateActivityCommand command = UpdateActivityCommand.builder()
@@ -164,7 +178,7 @@ public class ActivityController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable("id") Long activityId
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
         log.info("Delete request for activity {} by user {}", activityId, userId);
 
         DeleteActivityCommand command = DeleteActivityCommand.builder()
@@ -176,12 +190,12 @@ public class ActivityController {
         return buildResponse(item, "Activity deleted successfully", HttpStatus.OK);
     }
 
-    /* -------------------- HELPER -------------------- */
+    /* -------------------- FETCH HELPER -------------------- */
     private ResponseEntity<ActivityResponse> fetchActivities(
             Jwt jwt, Boolean deleted, Long categoryId,
             int page, int size, String sortOrder, String sortBy
     ) {
-        Long userId = jwt.getClaim("user");
+        Long userId = getUserId(jwt);
         Sort sort = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         PageRequest pageable = PageRequest.of(page, size, sort);
 

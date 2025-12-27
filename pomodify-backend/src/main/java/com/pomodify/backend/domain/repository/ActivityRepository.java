@@ -8,7 +8,9 @@ import java.util.Optional;
 
 public interface ActivityRepository {
     Activity save(Activity activity);
+    Optional<Activity> findById(Long id);
     Optional<Activity> findActivity(Long id, Long userId);
+    Optional<Activity> findByIdAndUserId(Long id, Long userId);
 
     /** Dynamic, pageable fetching of activities */
     Page<Activity> findAllDynamic(Long userId, Boolean deleted, Long categoryId, Pageable pageable);
