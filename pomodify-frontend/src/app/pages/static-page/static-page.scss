@@ -4,3 +4,14 @@
 .static-content h1 { font-size: 28px; margin-top: 0; color: #173d46; }
 .static-content p { line-height: 1.6; color: #385a61; }
 .static-content a { color: #4da1a9; }
+
+@media (max-width: 880px) {
+	.container { padding-left: 16px; padding-right: 16px; }
+	.static-content { padding: 18px; }
+}
+
+@media (max-width: 480px) {
+	.container { padding-left: 12px; padding-right: 12px; }
+	.static-content { padding: 14px; }
+	.static-content h1 { font-size: 20px; }
+}

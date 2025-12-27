@@ -39,10 +39,21 @@
 
   <div class="container bottom">
     <nav class="policy-links" aria-label="Legal">
-      <a routerLink="/privacy">Privacy Policy</a>
-      <a routerLink="/terms">Terms of Service</a>
-      <a routerLink="/cookies">Cookies</a>
+      <a href="/privacy" (click)="openModal('privacy', $event)">Privacy Policy</a>
+      <a href="/terms" (click)="openModal('terms', $event)">Terms of Service</a>
+      <a href="/cookies" (click)="openModal('cookies', $event)">Cookies</a>
     </nav>
+    
+    <!-- Legal modal overlay -->
+    <div class="legal-modal-overlay" *ngIf="modalOpen" role="dialog" aria-modal="true" (click)="closeModal()">
+      <div class="legal-modal" tabindex="-1" (click)="$event.stopPropagation()">
+        <button class="legal-modal-close" aria-label="Close" (click)="closeModal()">✕</button>
+        <header class="legal-modal-header">
+          <h3>{{ modalTitle }}</h3>
+        </header>
+        <div class="legal-modal-body" [innerHTML]="modalContent"></div>
+      </div>
+    </div>
     <div class="copyright">© {{ year }} Pomodify</div>
   </div>
 </footer>
