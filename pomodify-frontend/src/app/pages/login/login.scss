@@ -213,6 +213,9 @@
 
 .password-group {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 
   input {
     padding-right: 52px; /* leave room for eye icon */
@@ -222,8 +225,9 @@
 .password-toggle {
   position: absolute;
   right: 18px;
-  top: 50%;
-  transform: translateY(-50%); /* center relative to input height */
+  top: 18px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -234,10 +238,16 @@
   padding: 0;
   outline: none;
   box-shadow: none;
+  flex-shrink: 0;
 
   i {
     font-size: 16px;           /* Font Awesome eye icon */
-    line-height: 1;            /* avoid vertical shift on text vs placeholder */
+    line-height: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   &:hover {
