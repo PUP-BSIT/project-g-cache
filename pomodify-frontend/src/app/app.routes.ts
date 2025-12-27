@@ -47,6 +47,26 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy/privacy').then(m => m.PrivacyComponent),
   },
   {
+    path: 'about',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
+    path: 'docs',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
+    path: 'support',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
+    path: 'release-notes',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
+    path: 'careers',
+    loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
     path: 'activities/:activityTitle/sessions',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/sessions-list/sessions-list').then(m => m.SessionsListComponent),

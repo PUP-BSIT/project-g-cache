@@ -1,6 +1,6 @@
 <footer class="site-footer">
   <div class="container top">
-    <div class="left">
+    <div class="col col-brand">
       <a routerLink="/" class="site-brand">Pomodify</a>
       <p class="tagline">Your time. Your flow.</p>
       <nav class="socials" aria-label="Social links">
@@ -12,15 +12,34 @@
         </a>
       </nav>
     </div>
-    <div class="right">
-      <div class="subscribe-card">
-        <div class="subscribe-title">Subscribe</div>
-        <form class="subscribe-row" role="group" aria-label="Newsletter subscribe" (submit)="$event.preventDefault()">
-          <input type="email" placeholder="Enter your email" aria-label="Email" />
-          <button type="submit">Subscribe</button>
-        </form>
-        <small class="policy-note">By subscribing you agree with our <a routerLink="/privacy">Privacy Policy</a></small>
+
+    <div class="col col-links">
+      <div class="links-grid">
+        <div class="link-group">
+          <h4>Product</h4>
+          <a routerLink="/">Overview</a>
+          <!-- removed links without pages: Features, Pricing -->
+        </div>
+        <div class="link-group">
+          <h4>Resources</h4>
+          <a routerLink="/docs">Docs</a>
+          <a routerLink="/support">Support</a>
+          <a routerLink="/release-notes">Release notes</a>
+        </div>
+        <div class="link-group">
+          <h4>Company</h4>
+          <a routerLink="/about">About</a>
+          <a routerLink="/careers">Careers</a>
+          <!-- contact handled via floating chat icon / email -->
+        </div>
       </div>
+    </div>
+
+    <div class="col col-contact">
+      <h4>Contact</h4>
+      <p class="contact-line">Email: <a href="mailto:hello@pomodify.app">hello@pomodify.app</a></p>
+      <p class="contact-line">Support: <a routerLink="/support">Support Center</a></p>
+      <div class="small-note">Questions? Use the chat icon to reach us quickly.</div>
     </div>
   </div>
 
@@ -29,9 +48,9 @@
   <div class="container bottom">
     <nav class="policy-links" aria-label="Legal">
       <a routerLink="/privacy">Privacy Policy</a>
-      <a routerLink="/terms">Terms and Service</a>
-      <a routerLink="/cookies">Cookies Settings</a>
+      <a routerLink="/terms">Terms of Service</a>
+      <a routerLink="/cookies">Cookies</a>
     </nav>
-    <div class="copyright">© {{ year }} Pomodify. All rights reserved.</div>
+    <div class="copyright">© {{ year }} Pomodify</div>
   </div>
 </footer>
