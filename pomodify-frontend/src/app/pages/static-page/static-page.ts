@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Header } from '../../shared/components/header/header';
 
 @Component({
   selector: 'app-static-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Header],
   templateUrl: './static-page.html',
   styleUrls: ['./static-page.scss'],
 })

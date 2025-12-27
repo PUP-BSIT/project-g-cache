@@ -1,16 +1,202 @@
 .privacy-container {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 32px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  max-width: 1100px;
+  margin: 28px auto 72px;
+  padding: 20px;
 }
-.privacy-container h1 {
-  font-size: 2.2rem;
+
+.privacy-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #fff;
+  padding: 22px 28px;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(14,30,37,0.06);
   margin-bottom: 18px;
 }
-.privacy-container p {
-  font-size: 1.1rem;
-  color: #444;
+.privacy-hero .hero-left h1 {
+  font-size: 2rem;
+  margin: 0 0 6px 0;
 }
+.privacy-hero .lead {
+  margin: 0 0 8px 0;
+  color: #334;
+}
+.privacy-hero .meta {
+  font-size: 0.9rem;
+  color: #667;
+  display: flex;
+  gap: 14px;
+}
+.hero-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4da1a9;
+}
+
+.privacy-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* single column now that TOC is removed */
+  gap: 20px;
+}
+
+.privacy-main {
+  background: #fff;
+  padding: 22px 26px;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(14,30,37,0.04);
+}
+.privacy-main section {
+  margin-bottom: 20px;
+}
+.privacy-main h2 {
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px 0;
+}
+.privacy-main p,
+.privacy-main li {
+  color: #444;
+  line-height: 1.55;
+  font-size: 0.98rem;
+}
+.privacy-main ul {
+  margin-left: 1.05rem;
+}
+.s-icon {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(77,161,169,0.08);
+  color: #346;
+  font-size: 1rem;
+}
+
+.privacy-toc {
+  display: none !important; /* hide leftover TOC container */
+}
+.toc-card {
+  position: sticky;
+  top: 20px;
+  background: #fff;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(14,30,37,0.04);
+}
+.toc-card h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+.toc-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+.toc-card ul li {
+  margin: 6px 0;
+}
+.toc-card a {
+  color: #284;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.toc-item {
+  color: #284;
+  text-decoration: none;
+  cursor: default;
+  display: inline-block;
+  font-size: 0.95rem;
+}
+.toc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn {
+  display: inline-block;
+  padding: 8px 12px;
+  background: #4da1a9;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.btn.ghost {
+  background: transparent;
+  color: #4da1a9;
+  border: 1px solid rgba(77,161,169,0.16);
+}
+
+/* Mobile improvements */
+@media (max-width: 880px) {
+  .privacy-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* reduce outer container padding so content touches mobile gutters nicely */
+  .privacy-container {
+    padding-left: 12px;
+    padding-right: 12px;
+    margin: 18px auto 48px;
+  }
+
+  /* Hero stacks vertically and centers on mobile */
+  .privacy-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+    gap: 14px;
+  }
+  .privacy-hero { width: 100%; box-sizing: border-box; }
+  .hero-icon {
+    align-self: center;
+    margin: 0 0 6px 0;
+    color: #4da1a9;
+  }
+  .hero-icon svg { width: 68px; height: 68px; }
+  .privacy-hero .hero-left { width: 100%; }
+  .privacy-hero .hero-left h1 { font-size: 1.4rem; margin-bottom: 6px; }
+  .privacy-hero .lead { font-size: 1rem; color: #334; }
+
+  /* Make content padding comfortable on small screens */
+  .privacy-main {
+    padding: 14px;
+    box-sizing: border-box;
+    border-radius: 10px;
+  }
+
+  .privacy-main h2 {
+    font-size: 1.05rem;
+    margin-top: 10px;
+  }
+
+  .privacy-main p, .privacy-main li {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* ensure lists and long lines wrap and have comfortable gutters */
+  .privacy-main ul { padding-left: 1rem; }
+  .privacy-main li { word-break: break-word; }
+
+  /* Make action buttons easier to tap */
+  .toc-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn { padding: 10px 14px; }
+  .btn, .btn.ghost { width: 100%; text-align: center; }
+
+  /* Hide any leftover TOC elements */
+  .privacy-toc { display: none !important; }
+}
+
