@@ -27,9 +27,14 @@
   font-size: 30px;
 }
 .tagline { margin: 6px 0 12px; color: #6a8597; font-size: 14px; }
-.socials { display: flex; gap: 12px; }
-.social-link { color: #88a7b7; display: inline-flex; padding: 8px; border-radius: 8px; transition: background .15s ease, color .15s ease; }
-.social-link:hover { background: #e8f1f4; color: #4DA1A9; }
+.site-brand {
+  text-decoration: none;
+  color: #24425A;
+  font-weight: 800;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 36px; /* increased so brand fills former social area */
+}
+.tagline { margin: 8px 0 14px; color: #6a8597; font-size: 16px; line-height: 1.1; }
 
 .col { }
 .col-brand { }
