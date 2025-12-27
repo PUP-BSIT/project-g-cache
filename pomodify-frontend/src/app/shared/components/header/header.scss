@@ -109,6 +109,10 @@
   opacity: 0.8;
 }
 
+.hamburger-icon { display: block; }
+.hamburger-icon rect { transition: transform 200ms ease; }
+.hamburger-icon path { transition: opacity 160ms ease; }
+
 /* Mobile Menu Styles */
 @media (max-width: 768px) {
   .site-header {

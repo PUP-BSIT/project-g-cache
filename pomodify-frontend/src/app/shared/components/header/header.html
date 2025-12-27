@@ -22,10 +22,20 @@
         <!-- subscription removed from header (managed via release notes / account settings) -->
     </nav>
 
-    <!-- Hamburger Menu Button -->
-    <button class="hamburger" [class.active]="mobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
-        <i *ngIf="!mobileMenuOpen" class="fa-solid fa-list"></i>
-        <i *ngIf="mobileMenuOpen" class="fa-solid fa-x"></i>
-    </button>
+        <!-- Hamburger Menu Button (custom rounded bars SVG) -->
+        <button class="hamburger" [class.active]="mobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+                <!-- three rounded bars icon -->
+                <svg *ngIf="!mobileMenuOpen" class="hamburger-icon" width="36" height="24" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="0" y="1" width="36" height="6" rx="3" fill="currentColor" />
+                    <rect x="0" y="9" width="36" height="6" rx="3" fill="currentColor" />
+                    <rect x="0" y="17" width="36" height="6" rx="3" fill="currentColor" />
+                </svg>
+
+                <!-- close (X) icon -->
+                <svg *ngIf="mobileMenuOpen" class="hamburger-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M4 4L20 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M20 4L4 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                </svg>
+        </button>
     </div>
 </header>

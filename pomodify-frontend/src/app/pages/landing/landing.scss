@@ -293,7 +293,24 @@
   outline-offset: 2px;
 }
 .q-icon {
-  display: none !important; /* remove icon, keep question text */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  color: #4DA1A9;
+}
+
+.q-icon .chev {
+  transition: transform 220ms cubic-bezier(0.2,0,0,1), opacity 160ms ease;
+  transform-origin: center;
+  display: block;
+}
+
+/* rotate chevron when the FAQ is open */
+.faq-question[aria-expanded="true"] .q-icon .chev {
+  transform: rotate(180deg);
 }
 .faq-answer {
   max-height: 0;
@@ -339,27 +356,44 @@
   }
   /* mobile: restore vector to natural size and stacking behavior */
   .vector-card {
-    /* feature-like card on mobile: centered with gutters, padded, and elevated */
+    /* Tight-fit feature-like card on mobile: image defines height */
     width: 100%;
     max-width: 360px; /* keeps a pleasant width on phones */
-    margin: 18px auto; /* center with vertical breathing room */
-    padding: 14px; /* inset so image doesn't touch edges */
-    background: linear-gradient(180deg, #ffffff, #fbfeff);
+    margin: 10px auto; /* center with vertical breathing room */
+    padding: 0; /* remove padding so image fits exactly */
+    background: transparent; /* let image fill the card area */
     border-radius: 18px;
     box-shadow: 0 12px 32px rgba(36,66,90,0.08), 0 6px 18px rgba(77,161,169,0.04);
     border: 1px solid rgba(36,66,90,0.04);
     display: block;
     overflow: hidden;
+    height: auto !important; /* override any inline height binding on mobile */
   }
   .faq-vector {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 10px; /* slightly round the inner image like features */
+    border-radius: 14px; /* slightly round the inner image like features */
     object-fit: cover;
     object-position: center;
     box-shadow: 0 8px 20px rgba(36,66,90,0.06);
   }
+}
+
+/* Strong mobile override: ensure hero image appears before text on narrow screens */
+@media (max-width: 820px) {
+  .landing .hero {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 16px 12px 32px !important;
+  }
+  .landing .hero .hero-right { order: -1 !important; width: 100% !important; }
+  .landing .hero .hero-left { order: 2 !important; width: 100% !important; text-align: center !important; }
+  /* Ensure mobile-specific image shows and desktop one hides */
+  .hero-right .mobile-layout { display: block !important; }
+  .hero-right .desktop-layout { display: none !important; }
 }
 
 /* Contact trigger + panel styles */
@@ -886,6 +920,22 @@
   .hero-right {
     padding: 15px 10px;
   }
+
+  /* On mobile show the hero image first, then the copy below */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 12px 36px;
+  }
+
+  .hero-right { order: 1; width: 100%; }
+  .hero-left { order: 2; width: 100%; text-align: center; }
+
+  .hero-left .site-brand { margin: 0 auto 10px; text-align: center; }
+  .headline { font-size: 26px; }
+  .subtext { font-size: 14px; }
 
   .hero-left {
     padding: 25px 18px 12px;

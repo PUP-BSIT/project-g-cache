@@ -97,7 +97,11 @@
                                     <div *ngFor="let f of pagedFaqs" class="faq-item">
                                         <button class="faq-question" (click)="toggleFaq(f.index)" [attr.aria-expanded]="isOpen(f.index)">
                                             <span class="q-text">{{ f.item.q }}</span>
-                                            <span class="q-icon" aria-hidden="true">{{ isOpen(f.index) ? '−' : '+' }}</span>
+                                            <span class="q-icon" aria-hidden="true">
+                                                <svg class="chev" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </span>
                                         </button>
                                         <div class="faq-answer" [class.open]="isOpen(f.index)" [attr.aria-hidden]="!isOpen(f.index)">
                                             <p>{{ f.item.a }}</p>
