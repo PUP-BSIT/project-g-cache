@@ -72,6 +72,9 @@
   background: #fff;
   max-width: 820px;
   width: 100%;
+  box-sizing: border-box;
+  /* leave comfortable left/right space on small screens */
+  margin: 0 12px;
   max-height: 86vh;
   overflow: auto;
   border-radius: 12px;
@@ -88,6 +91,9 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
+  padding: 8px; /* increase touch target */
+  border-radius: 8px;
+  line-height: 1;
 }
 
 .legal-modal-header h3 { margin: 0 0 8px; font-size: 20px; }
@@ -97,12 +103,13 @@
 .modal-open { overflow: hidden; }
 
 @media (max-width: 880px) {
-  .legal-modal { max-width: 640px; padding: 18px; }
+  .legal-modal { max-width: 640px; padding: 18px; margin: 0 12px; }
 }
 
 @media (max-width: 480px) {
-  .legal-modal { max-width: 420px; padding: 14px; }
+  .legal-modal { max-width: 420px; padding: 14px; margin: 0 10px; border-radius: 10px; }
   .legal-modal-body { font-size: 15px; }
+  .legal-modal-close { right: 10px; top: 10px; font-size: 22px; padding: 10px; }
 }
 
 @media (max-width: 800px) {

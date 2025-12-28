@@ -18,7 +18,7 @@ export class Footer {
     return new Date().getFullYear();
   }
 
-  openModal(type: 'privacy' | 'terms' | 'cookies', e?: Event): void {
+  openModal(type: 'privacy' | 'terms' | 'cookies' | 'overview' | 'docs' | 'support' | 'release-notes' | 'about' | 'careers', e?: Event): void {
     if (e) e.preventDefault();
     this.modalOpen = true;
     this.modalTitle = this.titleFor(type);
@@ -47,6 +47,18 @@ export class Footer {
     switch (type) {
       case 'privacy':
         return 'Privacy Policy';
+      case 'overview':
+        return 'Overview';
+      case 'docs':
+        return 'Documentation';
+      case 'support':
+        return 'Support';
+      case 'release-notes':
+        return 'Release notes';
+      case 'about':
+        return 'About Pomodify';
+      case 'careers':
+        return 'Careers';
       case 'terms':
         return 'Terms of Service';
       case 'cookies':

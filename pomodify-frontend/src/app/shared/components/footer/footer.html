@@ -10,20 +10,18 @@
       <div class="links-grid">
         <div class="link-group">
           <h4>Product</h4>
-          <a routerLink="/overview">Overview</a>
-          <!-- removed links without pages: Features, Pricing -->
+          <a href="/overview" (click)="openModal('overview', $event)">Overview</a>
         </div>
         <div class="link-group">
           <h4>Resources</h4>
-          <a routerLink="/docs">Docs</a>
-          <a routerLink="/support">Support</a>
-          <a routerLink="/release-notes">Release notes</a>
+          <a href="/docs" (click)="openModal('docs', $event)">Docs</a>
+          <a href="/support" (click)="openModal('support', $event)">Support</a>
+          <a href="/release-notes" (click)="openModal('release-notes', $event)">Release notes</a>
         </div>
         <div class="link-group">
           <h4>Company</h4>
-          <a routerLink="/about">About</a>
-          <a routerLink="/careers">Careers</a>
-          <!-- contact handled via floating chat icon / email -->
+          <a href="/about" (click)="openModal('about', $event)">About</a>
+          <a href="/careers" (click)="openModal('careers', $event)">Careers</a>
         </div>
       </div>
     </div>
