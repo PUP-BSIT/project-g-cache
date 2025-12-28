@@ -4,6 +4,9 @@
         <img class="logo" src="assets/images/logo-with-name.png" alt="Pomodify" />
     </a>
 
+    <!-- spacer pushes nav and actions to the right of the logo on desktop -->
+    <div class="spacer" aria-hidden="true"></div>
+
     <nav class="nav" [class.active]="mobileMenuOpen">
         <a routerLink="/" class="nav-link">Home</a>
 
@@ -19,10 +22,18 @@
         </div>
         </div>
 
+        <!-- Mobile-only Log In (shown inside collapsed nav on small screens) -->
+        <a routerLink="/login" class="nav-link mobile-login">Log In</a>
+
         <!-- subscription removed from header (managed via release notes / account settings) -->
     </nav>
 
-        <!-- Hamburger Menu Button (custom rounded bars SVG) -->
+    <!-- Right-side actions (desktop) -->
+    <div class="right-actions">
+      <a routerLink="/login" class="nav-link login-link">Log In</a>
+    </div>
+
+    <!-- Hamburger Menu Button (custom rounded bars SVG) -->
         <button class="hamburger" [class.active]="mobileMenuOpen" (click)="toggleMobileMenu()" aria-label="Toggle menu">
                 <!-- three rounded bars icon -->
                 <svg *ngIf="!mobileMenuOpen" class="hamburger-icon" width="36" height="24" viewBox="0 0 36 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

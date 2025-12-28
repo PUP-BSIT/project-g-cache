@@ -866,7 +866,8 @@
   background: #4DA1A9;
   color: #fff;
   border: 2px solid #4DA1A9;
-  min-width: 160px;
+  min-width: 220px; /* increased width after removing duplicate login CTA */
+  padding: 0 32px; /* more horizontal padding for a prominent CTA */
 }
 
 .btn-primary:hover {
