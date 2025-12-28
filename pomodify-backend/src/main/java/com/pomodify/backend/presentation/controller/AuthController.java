@@ -35,13 +35,13 @@ public class AuthController {
     // Utility method for manual Set-Cookie header (matches OAuth2 handler)
     private void setAuthCookieHeaders(HttpServletResponse response, String accessToken, String refreshToken, boolean isSecure) {
     String accessTokenCookie = String.format(
-        "accessToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        "accessToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         accessToken,
         60 * 60,
         java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60 * 60))
     );
     String refreshTokenCookie = String.format(
-        "refreshToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        "refreshToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         refreshToken,
         7 * 24 * 60 * 60,
         java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
