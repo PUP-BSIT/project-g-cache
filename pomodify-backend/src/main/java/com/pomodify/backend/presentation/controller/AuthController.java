@@ -100,11 +100,11 @@ public class AuthController {
         log.info("Logout request received");
         // Clear cookies using manual Set-Cookie headers
         String clearAccessToken = String.format(
-                "accessToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                "accessToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
                 java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
         );
         String clearRefreshToken = String.format(
-                "refreshToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                "refreshToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
                 java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
         );
         response.setHeader("Set-Cookie", clearAccessToken);
