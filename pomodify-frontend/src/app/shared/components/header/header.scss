@@ -4,6 +4,14 @@
   border-bottom: 1px solid rgba(0,0,0,0.2);
 }
 
+/* Ensure header link text renders pure white and isn't dimmed by other rules */
+/* Use element-qualified selector to increase specificity without !important */
+header.site-header .nav-link,
+header.site-header .right-actions .nav-link,
+header.site-header .login-link {
+  color: #ffffff;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -12,6 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
 }
 
 .site-brand {
@@ -41,15 +50,40 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  /* place nav to the right (spacer before nav pushes it toward actions) */
+  margin: 0;
 }
 
 .nav-link {
-  color: #ffffff;
   text-decoration: none;
-  opacity: 0.95;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500;
 }
+
+.login-link {
+  /* plain text link on the right (not a button) — slightly emphasized */
+  display: inline-block;
+  padding: 6px 10px;
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  transition: color 140ms ease, background 140ms ease, transform 120ms ease;
+}
+.login-link:hover { color: #f1ffff; background: rgba(255,255,255,0.03); transform: translateY(-1px); }
+
+.spacer { flex: 1 1 auto; }
+
+.right-actions { display: flex; align-items: center; gap: 12px; margin-right: 56px; }
+
+/* add a small right margin on the nav to separate it from the login area */
+.nav { margin-right: 16px; }
+
+/* mobile: hide desktop login, show mobile login inside nav */
+.mobile-login { display: none; }
 
 .nav-link:hover { opacity: 1; }
 
@@ -109,6 +143,10 @@
   opacity: 0.8;
 }
 
+.hamburger-icon { display: block; }
+.hamburger-icon rect { transition: transform 200ms ease; }
+.hamburger-icon path { transition: opacity 160ms ease; }
+
 /* Mobile Menu Styles */
 @media (max-width: 768px) {
   .site-header {
@@ -135,6 +173,9 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
+  .right-actions { display: none; }
+  .mobile-login { display: block; }
+
   .nav.active {
     max-height: 500px;
     padding: 16px;
@@ -145,6 +186,8 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: block;
   }
+
+  .login-link { border-bottom: none; padding: 10px 12px; }
 
   .nav-link:last-child {
     border-bottom: none;
