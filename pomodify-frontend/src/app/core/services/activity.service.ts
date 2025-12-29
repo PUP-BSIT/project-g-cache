@@ -12,6 +12,8 @@ export interface ActivityData {
   activityDescription: string;
   categoryName?: string;
   colorTag?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ActivityResponse {

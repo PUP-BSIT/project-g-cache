@@ -7,6 +7,8 @@ public record ActivityResult(
         Long activityId,
         Long categoryId,
         String activityTitle,
-        String activityDescription
+        String activityDescription,
+        java.time.LocalDateTime createdAt,
+        java.time.LocalDateTime updatedAt
 ) {
 }
