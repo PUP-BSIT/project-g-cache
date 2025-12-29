@@ -75,4 +75,9 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
         }
         return springRepo.findRecentCompletedByUserId(userId, SessionStatus.COMPLETED, PageRequest.of(0, limit));
     }
+
+    @Override
+    public List<String> findRecentNotesByActivityId(Long activityId, int limit) {
+        return springRepo.findRecentNotesByActivityId(activityId, org.springframework.data.domain.PageRequest.of(0, limit));
+    }
 }

@@ -81,6 +81,15 @@
         rows="3"
         placeholder="Add a note about this session..."
       ></textarea>
+      <button type="button" class="ai-suggest-btn" (click)="onSuggestNote()" [disabled]="aiLoading">
+        {{ aiLoading ? 'Suggesting...' : 'Suggest with AI' }}
+      </button>
+      <div *ngIf="aiSuggestion" class="ai-suggestion-feedback">
+        <span>AI: {{ aiSuggestion.suggestedNote }}</span>
+        <span class="ai-motivation">Motivation: {{ aiSuggestion.motivationLevel }}</span>
+        <span *ngIf="aiSuggestion.isFallback" class="ai-fallback">(Fallback)</span>
+      </div>
+      <div *ngIf="aiError" class="ai-error">{{ aiError }}</div>
     </div>
   </form>
 

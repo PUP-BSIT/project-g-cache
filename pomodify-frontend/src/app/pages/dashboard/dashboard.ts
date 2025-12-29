@@ -13,6 +13,9 @@ import {
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { DashboardService, DashboardMetrics, RecentSession } from '../../core/services/dashboard.service';
+import { SmartActionComponent, SmartActionMode } from '../../shared/components/smart-action/smart-action.component';
+import { SmartActionWizardComponent } from './smart-action-wizard';
+import { ActivityService } from '../../core/services/activity.service';
 
 export type Session = {
   id: string;
@@ -39,6 +42,8 @@ type Activity = {
   imports: [
     CommonModule,
     RouterModule,
+    SmartActionComponent,
+    SmartActionWizardComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -49,12 +54,16 @@ export class Dashboard implements OnInit {
   private http = inject(HttpClient);
   private auth = inject(Auth);
   private dashboardService = inject(DashboardService);
+  private activityService = inject(ActivityService);
 
   protected sidebarExpanded = signal(true);
 
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
   protected dashboardError = signal<string | null>(null);
+
+  smartActionWizardOpen = false;
+  smartActionMode: SmartActionMode = null;
 
   protected toggleSidebar(): void {
     this.sidebarExpanded.update((expanded: boolean) => !expanded);
@@ -259,6 +268,52 @@ export class Dashboard implements OnInit {
   protected navigateToSession(session: RecentSession): void {
     // Navigate to: /activities/:activityName/sessions/:sessionId
     this.router.navigate(['/activities', session.activityName, 'sessions', session.id]);
+  }
+
+  onSmartActionSelected(mode: SmartActionMode) {
+    this.smartActionMode = mode;
+    if (mode === 'wizard') {
+      this.smartActionWizardOpen = true;
+    } else if (mode === 'quick') {
+      this.startQuickFocus();
+    } else if (mode === 'custom') {
+      this.openCreateActivityModal();
+    }
+  }
+
+  onSmartActionWizardClosed() {
+    this.smartActionWizardOpen = false;
+    this.smartActionMode = null;
+  }
+
+  onSmartActionWizardConfirmed({ activityId, sessionId }: { activityId: number, sessionId: number }) {
+    this.smartActionWizardOpen = false;
+    this.smartActionMode = null;
+    // Fetch activity details to get the title for navigation
+    this.activityService.getActivity(activityId).subscribe({
+      next: (act) => {
+        if (act && act.activityTitle) {
+          this.router.navigate(['/activities', act.activityTitle, 'sessions', sessionId]);
+        } else {
+          // As a last resort, navigate by ID (may not match route config)
+          this.router.navigate(['/activities', activityId, 'sessions', sessionId]);
+        }
+      },
+      error: () => {
+        this.router.navigate(['/activities', activityId, 'sessions', sessionId]);
+      }
+    });
+  }
+
+  startQuickFocus() {
+    this.http.post<any>(API.AI.QUICK_FOCUS, {}).subscribe({
+      next: (res) => {
+        this.router.navigate(['/activities', res.activityId, 'sessions', res.sessionId]);
+      },
+      error: (err) => {
+        alert('Failed to start Quick Focus.');
+      }
+    });
   }
 }
 

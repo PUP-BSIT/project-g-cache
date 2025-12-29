@@ -25,16 +25,19 @@ public class SessionNoteMapper {
     public static void applyDtoToSession(PomodoroSession session, SessionNoteDto dto) {
         if (dto == null) return;
 
+        // Ensure content is never null (database constraint)
+        String safeContent = dto.content() != null ? dto.content() : "";
+
         SessionNote note = session.getNote();
         if (note == null) {
             note = SessionNote.builder()
                     .session(session)
-                    .content(dto.content())
+                    .content(safeContent)
                     .items(new ArrayList<>())
                     .build();
             session.setNote(note);
         } else {
-            note.setContent(dto.content());
+            note.setContent(safeContent);
         }
 
         // rebuild items list from DTO

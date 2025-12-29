@@ -60,10 +60,10 @@ public class SecurityConfig {
     }
 
     // ============================
-    // DEV PROFILE (no auth)
+    // DEFAULT / DEV PROFILE (no auth) - Used when no profile or "dev" profile is active
     // ============================
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "default"})
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -129,12 +129,19 @@ public class SecurityConfig {
         // ============================
         // JWT Converter
         // ============================
+<<<<<<< HEAD
         private JwtAuthenticationConverter jwtAuthenticationConverter() {
                 JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
                 // Use 'sub' (email) as the principal name for authentication
                 converter.setPrincipalClaimName("sub");
                 // Don't require authorities/scopes - just validate the JWT subject
                 converter.setJwtGrantedAuthoritiesConverter(jwt -> List.of());
+=======
+        @Bean
+        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+                JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+                converter.setPrincipalClaimName("user");
+>>>>>>> db5c0875d41faf602ccea256a6cce0acc27d9f1a
                 return converter;
         }
 

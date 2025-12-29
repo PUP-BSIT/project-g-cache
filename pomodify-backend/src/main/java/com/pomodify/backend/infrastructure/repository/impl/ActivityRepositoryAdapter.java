@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
+
 import java.util.Optional;
 
 @Repository
@@ -23,6 +24,11 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
     }
 
     @Override
+    public Optional<Activity> findById(Long id) {
+        return springRepo.findById(id);
+    }
+
+    @Override
     public Optional<Activity> findActivity(Long id, Long userId) {
         return springRepo.findByIdAndUserId(id, userId);
     }
@@ -31,8 +37,8 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
     public Page<Activity> findAllDynamic(Long userId, Boolean deleted, Long categoryId, Pageable pageable) {
         Specification<Activity> spec =
                 ActivitySpecification.belongsToUser(userId)
-                .and(ActivitySpecification.isDeleted(deleted))
-                .and(ActivitySpecification.inCategory(categoryId));
+                        .and(ActivitySpecification.isDeleted(deleted))
+                        .and(ActivitySpecification.inCategory(categoryId));
 
         return springRepo.findAll(spec, pageable);
     }
@@ -45,5 +51,10 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
                         .and(ActivitySpecification.inCategory(categoryId));
 
         return springRepo.count(spec);
+    }
+
+    @Override
+    public Optional<Activity> findByIdAndUserId(Long id, Long userId) {
+        return springRepo.findByIdAndUserId(id, userId);
     }
 }
