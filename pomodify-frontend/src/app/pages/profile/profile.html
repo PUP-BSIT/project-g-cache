@@ -40,9 +40,14 @@
         </div>
         <div class="badges-grid">
           @for (badge of badges(); track badge.id) {
-            <div class="badge-item" [title]="badge.name + ' - Earned on ' + badge.dateAwarded">
+            <div class="badge-item">
               <img [src]="badge.imageUrl" [alt]="badge.name" class="badge-image" />
               <span class="badge-name">{{ badge.name }}</span>
+              <div class="badge-tooltip">
+                <div class="tooltip-title">{{ badge.name }}</div>
+                <div class="tooltip-milestone">{{ badge.milestoneDays }} days milestone</div>
+                <div class="tooltip-date">Earned on {{ badge.dateAwarded }}</div>
+              </div>
             </div>
           }
         </div>

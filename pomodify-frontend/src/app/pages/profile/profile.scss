@@ -55,7 +55,7 @@
   padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 
   // Custom scrollbar
   &::-webkit-scrollbar {
@@ -824,12 +824,19 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 
   &:hover {
     background: var(--bg);
 
     .badge-image {
       transform: scale(1.1);
+    }
+
+    .badge-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
     }
   }
 }
@@ -854,6 +861,65 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// Custom tooltip
+.badge-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: white;
+  color: #1f2937;
+  padding: 10px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease 0.3s; // 0.3s delay before showing/hiding
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+
+  // Arrow
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: white;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 7px solid transparent;
+    border-top-color: var(--border);
+  }
+}
+
+.tooltip-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1f2937;
+}
+
+.tooltip-milestone {
+  font-size: 11px;
+  color: #5FA9A4;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.tooltip-date {
+  font-size: 10px;
+  color: #6b7280;
 }
 
 // Responsive badges
