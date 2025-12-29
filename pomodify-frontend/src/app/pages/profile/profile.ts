@@ -1,9 +1,10 @@
-import { Component, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, signal, inject, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { API } from '../../core/config/api.config';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
+import { BadgeService, Badge } from '../../core/services/badge.service';
 
 export type ProfileData = {
   name: string;
@@ -22,6 +23,7 @@ export type ProfileData = {
 export class Profile {
   private dialogRef = inject(MatDialogRef<Profile>);
   private fb = inject(FormBuilder);
+  private badgeService = inject(BadgeService);
 
   @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
@@ -44,12 +46,15 @@ export class Profile {
   protected userName = signal('John Doe');
   protected userEmail = signal('johndoe@gmail.com');
   protected backupEmail = signal<string | null>(null);
+  protected badges = signal<Badge[]>([]);
+  protected badgesLoading = signal(false);
   
   private timerInterval?: ReturnType<typeof setInterval>;
   
   ngOnInit(): void {
     // Fetch user data from backend and update UI
     this.fetchUserProfile();
+    this.fetchUserBadges();
 
     // Initialize profile form
     this.profileForm = this.fb.group({
@@ -125,6 +130,23 @@ export class Profile {
         // Optionally clear UI or show error
         this.userName.set('');
         this.userEmail.set('');
+      }
+    });
+  }
+
+  /**
+   * Fetch user badges from backend
+   */
+  private fetchUserBadges(): void {
+    this.badgesLoading.set(true);
+    this.badgeService.getUserBadges().subscribe({
+      next: (badges) => {
+        this.badges.set(badges);
+        this.badgesLoading.set(false);
+      },
+      error: () => {
+        this.badges.set([]);
+        this.badgesLoading.set(false);
       }
     });
   }
