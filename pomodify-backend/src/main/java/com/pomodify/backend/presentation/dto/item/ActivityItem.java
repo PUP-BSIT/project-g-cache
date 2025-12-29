@@ -7,6 +7,8 @@ public record ActivityItem(
         Long activityId,
         Long categoryId,
         String activityTitle,
-        String activityDescription
+        String activityDescription,
+        String createdAt,
+        String updatedAt
 ) {
 }

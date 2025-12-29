@@ -142,6 +142,8 @@ public class ActivityService {
                 .categoryId(activity.getCategory() != null ? activity.getCategory().getId() : null)
                 .activityTitle(activity.getTitle())
                 .activityDescription(activity.getDescription())
+                .createdAt(activity.getCreatedAt())
+                .updatedAt(activity.getUpdatedAt())
                 .build();
     }
 }
