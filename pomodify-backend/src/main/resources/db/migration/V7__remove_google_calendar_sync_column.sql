@@ -1,2 +1,3 @@
--- Remove google_calendar_sync column from user_settings table
-ALTER TABLE user_settings DROP COLUMN google_calendar_sync;
+-- V7: Remove google_calendar_sync column from user_settings
+-- Note: V1 baseline doesn't include this column, so this is a no-op for fresh installs
+ALTER TABLE user_settings DROP COLUMN IF EXISTS google_calendar_sync;
