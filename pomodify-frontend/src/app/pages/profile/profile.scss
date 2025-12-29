@@ -55,7 +55,7 @@
   padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 
   // Custom scrollbar
   &::-webkit-scrollbar {
@@ -772,4 +772,112 @@
 .profile-picture-section {
   background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(123, 196, 191, 0.05) 100%);
   border: 2px solid var(--border);
+}
+
+
+// Badges Section (GitHub-style achievements)
+.badges-section {
+  padding: 16px;
+  background: var(--card);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.badges-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+
+  h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-count {
+    padding: 2px 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--bg);
+
+    .badge-image {
+      transform: scale(1.1);
+    }
+  }
+}
+
+.badge-image {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  transition: transform 0.2s ease;
+}
+
+.badge-name {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+  max-width: 60px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Responsive badges
+@media (max-width: 600px) {
+  .badges-section {
+    padding: 12px;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .badge-item {
+    padding: 6px;
+  }
+
+  .badge-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .badge-name {
+    font-size: 9px;
+    max-width: 55px;
+  }
 }

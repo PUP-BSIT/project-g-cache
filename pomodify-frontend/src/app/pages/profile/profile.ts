@@ -20,7 +20,7 @@ export type ProfileData = {
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss']
 })
-export class Profile {
+export class Profile implements OnInit {
   private dialogRef = inject(MatDialogRef<Profile>);
   private fb = inject(FormBuilder);
   private badgeService = inject(BadgeService);
@@ -141,14 +141,34 @@ export class Profile {
     this.badgesLoading.set(true);
     this.badgeService.getUserBadges().subscribe({
       next: (badges) => {
-        this.badges.set(badges);
+        // Use API badges if available, otherwise use mock data for testing
+        if (badges && badges.length > 0) {
+          this.badges.set(badges);
+        } else {
+          this.badges.set(this.getMockBadges());
+        }
         this.badgesLoading.set(false);
       },
       error: () => {
-        this.badges.set([]);
+        // Fallback to mock badges for testing when API fails
+        this.badges.set(this.getMockBadges());
         this.badgesLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Mock badges for testing UI (remove in production)
+   */
+  private getMockBadges(): Badge[] {
+    return [
+      { id: 1, name: 'The Bookmark', milestoneDays: 3, dateAwarded: '2025-12-20', imageUrl: 'assets/images/badges/the-bookmark.png' },
+      { id: 2, name: 'Deep Work', milestoneDays: 7, dateAwarded: '2025-12-24', imageUrl: 'assets/images/badges/deep-work.png' },
+      { id: 3, name: 'The Protégé', milestoneDays: 14, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-protégé.png' },
+      { id: 4, name: 'The Curator', milestoneDays: 30, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-curator.png' },
+      { id: 5, name: 'The Scholar', milestoneDays: 100, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-scholar.png' },
+      { id: 6, name: 'The Alchemist', milestoneDays: 365, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-alchemist.png' },
+    ];
   }
 
   // Profile image handling

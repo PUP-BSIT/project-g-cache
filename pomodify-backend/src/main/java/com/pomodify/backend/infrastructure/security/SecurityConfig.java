@@ -129,19 +129,12 @@ public class SecurityConfig {
         // ============================
         // JWT Converter
         // ============================
-<<<<<<< HEAD
         private JwtAuthenticationConverter jwtAuthenticationConverter() {
                 JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
                 // Use 'sub' (email) as the principal name for authentication
                 converter.setPrincipalClaimName("sub");
                 // Don't require authorities/scopes - just validate the JWT subject
                 converter.setJwtGrantedAuthoritiesConverter(jwt -> List.of());
-=======
-        @Bean
-        public JwtAuthenticationConverter jwtAuthenticationConverter() {
-                JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-                converter.setPrincipalClaimName("user");
->>>>>>> db5c0875d41faf602ccea256a6cce0acc27d9f1a
                 return converter;
         }
 
