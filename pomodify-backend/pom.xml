@@ -242,7 +242,7 @@
                 </configuration>
             </plugin>
             
-            <!-- Increase Surefire fork shutdown timeout to avoid forcible kill of test JVM -->
+            <!-- Surefire: Run unit tests only (exclude integration tests) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -250,7 +250,40 @@
                 <configuration>
                     <!-- Wait up to 180 seconds for forked JVM to exit cleanly -->
                     <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
+                    <!-- Exclude integration tests from unit test phase -->
+                    <excludes>
+                        <exclude>**/integration/**/*Test.java</exclude>
+                        <exclude>**/integration/**/*Tests.java</exclude>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                        <exclude>**/*IntegrationTests.java</exclude>
+                    </excludes>
                 </configuration>
+            </plugin>
+            
+            <!-- Failsafe: Run integration tests during verify phase -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <!-- Wait up to 180 seconds for forked JVM to exit cleanly -->
+                    <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
+                    <!-- Include only integration tests -->
+                    <includes>
+                        <include>**/integration/**/*Test.java</include>
+                        <include>**/integration/**/*Tests.java</include>
+                        <include>**/*IntegrationTest.java</include>
+                        <include>**/*IntegrationTests.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
