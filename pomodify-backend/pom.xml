@@ -254,9 +254,6 @@
                         <exclude>**/integration/**/*Tests.java</exclude>
                         <exclude>**/*IntegrationTest.java</exclude>
                         <exclude>**/*IntegrationTests.java</exclude>
-                        <!-- Exclude AI tests (require API key, long-running) -->
-                        <exclude>**/GemmaAiAdapterRotationUnitTest.java</exclude>
-                        <exclude>**/GemmaAiAdapterLiveTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -276,11 +273,6 @@
                         <include>**/*IntegrationTest.java</include>
                         <include>**/*IntegrationTests.java</include>
                     </includes>
-                    <!-- Exclude AI tests (require API key, long-running) -->
-                    <excludes>
-                        <exclude>**/AiConcurrencyIntegrationTest.java</exclude>
-                        <exclude>**/AiModelRotationLiveTest.java</exclude>
-                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
