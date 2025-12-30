@@ -38,6 +38,11 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
     }
 
     @Override
+    public List<PomodoroSession> findByActivityIdAndUserId(Long activityId, Long userId) {
+        return springRepo.findByActivityIdAndUserId(activityId, userId);
+    }
+
+    @Override
     public PomodoroSession save(PomodoroSession session) {
         return springRepo.save(session);
     }

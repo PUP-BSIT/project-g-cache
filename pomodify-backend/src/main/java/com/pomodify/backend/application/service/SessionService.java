@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,6 +65,7 @@ public class SessionService {
     }
 
     /* -------------------- GET -------------------- */
+    @Transactional(readOnly = true)
     public SessionResult get(GetSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         session.evaluateAbandonedIfExpired();
@@ -73,15 +73,14 @@ public class SessionService {
         return toResult(session);
     }
 
+    @Transactional
     public List<SessionResult> getAll(GetSessionsCommand command) {
         List<PomodoroSession> sessions;
         Boolean fetchDeleted = command.deleted();
 
         if (command.activityId() != null) {
-            sessions = sessionRepository.findByActivityId(command.activityId());
-            sessions = sessions.stream()
-                    .filter(s -> Objects.equals(s.getActivity().getUser().getId(), command.user()))
-                    .collect(Collectors.toList());
+            // Use the repository method that fetches by activity and user to avoid lazy loading issues
+            sessions = sessionRepository.findByActivityIdAndUserId(command.activityId(), command.user());
         } else {
             if (Boolean.TRUE.equals(fetchDeleted)) {
                 sessions = sessionRepository.findByUserId(command.user());
