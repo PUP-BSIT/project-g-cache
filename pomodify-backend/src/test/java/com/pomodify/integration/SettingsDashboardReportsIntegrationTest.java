@@ -53,6 +53,8 @@ class SettingsDashboardReportsIntegrationTest {
         registry.add("spring.mail.port", () -> "0");
         registry.add("spring.security.oauth2.client.registration.google.client-id", () -> "test-client-id");
         registry.add("spring.security.oauth2.client.registration.google.client-secret", () -> "test-client-secret");
+        // Disable AI for tests (use NoOpAiAdapter)
+        registry.add("ai.enabled", () -> "false");
     }
 
     @Autowired
