@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -30,13 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for AuthController.
  * Tests user registration, login, logout, and token refresh flows.
- * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
-@Disabled("Requires Docker Desktop to be running")
 class AuthControllerIntegrationTest {
 
     @Container
