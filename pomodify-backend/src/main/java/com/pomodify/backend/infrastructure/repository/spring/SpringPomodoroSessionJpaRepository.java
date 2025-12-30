@@ -24,6 +24,9 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
     @Query("select s from PomodoroSession s where s.activity.id=:activityId")
     List<PomodoroSession> findByActivityId(@Param("activityId") Long activityId);
 
+    @Query("select s from PomodoroSession s where s.activity.id=:activityId and s.activity.user.id=:userId")
+    List<PomodoroSession> findByActivityIdAndUserId(@Param("activityId") Long activityId, @Param("userId") Long userId);
+
     @Query("select case when count(s)>0 then true else false end from PomodoroSession s where s.id=:id and s.activity.user.id=:userId")
     boolean existsByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
