@@ -4,7 +4,7 @@ import com.pomodify.backend.application.service.CustomOAuth2UserService;
 import com.pomodify.backend.infrastructure.config.CustomJwtDecoder;
 import com.pomodify.backend.infrastructure.security.OAuth2AuthenticationSuccessHandler;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,13 +23,23 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomJwtDecoder customJwtDecoder;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    public SecurityConfig(
+            @Autowired(required = false) JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            @Autowired(required = false) CustomJwtDecoder customJwtDecoder,
+            @Autowired(required = false) CustomOAuth2UserService customOAuth2UserService,
+            @Autowired(required = false) OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.customJwtDecoder = customJwtDecoder;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
+    }
 
     // ============================
     // TEST PROFILE (with JWT processing for testing)
@@ -41,25 +51,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/auth/register", 
-                                "/auth/login", 
-                                "/auth/refresh", 
-                                "/auth/verify",
-                                "/api/v2/auth/register",
-                                "/api/v2/auth/login",
-                                "/api/v2/auth/refresh",
-                                "/api/v2/auth/verify",
-                                "/actuator/**"
-                        )
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
                         .permitAll()
                         .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // Register JwtCookieToAuthHeaderFilter before BearerTokenAuthenticationFilter for cookie-based auth
-                .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(customJwtDecoder)
@@ -72,10 +70,10 @@ public class SecurityConfig {
     }
 
     // ============================
-    // DEFAULT / DEV / H2 PROFILE (no auth) - Used when no profile or "dev" or "h2" profile is active
+    // DEV PROFILE (no auth)
     // ============================
     @Bean
-    @Profile({"dev", "default", "h2"})
+    @Profile({"dev", "default"})
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)

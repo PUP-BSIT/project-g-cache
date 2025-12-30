@@ -27,19 +27,6 @@ class SettingsControllerWebMvcTest {
     @MockBean
     private SettingsService settingsService;
 
-    // Mock beans to satisfy security wiring
-    @MockBean
-    private com.pomodify.backend.infrastructure.config.CustomJwtDecoder customJwtDecoder;
-
-    @MockBean
-    private com.pomodify.backend.infrastructure.security.JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
-    @MockBean
-    private com.pomodify.backend.application.service.CustomOAuth2UserService customOAuth2UserService;
-
-    @MockBean
-    private com.pomodify.backend.infrastructure.security.OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-
     @Test
     void getSettings_returnsDefaults() throws Exception {
         Long userId = 100L;
