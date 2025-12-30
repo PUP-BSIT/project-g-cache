@@ -170,8 +170,17 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract accessToken from cookies (same approach as other working tests)
-        String accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
+        // Extract accessToken from Set-Cookie header (same approach as ActivityControllerIntegrationTest)
+        String accessToken = null;
+        String cookies = loginResult.getResponse().getHeader("Set-Cookie");
+        if (cookies != null) {
+            for (String cookie : cookies.split(";")) {
+                if (cookie.trim().startsWith("accessToken=")) {
+                    accessToken = cookie.trim().substring("accessToken=".length()).split(";")[0];
+                    break;
+                }
+            }
+        }
         assertThat(accessToken).isNotNull();
 
         // Get current user with token in Authorization header
@@ -207,8 +216,17 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract accessToken from cookies
-        String accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
+        // Extract accessToken from Set-Cookie header
+        String accessToken = null;
+        String cookies = loginResult.getResponse().getHeader("Set-Cookie");
+        if (cookies != null) {
+            for (String cookie : cookies.split(";")) {
+                if (cookie.trim().startsWith("accessToken=")) {
+                    accessToken = cookie.trim().substring("accessToken=".length()).split(";")[0];
+                    break;
+                }
+            }
+        }
         assertThat(accessToken).isNotNull();
 
         // Logout
@@ -237,8 +255,14 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract refreshToken from cookies
-        String refreshToken = loginResult.getResponse().getCookie("refreshToken").getValue();
+        // Extract refreshToken from Set-Cookie headers (check all headers)
+        String refreshToken = null;
+        for (String header : loginResult.getResponse().getHeaders("Set-Cookie")) {
+            if (header.startsWith("refreshToken=")) {
+                refreshToken = header.substring("refreshToken=".length()).split(";")[0];
+                break;
+            }
+        }
         assertThat(refreshToken).isNotNull();
 
         // Test refresh endpoint
