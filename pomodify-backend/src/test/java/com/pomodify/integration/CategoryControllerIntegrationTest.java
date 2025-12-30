@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Testcontainers
 class CategoryControllerIntegrationTest {
 
@@ -45,17 +47,6 @@ class CategoryControllerIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        registry.add("spring.flyway.enabled", () -> "false");
-        registry.add("jwt.secret", () -> "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-        registry.add("jwt.access-token-expiration", () -> "900000");
-        registry.add("jwt.refresh-token-expiration", () -> "2592000000");
-        registry.add("fcm.service-account", () -> "");
-        registry.add("spring.mail.host", () -> "");
-        registry.add("spring.mail.port", () -> "0");
-        registry.add("spring.security.oauth2.client.registration.google.client-id", () -> "test-client-id");
-        registry.add("spring.security.oauth2.client.registration.google.client-secret", () -> "test-client-secret");
-        // Disable AI for tests (use NoOpAiAdapter)
-        registry.add("ai.enabled", () -> "false");
     }
 
     @Autowired
