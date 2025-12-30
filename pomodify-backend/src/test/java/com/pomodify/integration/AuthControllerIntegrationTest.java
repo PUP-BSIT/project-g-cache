@@ -170,39 +170,11 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract token from Set-Cookie header
-        // Multiple cookies are returned as separate Set-Cookie headers
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        
-        String accessToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("accessToken=")) {
-                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
-                // URL decode the token in case it's encoded
-                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
+        // Extract accessToken from cookies (same approach as other working tests)
+        String accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
         assertThat(accessToken).isNotNull();
-        System.out.println("[TEST] Token extracted and decoded: " + accessToken.substring(0, Math.min(50, accessToken.length())) + "...");
 
-        // Get current user with token in Authorization header (Spring Security requires this)
-        MvcResult result = mockMvc.perform(get("/auth/users/me")
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken))
-                .andReturn();
-        
-        System.out.println("[TEST] Response status: " + result.getResponse().getStatus());
-        System.out.println("[TEST] Response headers: ");
-        result.getResponse().getHeaderNames().forEach(h -> 
-            System.out.println("  " + h + ": " + result.getResponse().getHeader(h)));
-        if (result.getResponse().getStatus() != 200) {
-            String errorBody = result.getResponse().getContentAsString();
-            System.out.println("[TEST] Error response: " + errorBody);
-            System.out.println("[TEST] Exception: " + result.getResolvedException());
-        }
-        
+        // Get current user with token in Authorization header
         mockMvc.perform(get("/auth/users/me")
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken))

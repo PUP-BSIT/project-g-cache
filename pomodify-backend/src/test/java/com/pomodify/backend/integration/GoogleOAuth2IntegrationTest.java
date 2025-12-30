@@ -58,12 +58,12 @@ class GoogleOAuth2IntegrationTest {
     void testGoogleOAuth2Login_CreatesOrMergesUser() throws Exception {
         // Simulate a user logging in with Google OAuth2
         String googleEmail = "test-google-" + System.currentTimeMillis() + "@gmail.com";
-        String sub = "google-oauth2-sub-" + System.currentTimeMillis();
         String firstName = "Google";
         String lastName = "User";
 
         // Insert user into H2 database before making the request
         Email googleEmailObj = new Email(googleEmail);
+        User savedUser;
         if (!userRepository.existsByEmail(googleEmailObj)) {
             User user = User.builder()
                     .email(googleEmailObj)
@@ -74,31 +74,26 @@ class GoogleOAuth2IntegrationTest {
                     .isActive(true)
                     .isEmailVerified(true)
                     .build();
-            userRepository.save(user);
+            savedUser = userRepository.save(user);
+        } else {
+            savedUser = userRepository.findByEmail(googleEmailObj).orElseThrow();
         }
 
         String jwtSecret = TEST_JWT_SECRET;
-        System.out.println("[TEST DEBUG] Using JWT secret: " + jwtSecret.substring(0, 20) + "...");
 
         long now = System.currentTimeMillis();
+        // Use the actual saved user ID in the JWT
         String jwt = io.jsonwebtoken.Jwts.builder()
                 .subject(googleEmail)
-                .claim("user", 21L)
+                .claim("user", savedUser.getId())
                 .issuedAt(new java.util.Date(now))
                 .expiration(new java.util.Date(now + 900000))
                 .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(jwtSecret.getBytes()), io.jsonwebtoken.SignatureAlgorithm.HS512)
                 .compact();
-        System.out.println("[TEST DEBUG] Generated JWT: " + jwt);
 
         MockHttpServletRequestBuilder request = get("/auth/users/me")
                 .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + jwt);
-
-        var result = mockMvc.perform(request).andReturn();
-        System.out.println("[TEST DEBUG] Response status: " + result.getResponse().getStatus());
-        if (result.getResponse().getStatus() != 200) {
-            System.out.println("[TEST DEBUG] Error response: " + result.getResponse().getContentAsString());
-        }
 
         mockMvc.perform(request)
                 .andExpect(MockMvcResultMatchers.status().isOk())
