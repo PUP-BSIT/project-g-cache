@@ -41,13 +41,25 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
+                        .requestMatchers(
+                                "/auth/register", 
+                                "/auth/login", 
+                                "/auth/refresh", 
+                                "/auth/verify",
+                                "/api/v2/auth/register",
+                                "/api/v2/auth/login",
+                                "/api/v2/auth/refresh",
+                                "/api/v2/auth/verify",
+                                "/actuator/**"
+                        )
                         .permitAll()
                         .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // Register JwtCookieToAuthHeaderFilter before BearerTokenAuthenticationFilter for cookie-based auth
+                .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(customJwtDecoder)
