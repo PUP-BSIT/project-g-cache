@@ -161,10 +161,10 @@ class AuthControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(registerRequest))
                 .with(csrf()))
                 .andExpect(status().isCreated());
+        
         LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
                 .with(csrf()))
                 .andExpect(status().isOk())
@@ -176,7 +176,6 @@ class AuthControllerIntegrationTest {
 
         // Get current user with token in Authorization header
         mockMvc.perform(get("/auth/users/me")
-                .accept(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
@@ -208,17 +207,8 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract token from Set-Cookie header
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        String accessToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("accessToken=")) {
-                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
-                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
+        // Extract accessToken from cookies
+        String accessToken = loginResult.getResponse().getCookie("accessToken").getValue();
         assertThat(accessToken).isNotNull();
 
         // Logout
@@ -247,19 +237,8 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract tokens from Set-Cookie headers
-        // Multiple cookies are returned as separate Set-Cookie headers
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        
-        String refreshToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("refreshToken=")) {
-                String encodedToken = setCookie.substring("refreshToken=".length()).split(";")[0];
-                refreshToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
+        // Extract refreshToken from cookies
+        String refreshToken = loginResult.getResponse().getCookie("refreshToken").getValue();
         assertThat(refreshToken).isNotNull();
 
         // Test refresh endpoint
