@@ -248,8 +248,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <!-- Wait up to 180 seconds for forked JVM to exit cleanly -->
-                    <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
                     <!-- Exclude integration tests from unit test phase -->
                     <excludes>
                         <exclude>**/integration/**/*Test.java</exclude>
@@ -266,8 +264,8 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <!-- Wait up to 180 seconds for forked JVM to exit cleanly -->
-                    <forkedProcessExitTimeoutInSeconds>180</forkedProcessExitTimeoutInSeconds>
+                    <!-- Increase timeout for Testcontainers cleanup (default 30s is too short) -->
+                    <forkedProcessExitTimeoutInSeconds>300</forkedProcessExitTimeoutInSeconds>
                     <!-- Include only integration tests -->
                     <includes>
                         <include>**/integration/**/*Test.java</include>
