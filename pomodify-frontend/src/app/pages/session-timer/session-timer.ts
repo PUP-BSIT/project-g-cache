@@ -545,6 +545,9 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Store current phase before API call (it may change after)
+    const currentPhase = sess.currentPhase || 'FOCUS';
+
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
         this.session.set(updated);
@@ -556,12 +559,17 @@ export class SessionTimerComponent implements OnDestroy {
           this.triggerSessionCompletionNotification();
         } else {
           // Phase completed but session continues - set to PAUSED so user must manually start next phase
+          console.log(`✅ ${currentPhase} phase completed - triggering phase completion notification`);
+          
           const pausedSession: PomodoroSession = {
             ...updated,
             status: 'PAUSED'
           };
           this.session.set(pausedSession);
           this.timerSyncService.updateFromSession(pausedSession);
+          
+          // Trigger phase completion notification (this was missing!)
+          this.triggerPhaseCompletionNotificationForPhase(currentPhase, updated);
         }
       },
       error: (err) => {
@@ -928,6 +936,34 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Check if auto-start is enabled for the next phase
     await this.checkAndHandleAutoStart(sess, currentPhase);
+  }
+
+  /**
+   * Trigger phase completion notification with explicit phase info
+   * Used when we know the completed phase before the session state changes
+   */
+  private async triggerPhaseCompletionNotificationForPhase(
+    completedPhase: string, 
+    updatedSession: PomodoroSession
+  ): Promise<void> {
+    console.log(`🎯 Phase completion notification triggered for ${completedPhase} phase`);
+    
+    const activityTitle = this.activityTitle();
+    const nextPhase = completedPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    
+    const context = {
+      title: `${completedPhase} Phase Complete!`,
+      body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
+      sessionId: updatedSession.id,
+      activityId: updatedSession.activityId,
+      activityTitle: activityTitle,
+      type: 'phase-complete' as const
+    };
+    
+    await this.notificationService.handlePhaseCompletion(context);
+    
+    // Check if auto-start is enabled for the next phase
+    await this.checkAndHandleAutoStart(updatedSession, completedPhase);
   }
 
   protected async testTimerNotification(): Promise<void> {
