@@ -24,6 +24,9 @@ public class PomodoroSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "session_title", nullable = false)
+    @Builder.Default
+    private String sessionTitle = "Session";
 
     @Column(name = "session_type", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -60,6 +63,9 @@ public class PomodoroSession {
     @Column(name = "current_phase")
     @Enumerated(EnumType.STRING)
     private CyclePhase currentPhase;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
 
     @OneToOne(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private SessionNote note;
@@ -125,6 +131,7 @@ public class PomodoroSession {
 
         PomodoroSession.PomodoroSessionBuilder builder = PomodoroSession.builder()
                 .activity(activity)
+                .sessionTitle("Session")
                 .sessionType(sessionType)
                 .status(SessionStatus.NOT_STARTED)
                 .currentPhase(CyclePhase.FOCUS)
