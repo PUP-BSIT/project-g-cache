@@ -149,5 +149,10 @@ export const API = {
     ENABLE: `${ROOT}/push/enable`,
     DISABLE: `${ROOT}/push/disable`,
   },
+
+  // Badges Resource
+  BADGES: {
+    GET_ALL: `${ROOT}/badges`,
+  },
 };
 

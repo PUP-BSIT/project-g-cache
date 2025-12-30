@@ -14,7 +14,7 @@ public class UserStreakTest {
 
     @Test
     void currentStreak_counts_consecutive_days_until_today() {
-        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).build();
+        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).authProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL).build();
         Set<LocalDate> days = new HashSet<>();
         LocalDate today = LocalDate.now();
         days.add(today.minusDays(2));
@@ -26,7 +26,7 @@ public class UserStreakTest {
 
     @Test
     void currentStreak_stops_on_gap() {
-        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).build();
+        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).authProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL).build();
         Set<LocalDate> days = new HashSet<>();
         LocalDate today = LocalDate.now();
         days.add(today.minusDays(3));
@@ -38,7 +38,7 @@ public class UserStreakTest {
 
     @Test
     void bestStreak_finds_longest_run() {
-        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).build();
+        User user = User.builder().firstName("A").lastName("B").passwordHash("x").email(new com.pomodify.backend.domain.valueobject.Email("a@b.com")).authProvider(com.pomodify.backend.domain.enums.AuthProvider.LOCAL).build();
         Set<LocalDate> days = new HashSet<>();
         LocalDate base = LocalDate.of(2025, 1, 1);
         // streak1: 2 days

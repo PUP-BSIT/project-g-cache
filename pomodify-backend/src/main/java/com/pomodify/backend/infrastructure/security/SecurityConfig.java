@@ -2,6 +2,7 @@ package com.pomodify.backend.infrastructure.security;
 
 import com.pomodify.backend.application.service.CustomOAuth2UserService;
 import com.pomodify.backend.infrastructure.config.CustomJwtDecoder;
+import com.pomodify.backend.infrastructure.security.OAuth2AuthenticationSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,13 +13,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +29,35 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomJwtDecoder customJwtDecoder;
     private final CustomOAuth2UserService customOAuth2UserService;
-        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+    // ============================
+    // TEST PROFILE (with JWT processing for testing)
+    // ============================
+    @Bean
+    @Profile("test")
+    public SecurityFilterChain securityFilterChainTest(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
+                        .permitAll()
+                        .anyRequest().authenticated()  // Require authentication for all other endpoints
+                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(customJwtDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                );
+
+        return http.build();
+    }
 
     // ============================
     // DEFAULT / DEV PROFILE (no auth) - Used when no profile or "dev" profile is active
@@ -100,10 +129,12 @@ public class SecurityConfig {
         // ============================
         // JWT Converter
         // ============================
-        @Bean
-        public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        private JwtAuthenticationConverter jwtAuthenticationConverter() {
                 JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-                converter.setPrincipalClaimName("user");
+                // Use 'sub' (email) as the principal name for authentication
+                converter.setPrincipalClaimName("sub");
+                // Don't require authorities/scopes - just validate the JWT subject
+                converter.setJwtGrantedAuthoritiesConverter(jwt -> List.of());
                 return converter;
         }
 
@@ -129,7 +160,6 @@ public class SecurityConfig {
         config.setExposedHeaders(List.of("Authorization"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-                return source;
-        }
-
+        return source;
+    }
 }

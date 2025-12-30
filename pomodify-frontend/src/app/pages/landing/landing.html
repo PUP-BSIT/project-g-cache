@@ -9,82 +9,24 @@
                 Pomodify helps you optimize your work-rest cycles with customizable Pomodoro timers, intuitive activity tracking, and insightful progress reports. Achieve deep focus, boost productivity, and conquer your daily tasks with ease.
             </p>
             <div class="cta">
-                <a class="btn btn-outline" routerLink="/login">Log In</a>
                 <a class="btn btn-primary" routerLink="/signup">Get Started</a>
             </div>
         </div>
         
         <div class="hero-right">
-            <div class="clock-frame">
-                <img class="student" src="assets/images/student_young_man.png" alt="Student" loading="eager" decoding="async" />
-            </div>
+            <!-- Desktop layout image -->
+            <img class="hero-image desktop-layout" 
+                 src="assets/images/Desktop-layout.png" 
+                 alt="Pomodify Features - Custom Timers, Activities, Session Notes, and Progress Reports" 
+                 loading="eager" 
+                 decoding="async" />
             
-            <!-- Floating feature cards (positioned around the clock) -->
-            <div class="features">
-                <div class="feature feature-1">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="assets/images/custom_timers.png" alt="Custom Timers" loading="lazy" decoding="async" />
-                        </div>
-                        <div class="feature-tail" aria-hidden="true"></div>
-                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
-                        </svg>
-                        <div class="text">
-                            <div class="title">Custom Timers</div>
-                            <div class="desc">Set your own work & break cycles.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="feature feature-2">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="assets/images/acvtivities.png" alt="Activities" loading="lazy" decoding="async" />
-                        </div>
-                        <div class="feature-tail" aria-hidden="true"></div>
-                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
-                        </svg>
-                        <div class="text">
-                            <div class="title">Activities</div>
-                            <div class="desc">Organize sessions by subject or task.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="feature feature-3">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="assets/images/session_notes.png" alt="Session Notes" loading="lazy" decoding="async" />
-                        </div>
-                        <div class="feature-tail" aria-hidden="true"></div>
-                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
-                        </svg>
-                        <div class="text">
-                            <div class="title">Session Notes</div>
-                            <div class="desc">Record accomplishments after each focus round.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="feature feature-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <img src="assets/images/progress_report.png" alt="Progress Reports" loading="lazy" decoding="async" />
-                        </div>
-                        <div class="feature-tail" aria-hidden="true"></div>
-                        <svg class="feature-connector" viewBox="0 0 120 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M0 20 L120 20" fill="none" stroke="#bfe7ee" stroke-width="3" stroke-linecap="round" />
-                        </svg>
-                        <div class="text">
-                            <div class="title">Progress Reports</div>
-                            <div class="desc">Track hours, sessions, and productivity trends.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Mobile layout image -->
+            <img class="hero-image mobile-layout" 
+                 src="assets/images/mobile-layout.png" 
+                 alt="Pomodify Features" 
+                 loading="eager" 
+                 decoding="async" />
         </div>
     </section>
 
@@ -92,44 +34,133 @@
     <h3 class="feature-eyebrow">Your Time. Your Flow</h3>
     <h2 class="feature-title">Features</h2>
 
-    <div class="feature-grid-wrap">
-        <article class="feature-box" id="activities">
-        <h4>Create and manage activities</h4>
-        <p>Users can add, edit, rename, or delete activities such as “Learn Angular” or “Study Math.”</p>
-        <img src="assets/images/create_manage.png" alt="Create and manage activities" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/activities">Learn More</a>
-        </article>
+    <div class="feature-slider-container">
+        <div class="feature-slider-track" [style.transform]="'translateX(' + getSlideOffset() + ')'">
+            <article class="feature-box" id="activities">
+            <h4>Create and manage activities</h4>
+            <p>Users can add, edit, rename, or delete activities such as "Learn Angular" or "Study Math."</p>
+            <img src="assets/images/create_manage.png" alt="Create and manage activities" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="timers">
-        <h4>Start and track Pomodoro sessions</h4>
-        <p>Set custom work and break durations, run consecutive cycles, and associate each session with an activity.</p>
-        <img src="assets/images/start_track.png" alt="Start and track sessions" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/timers">Learn More</a>
-        </article>
+            <article class="feature-box" id="timers">
+            <h4>Start and track Pomodoro sessions</h4>
+            <p>Set custom work and break durations, run consecutive cycles, and associate each session with an activity.</p>
+            <img src="assets/images/start_track.png" alt="Start and track sessions" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="notes">
-        <h4>Add session notes</h4>
-        <p>After each session, jot down what you accomplished. Notes can be viewed, edited, or deleted later.</p>
-        <img src="assets/images/add_session.png" alt="Add session notes" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/notes">Learn More</a>
-        </article>
+            <article class="feature-box" id="notes">
+            <h4>Add session notes</h4>
+            <p>After each session, jot down what you accomplished. Notes can be viewed, edited, or deleted later.</p>
+            <img src="assets/images/add_session.png" alt="Add session notes" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="reports">
-        <h4>View reports and progress</h4>
-        <p>See summaries of sessions, hours per activity, and progress over time.</p>
-        <img src="assets/images/view_reports.png" alt="View reports and progress" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/reports">Learn More</a>
-        </article>
+            <article class="feature-box" id="reports">
+            <h4>View reports and progress</h4>
+            <p>See summaries of sessions, hours per activity, and progress over time.</p>
+            <img src="assets/images/view_reports.png" alt="View reports and progress" loading="lazy" decoding="async" />
+            </article>
 
-        <article class="feature-box" id="accounts">
-        <h4>Manage user accounts securely</h4>
-        <p>Register, log in, update your profile, and manage your account securely.</p>
-        <img src="assets/images/manage_user.png" alt="Manage user accounts" loading="lazy" decoding="async" />
-        <a class="learn-btn" routerLink="/features/account">Learn More</a>
-        </article>
+            <article class="feature-box" id="accounts">
+            <h4>Manage user accounts securely</h4>
+            <p>Register, log in, update your profile, and manage your account securely.</p>
+            <img src="assets/images/manage_user.png" alt="Manage user accounts" loading="lazy" decoding="async" />
+            </article>
+        </div>
+    </div>
+
+    <div class="slider-pagination">
+        <button 
+            *ngFor="let slide of slides; let i = index" 
+            class="pagination-dot" 
+            [class.active]="currentSlide === i"
+            (click)="goToSlide(i)"
+            [attr.aria-label]="'Go to slide ' + (i + 1)">
+        </button>
     </div>
     </section>
 
-    <app-footer></app-footer>
+        <section class="faq-section">
+            <div class="faq-inner">
+                <h3 class="faq-eyebrow">Got questions?</h3>
+                <h2 class="faq-title">Frequently Asked Questions</h2>
+
+                        <div class="faq-grid">
+                            <div class="faq-visual">
+                                <div class="vector-card" [style.height.px]="faqVectorHeight || null">
+                                    <img src="assets/images/faqs-vector-2.png" alt="FAQ illustration" class="faq-vector" loading="lazy" decoding="async" />
+                                </div>
+                            </div>
+
+                            <div class="faq-content">
+                                <div class="faq-list" #faqList [class.animating]="animateFaq">
+                                    <div *ngFor="let f of pagedFaqs" class="faq-item">
+                                        <button class="faq-question" (click)="toggleFaq(f.index)" [attr.aria-expanded]="isOpen(f.index)">
+                                            <span class="q-text">{{ f.item.q }}</span>
+                                            <span class="q-icon" aria-hidden="true">
+                                                <svg class="chev" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </span>
+                                        </button>
+                                        <div class="faq-answer" [class.open]="isOpen(f.index)" [attr.aria-hidden]="!isOpen(f.index)">
+                                            <p>{{ f.item.a }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="faq-pagination" role="navigation" aria-label="FAQ pages">
+                                    <button class="faq-pager arrow" (click)="prevFaqPage()" aria-label="Previous page">‹</button>
+                                    <div class="faq-dots">
+                                        <button *ngFor="let p of faqPages" 
+                                                class="faq-dot" 
+                                                [class.active]="currentFaqPage === p"
+                                                (click)="goToFaqPage(p)"
+                                                [attr.aria-label]="'Go to FAQ page ' + (p + 1)">
+                                        </button>
+                                    </div>
+                                    <button class="faq-pager arrow" (click)="nextFaqPage()" aria-label="Next page">›</button>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </section>
+
+        <!-- Contact trigger + panel -->
+        <button class="contact-trigger" aria-label="Contact us" (click)="toggleContact()">
+            <i class="fa fa-headphones" aria-hidden="true"></i>
+        </button>
+
+        <div class="contact-panel" *ngIf="contactOpen" role="dialog" aria-modal="true" aria-label="Contact us form">
+            <header>
+                <strong>Contact Us</strong>
+                <button class="close-btn" aria-label="Close contact form" (click)="closeContact()"><i class="fa fa-times" aria-hidden="true"></i></button>
+            </header>
+
+            <form (ngSubmit)="submitContact()" #contactForm="ngForm" novalidate>
+                <label for="c-name">Name</label>
+                <input id="c-name" name="name" [(ngModel)]="contactData.name" required />
+
+                <label for="c-email">Email</label>
+                <input id="c-email" name="email" type="email" [(ngModel)]="contactData.email" required />
+
+                <label for="c-reason">Reason for Contact</label>
+                <select id="c-reason" name="reason" [(ngModel)]="contactData.reason" required>
+                  <option value="">Select a reason</option>
+                  <option value="support">Support</option>
+                  <option value="bug">Report a bug</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <label for="c-message">Message</label>
+                <textarea id="c-message" name="message" rows="4" [(ngModel)]="contactData.message" required></textarea>
+
+                <div class="form-error" *ngIf="contactFormError">{{ contactFormError }}</div>
+
+                <button type="submit" class="submit">Send</button>
+            </form>
+        </div>
+
+        <app-footer></app-footer>
 
 </main>

@@ -98,17 +98,20 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          timeout: 180s
+          timeout: 30m
+          command_timeout: 30m
           script: |
             set -e
 
             echo "🚀 Starting deployment to production..."
+            echo "Deployment started at: $(date)"
             
             # Verify required tools
             command -v docker >/dev/null 2>&1 || { echo "❌ Docker is required but not installed."; exit 1; }
             command -v psql >/dev/null 2>&1 || { echo "❌ PostgreSQL client is required but not installed."; exit 1; }
 
-            # Stop old containers
+            # Stop old containers gracefully
+            echo "Stopping old containers..."
             sudo docker stop pomodify-frontend pomodify-backend || true
             sudo docker rm pomodify-frontend pomodify-backend || true
 
@@ -132,11 +135,11 @@ jobs:
               FIREBASE_ENV=""
             fi
 
-            # Start frontend container
-            echo "Starting frontend container..."
-            # Ensure a user-defined network so containers can resolve each other by name
+            # Ensure Docker network exists
+            echo "Setting up Docker network..."
             sudo docker network create pomodify-net || true
 
+            # Start frontend container
             echo "Starting frontend container..."
             sudo docker run -d \
               --name pomodify-frontend \
@@ -145,9 +148,9 @@ jobs:
               -p 8080:80 \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest || { echo "❌ Failed to start frontend container"; exit 1; }
 
-            # Wait for database to be ready before starting backend
+            # Wait for database to be ready
             echo "Waiting for database to be ready..."
-            retries=20
+            retries=30
             until PGPASSWORD='${{ secrets.DB_PASSWORD }}' psql -h '${{ secrets.DB_HOST }}' -U '${{ secrets.DB_USERNAME }}' -d '${{ secrets.DB_NAME }}' -p '${{ secrets.DB_PORT }}' -c '\q' >/dev/null 2>&1; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
@@ -160,13 +163,29 @@ jobs:
             done
             echo "✅ Database is ready"
 
-            # Start backend container
-            echo "Starting backend container..."
+            # Start backend container - Flyway will handle migrations automatically
+            echo "Starting backend container with Flyway migrations..."
             sudo docker run -d \
               --name pomodify-backend \
               --network pomodify-net \
               --restart unless-stopped \
               -p 8081:8081 \
+<<<<<<< HEAD
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DDL_AUTO=update \
+              -e SHOW_SQL=false \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e JWT_ACCESS_EXPIRATION=${{ secrets.JWT_ACCESS_EXPIRATION }} \
+              -e JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }} \
+              -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+              -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+              -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
+              -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
+              -e GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
+=======
               -e SPRING_PROFILES_ACTIVE='prod' \
               -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' \
               -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
@@ -181,23 +200,39 @@ jobs:
               -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
               -e SMTP_USERNAME='${{ secrets.SMTP_USERNAME }}' \
               -e SMTP_PASSWORD='${{ secrets.SMTP_PASSWORD }}' \
+>>>>>>> db5c0875d41faf602ccea256a6cce0acc27d9f1a
               $FIREBASE_ENV \
               $FIREBASE_MOUNT \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
 
-            # Wait for backend to fully start
-            echo "Waiting for backend to initialize (90 seconds)..."
-            sleep 90  # give Spring Boot enough time for JPA initialization and servlet initialization
+            # Wait for backend to initialize and run Flyway migrations
+            echo "Waiting for backend to initialize (Flyway migrations + Spring Boot startup)..."
+            echo "This may take 2-3 minutes for database migrations and application startup..."
+            sleep 30
+            
+            # Show initial backend logs to verify startup
+            echo ""
+            echo "Backend startup logs (first 100 lines):"
+            sudo docker logs pomodify-backend 2>&1 | head -100
+            
+            # Check if container is still running
+            if ! sudo docker ps | grep -q pomodify-backend; then
+              echo "❌ Backend container crashed during startup!"
+              echo ""
+              echo "Full container logs:"
+              sudo docker logs pomodify-backend 2>&1
+              exit 1
+            fi
 
-            # Health check with retries for frontend
+            # Health check for frontend with detailed logging
             echo "Checking frontend health..."
-            retries=10
+            retries=15
             until curl -f -s -m 5 http://localhost:8080 >/dev/null 2>&1; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Frontend health check failed after 10 retries"
-                echo "Frontend container logs:"
-                sudo docker logs pomodify-frontend | tail -30
+                echo "❌ Frontend health check failed after 15 retries"
+                echo "Frontend container logs (last 50 lines):"
+                sudo docker logs pomodify-frontend | tail -50
                 exit 1
               fi
               echo "⏳ Frontend not ready, retrying... ($retries retries left)"
@@ -205,50 +240,143 @@ jobs:
             done
             echo "✅ Frontend is healthy"
 
-            # Health check with retries for backend - with detailed diagnostics
+            # Health check for backend with detailed diagnostics
             echo "Checking backend health at http://localhost:8081/actuator/health..."
-            retries=20
+            retries=60
             until curl -f -s -m 5 http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up" || wget --quiet --timeout=5 -O- http://localhost:8081/actuator/health 2>&1 | grep -q "UP\|status.*up"; do
               retries=$((retries-1))
               if [ $retries -le 0 ]; then
-                echo "❌ Backend health check failed after 20 retries"
-                echo "Backend is still not responding to health checks."
-                echo "Backend container logs (last 80 lines):"
-                sudo docker logs pomodify-backend | tail -80
+                echo "❌ Backend health check failed after 60 retries (5 minutes)"
                 echo ""
-                echo "Checking if backend container is still running..."
+                echo "═══════════════════════════════════════════════════════════"
+                echo "Backend Diagnostics"
+                echo "═══════════════════════════════════════════════════════════"
+                
+                # Check if container is running
+                echo ""
+                echo "Container Status:"
                 if sudo docker ps | grep -q pomodify-backend; then
                   echo "✓ Backend container is running"
-                  echo ""
-                  echo "Attempting direct HTTP request to backend:"
-                  curl -v http://localhost:8081/actuator/health 2>&1 || echo "curl failed"
+                  sudo docker ps | grep pomodify-backend
                 else
                   echo "✗ Backend container is NOT running!"
+                  sudo docker ps -a | grep pomodify-backend
                 fi
+                
+                # Show backend logs
+                echo ""
+                echo "Backend Container Logs (last 200 lines):"
+                echo "─────────────────────────────────────────────────────────────"
+                sudo docker logs pomodify-backend 2>&1 | tail -200
+                
+                # Check for specific error patterns
+                echo ""
+                echo "Error Analysis:"
+                echo "─────────────────────────────────────────────────────────────"
+                sudo docker logs pomodify-backend 2>&1 | grep -i "error\|exception\|failed\|flyway" | tail -30
+                
+                # Try direct connection
+                echo ""
+                echo "Direct HTTP Test:"
+                echo "─────────────────────────────────────────────────────────────"
+                curl -v http://localhost:8081/actuator/health 2>&1 || echo "curl failed"
+                
+                echo ""
+                echo "═══════════════════════════════════════════════════════════"
                 exit 1
               fi
               echo "⏳ Backend not ready, retrying... ($retries retries left)"
-              sleep 3
+              sleep 5
             done
             echo "✅ Backend is healthy and responding"
 
-            # Restart nginx
+            # Verify Flyway migrations were successful
+            echo ""
+            echo "Checking Flyway migration status..."
+            FLYWAY_LOGS=$(sudo docker logs pomodify-backend 2>&1 | grep -i "flyway" | tail -20)
+            if [ -n "$FLYWAY_LOGS" ]; then
+              echo "Flyway Migration Logs:"
+              echo "$FLYWAY_LOGS"
+              
+              if echo "$FLYWAY_LOGS" | grep -q "Successfully"; then
+                echo "✅ Flyway migrations completed successfully"
+              else
+                echo "⚠️  Flyway logs found but no success message detected"
+              fi
+            else
+              echo "⚠️  No Flyway logs found in backend output"
+            fi
+
+            # Verify database schema
+            echo ""
+            echo "Verifying database schema..."
+            SCHEMA_CHECK=$(PGPASSWORD='${{ secrets.DB_PASSWORD }}' psql -h '${{ secrets.DB_HOST }}' -U '${{ secrets.DB_USERNAME }}' -d '${{ secrets.DB_NAME }}' -p '${{ secrets.DB_PORT }}' -t -c "
+              SELECT COUNT(*) FROM information_schema.tables 
+              WHERE table_schema = 'public' 
+              AND table_name IN ('app_user', 'activity', 'pomodoro_session', 'user_settings', 'user_badge');
+            " 2>&1)
+            
+            if [ -n "$SCHEMA_CHECK" ]; then
+              TABLE_COUNT=$(echo "$SCHEMA_CHECK" | tr -d ' ')
+              echo "Found $TABLE_COUNT core tables in database"
+              if [ "$TABLE_COUNT" -ge 5 ]; then
+                echo "✅ Core database tables verified"
+              else
+                echo "⚠️  Expected 5 core tables, found $TABLE_COUNT"
+              fi
+            fi
+
+            # Check auth_provider column
+            AUTH_PROVIDER_CHECK=$(PGPASSWORD='${{ secrets.DB_PASSWORD }}' psql -h '${{ secrets.DB_HOST }}' -U '${{ secrets.DB_USERNAME }}' -d '${{ secrets.DB_NAME }}' -p '${{ secrets.DB_PORT }}' -t -c "
+              SELECT column_name FROM information_schema.columns 
+              WHERE table_name = 'app_user' AND column_name = 'auth_provider';
+            " 2>&1 | tr -d ' ')
+            
+            if [ "$AUTH_PROVIDER_CHECK" = "auth_provider" ]; then
+              echo "✅ auth_provider column exists in app_user table"
+            else
+              echo "⚠️  auth_provider column not found in app_user table"
+            fi
+
+            # Restart nginx to ensure it picks up new containers
+            echo ""
             echo "Restarting nginx..."
             sudo systemctl restart nginx || true
 
-            # Cleanup old images
-            echo "Cleaning up old images..."
+            # Cleanup old Docker images
+            echo ""
+            echo "Cleaning up old Docker images..."
             sudo docker image prune -af --filter "until=24h" || true
 
-            echo "✅ Deployment completed successfully!"
+            # Final verification
             echo ""
-            echo "════════════════════════════════════════"
-            echo "🎉 DEPLOYMENT SUCCESSFUL"
-            echo "════════════════════════════════════════"
-            echo "Frontend: http://localhost:8080"
-            echo "Backend:  http://localhost:8081"
-            echo "Actuator: http://localhost:8081/actuator/health"
-            echo "════════════════════════════════════════"
+            echo "Performing final health checks..."
+            FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+            BACKEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/actuator/health)
+            
+            echo "Frontend HTTP Status: $FRONTEND_STATUS"
+            echo "Backend HTTP Status: $BACKEND_STATUS"
+            
+            if [ "$FRONTEND_STATUS" = "200" ] && [ "$BACKEND_STATUS" = "200" ]; then
+              echo "✅ All services are responding correctly"
+            else
+              echo "⚠️  One or more services returned unexpected status codes"
+            fi
+
+            echo ""
+            echo "════════════════════════════════════════════════════════════"
+            echo "🎉 DEPLOYMENT COMPLETED SUCCESSFULLY"
+            echo "════════════════════════════════════════════════════════════"
+            echo "Deployment finished at: $(date)"
+            echo ""
+            echo "Service URLs:"
+            echo "  Frontend: http://localhost:8080"
+            echo "  Backend:  http://localhost:8081"
+            echo "  Health:   http://localhost:8081/actuator/health"
+            echo ""
+            echo "Container Status:"
+            sudo docker ps | grep pomodify
+            echo "════════════════════════════════════════════════════════════"
 
   verify-deployment:
     name: Deployment Summary
@@ -257,12 +385,33 @@ jobs:
     steps:
       - name: Show deployment summary
         run: |
-          echo "════════════════════════════════════════"
-          echo "🎉DEPLOYMENT SUCCESSFUL!"
-          echo "════════════════════════════════════════"
-          echo "Frontend: http://localhost:8080"
-          echo "Backend:  http://localhost:8081"
-          echo "Commit SHA: ${{ github.sha }}"
-          echo "Deployed by: ${{ github.actor }}"
-          echo "Deployed at: $(date -u)"
-          echo "════════════════════════════════════════"
+          echo "════════════════════════════════════════════════════════════"
+          echo "🎉 DEPLOYMENT SUCCESSFUL!"
+          echo "════════════════════════════════════════════════════════════"
+          echo ""
+          echo "Deployment Details:"
+          echo "  Commit SHA:    ${{ github.sha }}"
+          echo "  Deployed by:   ${{ github.actor }}"
+          echo "  Deployed at:   $(date -u)"
+          echo "  Branch:        ${{ github.ref_name }}"
+          echo ""
+          echo "Images Deployed:"
+          echo "  Frontend: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG_SHA }}"
+          echo "  Backend:  ${{ env.BACKEND_IMAGE }}:${{ env.TAG_SHA }}"
+          echo ""
+          echo "Service Endpoints:"
+          echo "  Frontend: http://your-domain:8080"
+          echo "  Backend:  http://your-domain:8081"
+          echo ""
+          echo "Migrations Applied: V1-V9 (Flyway)"
+          echo "  ✓ V1: Initial schema"
+          echo "  ✓ V2: User push token enabled"
+          echo "  ✓ V3: User settings table"
+          echo "  ✓ V4: User badge table"
+          echo "  ✓ V5: Timer sync fields"
+          echo "  ✓ V6: Remove tick sound"
+          echo "  ✓ V7: Remove calendar sync"
+          echo "  ✓ V8: Add auth provider"
+          echo "  ✓ V9: Pomodoro session table"
+          echo ""
+          echo "════════════════════════════════════════════════════════════"
