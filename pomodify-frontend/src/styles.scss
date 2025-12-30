@@ -852,7 +852,10 @@ html:not(.theme-dark) {
 }
 /* ADDITIONAL TEXT CONTRAST FIXES */
 html:not(.theme-dark) {
-
+/* Override any white text that might be hidden */
+  *:not(.btn-signup) {
+    color: #2C3E50 !important;
+  }
   /* Specific dashboard elements */
   .dashboard .section-title,
   .dashboard .activity-name,
