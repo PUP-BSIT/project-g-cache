@@ -8,6 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.pattern.PathPatternParser;
 
 @Configuration
+@Profile("prod")
 public class ApiPathPrefixConfig implements WebMvcConfigurer {
 
     @Value("${app.api.major-version:1}")
