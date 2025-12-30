@@ -79,7 +79,7 @@ jobs:
 
       - name: Run backend unit tests
         working-directory: ./pomodify-backend
-        run: mvn -B -DskipITs test -Dtest="!GemmaAiAdapterRotationUnitTest,!GemmaAiAdapterLiveTest"
+        run: mvn -B -DskipITs test -Dsurefire.excludes="**/GemmaAiAdapterRotationUnitTest.java,**/GemmaAiAdapterLiveTest.java"
 
   integration-tests:
     name: Integration Tests (Testcontainers + Database)
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run backend integration tests with Testcontainers
         working-directory: ./pomodify-backend
-        run: mvn -B verify -Dit.test="!AiConcurrencyIntegrationTest,!AiModelRotationLiveTest"
+        run: mvn -B verify -Dfailsafe.excludes="**/AiConcurrencyIntegrationTest.java,**/AiModelRotationLiveTest.java"
 
   e2e-tests:
     name: E2E Tests (Playwright)
