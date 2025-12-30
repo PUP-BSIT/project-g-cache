@@ -47,6 +47,8 @@ public class SecurityConfig {
     @Bean
     @Profile("test")
     public SecurityFilterChain securityFilterChainTest(HttpSecurity http) throws Exception {
+        System.out.println("[SecurityConfig] Building TEST security filter chain");
+        System.out.println("[SecurityConfig] customJwtDecoder is: " + (customJwtDecoder != null ? "available" : "NULL"));
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -58,13 +60,18 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                );
+                // Add JwtCookieToAuthHeaderFilter for test profile too
+                .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
+                .oauth2ResourceServer(oauth2 -> {
+                    System.out.println("[SecurityConfig] Configuring oauth2ResourceServer with customJwtDecoder: " + customJwtDecoder);
+                    oauth2.jwt(jwt -> jwt
+                            .decoder(customJwtDecoder)
+                            .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                    );
+                    if (jwtAuthenticationEntryPoint != null) {
+                        oauth2.authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                    }
+                });
 
         return http.build();
     }
