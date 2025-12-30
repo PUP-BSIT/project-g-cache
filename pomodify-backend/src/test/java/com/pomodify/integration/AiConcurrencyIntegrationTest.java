@@ -1,6 +1,7 @@
 package com.pomodify.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pomodify.backend.PomodifyApiApplication;
 import com.pomodify.backend.application.service.JwtService;
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.repository.UserRepository;
@@ -8,16 +9,20 @@ import com.pomodify.backend.domain.valueobject.Email;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +33,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * Concurrency/Load test for AI endpoints.
  * Tests that the system can handle 50 concurrent users making AI requests.
  */
+@SpringBootTest(classes = PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
 
     private static final int CONCURRENT_USERS = 50;
@@ -50,17 +57,20 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
     private ObjectMapper objectMapper;
 
     private List<String> userTokens;
+    private String testRunId;
 
     @BeforeEach
-    void setUp() {
+    void setUp(TestInfo testInfo) {
+        testRunId = UUID.randomUUID().toString().substring(0, 8);
         userTokens = new ArrayList<>();
         
         // Create 50 test users with JWT tokens using builder
+        // Use unique emails per test run to avoid conflicts
         for (int i = 0; i < CONCURRENT_USERS; i++) {
             User user = User.builder()
                     .firstName("User" + i)
                     .lastName("Test")
-                    .email(new Email("concurrency" + i + "@test.com"))
+                    .email(new Email("ai_" + testRunId + "_" + i + "@test.com"))
                     .passwordHash(passwordEncoder.encode("Password123!"))
                     .isEmailVerified(true)
                     .isActive(true)
