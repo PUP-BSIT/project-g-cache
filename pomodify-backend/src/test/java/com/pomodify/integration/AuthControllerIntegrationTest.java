@@ -51,12 +51,18 @@ class AuthControllerIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.flyway.enabled", () -> "false");
         // Provide a test JWT secret so JwtService bean can be created during tests
         // Must be long enough for HMAC-SHA algorithms (HS512 needs >= 512 bits / 64 bytes).
-        registry.add("jwt.secret", () -> "test-secret-that-is-long-enough-for-hs512-please-change-if-needed-0123456789");
+        registry.add("jwt.secret", () -> "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
         // Provide token expiration properties required by JwtService
         registry.add("jwt.access-token-expiration", () -> "900000");
         registry.add("jwt.refresh-token-expiration", () -> "2592000000");
+        registry.add("fcm.service-account", () -> "");
+        registry.add("spring.mail.host", () -> "");
+        registry.add("spring.mail.port", () -> "0");
+        registry.add("spring.security.oauth2.client.registration.google.client-id", () -> "test-client-id");
+        registry.add("spring.security.oauth2.client.registration.google.client-secret", () -> "test-client-secret");
     }
 
     @Autowired

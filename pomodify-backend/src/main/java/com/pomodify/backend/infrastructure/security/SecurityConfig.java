@@ -72,10 +72,10 @@ public class SecurityConfig {
     }
 
     // ============================
-    // DEFAULT / DEV PROFILE (no auth) - Used when no profile or "dev" profile is active
+    // DEFAULT / DEV / H2 PROFILE (no auth) - Used when no profile or "dev" or "h2" profile is active
     // ============================
     @Bean
-    @Profile({"dev", "default"})
+    @Profile({"dev", "default", "h2"})
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
