@@ -48,6 +48,15 @@ class ActivityControllerIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.flyway.enabled", () -> "false");
+        registry.add("jwt.secret", () -> "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+        registry.add("jwt.access-token-expiration", () -> "900000");
+        registry.add("jwt.refresh-token-expiration", () -> "2592000000");
+        registry.add("fcm.service-account", () -> "");
+        registry.add("spring.mail.host", () -> "");
+        registry.add("spring.mail.port", () -> "0");
+        registry.add("spring.security.oauth2.client.registration.google.client-id", () -> "test-client-id");
+        registry.add("spring.security.oauth2.client.registration.google.client-secret", () -> "test-client-secret");
     }
 
     @Autowired
