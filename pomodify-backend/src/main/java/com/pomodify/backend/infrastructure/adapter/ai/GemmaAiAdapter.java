@@ -38,10 +38,15 @@ public class GemmaAiAdapter implements AiGenerationPort {
 
     private synchronized Client getClient() {
         if (client == null) {
-            String apiKey = System.getenv("GOOGLE_API_KEY");
+            // Check system property first (for tests), then environment variable
+            String apiKey = System.getProperty("GOOGLE_API_KEY");
             if (apiKey == null || apiKey.isEmpty()) {
-                throw new RuntimeException("GOOGLE_API_KEY environment variable is not set.");
+                apiKey = System.getenv("GOOGLE_API_KEY");
             }
+            if (apiKey == null || apiKey.isEmpty()) {
+                throw new RuntimeException("GOOGLE_API_KEY not set. Set via -DGOOGLE_API_KEY=key or environment variable.");
+            }
+            // Set as env var for the Google client library
             logger.info("Initializing Google GenAI Client");
             client = new Client();
         }
@@ -173,14 +178,40 @@ public class GemmaAiAdapter implements AiGenerationPort {
         AtomicLong resetTime = modelResetTimes.get(model);
         AtomicInteger requestCount = modelRequestCounts.get(model);
         if (now - resetTime.get() >= 60) {
+            logger.info("[Rotation] Model {} counter reset (was {}/{})", model, requestCount.get(), MAX_RPM_PER_MODEL);
             requestCount.set(0);
             resetTime.set(now);
         }
         if (requestCount.get() < MAX_RPM_PER_MODEL) {
-            requestCount.incrementAndGet();
+            int count = requestCount.incrementAndGet();
+            logger.info("[Rotation] Model {} accepted request ({}/{})", model, count, MAX_RPM_PER_MODEL);
             return true;
         }
+        logger.info("[Rotation] Model {} rate limited ({}/{}), rotating to next model", model, requestCount.get(), MAX_RPM_PER_MODEL);
         return false;
+    }
+
+    /**
+     * Returns current request counts for all models (for testing/debugging).
+     */
+    public Map<String, Integer> getModelStats() {
+        Map<String, Integer> stats = new ConcurrentHashMap<>();
+        for (String model : MODELS) {
+            stats.put(model, modelRequestCounts.get(model).get());
+        }
+        return stats;
+    }
+
+    /**
+     * Resets all model counters (for testing).
+     */
+    public synchronized void resetAllCounters() {
+        long now = Instant.now().getEpochSecond();
+        for (String model : MODELS) {
+            modelRequestCounts.get(model).set(0);
+            modelResetTimes.get(model).set(now);
+        }
+        logger.info("[Rotation] All model counters reset");
     }
 
     private String buildPrompt(String activityTitle, List<String> pastNotes, List<String> currentTodos) {
