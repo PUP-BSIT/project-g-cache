@@ -115,7 +115,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                             Map.of("topic", topic + " " + userIndex)
                     );
 
-                    MvcResult result = mockMvc.perform(post("/api/v2/ai/generate-preview")
+                    MvcResult result = mockMvc.perform(post("/ai/generate-preview")
                                     .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requestBody))
@@ -207,7 +207,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                             "firstSessionNote", "Start with task " + userIndex
                     ));
 
-                    MvcResult result = mockMvc.perform(post("/api/v2/ai/confirm-plan")
+                    MvcResult result = mockMvc.perform(post("/ai/confirm-plan")
                                     .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requestBody))
@@ -285,7 +285,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                     
                     long startTime = System.currentTimeMillis();
 
-                    MvcResult result = mockMvc.perform(post("/api/v2/ai/quick-focus")
+                    MvcResult result = mockMvc.perform(post("/ai/quick-focus")
                                     .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                     .contentType(MediaType.APPLICATION_JSON))
                             .andReturn();
@@ -369,7 +369,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                             String requestBody = objectMapper.writeValueAsString(
                                     Map.of("topic", "Topic " + userIndex)
                             );
-                            result = mockMvc.perform(post("/api/v2/ai/generate-preview")
+                            result = mockMvc.perform(post("/ai/generate-preview")
                                             .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(requestBody))
@@ -384,7 +384,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                                     "breakMinutes", 5,
                                     "firstSessionNote", "Start"
                             ));
-                            result = mockMvc.perform(post("/api/v2/ai/confirm-plan")
+                            result = mockMvc.perform(post("/ai/confirm-plan")
                                             .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(requestBody))
@@ -392,7 +392,7 @@ public class AiConcurrencyIntegrationTest extends IntegrationTestBase {
                         }
                         default -> {
                             // Quick focus
-                            result = mockMvc.perform(post("/api/v2/ai/quick-focus")
+                            result = mockMvc.perform(post("/ai/quick-focus")
                                             .header("Authorization", "Bearer " + userTokens.get(userIndex))
                                             .contentType(MediaType.APPLICATION_JSON))
                                     .andReturn();
