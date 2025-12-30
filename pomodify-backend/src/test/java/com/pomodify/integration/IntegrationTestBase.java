@@ -47,5 +47,7 @@ public abstract class IntegrationTestBase {
         // Google OAuth2 test configuration
         registry.add("spring.security.oauth2.client.registration.google.client-id", () -> "test-client-id");
         registry.add("spring.security.oauth2.client.registration.google.client-secret", () -> "test-client-secret");
+        // Disable AI for tests (use NoOpAiAdapter)
+        registry.add("ai.enabled", () -> "false");
     }
 }
