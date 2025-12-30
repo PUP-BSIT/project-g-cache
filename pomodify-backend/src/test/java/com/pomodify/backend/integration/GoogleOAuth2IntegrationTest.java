@@ -11,7 +11,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -40,9 +39,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "jwt.secret=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "jwt.access-token-expiration=900000",
         "jwt.refresh-token-expiration=2592000000",
-        "fcm.service-account="
+        "fcm.service-account=",
+        "spring.mail.host=",
+        "spring.mail.port=0",
+        "spring.security.oauth2.client.registration.google.client-id=test-client-id",
+        "spring.security.oauth2.client.registration.google.client-secret=test-client-secret"
 })
-@ActiveProfiles("test")
 @Disabled("Requires Google OAuth2 configuration and proper setup")
 class GoogleOAuth2IntegrationTest {
 
