@@ -176,9 +176,9 @@ class AuthControllerIntegrationTest {
         String accessToken = accessTokenCookie.getValue();
         assertThat(accessToken).isNotNull().isNotEmpty();
 
-        // Get current user with token in Authorization header
+        // Get current user - send token as cookie (how the real app works)
         mockMvc.perform(get("/auth/users/me")
-                .header("Authorization", "Bearer " + accessToken))
+                .cookie(accessTokenCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
     }
@@ -212,11 +212,10 @@ class AuthControllerIntegrationTest {
         // Extract accessToken from MockCookie
         jakarta.servlet.http.Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
         assertThat(accessTokenCookie).isNotNull();
-        String accessToken = accessTokenCookie.getValue();
 
-        // Logout
+        // Logout - send token as cookie (how the real app works)
         mockMvc.perform(post("/auth/logout")
-                .header("Authorization", "Bearer " + accessToken)
+                .cookie(accessTokenCookie)
                 .with(csrf()))
                 .andExpect(status().isOk());
     }
