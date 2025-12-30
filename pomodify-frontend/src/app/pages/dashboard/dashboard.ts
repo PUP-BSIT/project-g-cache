@@ -251,8 +251,24 @@ export class Dashboard implements OnInit {
   }
 
   protected getRelativeTime(timestamp: string): string {
+    // Robust ISO string parsing, fallback to UTC if no timezone
+    let date: Date;
+    if (!timestamp) return '';
+    // Try to parse ISO string, fallback to Date constructor
+    try {
+      // If timestamp is already a Date object, use it
+      if (typeof timestamp !== 'string') {
+        date = new Date(timestamp);
+      } else if (timestamp.endsWith('Z') || timestamp.includes('+')) {
+        date = new Date(timestamp);
+      } else {
+        // Assume local time if no timezone info
+        date = new Date(timestamp.replace(' ', 'T'));
+      }
+    } catch {
+      date = new Date(timestamp);
+    }
     const now = new Date();
-    const date = new Date(timestamp);
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
