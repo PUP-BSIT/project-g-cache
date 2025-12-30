@@ -124,7 +124,7 @@ export class Login implements OnInit {
   }
 
   onBack(): void {
-    window.history.back();
+    this.router.navigate(['/']);
   }
 
   onClose(): void {
