@@ -46,6 +46,16 @@ public interface PomodoroSessionRepository {
     List<PomodoroSession> findByActivityId(Long activityId);
 
     /**
+     * Find all PomodoroSessions for a specific activity and user.
+     * This method validates that the activity belongs to the user.
+     *
+     * @param activityId The ID of the activity.
+     * @param userId The ID of the user.
+     * @return List of sessions for the activity owned by the user.
+     */
+    List<PomodoroSession> findByActivityIdAndUserId(Long activityId, Long userId);
+
+    /**
      * Save a PomodoroSession (create or update).
      * Should persist the entire session aggregate, including its state.
      *
