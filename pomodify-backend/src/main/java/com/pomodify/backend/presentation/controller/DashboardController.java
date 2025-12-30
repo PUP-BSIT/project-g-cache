@@ -64,15 +64,12 @@ public class DashboardController {
         }
 
         if (resolvedJwt == null) {
-            // Dev mode fallback - use default user ID
-            Long userId = 1L;
-            DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of(timezone));
-            return dashboardMapper.toResponse(dashboardService.getDashboard(cmd), layout);
+            throw new org.springframework.security.authentication.AuthenticationCredentialsNotFoundException("Missing authentication token");
         }
         Long userId = userHelper.extractUserId(resolvedJwt);
         if (userId == null) {
-            // Dev mode fallback
-            userId = 1L;
+            // Treat missing/invalid JWT claim as unauthorized
+            throw new org.springframework.security.access.AccessDeniedException("Unauthorized: invalid user claim");
         }
         DashboardCommand cmd = DashboardCommand.of(userId, ZoneId.of(timezone));
         return dashboardMapper.toResponse(dashboardService.getDashboard(cmd), layout);

@@ -57,6 +57,12 @@ class DashboardControllerWebMvcTest {
     @MockBean
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+    @MockBean
+    private com.pomodify.backend.application.service.CustomOAuth2UserService customOAuth2UserService;
+
+    @MockBean
+    private com.pomodify.backend.infrastructure.security.OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
     @Test
     void getDashboard_returnsMappedResponse() throws Exception {
         // Arrange
