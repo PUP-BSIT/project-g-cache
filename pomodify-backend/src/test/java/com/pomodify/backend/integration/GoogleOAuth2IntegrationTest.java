@@ -36,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+        "spring.flyway.enabled=false",
         "jwt.secret=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "jwt.access-token-expiration=900000",
         "jwt.refresh-token-expiration=2592000000",
@@ -44,6 +45,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @ActiveProfiles("test")
 @Disabled("Requires Google OAuth2 configuration and proper setup")
 class GoogleOAuth2IntegrationTest {
+
+    private static final String TEST_JWT_SECRET = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
     @Autowired
     private MockMvc mockMvc;
@@ -74,8 +77,8 @@ class GoogleOAuth2IntegrationTest {
             userRepository.save(user);
         }
 
-        String jwtSecret = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-        System.out.println("[TEST DEBUG] Using JWT secret: " + jwtSecret);
+        String jwtSecret = TEST_JWT_SECRET;
+        System.out.println("[TEST DEBUG] Using JWT secret: " + jwtSecret.substring(0, 20) + "...");
 
         long now = System.currentTimeMillis();
         String jwt = io.jsonwebtoken.Jwts.builder()
