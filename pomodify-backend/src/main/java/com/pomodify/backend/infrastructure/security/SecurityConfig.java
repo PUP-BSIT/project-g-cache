@@ -4,7 +4,7 @@ import com.pomodify.backend.application.service.CustomOAuth2UserService;
 import com.pomodify.backend.infrastructure.config.CustomJwtDecoder;
 import com.pomodify.backend.infrastructure.security.OAuth2AuthenticationSuccessHandler;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -23,7 +23,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -31,12 +30,25 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
+    public SecurityConfig(
+            @Autowired(required = false) JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            @Autowired(required = false) CustomJwtDecoder customJwtDecoder,
+            @Autowired(required = false) CustomOAuth2UserService customOAuth2UserService,
+            @Autowired(required = false) OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.customJwtDecoder = customJwtDecoder;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
+    }
+
     // ============================
     // TEST PROFILE (with JWT processing for testing)
     // ============================
     @Bean
     @Profile("test")
     public SecurityFilterChain securityFilterChainTest(HttpSecurity http) throws Exception {
+        System.out.println("[SecurityConfig] Building TEST security filter chain");
+        System.out.println("[SecurityConfig] customJwtDecoder is: " + (customJwtDecoder != null ? "available" : "NULL"));
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -48,13 +60,18 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt
-                                .decoder(customJwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                        )
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                );
+                // Add JwtCookieToAuthHeaderFilter for test profile too
+                .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
+                .oauth2ResourceServer(oauth2 -> {
+                    System.out.println("[SecurityConfig] Configuring oauth2ResourceServer with customJwtDecoder: " + customJwtDecoder);
+                    oauth2.jwt(jwt -> jwt
+                            .decoder(customJwtDecoder)
+                            .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                    );
+                    if (jwtAuthenticationEntryPoint != null) {
+                        oauth2.authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                    }
+                });
 
         return http.build();
     }
@@ -63,7 +80,7 @@ public class SecurityConfig {
     // DEV PROFILE (no auth)
     // ============================
     @Bean
-    @Profile("dev")
+    @Profile({"dev", "default"})
     public SecurityFilterChain securityFilterChainDev(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)

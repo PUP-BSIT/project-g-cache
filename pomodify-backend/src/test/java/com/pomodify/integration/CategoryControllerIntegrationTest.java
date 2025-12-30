@@ -27,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for CategoryController.
  * Tests category CRUD operations and retrieval.
- * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc

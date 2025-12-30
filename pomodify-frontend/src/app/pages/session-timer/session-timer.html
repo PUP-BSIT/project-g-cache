@@ -150,25 +150,39 @@
           <!-- Header: Notes label and TODO button -->
           <div class="panel-header">
             <span class="notes-label">Notes:</span>
-            <button class="btn-add-todo" (click)="addTodo()">
-              <span class="todo-label">TODO</span>
-              <i class="fa-solid fa-plus"></i>
-            </button>
+            <div class="header-actions">
+              <button 
+                class="btn-ai-suggest" 
+                (click)="generateAiTodos()"
+                [disabled]="isGeneratingAi()"
+                title="AI will suggest todos based on your activity and previous sessions">
+                @if (isGeneratingAi()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                } @else {
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                }
+              </button>
+              <button class="btn-add-todo" (click)="addTodo()">
+                <span class="todo-label">TODO</span>
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
           </div>
 
           <!-- Todo List -->
           <div class="todo-list">
             @for (todo of todos(); track todo.id) {
-              <div class="todo-item">
+              <div class="todo-item" [class.todo-done]="todo.done">
                 <input 
                   type="checkbox" 
                   class="todo-checkbox"
-                  [checked]="todo.checked"
+                  [checked]="todo.done"
                   (change)="toggleTodo(todo.id)"
                   [id]="'todo-' + todo.id">
                 <input 
                   type="text"
                   class="todo-text"
+                  [class.todo-checked]="todo.done"
                   [value]="todo.text"
                   (input)="updateTodoText(todo.id, $any($event.target).value)"
                   [id]="'todo-text-' + todo.id"

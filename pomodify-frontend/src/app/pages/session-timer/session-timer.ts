@@ -18,6 +18,7 @@ import { SessionService, PomodoroSession } from '../../core/services/session.ser
 import { ActivityService } from '../../core/services/activity.service';
 import { ActivityColorService } from '../../core/services/activity-color.service';
 import { TimerSyncService } from '../../core/services/timer-sync.service';
+import { AiService } from '../../core/services/ai.service';
 import { MatDialog } from '@angular/material/dialog';
 import { TimePickerModalComponent, TimePickerData } from '../../shared/components/time-picker-modal/time-picker-modal';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog';
@@ -39,6 +40,8 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./session-timer.scss']
 })
 export class SessionTimerComponent implements OnDestroy {
+    private notesDebounceTimeout: any;
+    private todosDebounceTimeout: any;
   // Route params via Component Input Binding
   sessionId = input.required({ transform: numberAttribute });
   activityTitle = input.required<string>();
@@ -48,6 +51,7 @@ export class SessionTimerComponent implements OnDestroy {
   private activityService = inject(ActivityService);
   private activityColorService = inject(ActivityColorService);
   private timerSyncService = inject(TimerSyncService);
+  private aiService = inject(AiService);
   protected router = inject(Router);
   private dialog = inject(MatDialog);
   private auth = inject(Auth);
@@ -58,8 +62,10 @@ export class SessionTimerComponent implements OnDestroy {
   // Auto-start functionality
   protected showAutoStartCountdown = signal(false);
   protected autoStartCountdown = signal(0);
-  protected autoStartCancelled = signal(false);
   private autoStartTimeoutId: number | null = null;
+
+  // AI suggestion state
+  protected isGeneratingAi = signal(false);
 
   // State signals
   session = signal<PomodoroSession | null>(null);
@@ -148,7 +154,7 @@ export class SessionTimerComponent implements OnDestroy {
 
   // Notes and Todos
   notes: string = '';
-  todos = signal<Array<{ id: number; text: string; checked: boolean }>>([]);
+  todos = signal<Array<{ id: number; text: string; done: boolean }>>([]);
   private nextTodoId = 1;
 
   // Key used for persisting todos in localStorage (per activity + session)
@@ -166,7 +172,7 @@ export class SessionTimerComponent implements OnDestroy {
     try {
       const raw = window.localStorage.getItem(key);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as Array<{ id: number; text: string; checked: boolean }>;
+      const parsed = JSON.parse(raw) as Array<{ id: number; text: string; done: boolean }>;
       if (!Array.isArray(parsed)) return;
 
       this.todos.set(parsed);
@@ -261,14 +267,39 @@ export class SessionTimerComponent implements OnDestroy {
           currentPhase: sess.currentPhase,
           focusTime: sess.focusTimeInMinutes,
           breakTime: sess.breakTimeInMinutes,
-          remainingPhaseSeconds: sess.remainingPhaseSeconds
+          remainingPhaseSeconds: sess.remainingPhaseSeconds,
+          note: sess.note
         });
         
         this.session.set(sess);
-        // Initialize notes from session so they persist across navigations
-        this.notes = sess.note ?? '';
-        // Load todos from local storage (per activity + session)
-        this.loadTodosFromStorage(sess);
+        // Defensive: handle note as string or object with 'content' field
+        const noteValue = sess.note;
+        this.notes = typeof noteValue === 'string'
+          ? noteValue
+          : (noteValue && typeof noteValue === 'object' && 'content' in noteValue && typeof (noteValue as any).content === 'string'
+              ? (noteValue as any).content
+              : '');
+        
+        // Load todos from backend note if available, otherwise from local storage
+        if (noteValue && typeof noteValue === 'object' && 'items' in noteValue && Array.isArray((noteValue as any).items)) {
+          const backendTodos = (noteValue as any).items.map((item: any) => ({
+            id: item.id || this.nextTodoId++,
+            text: item.text || '',
+            done: item.done || false
+          }));
+          if (backendTodos.length > 0) {
+            this.todos.set(backendTodos);
+            const maxId = backendTodos.reduce((max: number, t: any) => Math.max(max, t.id), 0);
+            this.nextTodoId = maxId + 1;
+          } else {
+            // Fallback to local storage if no backend todos
+            this.loadTodosFromStorage(sess);
+          }
+        } else {
+          // Fallback to local storage
+          this.loadTodosFromStorage(sess);
+        }
+        
         this.loading.set(false);
         
         // Initialize timer sync service with session data
@@ -508,43 +539,7 @@ export class SessionTimerComponent implements OnDestroy {
     });
   }
 
-  protected cancelSession(): void {
-    const sess = this.session();
-    const actId = this.activityId();
-    if (!sess || !actId) return;
-
-    // Open confirmation dialog
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: 'Cancel Session',
-        message: 'Cancel current progress? You can start this session again later.',
-        confirmText: 'Cancel Session',
-        cancelText: 'Keep Session'
-      } as ConfirmDialogData
-    }) as any;
-
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (!confirmed) return;
-
-      this.timerSyncService.stopTimer();
-
-      this.sessionService.cancelSession(actId, sess.id).subscribe({
-        next: (updated) => {
-          const reset: PomodoroSession = { ...updated, status: 'PENDING', currentPhase: 'FOCUS' };
-          this.session.set(reset);
-          this.timerSyncService.updateFromSession(reset);
-        },
-        error: (err) => {
-          console.log('[Session Timer] Cancel failed, resetting locally:', err);
-          const reset: PomodoroSession = { ...sess, status: 'PENDING', currentPhase: 'FOCUS' };
-          this.session.set(reset);
-          this.timerSyncService.updateFromSession(reset);
-        }
-      });
-    });
-  }
-
+  // ...existing code...
   private handlePhaseComplete(): void {
     const sess = this.session();
     const actId = this.activityId();
@@ -655,22 +650,49 @@ export class SessionTimerComponent implements OnDestroy {
   protected onNotesChanged(event: Event): void {
     const target = event.target as HTMLTextAreaElement;
     this.notes = target.value;
+    this.saveNotesToLocalStorage();
+    if (this.notesDebounceTimeout) clearTimeout(this.notesDebounceTimeout);
+    this.notesDebounceTimeout = setTimeout(() => {
+      this.saveNotesToBackend();
+    }, 5000);
   }
 
   protected saveNotes(): void {
+    // Deprecated: use debounced save instead
+    // This method can be used for manual save if needed
+    this.saveNotesToBackend();
+  }
+
+  private saveNotesToLocalStorage(): void {
+    const sess = this.session();
+    if (!sess) return;
+    window.localStorage.setItem(`pomodify_session_notes_${sess.activityId}_${sess.id}`, this.notes);
+  }
+
+  private saveNotesToBackend(): void {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) return;
-
     this.sessionService.updateNote(actId, sess.id, this.notes).subscribe({
       next: (updated) => {
         console.log('[Session Timer] Note updated:', updated.note);
         const current = this.session();
+        // Defensive: handle note as string or object with 'content' field
+        const noteValue = updated.note;
+        const safeNote = typeof noteValue === 'string'
+          ? noteValue
+          : (noteValue && typeof noteValue === 'object' && 'content' in noteValue && typeof (noteValue as any).content === 'string'
+              ? (noteValue as any).content
+              : this.notes); // Preserve current notes if response format is unexpected
         if (current) {
           // Preserve current timer/phase state but sync note from backend
-          this.session.set({ ...current, note: updated.note });
+          this.session.set({ ...current, note: safeNote });
         } else {
-          this.session.set(updated);
+          this.session.set({ ...updated, note: safeNote });
+        }
+        // Only update this.notes if we got a valid response
+        if (safeNote) {
+          this.notes = safeNote;
         }
       },
       error: (err) => {
@@ -688,15 +710,87 @@ export class SessionTimerComponent implements OnDestroy {
     const newTodo = {
       id: this.nextTodoId++,
       text: '',
-      checked: false
+      done: false
     };
     this.todos.update(list => [...list, newTodo]);
     this.persistTodos();
+    this.onTodosChanged();
+  }
+
+  /**
+   * Generate AI-suggested todos based on activity title and previous session notes
+   */
+  protected generateAiTodos(): void {
+    const actId = this.activityId();
+    if (!actId) {
+      console.warn('[Session Timer] Cannot generate AI todos: no activity ID');
+      return;
+    }
+
+    this.isGeneratingAi.set(true);
+    console.log('🤖 Generating AI suggestions for activity:', this.activityTitle());
+
+    // Get current todo texts to avoid duplicates
+    const currentTodos = this.todos().map(t => t.text).filter(t => t && t.trim() !== '');
+
+    this.aiService.suggestNextStep({ activityId: actId, currentTodos }).subscribe({
+      next: (response) => {
+        console.log('✨ AI suggestion received:', response);
+        
+        // Parse the suggested note into todo items
+        const suggestions = this.parseAiSuggestionToTodos(response.suggestedNote);
+        
+        // Add each suggestion as a new todo
+        suggestions.forEach(text => {
+          const newTodo = {
+            id: this.nextTodoId++,
+            text: text,
+            done: false
+          };
+          this.todos.update(list => [...list, newTodo]);
+        });
+        
+        this.persistTodos();
+        this.onTodosChanged();
+        this.isGeneratingAi.set(false);
+        
+        console.log(`✅ Added ${suggestions.length} AI-suggested todo(s)`);
+      },
+      error: (err) => {
+        console.error('[Session Timer] AI suggestion failed:', err);
+        this.isGeneratingAi.set(false);
+        // No fallback - let the error propagate so user knows AI failed
+      }
+    });
+  }
+
+  /**
+   * Parse AI suggestion text into individual todo items
+   */
+  private parseAiSuggestionToTodos(suggestion: string): string[] {
+    if (!suggestion || suggestion.trim() === '') {
+      return [];
+    }
+
+    // Try to split by common delimiters (newlines, numbered lists, bullet points)
+    const lines = suggestion
+      .split(/[\n\r]+|(?:\d+\.\s)|(?:[-•]\s)/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && line.length < 200);
+
+    // If we got multiple items, return them
+    if (lines.length > 1) {
+      return lines.slice(0, 5); // Limit to 5 items max
+    }
+
+    // Otherwise return the whole suggestion as a single todo
+    return [suggestion.trim()];
   }
 
   protected removeTodo(id: number): void {
     this.todos.update(list => list.filter(todo => todo.id !== id));
     this.persistTodos();
+    this.onTodosChanged();
   }
 
   protected updateTodoText(id: number, text: string): void {
@@ -704,13 +798,50 @@ export class SessionTimerComponent implements OnDestroy {
       list.map(todo => todo.id === id ? { ...todo, text } : todo)
     );
     this.persistTodos();
+    this.onTodosChanged();
   }
 
   protected toggleTodo(id: number): void {
     this.todos.update(list =>
-      list.map(todo => todo.id === id ? { ...todo, checked: !todo.checked } : todo)
+      list.map(todo => todo.id === id ? { ...todo, done: !todo.done } : todo)
     );
     this.persistTodos();
+    this.onTodosChanged();
+  }
+
+  private onTodosChanged(): void {
+    this.saveTodosToLocalStorage();
+    if (this.todosDebounceTimeout) clearTimeout(this.todosDebounceTimeout);
+    this.todosDebounceTimeout = setTimeout(() => {
+      this.saveTodosToBackend();
+    }, 5000);
+  }
+
+  private saveTodosToLocalStorage(): void {
+    const sess = this.session();
+    if (!sess) return;
+    const key = this.getTodosStorageKey(sess);
+    if (!key) return;
+    try {
+      const value = JSON.stringify(this.todos());
+      window.localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn('[Session Timer] Failed to persist todos to storage', e);
+    }
+  }
+
+  private saveTodosToBackend(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+    this.sessionService.saveTodos(actId, sess.id, this.todos()).subscribe({
+      next: () => {
+        console.log('[Session Timer] Todos saved to backend');
+      },
+      error: (err) => {
+        console.error('[Session Timer] Failed to save todos:', err);
+      }
+    });
   }
 
   /* -------------------- PHASE SWITCHING -------------------- */
@@ -867,35 +998,46 @@ export class SessionTimerComponent implements OnDestroy {
     }
   }
 
+  // Flag to track if auto-start was cancelled
+  private autoStartCancelled = false;
+
   private async startAutoStartCountdown(): Promise<void> {
     const settings = this.settingsService.getSettings();
     const countdownSeconds = settings.autoStart.countdownSeconds;
     
     console.log(`⏱️ Starting ${countdownSeconds}-second auto-start countdown`);
     
-    // Reset cancellation flag and show countdown
-    this.autoStartCancelled.set(false);
-    this.showAutoStartCountdown.set(true);
+    // Reset cancelled flag
+    this.autoStartCancelled = false;
     
-    // Countdown loop
+    // Show countdown
+    this.showAutoStartCountdown.set(true);
     for (let i = countdownSeconds; i > 0; i--) {
-      this.autoStartCountdown.set(i);
-      
-      // Wait 1 second
-      await this.delay(1000);
-      
-      // Check if user cancelled
-      if (this.autoStartCancelled()) {
-        console.log('❌ Auto-start cancelled by user');
+      // Check if cancelled
+      if (this.autoStartCancelled) {
+        console.log('🛑 Auto-start countdown cancelled');
         this.hideAutoStartCountdown();
         return;
       }
+      this.autoStartCountdown.set(i);
+      await this.delay(1000);
     }
     
-    // If we reach here, countdown completed - auto-start next phase
-    console.log('✅ Auto-start countdown completed, starting next phase');
+    // Check again before starting (in case cancelled during last second)
+    if (this.autoStartCancelled) {
+      console.log('🛑 Auto-start cancelled before starting');
+      this.hideAutoStartCountdown();
+      return;
+    }
+    
     this.hideAutoStartCountdown();
     await this.autoStartNextPhase();
+  }
+
+  protected cancelAutoStart(): void {
+    console.log('🛑 User cancelled auto-start');
+    this.autoStartCancelled = true;
+    this.hideAutoStartCountdown();
   }
 
   private async autoStartNextPhase(): Promise<void> {
@@ -919,17 +1061,7 @@ export class SessionTimerComponent implements OnDestroy {
     }
   }
 
-  protected cancelAutoStart(): void {
-    console.log('🛑 User cancelled auto-start');
-    this.autoStartCancelled.set(true);
-    this.hideAutoStartCountdown();
-    
-    // Clear any pending timeout
-    if (this.autoStartTimeoutId) {
-      clearTimeout(this.autoStartTimeoutId);
-      this.autoStartTimeoutId = null;
-    }
-  }
+  // ...existing code...
 
   private hideAutoStartCountdown(): void {
     this.showAutoStartCountdown.set(false);

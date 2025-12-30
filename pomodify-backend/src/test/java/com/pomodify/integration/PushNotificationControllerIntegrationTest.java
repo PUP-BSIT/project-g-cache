@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for PushNotificationController.
  * Tests push notification registration, management, and status endpoints.
- * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc

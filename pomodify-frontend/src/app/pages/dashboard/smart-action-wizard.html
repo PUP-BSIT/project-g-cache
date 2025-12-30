@@ -1,0 +1,44 @@
+@if (open) {
+  <div class="wizard-modal">
+    <div class="wizard-content">
+      <button class="close-btn" (click)="close()">×</button>
+      @switch (state()) {
+        @case ('idle') {
+          <form (ngSubmit)="startGeneration()">
+            <h2>What do you want to focus on?</h2>
+            <input type="text" [(ngModel)]="topic" name="topic" maxlength="50" placeholder="e.g. Coding, Writing..." required />
+            <button type="submit" [disabled]="!topic().trim()">Generate Plan ✨</button>
+          </form>
+        }
+        @case ('generating') {
+          <div>
+            <div class="loading-spinner"></div>
+            <p>Architecting plan...</p>
+          </div>
+        }
+        @case ('preview') {
+          <div>
+            <h3>{{ preview()?.activityTitle }}</h3>
+            <p>{{ preview()?.activityDescription }}</p>
+            <div class="plan-details">
+              <span>Focus: {{ preview()?.focusMinutes }}m</span>
+              <span>Break: {{ preview()?.breakMinutes }}m</span>
+            </div>
+            <div class="first-step">{{ preview()?.firstSessionNote }}</div>
+            <div class="wizard-actions">
+              <button (click)="acceptAndStart()">Accept & Start</button>
+              <button (click)="generateAgain()">Generate Again</button>
+              <button (click)="close()">Cancel</button>
+            </div>
+          </div>
+        }
+        @case ('error') {
+          <div>
+            <p class="error">{{ error() }}</p>
+            <button (click)="close()">Close</button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

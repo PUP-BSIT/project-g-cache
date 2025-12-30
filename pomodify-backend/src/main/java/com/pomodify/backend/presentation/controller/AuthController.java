@@ -35,13 +35,13 @@ public class AuthController {
     // Utility method for manual Set-Cookie header (matches OAuth2 handler)
     private void setAuthCookieHeaders(HttpServletResponse response, String accessToken, String refreshToken, boolean isSecure) {
     String accessTokenCookie = String.format(
-        "accessToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        "accessToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         accessToken,
         60 * 60,
         java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60 * 60))
     );
     String refreshTokenCookie = String.format(
-        "refreshToken=%s; Path=/; HttpOnly; SameSite=Strict; Max-Age=%d; Expires=%s; Secure",
+        "refreshToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         refreshToken,
         7 * 24 * 60 * 60,
         java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
@@ -100,11 +100,11 @@ public class AuthController {
         log.info("Logout request received");
         // Clear cookies using manual Set-Cookie headers
         String clearAccessToken = String.format(
-                "accessToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                "accessToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
                 java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
         );
         String clearRefreshToken = String.format(
-                "refreshToken=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=%s; Secure",
+                "refreshToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
                 java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
         );
         response.setHeader("Set-Cookie", clearAccessToken);
@@ -175,12 +175,20 @@ public class AuthController {
         response.setHeader("Location", "/oauth2/authorization/google");
     }
 
-    // ──────────────── Current User ──────────────q──
+    // ──────────────── Current User ────────────────
     @GetMapping("/users/me")
     @Operation(summary = "Get current authenticated user profile (RESTful)")
     public ResponseEntity<UserResponse> getCurrentUserProfile(HttpServletRequest request) {
         String token = null;
-        if (request.getCookies() != null) {
+        
+        // First, check Authorization header (supports both direct header and filter-converted)
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        
+        // Fallback to cookie if no Authorization header
+        if ((token == null || token.isEmpty()) && request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("accessToken".equals(cookie.getName())) {
                     token = cookie.getValue();
@@ -188,6 +196,7 @@ public class AuthController {
                 }
             }
         }
+        
         if (token == null || token.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(null);

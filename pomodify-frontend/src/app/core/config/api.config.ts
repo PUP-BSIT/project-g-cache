@@ -56,6 +56,10 @@ export const API = {
     
     // Activity Sessions (nested resource)
     SESSIONS: {
+            TODOS: {
+              SAVE: (activityId: number, sessionId: number) => `${ROOT}/activities/${activityId}/sessions/${sessionId}/todos`,
+              GET: (activityId: number, sessionId: number) => `${ROOT}/activities/${activityId}/sessions/${sessionId}/todos`
+            },
       GET_ALL: (activityId: number) => `${ROOT}/activities/${activityId}/sessions`,
       CREATE: (activityId: number) => `${ROOT}/activities/${activityId}/sessions`,
       DETAILS: (activityId: number, sessionId: number) => 
@@ -74,8 +78,6 @@ export const API = {
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/resume`,
       STOP: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/stop`,
-      CANCEL: (activityId: number, sessionId: number) => 
-        `${ROOT}/activities/${activityId}/sessions/${sessionId}/cancel`,
       COMPLETE_PHASE: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/complete-phase`,
       FINISH: (activityId: number, sessionId: number) => 
@@ -124,6 +126,16 @@ export const API = {
     DETAILS: (categoryId: number) => `${ROOT}/categories/${categoryId}`,
   },
 
+  // AI Resource
+  AI: {
+    SUGGEST: `${ROOT}/ai/suggest`,
+    GENERATE_PREVIEW: `${ROOT}/ai/generate-preview`,
+    GENERATE_PREVIEW_ASYNC: `${ROOT}/ai/generate-preview-async`,
+    GET_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-preview-async/${requestId}`,
+    CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
+    QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
+  },
+
   // History Resource
   HISTORY: {
     GET_ALL: `${ROOT}/history`,
@@ -136,6 +148,11 @@ export const API = {
     STATUS: `${ROOT}/push/status`,
     ENABLE: `${ROOT}/push/enable`,
     DISABLE: `${ROOT}/push/disable`,
+  },
+
+  // Badges Resource
+  BADGES: {
+    GET_ALL: `${ROOT}/badges`,
   },
 };
 

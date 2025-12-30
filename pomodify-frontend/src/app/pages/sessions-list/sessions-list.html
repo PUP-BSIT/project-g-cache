@@ -68,7 +68,7 @@
           @if (session.note) {
             <div class="session-note">
               <i class="fa-solid fa-note-sticky"></i>
-              {{ session.note }}
+              {{ getNoteText(session.note) }}
             </div>
           }
 

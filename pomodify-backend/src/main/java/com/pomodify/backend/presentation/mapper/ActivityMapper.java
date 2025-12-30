@@ -15,11 +15,13 @@ public class ActivityMapper {
         if (result == null) return ActivityItem.builder().build();
 
         return ActivityItem.builder()
-                .activityId(result.activityId())
-                .categoryId(result.categoryId())
-                .activityTitle(result.activityTitle())
-                .activityDescription(result.activityDescription())
-                .build();
+            .activityId(result.activityId())
+            .categoryId(result.categoryId())
+            .activityTitle(result.activityTitle())
+            .activityDescription(result.activityDescription())
+            .createdAt(result.createdAt() != null ? result.createdAt().toString() : null)
+            .updatedAt(result.updatedAt() != null ? result.updatedAt().toString() : null)
+            .build();
     }
 
     public static Page<ActivityItem> toActivityItemPage(Page<ActivityResult> resultsPage) {

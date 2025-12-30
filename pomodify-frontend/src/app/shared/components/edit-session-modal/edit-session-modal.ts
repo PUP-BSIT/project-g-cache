@@ -4,7 +4,9 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { SessionData } from '../add-session-modal/add-session-modal';
+import { SessionData as BaseSessionData } from '../add-session-modal/add-session-modal';
+import { CommonModule } from '@angular/common';
+import { AiService, AiSuggestionResponse } from '../../../core/services/ai.service';
 
 type SessionFormValue = {
   focusTimeMinutes: number;
@@ -12,10 +14,13 @@ type SessionFormValue = {
   note: string;
 };
 
+type SessionData = BaseSessionData & { activityId?: number };
+
 @Component({
   selector: 'app-edit-session-modal',
   standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -29,8 +34,12 @@ export class EditSessionModal implements OnInit {
   private dialogRef = inject(MatDialogRef<EditSessionModal>);
   private fb = inject(FormBuilder);
   private data = inject(MAT_DIALOG_DATA) as { session: SessionData } | undefined;
- 
+  private aiService = inject(AiService);
+
   sessionForm!: FormGroup;
+  aiLoading = false;
+  aiError: string | null = null;
+  aiSuggestion: AiSuggestionResponse | null = null;
 
   // Common time presets (in minutes)
   focusTimePresets = [25, 30, 45, 60, 90];
@@ -82,6 +91,29 @@ export class EditSessionModal implements OnInit {
       };
       this.dialogRef.close(updatedSession);
     }
+  }
+
+  onSuggestNote(): void {
+    this.aiLoading = true;
+    this.aiError = null;
+    this.aiSuggestion = null;
+    const activityId = this.data?.session?.activityId;
+    if (!activityId) {
+      this.aiLoading = false;
+      this.aiError = 'No activity context for AI suggestion.';
+      return;
+    }
+    this.aiService.suggestNextStep({ activityId }).subscribe({
+      next: (res) => {
+        this.aiSuggestion = res;
+        this.sessionForm.patchValue({ note: res.suggestedNote });
+        this.aiLoading = false;
+      },
+      error: (err) => {
+        this.aiError = 'AI suggestion failed.';
+        this.aiLoading = false;
+      }
+    });
   }
 }
 

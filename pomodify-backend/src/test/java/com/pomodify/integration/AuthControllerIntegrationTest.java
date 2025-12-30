@@ -7,11 +7,11 @@ import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.junit.jupiter.api.Disabled;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -30,13 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for AuthController.
  * Tests user registration, login, logout, and token refresh flows.
- * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
-@ActiveProfiles("test")
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Testcontainers
-@Disabled("Requires Docker Desktop to be running")
 class AuthControllerIntegrationTest {
 
     @Container
@@ -51,12 +48,6 @@ class AuthControllerIntegrationTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        // Provide a test JWT secret so JwtService bean can be created during tests
-        // Must be long enough for HMAC-SHA algorithms (HS512 needs >= 512 bits / 64 bytes).
-        registry.add("jwt.secret", () -> "test-secret-that-is-long-enough-for-hs512-please-change-if-needed-0123456789");
-        // Provide token expiration properties required by JwtService
-        registry.add("jwt.access-token-expiration", () -> "900000");
-        registry.add("jwt.refresh-token-expiration", () -> "2592000000");
     }
 
     @Autowired
@@ -170,51 +161,24 @@ class AuthControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(registerRequest))
                 .with(csrf()))
                 .andExpect(status().isCreated());
+        
         LoginRequest loginRequest = new LoginRequest(email, "Password123!");
         MvcResult loginResult = mockMvc.perform(post("/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
                 .with(csrf()))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract token from Set-Cookie header
-        // Multiple cookies are returned as separate Set-Cookie headers
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        
-        String accessToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("accessToken=")) {
-                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
-                // URL decode the token in case it's encoded
-                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
-        assertThat(accessToken).isNotNull();
-        System.out.println("[TEST] Token extracted and decoded: " + accessToken.substring(0, Math.min(50, accessToken.length())) + "...");
+        // Extract accessToken from MockCookie (cookies are properly set)
+        jakarta.servlet.http.Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
+        assertThat(accessTokenCookie).isNotNull();
+        String accessToken = accessTokenCookie.getValue();
+        assertThat(accessToken).isNotNull().isNotEmpty();
 
-        // Get current user with token in Authorization header (Spring Security requires this)
-        MvcResult result = mockMvc.perform(get("/auth/users/me")
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken))
-                .andReturn();
-        
-        System.out.println("[TEST] Response status: " + result.getResponse().getStatus());
-        System.out.println("[TEST] Response headers: ");
-        result.getResponse().getHeaderNames().forEach(h -> 
-            System.out.println("  " + h + ": " + result.getResponse().getHeader(h)));
-        if (result.getResponse().getStatus() != 200) {
-            String errorBody = result.getResponse().getContentAsString();
-            System.out.println("[TEST] Error response: " + errorBody);
-            System.out.println("[TEST] Exception: " + result.getResolvedException());
-        }
-        
+        // Get current user - send token as cookie (how the real app works)
         mockMvc.perform(get("/auth/users/me")
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken))
+                .cookie(accessTokenCookie))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(email));
     }
@@ -245,22 +209,13 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract token from Set-Cookie header
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        String accessToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("accessToken=")) {
-                String encodedToken = setCookie.substring("accessToken=".length()).split(";")[0];
-                accessToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
-        assertThat(accessToken).isNotNull();
+        // Extract accessToken from MockCookie
+        jakarta.servlet.http.Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
+        assertThat(accessTokenCookie).isNotNull();
 
-        // Logout
+        // Logout - send token as cookie (how the real app works)
         mockMvc.perform(post("/auth/logout")
-                .header("Authorization", "Bearer " + accessToken)
+                .cookie(accessTokenCookie)
                 .with(csrf()))
                 .andExpect(status().isOk());
     }
@@ -284,20 +239,10 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract tokens from Set-Cookie headers
-        // Multiple cookies are returned as separate Set-Cookie headers
-        java.util.List<String> setCookies = loginResult.getResponse().getHeaders("Set-Cookie");
-        assertThat(setCookies).isNotEmpty();
-        
-        String refreshToken = null;
-        for (String setCookie : setCookies) {
-            if (setCookie.startsWith("refreshToken=")) {
-                String encodedToken = setCookie.substring("refreshToken=".length()).split(";")[0];
-                refreshToken = java.net.URLDecoder.decode(encodedToken, java.nio.charset.StandardCharsets.UTF_8);
-                break;
-            }
-        }
-        assertThat(refreshToken).isNotNull();
+        // Extract refreshToken from MockCookie
+        jakarta.servlet.http.Cookie refreshTokenCookie = loginResult.getResponse().getCookie("refreshToken");
+        assertThat(refreshTokenCookie).isNotNull();
+        String refreshToken = refreshTokenCookie.getValue();
 
         // Test refresh endpoint
         RefreshTokensRequest refreshRequest = new RefreshTokensRequest(refreshToken);
