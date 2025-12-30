@@ -170,7 +170,6 @@ jobs:
               --network pomodify-net \
               --restart unless-stopped \
               -p 8081:8081 \
-<<<<<<< HEAD
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
@@ -185,22 +184,6 @@ jobs:
               -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
               -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
               -e GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
-=======
-              -e SPRING_PROFILES_ACTIVE='prod' \
-              -e DB_URL='jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}' \
-              -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
-              -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
-              -e DDL_AUTO='${{ secrets.DDL_AUTO }}' \
-              -e SHOW_SQL='${{ secrets.SHOW_SQL }}' \
-              -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
-              -e JWT_ACCESS_EXPIRATION='${{ secrets.JWT_ACCESS_EXPIRATION }}' \
-              -e JWT_REFRESH_TOKEN_EXPIRATION='${{ secrets.JWT_REFRESH_EXPIRATION }}' \
-              -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
-              -e GOOGLE_CLIENT_SECRET='${{ secrets.GOOGLE_CLIENT_SECRET }}' \
-              -e GOOGLE_API_KEY='${{ secrets.GOOGLE_API_KEY }}' \
-              -e SMTP_USERNAME='${{ secrets.SMTP_USERNAME }}' \
-              -e SMTP_PASSWORD='${{ secrets.SMTP_PASSWORD }}' \
->>>>>>> db5c0875d41faf602ccea256a6cce0acc27d9f1a
               $FIREBASE_ENV \
               $FIREBASE_MOUNT \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }
