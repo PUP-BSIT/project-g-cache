@@ -7,6 +7,7 @@ import com.pomodify.backend.application.result.AiSuggestionResult;
 import com.pomodify.backend.domain.model.ai.AiActivityBlueprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
+@ConditionalOnProperty(name = "ai.enabled", havingValue = "true", matchIfMissing = false)
 public class GemmaAiAdapter implements AiGenerationPort {
     private static final Logger logger = LoggerFactory.getLogger(GemmaAiAdapter.class);
     private static final String[] MODELS = {"gemma-3-27b-it", "gemma-3-12b-it", "gemma-3-4b-it", "gemma-3-1b-it"};
