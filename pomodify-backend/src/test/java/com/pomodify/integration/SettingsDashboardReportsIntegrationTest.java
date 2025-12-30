@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Integration tests for SettingsController, DashboardController, and ReportsController.
  * Tests user settings, dashboard data, and reports endpoints.
- * DISABLED: Requires Docker Desktop to be running. Tests can be enabled once Docker is available.
  */
 @SpringBootTest(classes = com.pomodify.backend.PomodifyApiApplication.class)
 @AutoConfigureMockMvc
