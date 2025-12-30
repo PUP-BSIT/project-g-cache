@@ -170,18 +170,11 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract accessToken from Set-Cookie header (same approach as ActivityControllerIntegrationTest)
-        String accessToken = null;
-        String cookies = loginResult.getResponse().getHeader("Set-Cookie");
-        if (cookies != null) {
-            for (String cookie : cookies.split(";")) {
-                if (cookie.trim().startsWith("accessToken=")) {
-                    accessToken = cookie.trim().substring("accessToken=".length()).split(";")[0];
-                    break;
-                }
-            }
-        }
-        assertThat(accessToken).isNotNull();
+        // Extract accessToken from MockCookie (cookies are properly set)
+        jakarta.servlet.http.Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
+        assertThat(accessTokenCookie).isNotNull();
+        String accessToken = accessTokenCookie.getValue();
+        assertThat(accessToken).isNotNull().isNotEmpty();
 
         // Get current user with token in Authorization header
         mockMvc.perform(get("/auth/users/me")
@@ -216,18 +209,10 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract accessToken from Set-Cookie header
-        String accessToken = null;
-        String cookies = loginResult.getResponse().getHeader("Set-Cookie");
-        if (cookies != null) {
-            for (String cookie : cookies.split(";")) {
-                if (cookie.trim().startsWith("accessToken=")) {
-                    accessToken = cookie.trim().substring("accessToken=".length()).split(";")[0];
-                    break;
-                }
-            }
-        }
-        assertThat(accessToken).isNotNull();
+        // Extract accessToken from MockCookie
+        jakarta.servlet.http.Cookie accessTokenCookie = loginResult.getResponse().getCookie("accessToken");
+        assertThat(accessTokenCookie).isNotNull();
+        String accessToken = accessTokenCookie.getValue();
 
         // Logout
         mockMvc.perform(post("/auth/logout")
@@ -255,15 +240,10 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // Extract refreshToken from Set-Cookie headers (check all headers)
-        String refreshToken = null;
-        for (String header : loginResult.getResponse().getHeaders("Set-Cookie")) {
-            if (header.startsWith("refreshToken=")) {
-                refreshToken = header.substring("refreshToken=".length()).split(";")[0];
-                break;
-            }
-        }
-        assertThat(refreshToken).isNotNull();
+        // Extract refreshToken from MockCookie
+        jakarta.servlet.http.Cookie refreshTokenCookie = loginResult.getResponse().getCookie("refreshToken");
+        assertThat(refreshTokenCookie).isNotNull();
+        String refreshToken = refreshTokenCookie.getValue();
 
         // Test refresh endpoint
         RefreshTokensRequest refreshRequest = new RefreshTokensRequest(refreshToken);
