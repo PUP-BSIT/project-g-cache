@@ -53,6 +53,7 @@
     gap: 16px;
     background: var(--card);
     -webkit-overflow-scrolling: touch;
+    min-height: 0; // Important for flex overflow to work
   }
 
   .profile-picture-section {
@@ -64,6 +65,7 @@
     background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(123, 196, 191, 0.05) 100%);
     border-radius: 12px;
     border: 1px solid var(--border);
+    flex-shrink: 0;
   }
 
   .avatar-container {
@@ -123,6 +125,7 @@
     background: var(--card);
     border-radius: 10px;
     border: 1px solid var(--border);
+    flex-shrink: 0;
   }
 
   .badges-header {
@@ -306,13 +309,20 @@
   }
 
   .btn-add-link {
-    background: none;
-    border: none;
-    color: #4b9fa8;
-    font-size: 13px;
+    background: var(--card);
+    border: 1px solid #5FA9A4;
+    color: #5FA9A4;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    padding: 4px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+      background: #5FA9A4;
+      color: white;
+    }
   }
 
   .helper-text {
