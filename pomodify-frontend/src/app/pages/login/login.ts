@@ -123,6 +123,10 @@ export class Login implements OnInit {
     }
   }
 
+  onBack(): void {
+    this.router.navigate(['/']);
+  }
+
   onClose(): void {
     this.router.navigate(['/']);
   }
