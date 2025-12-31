@@ -1,1 +1,9 @@
+@if (notificationService.successNotification$(); as notification) {
+  <app-success-notification [title]="notification.message" [message]="notification.description || ''" [duration]="notification.duration || 5000"></app-success-notification>
+}
+
+@if (notificationService.errorNotification$(); as notification) {
+  <app-error-notification [title]="notification.message" [message]="notification.description || ''" [duration]="notification.duration || 5000"></app-error-notification>
+}
+
 <router-outlet />

@@ -3,15 +3,13 @@
     <div class="header-brand">
       <img src="assets/images/logo-with-name.png" alt="Pomodify" class="brand-logo-icon" />
     </div>
-    <nav class="header-nav">
-      <a href="#" class="nav-link" (click)="onNavigate('home', $event)">Home</a>
-      <a href="#" class="nav-link" (click)="onNavigate('contact', $event)">Contact Us</a>
-      <a href="#" class="nav-link" (click)="onNavigate('privacy', $event)">Privacy Policy</a>
-    </nav>
   </div>
 
   <div class="signup-panel">
     <div class="signup-card">
+      <button type="button" class="back-btn" (click)="onBack()" aria-label="Go back">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
     <h1 class="page-title">Create an Account</h1>
 
     <div class="tab-toggle">
@@ -20,11 +18,6 @@
     </div>
 
     <form class="signup-form" [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      @if (errorMessage) {
-        <div class="form-error">
-          {{ errorMessage }}
-        </div>
-      }
       <div class="form-group">
         <input
           type="text"
