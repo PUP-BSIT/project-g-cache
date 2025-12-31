@@ -37,7 +37,6 @@ export class Login implements OnInit {
 
   // UI state
   isLoading = false;
-  errorMessage = '';
   passwordVisible = false;
   credentialsRejected = false; // Track if last login attempt failed
 
@@ -57,11 +56,10 @@ export class Login implements OnInit {
   onSubmit(): void {
     // Clear previous rejection flag on new submission attempt
     this.credentialsRejected = false;
-    this.errorMessage = '';
 
     // Validate form structure (required fields, format, etc)
     if (this.loginForm.invalid) {
-      this.errorMessage = 'Please fill in a valid email and password.';
+      this.notificationService.showError('Validation Error', 'Please fill in a valid email and password.');
       this.loginForm.markAllAsTouched();
       return;
     }
@@ -82,7 +80,7 @@ export class Login implements OnInit {
       .catch((error: Error & { message?: string }) => {
         console.error('Login error:', error);
         this.credentialsRejected = true;
-        this.errorMessage = error?.message || 'Invalid email or password';
+        this.notificationService.showError('Login Failed', error?.message || 'Invalid email or password');
       })
       .finally(() => {
         this.isLoading = false;

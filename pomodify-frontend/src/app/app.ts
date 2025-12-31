@@ -3,11 +3,12 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ensurePublicPageLightTheme } from './shared/theme';
 import { SuccessNotificationComponent } from './shared/components/success-notification/success-notification.component';
+import { ErrorNotificationComponent } from './shared/components/error-notification/error-notification.component';
 import { SuccessNotificationService } from './core/services/success-notification.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SuccessNotificationComponent],
+  imports: [RouterOutlet, SuccessNotificationComponent, ErrorNotificationComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

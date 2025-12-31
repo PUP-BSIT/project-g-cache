@@ -55,7 +55,6 @@ export class Signup implements OnInit {
 
   // UI state
   isLoading = false;
-  errorMessage = '';
   passwordVisible = false;
   confirmPasswordVisible = false;
 
@@ -82,7 +81,7 @@ export class Signup implements OnInit {
 
   onSubmit(): void {
     if (this.signupForm.invalid) {
-      this.errorMessage = 'Please fill in all fields with valid information.';
+      this.notificationService.showError('Validation Error', 'Please fill in all fields with valid information.');
       this.signupForm.markAllAsTouched();
       return;
     }
@@ -96,13 +95,12 @@ export class Signup implements OnInit {
     };
 
     if (password !== confirmPassword) {
-      this.errorMessage = 'Passwords do not match';
+      this.notificationService.showError('Password Mismatch', 'Passwords do not match');
       this.signupForm.get('confirmPassword')?.setErrors({ ...(this.signupForm.get('confirmPassword')?.errors || {}), mismatch: true });
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
 
     console.log('Signup submit', { firstName, lastName, email });
 
@@ -115,7 +113,7 @@ export class Signup implements OnInit {
       })
       .catch((error: Error & { message?: string }) => {
         console.error('Signup error:', error);
-        this.errorMessage = error?.message || 'Failed to create account. Please try again.';
+        this.notificationService.showError('Signup Failed', error?.message || 'Failed to create account. Please try again.');
       })
       .finally(() => {
         this.isLoading = false;
