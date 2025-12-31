@@ -1465,6 +1465,17 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
 @media (max-width: 576px) {
   .mat-mdc-dialog-panel.profile-dialog {
     max-width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important; /* Dynamic viewport height for mobile browsers */
+  }
+
+  /* Ensure the dialog surface respects the max-height */
+  .profile-dialog .mat-mdc-dialog-surface {
+    max-height: calc(100vh - 32px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 }
 
