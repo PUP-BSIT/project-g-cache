@@ -70,7 +70,14 @@
           }
         </div>
 
-        <button type="submit" class="btn-login" [disabled]="isLoading || loginForm.invalid">Log In</button>
+        <button type="submit" class="btn-login" [disabled]="isLoading || loginForm.invalid">
+          @if (isLoading) {
+            <span class="spinner"></span>
+            Logging in...
+          } @else {
+            Log In
+          }
+        </button>
 
         <button type="button" class="btn-google" (click)="onGoogleSignIn()" [disabled]="isLoading">
           <i class="fa-brands fa-google"></i>
