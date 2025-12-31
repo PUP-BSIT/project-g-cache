@@ -28,33 +28,32 @@ import { IconMapper } from '../../core/services/icon-mapper';
 export class ActivitiesPage implements OnInit {
     // Improved human-friendly relative time
     protected getRelativeTime(timestamp: string): string {
-      let date: Date;
       if (!timestamp) return '';
+      
+      let date: Date;
       try {
-        if (typeof timestamp !== 'string') {
-          date = new Date(timestamp);
-        } else if (timestamp.endsWith('Z') || timestamp.includes('+')) {
-          date = new Date(timestamp);
+        // If timestamp doesn't have timezone info, assume it's UTC and append 'Z'
+        if (typeof timestamp === 'string' && !timestamp.endsWith('Z') && !timestamp.includes('+')) {
+          date = new Date(timestamp.replace(' ', 'T') + 'Z');
         } else {
-          date = new Date(timestamp.replace(' ', 'T'));
+          date = new Date(timestamp);
         }
       } catch {
         date = new Date(timestamp);
       }
+      
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMs / 3600000);
       const diffDays = Math.floor(diffMs / 86400000);
       const diffWeeks = Math.floor(diffDays / 7);
-      const diffMonths = Math.floor(diffDays / 30.44); // average month
+      const diffMonths = Math.floor(diffDays / 30.44);
       const diffYears = Math.floor(diffDays / 365.25);
 
-      if (diffMins < 0) return '';
-      if (diffMins < 10) return 'Just now';
-      if (diffMins < 15) return '15m ago';
-      if (diffMins < 30) return '30m ago';
-      if (diffMins < 60) return '1h ago';
+      if (diffMins < 0) return 'Just now';
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
       if (diffHours < 24) return `${diffHours}h ago`;
       if (diffDays < 7) return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
       if (diffWeeks < 4) return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;

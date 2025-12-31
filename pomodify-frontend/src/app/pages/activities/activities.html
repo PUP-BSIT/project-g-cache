@@ -195,7 +195,7 @@
                   <h4 class="activity-name">{{ activity.activityTitle }}</h4>
                 </div>
 
-                <p class="last-accessed">Last: {{ getRelativeTime(activity.createdAt || '') }}</p>
+                <p class="last-accessed">Last: {{ getRelativeTime(activity.updatedAt || activity.createdAt || '') }}</p>
 
                 <p class="completion-text">{{ getActivityCompletionPercentage(activity) }}% Completed</p>
                 <div class="progress-bar">
