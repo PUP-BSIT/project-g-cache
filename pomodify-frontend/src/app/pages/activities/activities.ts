@@ -28,32 +28,33 @@ import { IconMapper } from '../../core/services/icon-mapper';
 export class ActivitiesPage implements OnInit {
     // Improved human-friendly relative time
     protected getRelativeTime(timestamp: string): string {
-      if (!timestamp) return '';
-      
       let date: Date;
+      if (!timestamp) return '';
       try {
-        // If timestamp doesn't have timezone info, assume it's UTC and append 'Z'
-        if (typeof timestamp === 'string' && !timestamp.endsWith('Z') && !timestamp.includes('+')) {
-          date = new Date(timestamp.replace(' ', 'T') + 'Z');
-        } else {
+        if (typeof timestamp !== 'string') {
           date = new Date(timestamp);
+        } else if (timestamp.endsWith('Z') || timestamp.includes('+')) {
+          date = new Date(timestamp);
+        } else {
+          date = new Date(timestamp.replace(' ', 'T'));
         }
       } catch {
         date = new Date(timestamp);
       }
-      
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       const diffHours = Math.floor(diffMs / 3600000);
       const diffDays = Math.floor(diffMs / 86400000);
       const diffWeeks = Math.floor(diffDays / 7);
-      const diffMonths = Math.floor(diffDays / 30.44);
+      const diffMonths = Math.floor(diffDays / 30.44); // average month
       const diffYears = Math.floor(diffDays / 365.25);
 
-      if (diffMins < 0) return 'Just now';
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffMins < 0) return '';
+      if (diffMins < 10) return 'Just now';
+      if (diffMins < 15) return '15m ago';
+      if (diffMins < 30) return '30m ago';
+      if (diffMins < 60) return '1h ago';
       if (diffHours < 24) return `${diffHours}h ago`;
       if (diffDays < 7) return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
       if (diffWeeks < 4) return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
@@ -71,7 +72,6 @@ export class ActivitiesPage implements OnInit {
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
-  protected isLoggingOut = signal(false);
 
   // Activities data
   protected activities = signal<ActivityData[]>([]);
@@ -242,82 +242,38 @@ export class ActivitiesPage implements OnInit {
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
           console.log('[ActivitiesPage] Creating activity:', result.name);
-          
-          // If category is provided, create it first then create activity
-          if (result.category && result.category.trim()) {
-            this.createCategoryThenActivity(result);
-          } else {
-            // No category, create activity directly
-            this.createActivityWithCategory(result, undefined);
-          }
+          const request: any = {
+            title: result.name,
+            description: result.category || '',
+          };
+          console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
+
+          this.activityService.createActivity(request).subscribe({
+            next: (created) => {
+              console.log('[ActivitiesPage] Activity created successfully');
+              // Save color tag to localStorage
+              this.activityColorService.setColorTag(created.activityId, result.colorTag);
+              // Reload activities to get fresh data from backend
+              this.loadActivities();
+            },
+            error: (err) => {
+              console.error('[ActivitiesPage] Error creating activity:', err);
+              console.error('[ActivitiesPage] Error status:', err.status);
+              console.error('[ActivitiesPage] Error body:', err.error);
+              
+              let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
+              
+              // Check if it's a backend cache configuration error
+              if (errorMsg.includes('Cannot find cache')) {
+                errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
+                console.error('[ActivitiesPage] Backend cache error detected.');
+              }
+              
+              alert(`Error: ${errorMsg}`);
+            }
+          });
         }
       });
-  }
-
-  private createCategoryThenActivity(result: CreateActivityModalData): void {
-    const categoryName = result.category!.trim();
-    
-    // Check if category already exists
-    const existingCategory = this.allCategories().find(
-      c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
-    );
-    
-    if (existingCategory) {
-      // Use existing category
-      console.log('[ActivitiesPage] Using existing category:', existingCategory);
-      this.createActivityWithCategory(result, existingCategory.categoryId);
-    } else {
-      // Create new category first
-      console.log('[ActivitiesPage] Creating new category:', categoryName);
-      this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
-        next: (response) => {
-          console.log('[ActivitiesPage] Category created:', response);
-          const categoryId = response?.category?.categoryId || response?.categoryId;
-          this.createActivityWithCategory(result, categoryId);
-          // Reload categories
-          this.loadCategories();
-        },
-        error: (err) => {
-          console.error('[ActivitiesPage] Error creating category:', err);
-          // Still create activity without category
-          this.createActivityWithCategory(result, undefined);
-        }
-      });
-    }
-  }
-
-  private createActivityWithCategory(result: CreateActivityModalData, categoryId?: number): void {
-    const request: any = {
-      title: result.name,
-      description: '',
-      categoryId: categoryId
-    };
-    console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
-
-    this.activityService.createActivity(request).subscribe({
-      next: (created) => {
-        console.log('[ActivitiesPage] Activity created successfully');
-        // Save color tag to localStorage
-        this.activityColorService.setColorTag(created.activityId, result.colorTag);
-        // Reload activities to get fresh data from backend
-        this.loadActivities();
-      },
-      error: (err) => {
-        console.error('[ActivitiesPage] Error creating activity:', err);
-        console.error('[ActivitiesPage] Error status:', err.status);
-        console.error('[ActivitiesPage] Error body:', err.error);
-        
-        let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
-        
-        // Check if it's a backend cache configuration error
-        if (errorMsg.includes('Cannot find cache')) {
-          errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
-          console.error('[ActivitiesPage] Backend cache error detected.');
-        }
-        
-        alert(`Error: ${errorMsg}`);
-      }
-    });
   }
 
   // Open edit activity modal
@@ -497,16 +453,12 @@ export class ActivitiesPage implements OnInit {
 
   protected onLogout(): void {
     console.log('[ActivitiesPage] Logout initiated');
-    this.isLoggingOut.set(true);
     this.auth.logout()
       .then(() => {
         console.log('[ActivitiesPage] Logout completed');
       })
       .catch((error) => {
         console.error('[ActivitiesPage] Logout error:', error);
-      })
-      .finally(() => {
-        this.isLoggingOut.set(false);
       });
   }
 

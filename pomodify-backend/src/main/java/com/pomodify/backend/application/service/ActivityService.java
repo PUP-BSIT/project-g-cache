@@ -140,7 +140,6 @@ public class ActivityService {
         return ActivityResult.builder()
                 .activityId(activity.getId())
                 .categoryId(activity.getCategory() != null ? activity.getCategory().getId() : null)
-                .categoryName(activity.getCategory() != null ? activity.getCategory().getName() : null)
                 .activityTitle(activity.getTitle())
                 .activityDescription(activity.getDescription())
                 .createdAt(activity.getCreatedAt())
