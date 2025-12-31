@@ -242,38 +242,82 @@ export class ActivitiesPage implements OnInit {
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
           console.log('[ActivitiesPage] Creating activity:', result.name);
-          const request: any = {
-            title: result.name,
-            description: result.category || '',
-          };
-          console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
-
-          this.activityService.createActivity(request).subscribe({
-            next: (created) => {
-              console.log('[ActivitiesPage] Activity created successfully');
-              // Save color tag to localStorage
-              this.activityColorService.setColorTag(created.activityId, result.colorTag);
-              // Reload activities to get fresh data from backend
-              this.loadActivities();
-            },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error creating activity:', err);
-              console.error('[ActivitiesPage] Error status:', err.status);
-              console.error('[ActivitiesPage] Error body:', err.error);
-              
-              let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
-              
-              // Check if it's a backend cache configuration error
-              if (errorMsg.includes('Cannot find cache')) {
-                errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
-                console.error('[ActivitiesPage] Backend cache error detected.');
-              }
-              
-              alert(`Error: ${errorMsg}`);
-            }
-          });
+          
+          // If category is provided, create it first then create activity
+          if (result.category && result.category.trim()) {
+            this.createCategoryThenActivity(result);
+          } else {
+            // No category, create activity directly
+            this.createActivityWithCategory(result, undefined);
+          }
         }
       });
+  }
+
+  private createCategoryThenActivity(result: CreateActivityModalData): void {
+    const categoryName = result.category!.trim();
+    
+    // Check if category already exists
+    const existingCategory = this.allCategories().find(
+      c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
+    );
+    
+    if (existingCategory) {
+      // Use existing category
+      console.log('[ActivitiesPage] Using existing category:', existingCategory);
+      this.createActivityWithCategory(result, existingCategory.categoryId);
+    } else {
+      // Create new category first
+      console.log('[ActivitiesPage] Creating new category:', categoryName);
+      this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
+        next: (response) => {
+          console.log('[ActivitiesPage] Category created:', response);
+          const categoryId = response?.category?.categoryId || response?.categoryId;
+          this.createActivityWithCategory(result, categoryId);
+          // Reload categories
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('[ActivitiesPage] Error creating category:', err);
+          // Still create activity without category
+          this.createActivityWithCategory(result, undefined);
+        }
+      });
+    }
+  }
+
+  private createActivityWithCategory(result: CreateActivityModalData, categoryId?: number): void {
+    const request: any = {
+      title: result.name,
+      description: '',
+      categoryId: categoryId
+    };
+    console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
+
+    this.activityService.createActivity(request).subscribe({
+      next: (created) => {
+        console.log('[ActivitiesPage] Activity created successfully');
+        // Save color tag to localStorage
+        this.activityColorService.setColorTag(created.activityId, result.colorTag);
+        // Reload activities to get fresh data from backend
+        this.loadActivities();
+      },
+      error: (err) => {
+        console.error('[ActivitiesPage] Error creating activity:', err);
+        console.error('[ActivitiesPage] Error status:', err.status);
+        console.error('[ActivitiesPage] Error body:', err.error);
+        
+        let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
+        
+        // Check if it's a backend cache configuration error
+        if (errorMsg.includes('Cannot find cache')) {
+          errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
+          console.error('[ActivitiesPage] Backend cache error detected.');
+        }
+        
+        alert(`Error: ${errorMsg}`);
+      }
+    });
   }
 
   // Open edit activity modal

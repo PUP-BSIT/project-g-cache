@@ -17,6 +17,7 @@ public class ActivityMapper {
         return ActivityItem.builder()
             .activityId(result.activityId())
             .categoryId(result.categoryId())
+            .categoryName(result.categoryName())
             .activityTitle(result.activityTitle())
             .activityDescription(result.activityDescription())
             .createdAt(result.createdAt() != null ? result.createdAt().toString() : null)
