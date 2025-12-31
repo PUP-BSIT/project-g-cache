@@ -14,8 +14,8 @@ import { SuccessNotificationService } from './core/services/success-notification
 })
 export class App implements OnInit {
   protected readonly title = signal('pomodify-frontend');
-  private router = inject(Router);
-  protected notificationService = inject(SuccessNotificationService);
+  private readonly router = inject(Router);
+  protected readonly notificationService = inject(SuccessNotificationService);
 
   ngOnInit(): void {
     // Listen for navigation events to ensure public pages are always light theme

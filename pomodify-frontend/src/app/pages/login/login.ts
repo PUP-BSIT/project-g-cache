@@ -7,6 +7,16 @@ import { API, OAUTH2_GOOGLE_URL } from '../../core/config/api.config';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
+type LoginResponse = {
+  success: boolean;
+  needsVerification?: boolean;
+};
+
+type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
 @Component({
   standalone: true,
   selector: 'app-login',
@@ -15,33 +25,21 @@ import { SuccessNotificationService } from '../../core/services/success-notifica
   styleUrls: ['./login.scss'],
 })
 export class Login implements OnInit {
-  private router = inject(Router);
-  private auth = inject(Auth);
-  private fb = inject(FormBuilder);
-  private notificationService = inject(SuccessNotificationService);
+  private readonly router = inject(Router);
+  private readonly auth = inject(Auth);
+  private readonly fb = inject(FormBuilder);
+  private readonly notificationService = inject(SuccessNotificationService);
 
-  loginForm: FormGroup = this.fb.group({
-    email: [
-      '',
-      {
-        validators: [Validators.required, Validators.email],
-      },
-    ],
-    password: [
-      '',
-      {
-        validators: [Validators.required, Validators.minLength(6)],
-      },
-    ],
+  readonly loginForm: FormGroup = this.fb.group({
+    email: ['', { validators: [Validators.required, Validators.email] }],
+    password: ['', { validators: [Validators.required, Validators.minLength(6)] }],
   });
 
-  // UI state
   isLoading = false;
   passwordVisible = false;
-  credentialsRejected = false; // Track if last login attempt failed
+  credentialsRejected = false;
 
   ngOnInit(): void {
-    // Force light theme on login page
     ensurePublicPageLightTheme();
   }
 
@@ -54,24 +52,19 @@ export class Login implements OnInit {
   }
 
   onSubmit(): void {
-    // Clear previous rejection flag on new submission attempt
     this.credentialsRejected = false;
 
-    // Validate form structure (required fields, format, etc)
     if (this.loginForm.invalid) {
       this.notificationService.showError('Validation Error', 'Please fill in a valid email and password.');
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    const { email, password } = this.loginForm.getRawValue() as { email: string; password: string };
-
+    const { email, password } = this.loginForm.getRawValue() as LoginCredentials;
     this.isLoading = true;
 
-    console.log('Login submit', { email });
-
     this.auth.login(email, password)
-      .then((result: { success: boolean; needsVerification?: boolean }) => {
+      .then((result: LoginResponse) => {
         this.notificationService.showSuccess('Login Successful', 'You have logged in successfully.');
         if (result.needsVerification) {
           this.auth.showVerifyEmailModal();
@@ -88,40 +81,27 @@ export class Login implements OnInit {
   }
 
   onGoogleSignIn(): void {
-    // Use the full backend URL for OAuth2 redirect
     window.location.href = OAUTH2_GOOGLE_URL;
   }
 
   onForgotPassword(event: Event): void {
     event.preventDefault();
-    console.log('Forgot password clicked');
-    // Navigate to forgot password page or show modal
+    // TODO(User, Name): Implement forgot password navigation
   }
 
   onSignUp(event: Event): void {
     event.preventDefault();
-    console.log('Sign up clicked');
-    // Navigate to sign up page
     this.router.navigate(['/signup']);
   }
 
   onNavigate(page: string, event: Event): void {
     event.preventDefault();
-    console.log(`Navigating to ${page}`);
-    // Handle navigation for Home, Contact Us, Privacy Policy
     switch (page) {
       case 'home':
         this.router.navigate(['/']);
         break;
-      case 'contact':
-        // Navigate to contact page or scroll to contact section
-        console.log('Contact us page');
-        break;
-      case 'privacy':
-        // Navigate to privacy policy page or open in new tab
-        console.log('Privacy policy page');
-        break;
     }
+  }
   }
 
   onBack(): void {

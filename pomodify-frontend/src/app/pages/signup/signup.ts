@@ -6,6 +6,14 @@ import { Auth } from '../../core/services/auth';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
+type SignupCredentials = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+};
+
 @Component({
   standalone: true,
   selector: 'app-signup',
@@ -15,51 +23,24 @@ import { SuccessNotificationService } from '../../core/services/success-notifica
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Signup implements OnInit {
-  private router = inject(Router);
-  private auth = inject(Auth);
-  private fb = inject(FormBuilder);
-  private notificationService = inject(SuccessNotificationService);
+  private readonly router = inject(Router);
+  private readonly auth = inject(Auth);
+  private readonly fb = inject(FormBuilder);
+  private readonly notificationService = inject(SuccessNotificationService);
 
-  signupForm: FormGroup = this.fb.group({
-    firstName: [
-      '',
-      {
-        validators: [Validators.required, Validators.minLength(2)],
-      },
-    ],
-    lastName: [
-      '',
-      {
-        validators: [Validators.required, Validators.minLength(2)],
-      },
-    ],
-    email: [
-      '',
-      {
-        validators: [Validators.required, Validators.email],
-      },
-    ],
-    password: [
-      '',
-      {
-        validators: [Validators.required, Validators.minLength(8)],
-      },
-    ],
-    confirmPassword: [
-      '',
-      {
-        validators: [Validators.required, Validators.minLength(8)],
-      },
-    ],
+  readonly signupForm: FormGroup = this.fb.group({
+    firstName: ['', { validators: [Validators.required, Validators.minLength(2)] }],
+    lastName: ['', { validators: [Validators.required, Validators.minLength(2)] }],
+    email: ['', { validators: [Validators.required, Validators.email] }],
+    password: ['', { validators: [Validators.required, Validators.minLength(8)] }],
+    confirmPassword: ['', { validators: [Validators.required, Validators.minLength(8)] }],
   });
 
-  // UI state
   isLoading = false;
   passwordVisible = false;
   confirmPasswordVisible = false;
 
   ngOnInit(): void {
-    // Force light theme on signup page
     ensurePublicPageLightTheme();
   }
 
@@ -86,28 +67,21 @@ export class Signup implements OnInit {
       return;
     }
 
-    const { firstName, lastName, email, password, confirmPassword } = this.signupForm.getRawValue() as {
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-      confirmPassword: string;
-    };
+    const { firstName, lastName, email, password, confirmPassword } = this.signupForm.getRawValue() as SignupCredentials;
 
     if (password !== confirmPassword) {
       this.notificationService.showError('Password Mismatch', 'Passwords do not match');
-      this.signupForm.get('confirmPassword')?.setErrors({ ...(this.signupForm.get('confirmPassword')?.errors || {}), mismatch: true });
+      const confirmControl = this.signupForm.get('confirmPassword');
+      if (confirmControl) {
+        confirmControl.setErrors({ ...(confirmControl.errors || {}), mismatch: true });
+      }
       return;
     }
 
     this.isLoading = true;
 
-    console.log('Signup submit', { firstName, lastName, email });
-
-    // Call the signup API
     this.auth.signup(firstName, lastName, email, password)
       .then(() => {
-        // Show verify email modal
         this.notificationService.showSuccess('Account Created Successfully', 'Please verify your email to complete signup.');
         this.auth.showVerifyEmailModal();
       })
@@ -121,31 +95,19 @@ export class Signup implements OnInit {
   }
 
   onGoogleSignIn(): void {
-    console.log('Google sign in clicked');
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth';
   }
 
   onLogin(event: Event): void {
     event.preventDefault();
-    console.log('Log in clicked');
-    // Navigate to login page
     this.router.navigate(['/login']);
   }
 
   onNavigate(page: string, event: Event): void {
     event.preventDefault();
-    console.log(`Navigating to ${page}`);
-    // Handle navigation for Home, Contact Us, Privacy Policy
     switch (page) {
       case 'home':
         this.router.navigate(['/']);
-        break;
-      case 'contact':
-        // Navigate to contact page or scroll to contact section
-        console.log('Contact us page');
-        break;
-      case 'privacy':
-        // Navigate to privacy policy page or open in new tab
-        console.log('Privacy policy page');
         break;
     }
   }
