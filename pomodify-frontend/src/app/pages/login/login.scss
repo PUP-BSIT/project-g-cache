@@ -18,7 +18,7 @@
   padding: 24px 48px;
   background: transparent;
   box-sizing: border-box;
-  margin: 0;
+  margin-bottom: 0;
 }
 
 .header-brand {
@@ -87,8 +87,7 @@
   background: #FFFFFF;
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin-top: 0;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
 }
 
 .login-card {
@@ -392,6 +391,5 @@
 
   .login-panel {
     width: min(90%, 100%);
-    margin-top: 80px;
   }
 }
