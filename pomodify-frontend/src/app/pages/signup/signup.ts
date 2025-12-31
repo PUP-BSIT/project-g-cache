@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
+import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
 @Component({
   standalone: true,
@@ -17,6 +18,7 @@ export class Signup implements OnInit {
   private router = inject(Router);
   private auth = inject(Auth);
   private fb = inject(FormBuilder);
+  private notificationService = inject(SuccessNotificationService);
 
   signupForm: FormGroup = this.fb.group({
     firstName: [
@@ -108,6 +110,7 @@ export class Signup implements OnInit {
     this.auth.signup(firstName, lastName, email, password)
       .then(() => {
         // Show verify email modal
+        this.notificationService.showSuccess('Account Created Successfully', 'Please verify your email to complete signup.');
         this.auth.showVerifyEmailModal();
       })
       .catch((error: Error & { message?: string }) => {

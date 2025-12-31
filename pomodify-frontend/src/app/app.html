@@ -1,1 +1,5 @@
+@if (notificationService.notification$(); as notification) {
+  <app-success-notification [title]="notification.message" [message]="notification.description || ''" [duration]="notification.duration || 5000"></app-success-notification>
+}
+
 <router-outlet />
