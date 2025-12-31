@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { API, OAUTH2_GOOGLE_URL } from '../../core/config/api.config';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
+import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
 @Component({
   standalone: true,
@@ -17,6 +18,7 @@ export class Login implements OnInit {
   private router = inject(Router);
   private auth = inject(Auth);
   private fb = inject(FormBuilder);
+  private notificationService = inject(SuccessNotificationService);
 
   loginForm: FormGroup = this.fb.group({
     email: [
@@ -72,6 +74,7 @@ export class Login implements OnInit {
 
     this.auth.login(email, password)
       .then((result: { success: boolean; needsVerification?: boolean }) => {
+        this.notificationService.showSuccess('Login Successful', 'You have logged in successfully.');
         if (result.needsVerification) {
           this.auth.showVerifyEmailModal();
         }
