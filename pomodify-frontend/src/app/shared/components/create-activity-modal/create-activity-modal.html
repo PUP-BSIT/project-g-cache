@@ -7,7 +7,7 @@
   <form [formGroup]="activityForm" class="modal-form">
     <!-- Activity Name -->
     <div class="form-group">
-      <label for="activityName" class="label-required">Activity Name<span class="required">*</span></label>
+      <label for="activityName" class="label-required">Activity Name<span class="required" style="color: #ef4444;">*</span></label>
       <input
         id="activityName"
         type="text"
@@ -37,6 +37,7 @@
     <!-- Color Tag -->
     <div class="form-group">
       <label>Color Tag</label>
+      <p class="helper-text">This color will be applied to all sessions created under this activity.</p>
       <div class="color-picker">
         @for (color of colors; track color.name) {
           <button
