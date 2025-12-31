@@ -1,4 +1,14 @@
 <!-- activities.html - Activities List Page -->
+<!-- Logout Loading Overlay -->
+@if (isLoggingOut()) {
+  <div class="logout-overlay">
+    <div class="logout-spinner-container">
+      <div class="logout-spinner-large"></div>
+      <p>Logging out...</p>
+    </div>
+  </div>
+}
+
 <div class="activities-page">
   <!-- Mobile Overlay Backdrop -->
   @if (sidebarExpanded()) {
@@ -47,7 +57,7 @@
     </nav>
 
     <div class="nav-bottom">
-      <button class="nav-icon" (click)="onLogout()">
+      <button class="nav-icon" (click)="onLogout()" [disabled]="isLoggingOut()">
         <i class="fa-solid fa-right-from-bracket"></i>
         @if (sidebarExpanded()) {
           <span class="nav-text">Logout</span>

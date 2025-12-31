@@ -72,6 +72,7 @@ export class ActivitiesPage implements OnInit {
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+  protected isLoggingOut = signal(false);
 
   // Activities data
   protected activities = signal<ActivityData[]>([]);
@@ -453,12 +454,16 @@ export class ActivitiesPage implements OnInit {
 
   protected onLogout(): void {
     console.log('[ActivitiesPage] Logout initiated');
+    this.isLoggingOut.set(true);
     this.auth.logout()
       .then(() => {
         console.log('[ActivitiesPage] Logout completed');
       })
       .catch((error) => {
         console.error('[ActivitiesPage] Logout error:', error);
+      })
+      .finally(() => {
+        this.isLoggingOut.set(false);
       });
   }
 
