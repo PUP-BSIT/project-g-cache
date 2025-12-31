@@ -6,6 +6,7 @@ import lombok.Builder;
 public record ActivityResult(
         Long activityId,
         Long categoryId,
+        String categoryName,
         String activityTitle,
         String activityDescription,
         java.time.LocalDateTime createdAt,

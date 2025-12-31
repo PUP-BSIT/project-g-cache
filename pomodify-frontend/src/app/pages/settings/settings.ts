@@ -22,6 +22,7 @@ export class Settings implements OnInit, AfterViewInit {
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
+  protected isLoggingOut = signal(false);
 
   // Get settings from service
   protected settings = this.settingsService.getSettingsSignal();
@@ -187,7 +188,11 @@ export class Settings implements OnInit, AfterViewInit {
 
 
   protected onLogout(): void {
-    this.auth.logout();
+    this.isLoggingOut.set(true);
+    this.auth.logout()
+      .finally(() => {
+        this.isLoggingOut.set(false);
+      });
   }
 
   protected navigateTo(route: string): void {

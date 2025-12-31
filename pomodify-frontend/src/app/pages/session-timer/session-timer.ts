@@ -26,6 +26,7 @@ import { Auth } from '../../core/services/auth';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from '../../core/services/notification.service';
 import { SettingsService } from '../../core/services/settings.service';
+import { ScheduledPushService } from '../../core/services/scheduled-push.service';
 import { environment } from '../../../environments/environment';
 
 /**
@@ -58,6 +59,7 @@ export class SessionTimerComponent implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private notificationService = inject(NotificationService);
   private settingsService = inject(SettingsService);
+  private scheduledPushService = inject(ScheduledPushService);
 
   // Auto-start functionality
   protected showAutoStartCountdown = signal(false);
@@ -372,6 +374,9 @@ export class SessionTimerComponent implements OnDestroy {
       };
       this.session.set(updatedSession);
       this.timerSyncService.startTimer();
+      
+      // Schedule server-side push notification for when timer completes
+      this.scheduleServerPushNotification(updatedSession);
       return;
     }
 
@@ -389,6 +394,9 @@ export class SessionTimerComponent implements OnDestroy {
         this.session.set(updated);
         this.timerSyncService.updateFromSession(updated);
         this.timerSyncService.startTimer();
+        
+        // Schedule server-side push notification for when timer completes
+        this.scheduleServerPushNotification(updated);
       },
       error: (err) => {
         // If start fails, still start the timer locally to prevent disruption
@@ -401,6 +409,9 @@ export class SessionTimerComponent implements OnDestroy {
           this.session.set(startedSession);
           this.timerSyncService.updateFromSession(startedSession);
           this.timerSyncService.startTimer();
+          
+          // Still try to schedule push notification
+          this.scheduleServerPushNotification(startedSession);
         } else {
           this.handleError(err, 'start session');
         }
@@ -415,6 +426,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Pause timer sync service
     this.timerSyncService.pauseTimer();
+    
+    // Cancel any scheduled server-side push notifications
+    this.cancelScheduledPushNotification(sess.id);
 
     // Update local state immediately
     const pausedSession: PomodoroSession = {
@@ -449,6 +463,9 @@ export class SessionTimerComponent implements OnDestroy {
         this.session.set(updated);
         this.timerSyncService.updateFromSession(updated);
         this.timerSyncService.startTimer();
+        
+        // Schedule server-side push notification for when timer completes
+        this.scheduleServerPushNotification(updated);
       },
       error: (err) => {
         // If resume fails, update local state and start timer anyway
@@ -460,6 +477,9 @@ export class SessionTimerComponent implements OnDestroy {
         this.session.set(resumedSession);
         this.timerSyncService.updateFromSession(resumedSession);
         this.timerSyncService.startTimer();
+        
+        // Still try to schedule push notification
+        this.scheduleServerPushNotification(resumedSession);
       }
     });
   }
@@ -484,6 +504,9 @@ export class SessionTimerComponent implements OnDestroy {
       if (!confirmed) return;
 
       this.timerSyncService.stopTimer();
+      
+      // Cancel any scheduled server-side push notifications
+      this.cancelScheduledPushNotification(sess.id);
 
       this.sessionService.stopSession(actId, sess.id).subscribe({
         next: (updated) => {
@@ -518,6 +541,9 @@ export class SessionTimerComponent implements OnDestroy {
       if (!confirmed) return;
 
       this.timerSyncService.stopTimer();
+      
+      // Cancel any scheduled server-side push notifications
+      this.cancelScheduledPushNotification(sess.id);
 
       this.sessionService.finishSession(actId, sess.id, this.notes).subscribe({
         next: (updated) => {
@@ -545,6 +571,12 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Store current phase before API call (it may change after)
+    const currentPhase = sess.currentPhase || 'FOCUS';
+    
+    // Cancel any scheduled server-side push notifications (frontend handled the completion)
+    this.cancelScheduledPushNotification(sess.id);
+
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
         this.session.set(updated);
@@ -556,12 +588,17 @@ export class SessionTimerComponent implements OnDestroy {
           this.triggerSessionCompletionNotification();
         } else {
           // Phase completed but session continues - set to PAUSED so user must manually start next phase
+          console.log(`✅ ${currentPhase} phase completed - triggering phase completion notification`);
+          
           const pausedSession: PomodoroSession = {
             ...updated,
             status: 'PAUSED'
           };
           this.session.set(pausedSession);
           this.timerSyncService.updateFromSession(pausedSession);
+          
+          // Trigger phase completion notification (this was missing!)
+          this.triggerPhaseCompletionNotificationForPhase(currentPhase, updated);
         }
       },
       error: (err) => {
@@ -599,8 +636,8 @@ export class SessionTimerComponent implements OnDestroy {
     // The timer sync service will continue tracking time in the background
     // When user returns, it will restore the correct timer state
     
-    // Navigate back immediately
-    (this.router as any).navigate(['/activities', this.activityTitle(), 'sessions']);
+    // Navigate back to activities page
+    this.router.navigate(['/activities']);
   }
 
   /* -------------------- ERROR HANDLING -------------------- */
@@ -930,6 +967,34 @@ export class SessionTimerComponent implements OnDestroy {
     await this.checkAndHandleAutoStart(sess, currentPhase);
   }
 
+  /**
+   * Trigger phase completion notification with explicit phase info
+   * Used when we know the completed phase before the session state changes
+   */
+  private async triggerPhaseCompletionNotificationForPhase(
+    completedPhase: string, 
+    updatedSession: PomodoroSession
+  ): Promise<void> {
+    console.log(`🎯 Phase completion notification triggered for ${completedPhase} phase`);
+    
+    const activityTitle = this.activityTitle();
+    const nextPhase = completedPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    
+    const context = {
+      title: `${completedPhase} Phase Complete!`,
+      body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
+      sessionId: updatedSession.id,
+      activityId: updatedSession.activityId,
+      activityTitle: activityTitle,
+      type: 'phase-complete' as const
+    };
+    
+    await this.notificationService.handlePhaseCompletion(context);
+    
+    // Check if auto-start is enabled for the next phase
+    await this.checkAndHandleAutoStart(updatedSession, completedPhase);
+  }
+
   protected async testTimerNotification(): Promise<void> {
     console.log('🧪 Testing timer notification manually...');
     
@@ -1053,7 +1118,17 @@ export class SessionTimerComponent implements OnDestroy {
     // If session is paused (after phase completion), just start the timer
     if (sess.status === 'PAUSED') {
       console.log('✅ Auto-start: Starting timer for next phase');
+      
+      // Update session status to IN_PROGRESS
+      const updatedSession: PomodoroSession = {
+        ...sess,
+        status: 'IN_PROGRESS'
+      };
+      this.session.set(updatedSession);
       this.timerSyncService.startTimer();
+      
+      // Schedule server-side push notification for when timer completes
+      this.scheduleServerPushNotification(updatedSession);
     } else {
       console.log('⚠️ Auto-start: Session not in expected PAUSED state, current status:', sess.status);
       // Try to start anyway
@@ -1107,6 +1182,78 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Simulate phase completion
     this.checkAndHandleAutoStart(sess, sess.currentPhase || 'FOCUS');
+  }
+
+  /* -------------------- SERVER-SIDE PUSH NOTIFICATIONS -------------------- */
+
+  /**
+   * Schedule a server-side push notification for when the timer completes.
+   * This enables true mobile push notifications even when the browser is closed.
+   */
+  private scheduleServerPushNotification(session: PomodoroSession): void {
+    const settings = this.settingsService.getSettings();
+    
+    // Only schedule if notifications are enabled
+    if (!settings.notifications) {
+      console.log('📵 Notifications disabled - skipping server-side push scheduling');
+      return;
+    }
+
+    const remainingSeconds = this.remainingSeconds();
+    if (remainingSeconds <= 0) {
+      console.log('⏰ No remaining time - skipping server-side push scheduling');
+      return;
+    }
+
+    const actId = this.activityId();
+    if (!actId) {
+      console.log('❌ No activity ID - skipping server-side push scheduling');
+      return;
+    }
+
+    const currentPhase = (session.currentPhase || 'FOCUS') as 'FOCUS' | 'BREAK';
+    const activityTitle = this.activityTitle();
+    const { title, body } = this.scheduledPushService.getNotificationContent(currentPhase, activityTitle);
+
+    console.log(`📅 Scheduling server-side push notification in ${remainingSeconds} seconds for ${currentPhase} phase`);
+
+    this.scheduledPushService.scheduleNotification({
+      sessionId: session.id,
+      activityId: actId,
+      title,
+      body,
+      delaySeconds: remainingSeconds,
+      notificationType: 'PHASE_COMPLETE',
+      currentPhase
+    }).subscribe({
+      next: (response) => {
+        if (response) {
+          console.log('✅ Server-side push notification scheduled:', response.scheduledAt);
+        } else {
+          console.log('⚠️ Failed to schedule server-side push notification');
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error scheduling server-side push notification:', err);
+      }
+    });
+  }
+
+  /**
+   * Cancel any scheduled server-side push notifications for a session.
+   * Called when user pauses, stops, or manually completes a phase.
+   */
+  private cancelScheduledPushNotification(sessionId: number): void {
+    console.log('🚫 Cancelling scheduled server-side push notification for session:', sessionId);
+    
+    this.scheduledPushService.cancelSessionNotifications(sessionId).subscribe({
+      next: () => {
+        console.log('✅ Scheduled push notification cancelled');
+      },
+      error: (err) => {
+        console.error('❌ Error cancelling scheduled push notification:', err);
+      }
+    });
   }
 
 }
