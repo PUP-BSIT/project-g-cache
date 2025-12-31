@@ -57,7 +57,6 @@ export class Dashboard implements OnInit {
   private activityService = inject(ActivityService);
 
   protected sidebarExpanded = signal(true);
-  protected isLoggingOut = signal(false);
 
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
@@ -226,7 +225,6 @@ export class Dashboard implements OnInit {
 
   protected onLogout(): void {
     console.log('[Dashboard] Logout initiated');
-    this.isLoggingOut.set(true);
     this.auth.logout()
       .then(() => {
         console.log('[Dashboard] Logout completed');
@@ -234,9 +232,6 @@ export class Dashboard implements OnInit {
       .catch((error) => {
         console.error('[Dashboard] Logout error:', error);
         // Error is already handled in auth service
-      })
-      .finally(() => {
-        this.isLoggingOut.set(false);
       });
   }
 

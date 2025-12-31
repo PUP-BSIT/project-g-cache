@@ -148,9 +148,6 @@ export const API = {
     STATUS: `${ROOT}/push/status`,
     ENABLE: `${ROOT}/push/enable`,
     DISABLE: `${ROOT}/push/disable`,
-    SCHEDULE: `${ROOT}/push/schedule`,
-    CANCEL_SCHEDULE: (sessionId: number) => `${ROOT}/push/schedule/${sessionId}`,
-    CANCEL_ALL_SCHEDULES: `${ROOT}/push/schedule`,
   },
 
   // Badges Resource
