@@ -1,25 +1,25 @@
 import { Injectable, signal } from '@angular/core';
 
-export interface NotificationMessage {
+export type NotificationMessage = {
   message: string;
   description?: string;
   duration?: number;
   type?: 'success' | 'error';
-}
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class SuccessNotificationService {
-  private successNotificationSignal = signal<NotificationMessage | null>(null);
-  private errorNotificationSignal = signal<NotificationMessage | null>(null);
-  
-  successNotification$ = this.successNotificationSignal.asReadonly();
-  errorNotification$ = this.errorNotificationSignal.asReadonly();
+  private readonly successNotificationSignal = signal<NotificationMessage | null>(null);
+  private readonly errorNotificationSignal = signal<NotificationMessage | null>(null);
+
+  readonly successNotification$ = this.successNotificationSignal.asReadonly();
+  readonly errorNotification$ = this.errorNotificationSignal.asReadonly();
 
   showSuccess(message: string, description?: string, duration: number = 5000): void {
     this.successNotificationSignal.set({ message, description, duration, type: 'success' });
-    
+
     setTimeout(() => {
       this.successNotificationSignal.set(null);
     }, duration);
@@ -27,7 +27,7 @@ export class SuccessNotificationService {
 
   showError(message: string, description?: string, duration: number = 5000): void {
     this.errorNotificationSignal.set({ message, description, duration, type: 'error' });
-    
+
     setTimeout(() => {
       this.errorNotificationSignal.set(null);
     }, duration);

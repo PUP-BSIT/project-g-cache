@@ -24,17 +24,17 @@ import { trigger, transition, style, animate } from '@angular/animations';
 export class ErrorNotificationComponent implements OnInit, OnDestroy {
   @Input() title: string = 'Error!';
   @Input() message: string = '';
-  @Input() duration: number = 5000; // 5 seconds default
+  @Input() duration: number = 5000;
 
   isVisible = true;
-  private timeoutId: any;
+  private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.startTimer();
   }
 
   ngOnDestroy(): void {
-    if (this.timeoutId) {
+    if (this.timeoutId !== null) {
       clearTimeout(this.timeoutId);
     }
   }
@@ -47,7 +47,7 @@ export class ErrorNotificationComponent implements OnInit, OnDestroy {
 
   close(): void {
     this.isVisible = false;
-    if (this.timeoutId) {
+    if (this.timeoutId !== null) {
       clearTimeout(this.timeoutId);
     }
   }
