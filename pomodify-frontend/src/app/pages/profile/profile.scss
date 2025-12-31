@@ -152,8 +152,9 @@
 
   .badges-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 80px));
+    gap: 12px;
+    justify-content: center;
   }
 
   .badge-item {
@@ -161,14 +162,14 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    padding: 8px 4px;
+    padding: 6px 4px;
     border-radius: 8px;
     cursor: pointer;
   }
 
   .badge-image {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--border);
@@ -176,14 +177,14 @@
   }
 
   .badge-name {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
     color: var(--muted);
     text-align: center;
-    max-width: 60px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 80px;
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.2;
   }
 
   .badge-tooltip {
@@ -554,7 +555,8 @@
     }
 
     .badges-grid {
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(60px, 80px));
+      justify-content: center;
     }
 
     .inline-form {
@@ -685,6 +687,7 @@
 
     .badges-section {
       padding: 12px;
+      overflow: hidden; // Prevent badges from overflowing
     }
 
     .badges-header {
@@ -701,7 +704,7 @@
     }
 
     .badges-grid {
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr); // 4 columns for mobile to fit properly
       gap: 8px;
     }
 
@@ -711,14 +714,17 @@
     }
 
     .badge-image {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border-width: 2px;
     }
 
     .badge-name {
       font-size: 9px;
       max-width: 55px;
+      white-space: normal;
+      word-wrap: break-word;
+      line-height: 1.2;
     }
 
     .form-section {
@@ -746,18 +752,23 @@
     .inline-form {
       flex-direction: row;
       gap: 10px;
+      width: 100%;
 
       .form-input {
-        flex: 1;
-        min-width: 0;
+        flex: 1 1 auto;
+        min-width: 120px; // Minimum width to prevent over-shrinking
+        width: auto;
       }
     }
 
     .btn-save-inline {
-      padding: 10px 14px;
-      font-size: 12px;
+      padding: 10px 16px;
+      font-size: 13px;
       border-radius: 6px;
       white-space: nowrap;
+      flex-shrink: 0;
+      min-width: fit-content;
+      max-width: 80px;
     }
 
     .email-display {
