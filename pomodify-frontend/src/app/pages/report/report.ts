@@ -79,6 +79,7 @@ export class Report implements OnInit {
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
+  protected isLoggingOut = signal(false);
 
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
@@ -145,7 +146,11 @@ export class Report implements OnInit {
   }
 
   protected onLogout(): void {
-    this.auth.logout();
+    this.isLoggingOut.set(true);
+    this.auth.logout()
+      .finally(() => {
+        this.isLoggingOut.set(false);
+      });
   }
 
   // Profile Modal
