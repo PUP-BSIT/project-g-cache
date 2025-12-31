@@ -8,6 +8,21 @@
   overflow-x: hidden;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
+  filter: blur(0px);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/assets/images/login-background.png') center/cover no-repeat;
+    background-attachment: fixed;
+    filter: blur(2.5px);
+    z-index: -1;
+  }
 }
 
 .signup-header {
@@ -68,7 +83,8 @@
   display: flex;
   width: min(500px, 100%);
   border-radius: 20px;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(3px);
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
   margin-bottom: 20px;
