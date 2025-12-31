@@ -5,17 +5,6 @@ import { Router } from '@angular/router';
 import { Auth } from '../../core/services/auth';
 import { API, OAUTH2_GOOGLE_URL } from '../../core/config/api.config';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
-import { SuccessNotificationService } from '../../core/services/success-notification.service';
-
-type LoginResponse = {
-  success: boolean;
-  needsVerification?: boolean;
-};
-
-type LoginCredentials = {
-  email: string;
-  password: string;
-};
 
 @Component({
   standalone: true,
@@ -25,21 +14,33 @@ type LoginCredentials = {
   styleUrls: ['./login.scss'],
 })
 export class Login implements OnInit {
-  private readonly router = inject(Router);
-  private readonly auth = inject(Auth);
-  private readonly fb = inject(FormBuilder);
-  private readonly notificationService = inject(SuccessNotificationService);
+  private router = inject(Router);
+  private auth = inject(Auth);
+  private fb = inject(FormBuilder);
 
-  readonly loginForm: FormGroup = this.fb.group({
-    email: ['', { validators: [Validators.required, Validators.email] }],
-    password: ['', { validators: [Validators.required, Validators.minLength(6)] }],
+  loginForm: FormGroup = this.fb.group({
+    email: [
+      '',
+      {
+        validators: [Validators.required, Validators.email],
+      },
+    ],
+    password: [
+      '',
+      {
+        validators: [Validators.required, Validators.minLength(6)],
+      },
+    ],
   });
 
+  // UI state
   isLoading = false;
+  errorMessage = '';
   passwordVisible = false;
-  credentialsRejected = false;
+  credentialsRejected = false; // Track if last login attempt failed
 
   ngOnInit(): void {
+    // Force light theme on login page
     ensurePublicPageLightTheme();
   }
 
@@ -52,20 +53,25 @@ export class Login implements OnInit {
   }
 
   onSubmit(): void {
+    // Clear previous rejection flag on new submission attempt
     this.credentialsRejected = false;
+    this.errorMessage = '';
 
+    // Validate form structure (required fields, format, etc)
     if (this.loginForm.invalid) {
-      this.notificationService.showError('Validation Error', 'Please fill in a valid email and password.');
+      this.errorMessage = 'Please fill in a valid email and password.';
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    const { email, password } = this.loginForm.getRawValue() as LoginCredentials;
+    const { email, password } = this.loginForm.getRawValue() as { email: string; password: string };
+
     this.isLoading = true;
 
+    console.log('Login submit', { email });
+
     this.auth.login(email, password)
-      .then((result: LoginResponse) => {
-        this.notificationService.showSuccess('Login Successful', 'You have logged in successfully.');
+      .then((result: { success: boolean; needsVerification?: boolean }) => {
         if (result.needsVerification) {
           this.auth.showVerifyEmailModal();
         }
@@ -73,7 +79,7 @@ export class Login implements OnInit {
       .catch((error: Error & { message?: string }) => {
         console.error('Login error:', error);
         this.credentialsRejected = true;
-        this.notificationService.showError('Login Failed', error?.message || 'Invalid email or password');
+        this.errorMessage = error?.message || 'Invalid email or password';
       })
       .finally(() => {
         this.isLoading = false;
@@ -81,31 +87,40 @@ export class Login implements OnInit {
   }
 
   onGoogleSignIn(): void {
+    // Use the full backend URL for OAuth2 redirect
     window.location.href = OAUTH2_GOOGLE_URL;
   }
 
   onForgotPassword(event: Event): void {
     event.preventDefault();
-    // TODO(User, Name): Implement forgot password navigation
+    console.log('Forgot password clicked');
+    // Navigate to forgot password page or show modal
   }
 
   onSignUp(event: Event): void {
     event.preventDefault();
+    console.log('Sign up clicked');
+    // Navigate to sign up page
     this.router.navigate(['/signup']);
   }
 
   onNavigate(page: string, event: Event): void {
     event.preventDefault();
+    console.log(`Navigating to ${page}`);
+    // Handle navigation for Home, Contact Us, Privacy Policy
     switch (page) {
       case 'home':
         this.router.navigate(['/']);
         break;
+      case 'contact':
+        // Navigate to contact page or scroll to contact section
+        console.log('Contact us page');
+        break;
+      case 'privacy':
+        // Navigate to privacy policy page or open in new tab
+        console.log('Privacy policy page');
+        break;
     }
-  }
-  }
-
-  onBack(): void {
-    this.router.navigate(['/']);
   }
 
   onClose(): void {
