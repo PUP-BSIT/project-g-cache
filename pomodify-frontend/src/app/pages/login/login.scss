@@ -43,22 +43,6 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.brand-logo {
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: 0.05em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  img {
-    height: 32px;
-    width: auto;
-    max-width: 140px;
-    object-fit: contain;
-  }
-}
-
 .header-nav {
   display: flex;
   gap: 32px;
@@ -368,17 +352,31 @@
   }
 }
 
-@media (max-width: 500px) {
-  .login-card {
-    padding: 40px 24px 32px;
-  }
-
-  .brand-header {
+@media (max-width: 960px) {
+  .login-header {
     padding: 16px 24px;
   }
 
-  .brand-logo {
-    font-size: 24px;
+  .brand-logo-icon {
+    height: 50px;
+  }
+
+  .header-nav {
+    gap: 16px;
+  }
+
+  .nav-link {
+    font-size: 14px;
+  }
+
+  .login-panel {
+    width: min(90%, 100%);
+  }
+}
+
+@media (max-width: 500px) {
+  .login-card {
+    padding: 40px 24px 32px;
   }
 
   .header-nav {
