@@ -102,7 +102,6 @@ export class Login implements OnInit {
         break;
     }
   }
-  }
 
   onBack(): void {
     this.router.navigate(['/']);
