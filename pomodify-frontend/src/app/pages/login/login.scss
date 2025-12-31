@@ -5,6 +5,7 @@
   align-items: center;
   min-height: 100vh;
   padding: 0;
+  overflow-x: hidden;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
 }
@@ -14,19 +15,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 48px 24px 24px;
+  padding: 24px 48px;
   background: transparent;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  box-sizing: border-box;
+  margin: 0;
 }
 
 .header-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: 16px;
 }
 
 .brand-logo-icon {
@@ -88,7 +87,7 @@
   background: #FFFFFF;
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin-top: 100px;
+  margin-top: 0;
   margin-bottom: 50px;
 }
 
