@@ -96,6 +96,15 @@ export class TimerSyncService {
         remainingSeconds: this._remainingSeconds(),
         phase: session.currentPhase
       });
+    } else if (session.status === 'PENDING' && persistedState && persistedState.remainingSeconds > 0) {
+      // PENDING session with custom time set - use persisted time
+      console.log('📊 Using persisted state for PENDING session:', {
+        persistedRemaining: persistedState.remainingSeconds,
+        serverRemaining: session.remainingPhaseSeconds
+      });
+      this._remainingSeconds.set(persistedState.remainingSeconds);
+      this._isRunning.set(false);
+      this._isPaused.set(false);
     } else {
       // No persisted state or other status, use server state
       this.updateFromSession(session);
@@ -213,9 +222,13 @@ export class TimerSyncService {
    * Set remaining seconds (for manual timer adjustments)
    */
   setRemainingSeconds(seconds: number): void {
+    console.log('⏱️ Setting remaining seconds:', seconds);
     this._remainingSeconds.set(seconds);
     this.serverRemainingAtSync = seconds;
     this.localStartTime = Date.now();
+    
+    // Persist the new time to localStorage
+    this.persistState();
   }
 
   /**

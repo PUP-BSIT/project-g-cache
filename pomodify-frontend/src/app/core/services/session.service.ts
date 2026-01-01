@@ -187,6 +187,20 @@ export class SessionService {
   }
 
   /**
+   * Update session settings (focus time, break time, cycles, etc.)
+   */
+  updateSession(activityId: number, sessionId: number, updates: {
+    sessionType?: SessionType;
+    focusTimeInMinutes?: number;
+    breakTimeInMinutes?: number;
+    cycles?: number;
+  }): Observable<PomodoroSession> {
+    return this.http.patch<SessionResponse>(API.ACTIVITIES.SESSIONS.UPDATE(activityId, sessionId), updates).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
+  /**
    * Connect to Server-Sent Events for real-time session updates
    */
   connectToSessionEvents(activityId: number, sessionId: number): EventSource {

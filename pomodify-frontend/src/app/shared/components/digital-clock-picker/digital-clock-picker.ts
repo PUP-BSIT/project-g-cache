@@ -70,7 +70,8 @@ import { CommonModule } from '@angular/common';
       background: #F5F3FF;
       border-radius: 16px;
       height: 240px;
-      overflow: visible;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .time-display {
@@ -198,6 +199,75 @@ import { CommonModule } from '@angular/common';
       cursor: not-allowed;
       backdrop-filter: blur(2px);
     }
+
+    @media (max-width: 600px) {
+      .digital-clock-picker {
+        padding: 8px;
+        height: 100px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .time-display {
+        gap: 6px;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .time-section {
+        gap: 2px;
+        width: 70px;
+        min-width: 70px;
+        max-width: 70px;
+        flex: 0 0 70px;
+      }
+
+      .section-label {
+        font-size: 8px;
+        letter-spacing: 0.3px;
+        margin-bottom: 1px;
+      }
+
+      .digit-wrapper {
+        height: 60px;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0, black 12px, black calc(100% - 12px), transparent 100%);
+      }
+
+      .fade-overlay {
+        height: 12px;
+      }
+
+      .digit-container {
+        height: 60px;
+      }
+
+      .digit-option {
+        font-size: 1.6rem;
+        height: 60px;
+        
+        &:hover {
+          transform: none;
+        }
+
+        &.selected {
+          transform: none;
+        }
+      }
+
+      .colon {
+        font-size: 1.6rem;
+        width: 16px;
+        min-width: 16px;
+        padding-top: 12px;
+        flex: 0 0 16px;
+      }
+    }
   `]
 })
 export class DigitalClockPickerComponent implements AfterViewInit {
@@ -215,6 +285,11 @@ export class DigitalClockPickerComponent implements AfterViewInit {
   minutes = computed(() => Array.from({ length: 61 }, (_, i) => i)); // 0-60
   seconds = computed(() => Array.from({ length: 60 }, (_, i) => i)); // 0-59
 
+  // Scroll debounce timers
+  private minutesScrollTimeout: any;
+  private secondsScrollTimeout: any;
+  private isInitialScroll = true;
+
   constructor() {
     // Auto-scroll to selected values when time changes
     effect(() => {
@@ -225,6 +300,64 @@ export class DigitalClockPickerComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.scrollToSelected();
+    
+    // Add scroll listeners to detect scroll-based selection
+    setTimeout(() => {
+      this.setupScrollListeners();
+      this.isInitialScroll = false;
+    }, 200);
+  }
+
+  private setupScrollListeners() {
+    if (this.minutesScrollRef) {
+      this.minutesScrollRef.nativeElement.addEventListener('scroll', () => {
+        if (this.isInitialScroll) return;
+        clearTimeout(this.minutesScrollTimeout);
+        this.minutesScrollTimeout = setTimeout(() => {
+          this.detectMinuteFromScroll();
+        }, 100);
+      });
+    }
+
+    if (this.secondsScrollRef) {
+      this.secondsScrollRef.nativeElement.addEventListener('scroll', () => {
+        if (this.isInitialScroll) return;
+        clearTimeout(this.secondsScrollTimeout);
+        this.secondsScrollTimeout = setTimeout(() => {
+          this.detectSecondFromScroll();
+        }, 100);
+      });
+    }
+  }
+
+  private detectMinuteFromScroll() {
+    if (!this.isEditable() || !this.minutesScrollRef) return;
+    
+    const container = this.minutesScrollRef.nativeElement;
+    const itemHeight = container.querySelector('.digit-option')?.clientHeight || 160;
+    const scrollTop = container.scrollTop;
+    const selectedIndex = Math.round(scrollTop / itemHeight);
+    const newMinute = Math.min(60, Math.max(0, selectedIndex));
+    
+    if (newMinute !== this.time().minutes) {
+      console.log('📜 Scroll detected minute:', newMinute);
+      this.time.update(t => ({ ...t, minutes: newMinute }));
+    }
+  }
+
+  private detectSecondFromScroll() {
+    if (!this.isEditable() || !this.secondsScrollRef) return;
+    
+    const container = this.secondsScrollRef.nativeElement;
+    const itemHeight = container.querySelector('.digit-option')?.clientHeight || 160;
+    const scrollTop = container.scrollTop;
+    const selectedIndex = Math.round(scrollTop / itemHeight);
+    const newSecond = Math.min(59, Math.max(0, selectedIndex));
+    
+    if (newSecond !== this.time().seconds) {
+      console.log('📜 Scroll detected second:', newSecond);
+      this.time.update(t => ({ ...t, seconds: newSecond }));
+    }
   }
 
   selectMinute(min: number) {

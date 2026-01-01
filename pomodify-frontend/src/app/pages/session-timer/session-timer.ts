@@ -332,9 +332,13 @@ export class SessionTimerComponent implements OnDestroy {
     const currentMinutes = Math.floor(this.remainingSeconds() / 60);
     const currentSeconds = this.remainingSeconds() % 60;
 
+    // Use responsive width based on screen size
+    const isMobile = window.innerWidth <= 600;
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      width: '900px',
-      disableClose: false
+      width: isMobile ? '300px' : '700px',
+      maxWidth: isMobile ? '300px' : '700px',
+      disableClose: false,
+      panelClass: isMobile ? 'mobile-time-picker-dialog' : 'desktop-time-picker-dialog'
     }) as any;
 
     // Set initial time
@@ -347,12 +351,44 @@ export class SessionTimerComponent implements OnDestroy {
       filter((result): result is TimePickerData => !!result)
     ).subscribe((timeData: TimePickerData) => {
       const totalSeconds = (timeData.minutes * 60) + timeData.seconds;
+      const newFocusMinutes = Math.ceil(totalSeconds / 60); // Round up to nearest minute for focusTimeInMinutes
+      
+      console.log('⏱️ Time picker closed with:', { minutes: timeData.minutes, seconds: timeData.seconds, totalSeconds, newFocusMinutes });
       
       // Update the sync service with new time
       this.timerSyncService.setRemainingSeconds(totalSeconds);
       
+      // Get current session status (not the captured one from dialog open)
+      const currentSession = this.session();
+      const actId = this.activityId();
+      
+      // Update local session state with new focus time
+      if (currentSession) {
+        this.session.set({
+          ...currentSession,
+          focusTimeInMinutes: newFocusMinutes,
+          remainingPhaseSeconds: totalSeconds
+        });
+      }
+      
+      // Sync focus time to backend (fire and forget)
+      if (currentSession && actId) {
+        this.sessionService.updateSession(actId, currentSession.id, {
+          focusTimeInMinutes: newFocusMinutes
+        }).pipe(
+          catchError(err => {
+            console.warn('Failed to sync focus time to backend:', err);
+            return of(null);
+          })
+        ).subscribe(updated => {
+          if (updated) {
+            console.log('✅ Focus time synced to backend:', updated.focusTimeInMinutes);
+          }
+        });
+      }
+      
       // If timer is running, restart it with the new time
-      if (sess.status === 'IN_PROGRESS') {
+      if (currentSession?.status === 'IN_PROGRESS') {
         this.timerSyncService.startTimer();
       }
     });
