@@ -28,7 +28,10 @@ public class ActivityService {
 
     /* -------------------- CREATE -------------------- */
     @Transactional
-    @CacheEvict(value = "activities", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "activities", allEntries = true),
+            @CacheEvict(value = "categories", allEntries = true)
+    })
     public ActivityResult createActivity(CreateActivityCommand command) {
         User user = userHelper.getUserOrThrow(command.user());
         Category category = domainHelper
@@ -51,6 +54,7 @@ public class ActivityService {
     }
 
     /* -------------------- GET -------------------- */
+    @Transactional
     @Cacheable(
             value = "activities",
             key = "{ #command.user(), #command.deleted(), #command.categoryId(), "
@@ -84,7 +88,8 @@ public class ActivityService {
     @Caching(
             evict = {
                     @CacheEvict(value = "activity", key = "{#command.user(), #command.activityId()}"),
-                    @CacheEvict(value = "activities", allEntries = true)
+                    @CacheEvict(value = "activities", allEntries = true),
+                    @CacheEvict(value = "categories", allEntries = true)
             }
     )
     public ActivityResult updateActivity(UpdateActivityCommand command) {
@@ -118,7 +123,8 @@ public class ActivityService {
     @Caching(
             evict = {
                     @CacheEvict(value = "activity", key = "{#command.user(), #command.activityId()}"),
-                    @CacheEvict(value = "activities", allEntries = true)
+                    @CacheEvict(value = "activities", allEntries = true),
+                    @CacheEvict(value = "categories", allEntries = true)
             }
     )
     public ActivityResult deleteActivity(DeleteActivityCommand command) {

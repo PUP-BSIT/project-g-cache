@@ -94,15 +94,19 @@ export class ActivitiesPage implements OnInit {
   protected categoryDropdownOpen = signal(false);
   protected allCategories = signal<Array<{categoryId: number, categoryName: string}>>([]);
 
-  // Computed categories list (fallback to extracted from activities if API fails)
+  // Computed categories list - show all categories from API
   protected categories = computed(() => {
-    // Prefer categories from API
+    // Get all categories from API
     const apiCategories = this.allCategories();
     if (apiCategories.length > 0) {
-      return apiCategories.map(c => c.categoryName).sort();
+      const categoryNames = apiCategories
+        .map(c => c.categoryName)
+        .sort();
+      console.log('[ActivitiesPage] Categories from API:', categoryNames);
+      return categoryNames;
     }
     
-    // Fallback: extract from loaded activities (THIS IS NOW THE PRIMARY METHOD)
+    // Fallback: extract from loaded activities
     console.log('[ActivitiesPage] Using categories from activities as fallback');
     const allActivities = this.activities();
     const categoryNames = new Set<string>();
@@ -120,10 +124,16 @@ export class ActivitiesPage implements OnInit {
   protected filteredActivities = computed(() => {
     let filtered = this.activities();
     
-    // Filter by category
+    // Filter by category (case-insensitive comparison)
     const selectedCat = this.selectedCategoryName();
     if (selectedCat) {
-      filtered = filtered.filter(activity => activity.categoryName === selectedCat);
+      const selectedCatLower = selectedCat.toLowerCase();
+      filtered = filtered.filter(activity => 
+        activity.categoryName?.toLowerCase() === selectedCatLower
+      );
+      console.log('[ActivitiesPage] Filtering by category:', selectedCat, 
+        'Found:', filtered.length, 
+        'Activities with categories:', this.activities().map(a => a.categoryName));
     }
     
     // Filter by search query
@@ -271,11 +281,12 @@ export class ActivitiesPage implements OnInit {
       console.log('[ActivitiesPage] Creating new category:', categoryName);
       this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
         next: (response) => {
-          console.log('[ActivitiesPage] Category created:', response);
-          const categoryId = response?.category?.categoryId || response?.categoryId;
+          console.log('[ActivitiesPage] Category created response:', response);
+          // Response structure: { message: string, categories: [{ categoryId, categoryName, activitiesCount }] }
+          const categoryId = response?.categories?.[0]?.categoryId || response?.category?.categoryId || response?.categoryId;
+          console.log('[ActivitiesPage] Extracted categoryId:', categoryId);
+          // Create activity with the new category (loadCategories will be called after activity creation)
           this.createActivityWithCategory(result, categoryId);
-          // Reload categories
-          this.loadCategories();
         },
         error: (err) => {
           console.error('[ActivitiesPage] Error creating category:', err);
@@ -299,6 +310,8 @@ export class ActivitiesPage implements OnInit {
         console.log('[ActivitiesPage] Activity created successfully');
         // Save color tag to localStorage
         this.activityColorService.setColorTag(created.activityId, result.colorTag);
+        // Reload categories to include the new category in dropdown
+        this.loadCategories();
         // Reload activities to get fresh data from backend
         this.loadActivities();
       },
@@ -322,38 +335,85 @@ export class ActivitiesPage implements OnInit {
 
   // Open edit activity modal
   protected openEditActivityModal(activity: ActivityData): void {
+    console.log('[ActivitiesPage] Opening edit modal for activity:', activity);
+    console.log('[ActivitiesPage] Activity categoryName:', activity.categoryName);
+    
     const modalData: CreateActivityModalData = {
       name: activity.activityTitle,
       category: activity.categoryName || '',
       colorTag: activity.colorTag || 'teal',
       estimatedHoursPerWeek: 0,
     };
+    console.log('[ActivitiesPage] Modal data being passed:', modalData);
 
     this.dialog
       .open(EditActivityModal, { data: modalData })
       .afterClosed()
       .subscribe((updated: CreateActivityModalData) => {
         if (updated) {
-          const request: any = {
-            newActivityTitle: updated.name,
-            newActivityDescription: updated.category || '',
-            newCategoryId: undefined,
-          };
-
-          this.activityService.updateActivity(activity.activityId, request).subscribe({
-            next: () => {
-              console.log('[ActivitiesPage] Activity updated successfully');
-              // Save color tag to localStorage
-              this.activityColorService.setColorTag(activity.activityId, updated.colorTag);
-              this.loadActivities();
-            },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error updating activity:', err);
-              alert('Failed to update activity. Please try again.');
-            }
-          });
+          // Handle category update similar to create flow
+          if (updated.category && updated.category.trim()) {
+            this.updateActivityWithCategory(activity.activityId, updated);
+          } else {
+            // No category, update activity without category
+            this.updateActivityRequest(activity.activityId, updated, undefined);
+          }
         }
       });
+  }
+
+  private updateActivityWithCategory(activityId: number, updated: CreateActivityModalData): void {
+    const categoryName = updated.category!.trim();
+    
+    // Check if category already exists
+    const existingCategory = this.allCategories().find(
+      c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
+    );
+    
+    if (existingCategory) {
+      // Use existing category
+      console.log('[ActivitiesPage] Using existing category for update:', existingCategory);
+      this.updateActivityRequest(activityId, updated, existingCategory.categoryId);
+    } else {
+      // Create new category first
+      console.log('[ActivitiesPage] Creating new category for update:', categoryName);
+      this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
+        next: (response) => {
+          console.log('[ActivitiesPage] Category created:', response);
+          const categoryId = response?.category?.categoryId || response?.categoryId;
+          this.updateActivityRequest(activityId, updated, categoryId);
+          // Reload categories
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('[ActivitiesPage] Error creating category:', err);
+          // Still update activity without category
+          this.updateActivityRequest(activityId, updated, undefined);
+        }
+      });
+    }
+  }
+
+  private updateActivityRequest(activityId: number, updated: CreateActivityModalData, categoryId?: number): void {
+    const request: any = {
+      newActivityTitle: updated.name,
+      newActivityDescription: '',
+      newCategoryId: categoryId,
+    };
+    console.log('[ActivitiesPage] Update request payload:', JSON.stringify(request, null, 2));
+
+    this.activityService.updateActivity(activityId, request).subscribe({
+      next: () => {
+        console.log('[ActivitiesPage] Activity updated successfully');
+        // Save color tag to localStorage
+        this.activityColorService.setColorTag(activityId, updated.colorTag);
+        this.loadActivities();
+      },
+      error: (err) => {
+        console.error('[ActivitiesPage] Error updating activity:', err);
+        alert('Failed to update activity. Please try again.');
+      }
+    });
   }
 
   // Open delete activity modal
@@ -438,6 +498,21 @@ export class ActivitiesPage implements OnInit {
     this.selectedCategoryName.set(category);
     this.categoryDropdownOpen.set(false);
     console.log('[ActivitiesPage] Category selected:', category);
+    console.log('[ActivitiesPage] All categories:', this.allCategories());
+    
+    // Find the categoryId for server-side filtering (case-insensitive)
+    if (category) {
+      const categoryLower = category.toLowerCase();
+      const cat = this.allCategories().find(c => c.categoryName.toLowerCase() === categoryLower);
+      console.log('[ActivitiesPage] Found category:', cat);
+      this.selectedCategory.set(cat?.categoryId ?? null);
+    } else {
+      this.selectedCategory.set(null);
+    }
+    
+    // Reset to first page and reload activities with the category filter
+    this.currentPage.set(1);
+    this.loadActivities();
   }
 
   // Select activity and navigate to sessions

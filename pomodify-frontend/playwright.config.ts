@@ -16,8 +16,8 @@ export default defineConfig({
   // ✅ Retry once in CI
   retries: process.env.CI ? 1 : 0,
 
-  // ✅ More workers in CI for faster execution (can be adjusted based on API capacity)
-  workers: process.env.CI ? 2 : 2,
+  // ✅ More workers for faster execution (6 workers for parallel tests)
+  workers: process.env.CI ? 6 : 6,
 
   // ✅ HTML report for local, but still fine in CI
   reporter: 'html',
@@ -45,32 +45,13 @@ export default defineConfig({
   // ✅ Global setup (optional - API mocking is done via fixtures)
   // globalSetup: require.resolve('./e2e/global-setup.ts'),
 
-  // ✅ Only Chromium in CI, all browsers locally
-  projects: process.env.CI
-    ? [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
-        },
-      ]
-    : [
-        {
-          name: 'chromium',
-          use: { ...devices['Desktop Chrome'] },
-        },
-        {
-          name: 'firefox',
-          use: { ...devices['Desktop Firefox'] },
-        },
-        {
-          name: 'webkit',
-          use: { ...devices['Desktop Safari'] },
-        },
-        {
-          name: 'Mobile Chrome',
-          use: { ...devices['Pixel 5'] },
-        },
-      ],
+  // ✅ Only Chromium for faster tests (Firefox/WebKit require separate install)
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 
   // ✅ Do NOT start dev server from Playwright in CI
   webServer: process.env.CI
