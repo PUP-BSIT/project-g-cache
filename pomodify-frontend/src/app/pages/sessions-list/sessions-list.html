@@ -41,8 +41,8 @@
               <i class="fa-solid fa-stopwatch"></i>
               {{ session.sessionType }}
             </div>
-            <span class="session-status" [ngClass]="getStatusClass(session.status)">
-              {{ session.status }}
+            <span class="session-status" [ngClass]="getStatusClass(getEffectiveStatus(session))">
+              {{ getEffectiveStatus(session) }}
             </span>
           </div>
 

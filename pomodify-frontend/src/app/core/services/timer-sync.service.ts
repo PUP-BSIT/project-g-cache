@@ -63,24 +63,42 @@ export class TimerSyncService {
     // Load persisted state if available
     const persistedState = this.loadPersistedState();
     
-    // Only use server state if no valid persisted state exists
-    // or if the session is running (server state is authoritative for running sessions)
-    if (!persistedState || session.status === 'IN_PROGRESS') {
-      this.updateFromSession(session);
+    // Trust persisted state if it says timer was running (server sync may have failed)
+    if (persistedState && persistedState.isRunning) {
+      // Timer was running locally - calculate elapsed time and continue
+      const age = Date.now() - persistedState.lastSyncTime;
+      const elapsedSinceLastPersist = Math.floor(age / 1000);
+      const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
       
-      // Start sync if session is running
-      if (session.status === 'IN_PROGRESS') {
-        this.startTimer();
-      }
-    } else {
-      // For paused sessions, use persisted local state
+      console.log('📊 Resuming running timer (persisted state):', {
+        persistedRemaining: persistedState.remainingSeconds,
+        elapsedSinceLastPersist,
+        adjustedRemaining,
+        serverStatus: session.status
+      });
+      
+      this._remainingSeconds.set(adjustedRemaining);
+      this.serverRemainingAtSync = adjustedRemaining;
+      this.localStartTime = Date.now();
+      
+      // Start the timer
+      this.startTimer();
+    } else if (session.status === 'IN_PROGRESS') {
+      // Server says running, use server state
+      this.updateFromSession(session);
+      this.startTimer();
+    } else if (session.status === 'PAUSED' && persistedState && persistedState.isPaused) {
+      // Both server and local state agree it's paused
       this._isRunning.set(false);
-      this._isPaused.set(session.status === 'PAUSED');
+      this._isPaused.set(true);
       console.log('📊 Using persisted state for paused session:', {
         status: session.status,
         remainingSeconds: this._remainingSeconds(),
         phase: session.currentPhase
       });
+    } else {
+      // No persisted state or other status, use server state
+      this.updateFromSession(session);
     }
   }
 
@@ -350,8 +368,8 @@ export class TimerSyncService {
     }
   }
 
-  private loadPersistedState(): boolean {
-    if (!this.currentSession) return false;
+  private loadPersistedState(): TimerState | null {
+    if (!this.currentSession) return null;
     
     try {
       const key = this.getStorageKey(this.currentSession.id);
@@ -368,13 +386,13 @@ export class TimerSyncService {
           this._drift.set(state.drift || 0);
           this._isPaused.set(state.isPaused);
           this._isRunning.set(state.isRunning);
-          return true;
+          return state;
         }
       }
     } catch (error) {
       console.warn('Failed to load persisted timer state:', error);
     }
-    return false;
+    return null;
   }
 
   private clearPersistedState(): void {
