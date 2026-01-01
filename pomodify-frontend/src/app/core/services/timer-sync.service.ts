@@ -45,6 +45,7 @@ export class TimerSyncService {
   private serverRemainingAtSync: number = 0;
   private syncInterval = 15000; // 15 seconds
   private maxDrift = 3; // 3 seconds max drift before correction
+  private hasCustomTime = false; // Track if user set a custom time
 
   // Storage keys
   private getStorageKey(sessionId: number): string {
@@ -226,6 +227,7 @@ export class TimerSyncService {
     this._remainingSeconds.set(seconds);
     this.serverRemainingAtSync = seconds;
     this.localStartTime = Date.now();
+    this.hasCustomTime = true; // User set a custom time - don't let sync override it
     
     // Persist the new time to localStorage
     this.persistState();
@@ -303,15 +305,19 @@ export class TimerSyncService {
       serverRemaining,
       localRemaining,
       drift,
-      status: session.status
+      status: session.status,
+      hasCustomTime: this.hasCustomTime
     });
     
-    // Correct drift if significant
-    if (drift > this.maxDrift) {
+    // Only correct drift if user hasn't set a custom time
+    // When user sets custom time, local is authoritative
+    if (drift > this.maxDrift && !this.hasCustomTime) {
       console.log('⚠️ Correcting timer drift:', drift, 'seconds');
       this._remainingSeconds.set(serverRemaining);
       this.localStartTime = Date.now();
       this.serverRemainingAtSync = serverRemaining;
+    } else if (drift > this.maxDrift && this.hasCustomTime) {
+      console.log('📌 Skipping drift correction - user has custom time set');
     }
     
     // Handle status changes
