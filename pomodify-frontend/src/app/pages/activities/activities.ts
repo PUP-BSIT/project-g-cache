@@ -124,10 +124,16 @@ export class ActivitiesPage implements OnInit {
   protected filteredActivities = computed(() => {
     let filtered = this.activities();
     
-    // Filter by category
+    // Filter by category (case-insensitive comparison)
     const selectedCat = this.selectedCategoryName();
     if (selectedCat) {
-      filtered = filtered.filter(activity => activity.categoryName === selectedCat);
+      const selectedCatLower = selectedCat.toLowerCase();
+      filtered = filtered.filter(activity => 
+        activity.categoryName?.toLowerCase() === selectedCatLower
+      );
+      console.log('[ActivitiesPage] Filtering by category:', selectedCat, 
+        'Found:', filtered.length, 
+        'Activities with categories:', this.activities().map(a => a.categoryName));
     }
     
     // Filter by search query
@@ -275,11 +281,12 @@ export class ActivitiesPage implements OnInit {
       console.log('[ActivitiesPage] Creating new category:', categoryName);
       this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
         next: (response) => {
-          console.log('[ActivitiesPage] Category created:', response);
-          const categoryId = response?.category?.categoryId || response?.categoryId;
+          console.log('[ActivitiesPage] Category created response:', response);
+          // Response structure: { message: string, categories: [{ categoryId, categoryName, activitiesCount }] }
+          const categoryId = response?.categories?.[0]?.categoryId || response?.category?.categoryId || response?.categoryId;
+          console.log('[ActivitiesPage] Extracted categoryId:', categoryId);
+          // Create activity with the new category (loadCategories will be called after activity creation)
           this.createActivityWithCategory(result, categoryId);
-          // Reload categories
-          this.loadCategories();
         },
         error: (err) => {
           console.error('[ActivitiesPage] Error creating category:', err);
@@ -303,6 +310,8 @@ export class ActivitiesPage implements OnInit {
         console.log('[ActivitiesPage] Activity created successfully');
         // Save color tag to localStorage
         this.activityColorService.setColorTag(created.activityId, result.colorTag);
+        // Reload categories to include the new category in dropdown
+        this.loadCategories();
         // Reload activities to get fresh data from backend
         this.loadActivities();
       },
@@ -489,6 +498,21 @@ export class ActivitiesPage implements OnInit {
     this.selectedCategoryName.set(category);
     this.categoryDropdownOpen.set(false);
     console.log('[ActivitiesPage] Category selected:', category);
+    console.log('[ActivitiesPage] All categories:', this.allCategories());
+    
+    // Find the categoryId for server-side filtering (case-insensitive)
+    if (category) {
+      const categoryLower = category.toLowerCase();
+      const cat = this.allCategories().find(c => c.categoryName.toLowerCase() === categoryLower);
+      console.log('[ActivitiesPage] Found category:', cat);
+      this.selectedCategory.set(cat?.categoryId ?? null);
+    } else {
+      this.selectedCategory.set(null);
+    }
+    
+    // Reset to first page and reload activities with the category filter
+    this.currentPage.set(1);
+    this.loadActivities();
   }
 
   // Select activity and navigate to sessions
