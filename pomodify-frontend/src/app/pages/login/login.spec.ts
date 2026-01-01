@@ -64,8 +64,8 @@ describe('Login', () => {
     expect(component.isLoading).toBeFalse();
   });
 
-  it('should have empty error message initially', () => {
-    expect(component.errorMessage).toBe('');
+  it('should not have credentials rejected initially', () => {
+    expect(component.credentialsRejected).toBeFalse();
   });
 
   it('should validate email format', () => {
