@@ -276,11 +276,14 @@ $toggle-bg-inactive: #D0D0D0;
 // Responsive adjustments
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease, width 0.3s ease;
+    width: 250px;
+    transform: translateX(-260px);
+    transition: transform 0.3s ease;
+    visibility: hidden;
     
     &.expanded {
       transform: translateX(0);
+      visibility: visible;
       box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
     }
   }
@@ -354,7 +357,6 @@ $toggle-bg-inactive: #D0D0D0;
   
   i {
     display: block;
-    font-size: 18px;
   }
 }
 
