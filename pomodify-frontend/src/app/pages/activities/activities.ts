@@ -94,15 +94,20 @@ export class ActivitiesPage implements OnInit {
   protected categoryDropdownOpen = signal(false);
   protected allCategories = signal<Array<{categoryId: number, categoryName: string}>>([]);
 
-  // Computed categories list (fallback to extracted from activities if API fails)
+  // Computed categories list - only show categories that have activities
   protected categories = computed(() => {
-    // Prefer categories from API
+    // Prefer categories from API - filter to only show categories with activities
     const apiCategories = this.allCategories();
     if (apiCategories.length > 0) {
-      return apiCategories.map(c => c.categoryName).sort();
+      const categoriesWithActivities = apiCategories
+        .filter(c => (c as any).activitiesCount > 0)
+        .map(c => c.categoryName)
+        .sort();
+      console.log('[ActivitiesPage] Categories with activities:', categoriesWithActivities);
+      return categoriesWithActivities;
     }
     
-    // Fallback: extract from loaded activities (THIS IS NOW THE PRIMARY METHOD)
+    // Fallback: extract from loaded activities
     console.log('[ActivitiesPage] Using categories from activities as fallback');
     const allActivities = this.activities();
     const categoryNames = new Set<string>();
@@ -334,26 +339,69 @@ export class ActivitiesPage implements OnInit {
       .afterClosed()
       .subscribe((updated: CreateActivityModalData) => {
         if (updated) {
-          const request: any = {
-            newActivityTitle: updated.name,
-            newActivityDescription: updated.category || '',
-            newCategoryId: undefined,
-          };
-
-          this.activityService.updateActivity(activity.activityId, request).subscribe({
-            next: () => {
-              console.log('[ActivitiesPage] Activity updated successfully');
-              // Save color tag to localStorage
-              this.activityColorService.setColorTag(activity.activityId, updated.colorTag);
-              this.loadActivities();
-            },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error updating activity:', err);
-              alert('Failed to update activity. Please try again.');
-            }
-          });
+          // Handle category update similar to create flow
+          if (updated.category && updated.category.trim()) {
+            this.updateActivityWithCategory(activity.activityId, updated);
+          } else {
+            // No category, update activity without category
+            this.updateActivityRequest(activity.activityId, updated, undefined);
+          }
         }
       });
+  }
+
+  private updateActivityWithCategory(activityId: number, updated: CreateActivityModalData): void {
+    const categoryName = updated.category!.trim();
+    
+    // Check if category already exists
+    const existingCategory = this.allCategories().find(
+      c => c.categoryName.toLowerCase() === categoryName.toLowerCase()
+    );
+    
+    if (existingCategory) {
+      // Use existing category
+      console.log('[ActivitiesPage] Using existing category for update:', existingCategory);
+      this.updateActivityRequest(activityId, updated, existingCategory.categoryId);
+    } else {
+      // Create new category first
+      console.log('[ActivitiesPage] Creating new category for update:', categoryName);
+      this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
+        next: (response) => {
+          console.log('[ActivitiesPage] Category created:', response);
+          const categoryId = response?.category?.categoryId || response?.categoryId;
+          this.updateActivityRequest(activityId, updated, categoryId);
+          // Reload categories
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('[ActivitiesPage] Error creating category:', err);
+          // Still update activity without category
+          this.updateActivityRequest(activityId, updated, undefined);
+        }
+      });
+    }
+  }
+
+  private updateActivityRequest(activityId: number, updated: CreateActivityModalData, categoryId?: number): void {
+    const request: any = {
+      newActivityTitle: updated.name,
+      newActivityDescription: '',
+      newCategoryId: categoryId,
+    };
+    console.log('[ActivitiesPage] Update request payload:', JSON.stringify(request, null, 2));
+
+    this.activityService.updateActivity(activityId, request).subscribe({
+      next: () => {
+        console.log('[ActivitiesPage] Activity updated successfully');
+        // Save color tag to localStorage
+        this.activityColorService.setColorTag(activityId, updated.colorTag);
+        this.loadActivities();
+      },
+      error: (err) => {
+        console.error('[ActivitiesPage] Error updating activity:', err);
+        alert('Failed to update activity. Please try again.');
+      }
+    });
   }
 
   // Open delete activity modal
