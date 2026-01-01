@@ -137,6 +137,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* -------------------- HEADER -------------------- */
@@ -1222,16 +1224,24 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 @media (max-width: 1200px) {
   .main-content-wrapper {
     flex-direction: column;
+    padding: 0 20px;
+    gap: 32px;
   }
 
   .timer-section {
     min-height: auto;
+    margin-left: 0;
+    margin-top: 0;
   }
 
   .timer-circle {
     width: 400px;
     height: 400px;
     padding: 40px;
+  }
+
+  .mascot-container {
+    display: none; // Hide mascot on tablet/mobile for cleaner layout
   }
 
   .notes-panel {
@@ -1251,32 +1261,228 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 @media (max-width: 768px) {
   .container {
-    padding: 16px 20px;
+    padding: 16px;
   }
 
   .session-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+
+    .btn-back {
+      padding: 10px 16px;
+      font-size: 14px;
+      border-radius: 12px;
+
+      i {
+        font-size: 16px;
+      }
+    }
+
     .activity-title {
       font-size: 20px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
-  .timer-circle {
-    width: 320px;
-    height: 320px;
-    padding: 30px;
+  .main-content-wrapper {
+    padding: 0;
+    gap: 24px;
   }
 
-  .timer-display-box {
-    padding: 16px 32px;
+  .timer-section {
+    min-height: auto;
+    margin-left: 0;
+    perspective: none;
+  }
 
-    .time-value {
-      font-size: 36px;
+  .timer-circle {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    aspect-ratio: 1;
+    padding: 24px;
+    margin: 0 auto;
+
+    &::before {
+      inset: -8px;
     }
   }
 
   .timer-top {
+    margin-bottom: 16px;
+    gap: 12px;
+
     .session-type {
+      font-size: 20px;
+    }
+
+    .cycle-indicator {
       font-size: 16px;
+      padding: 4px 10px;
+    }
+  }
+
+  .phase-labels {
+    gap: 16px;
+    margin-bottom: 20px;
+    width: 100%;
+    justify-content: center;
+
+    .phase-label {
+      font-size: 18px;
+      padding: 6px 14px;
+
+      &.active {
+        transform: scale(1.05);
+      }
+
+      .phase-time {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .timer-display-box {
+    padding: 20px 36px;
+    min-width: 180px;
+    border-radius: 18px;
+    margin-bottom: 24px;
+
+    .time-value {
+      font-size: 40px;
+      letter-spacing: 2px;
+    }
+
+    .edit-icon {
+      top: 8px;
+      right: 12px;
+      font-size: 14px;
+    }
+  }
+
+  .timer-controls {
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-timer-control {
+    padding: 14px 36px;
+    font-size: 16px;
+    border-radius: 14px;
+    min-width: 110px;
+  }
+
+  .btn-stop {
+    padding: 14px 28px;
+    font-size: 16px;
+    border-radius: 14px;
+    min-width: 100px;
+  }
+
+  .btn-fast-forward {
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+
+    i {
+      font-size: 18px;
+    }
+  }
+
+  .early-complete-section {
+    margin-top: 12px;
+  }
+
+  .btn-early-complete {
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .notes-panel {
+    padding: 16px;
+    min-height: 350px;
+    gap: 12px;
+  }
+
+  .panel-header {
+    .notes-label {
+      font-size: 16px;
+    }
+
+    .btn-ai-suggest {
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
+    }
+
+    .btn-add-todo {
+      padding: 6px 12px;
+      font-size: 13px;
+
+      .todo-label {
+        font-size: 13px;
+      }
+    }
+  }
+
+  .todo-list {
+    max-height: 180px;
+  }
+
+  .todo-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .notes-textarea {
+    min-height: 120px;
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+
+  .session-header {
+    gap: 10px;
+    margin-bottom: 20px;
+
+    .btn-back {
+      padding: 8px 12px;
+      font-size: 13px;
+
+      span {
+        display: none; // Hide "Back" text, show only icon
+      }
+    }
+
+    .activity-title {
+      font-size: 18px;
+    }
+  }
+
+  .timer-circle {
+    max-width: 300px;
+    padding: 20px;
+  }
+
+  .timer-top {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .session-type {
+      font-size: 18px;
     }
 
     .cycle-indicator {
@@ -1285,8 +1491,23 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .phase-labels {
+    gap: 12px;
+    margin-bottom: 16px;
+
     .phase-label {
       font-size: 16px;
+      padding: 4px 12px;
+    }
+  }
+
+  .timer-display-box {
+    padding: 16px 28px;
+    min-width: 160px;
+    margin-bottom: 20px;
+
+    .time-value {
+      font-size: 32px;
+      letter-spacing: 1px;
     }
   }
 
@@ -1295,50 +1516,83 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .btn-timer-control {
-    padding: 12px 32px;
+    padding: 12px 28px;
     font-size: 14px;
-    min-width: 120px;
+    min-width: 100px;
+  }
+
+  .btn-stop {
+    padding: 12px 24px;
+    font-size: 14px;
+    min-width: 90px;
   }
 
   .btn-fast-forward {
     width: 44px;
     height: 44px;
-    padding: 12px;
 
     i {
-      font-size: 18px;
+      font-size: 16px;
+    }
+  }
+
+  .btn-early-complete {
+    padding: 8px 16px;
+    font-size: 12px;
+
+    i {
+      font-size: 14px;
     }
   }
 
   .notes-panel {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .timer-circle {
-    width: 280px;
-    height: 280px;
-    padding: 20px;
+    padding: 14px;
+    min-height: 300px;
   }
 
-  .timer-display-box {
-    padding: 12px 24px;
+  .panel-header {
+    .notes-label {
+      font-size: 15px;
+    }
 
-    .time-value {
-      font-size: 28px;
+    .header-actions {
+      gap: 6px;
+    }
+
+    .btn-ai-suggest {
+      width: 34px;
+      height: 34px;
+    }
+
+    .btn-add-todo {
+      padding: 6px 10px;
+      font-size: 12px;
     }
   }
 
-  .timer-top {
-    flex-direction: column;
+  .todo-list {
+    max-height: 150px;
     gap: 8px;
-    margin-bottom: 16px;
   }
 
-  .phase-labels {
-    gap: 12px;
-    margin-bottom: 24px;
+  .todo-item {
+    padding: 8px;
+    gap: 8px;
+
+    .todo-checkbox {
+      width: 18px;
+      height: 18px;
+    }
+
+    .todo-text {
+      font-size: 13px;
+    }
+  }
+
+  .notes-textarea {
+    min-height: 100px;
+    font-size: 13px;
+    padding: 10px;
   }
 }
 
