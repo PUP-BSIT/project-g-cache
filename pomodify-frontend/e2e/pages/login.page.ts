@@ -52,21 +52,35 @@ export class LoginPage {
 
   async isErrorVisible() {
     try {
-      // Check for various error message selectors
+      // Wait a bit for the error notification to appear
+      await this.page.waitForTimeout(1000);
+      
+      // Check for various error message selectors including toast notifications
       const errorSelectors = [
-        '.form-error',
+        '.notification-error',
+        '.toast-error',
+        '.error-notification',
+        'text=Login Failed',
         'text=Invalid email or password',
         'text=Invalid credentials',
+        '.form-error',
         '.error-message',
         '[role="alert"]',
-        '.mat-mdc-form-field-error',
+        '.mat-mdc-snack-bar-container',
+        '.snackbar-error',
       ];
       
       for (const selector of errorSelectors) {
         const isVisible = await this.page.isVisible(selector).catch(() => false);
         if (isVisible) return true;
       }
-      return false;
+      
+      // If no error element found, check if we're still on login page (didn't redirect)
+      // This indicates login failed
+      const currentUrl = this.page.url();
+      const isStillOnLogin = currentUrl.includes('/login');
+      
+      return isStillOnLogin;
     } catch {
       return false;
     }

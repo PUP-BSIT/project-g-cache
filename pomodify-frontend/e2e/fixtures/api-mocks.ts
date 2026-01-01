@@ -35,15 +35,76 @@ const mockDashboardData = {
   focusHours: 2.0,
 };
 
-const mockActivities = [
-  {
-    id: 1,
-    name: 'Test Activity',
-    description: 'Test Description',
-    category: 'Work',
-    createdAt: new Date().toISOString(),
+const mockActivities = {
+  message: 'Activities retrieved successfully',
+  activities: [
+    {
+      activityId: 1,
+      activityTitle: 'Test Activity',
+      activityDescription: 'Test Description',
+      categoryId: 1,
+      categoryName: 'Work',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      activityId: 2,
+      activityTitle: 'Study Session',
+      activityDescription: 'Learning new skills',
+      categoryId: 2,
+      categoryName: 'Study',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  currentPage: 0,
+  totalPages: 1,
+  totalItems: 2,
+};
+
+const mockSessions = {
+  message: 'Sessions retrieved successfully',
+  sessions: [
+    {
+      sessionId: 1,
+      activityId: 1,
+      sessionType: 'CLASSIC',
+      focusTimeInMinutes: 25,
+      breakTimeInMinutes: 5,
+      cycles: 4,
+      status: 'COMPLETED',
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  currentPage: 0,
+  totalPages: 1,
+  totalItems: 1,
+};
+
+const mockReports = {
+  summary: {
+    totalSessions: 10,
+    totalFocusMinutes: 250,
+    totalBreakMinutes: 50,
+    completedSessions: 8,
+    averageFocusMinutes: 25,
   },
-];
+  focusTimeByDay: [
+    { date: new Date().toISOString().split('T')[0], minutes: 120 },
+  ],
+  sessionsByCategory: [
+    { categoryName: 'Work', count: 5 },
+    { categoryName: 'Study', count: 3 },
+  ],
+};
+
+const mockCategories = {
+  message: 'Categories retrieved successfully',
+  categories: [
+    { categoryId: 1, categoryName: 'Work', activitiesCount: 1 },
+    { categoryId: 2, categoryName: 'Study', activitiesCount: 1 },
+  ],
+};
 
 /**
  * Setup API route mocking for a page
@@ -135,7 +196,8 @@ async function setupApiMocks(page: Page) {
     }
 
     // Activities endpoint
-    if (url.includes('/api/v2/activities')) {
+    if (url.includes('/api/v2/activities') && !url.includes('/sessions')) {
+      console.log('[MOCK] Activities: returning mock data');
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -143,8 +205,29 @@ async function setupApiMocks(page: Page) {
       });
     }
 
+    // Sessions endpoint
+    if (url.includes('/sessions')) {
+      console.log('[MOCK] Sessions: returning mock data');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockSessions),
+      });
+    }
+
+    // Reports endpoint
+    if (url.includes('/api/v2/reports')) {
+      console.log('[MOCK] Reports: returning mock data');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockReports),
+      });
+    }
+
     // Settings endpoint
     if (url.includes('/api/v2/settings')) {
+      console.log('[MOCK] Settings: returning mock data');
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -152,19 +235,19 @@ async function setupApiMocks(page: Page) {
           pomodoroDuration: 25,
           shortBreakDuration: 5,
           longBreakDuration: 15,
+          notificationsEnabled: true,
+          soundEnabled: true,
         }),
       });
     }
 
     // Categories endpoint
     if (url.includes('/api/v2/categories')) {
+      console.log('[MOCK] Categories: returning mock data');
       return route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify([
-          { id: 1, name: 'Work' },
-          { id: 2, name: 'Study' },
-        ]),
+        body: JSON.stringify(mockCategories),
       });
     }
 
