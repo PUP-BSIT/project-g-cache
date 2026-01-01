@@ -61,14 +61,26 @@ export class TimerSyncService {
     this.activityId = activityId;
     
     // Load persisted state if available
-    this.loadPersistedState();
+    const persistedState = this.loadPersistedState();
     
-    // Set initial state from session
-    this.updateFromSession(session);
-    
-    // Start sync if session is running
-    if (session.status === 'IN_PROGRESS') {
-      this.startTimer();
+    // Only use server state if no valid persisted state exists
+    // or if the session is running (server state is authoritative for running sessions)
+    if (!persistedState || session.status === 'IN_PROGRESS') {
+      this.updateFromSession(session);
+      
+      // Start sync if session is running
+      if (session.status === 'IN_PROGRESS') {
+        this.startTimer();
+      }
+    } else {
+      // For paused sessions, use persisted local state
+      this._isRunning.set(false);
+      this._isPaused.set(session.status === 'PAUSED');
+      console.log('📊 Using persisted state for paused session:', {
+        status: session.status,
+        remainingSeconds: this._remainingSeconds(),
+        phase: session.currentPhase
+      });
     }
   }
 
@@ -338,8 +350,8 @@ export class TimerSyncService {
     }
   }
 
-  private loadPersistedState(): void {
-    if (!this.currentSession) return;
+  private loadPersistedState(): boolean {
+    if (!this.currentSession) return false;
     
     try {
       const key = this.getStorageKey(this.currentSession.id);
@@ -354,11 +366,15 @@ export class TimerSyncService {
         if (age < 5 * 60 * 1000) {
           this._remainingSeconds.set(state.remainingSeconds);
           this._drift.set(state.drift || 0);
+          this._isPaused.set(state.isPaused);
+          this._isRunning.set(state.isRunning);
+          return true;
         }
       }
     } catch (error) {
       console.warn('Failed to load persisted timer state:', error);
     }
+    return false;
   }
 
   private clearPersistedState(): void {
