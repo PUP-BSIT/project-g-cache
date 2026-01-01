@@ -51,6 +51,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
   overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
   
   // Animated background circles
   &::before,
@@ -137,6 +139,8 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* -------------------- HEADER -------------------- */
@@ -204,16 +208,17 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .main-content-wrapper {
   display: flex;
-  gap: 60px;
+  gap: 40px;
   flex: 1;
   align-items: center;
   justify-content: center;
   width: 100%;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 40px;
+  padding: 0 20px;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 }
 
 /* -------------------- MASCOT CHARACTER -------------------- */
@@ -538,6 +543,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   animation: float-circle 6s ease-in-out infinite;
+  box-sizing: border-box;
   
   &::before {
     content: '';
@@ -1222,21 +1228,29 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 @media (max-width: 1200px) {
   .main-content-wrapper {
     flex-direction: column;
+    padding: 0;
+    gap: 24px;
   }
 
   .timer-section {
     min-height: auto;
+    margin-left: 0;
+    margin-top: 0;
   }
 
   .timer-circle {
-    width: 400px;
-    height: 400px;
-    padding: 40px;
+    width: 380px;
+    height: 380px;
+    padding: 36px;
+  }
+
+  .mascot-container {
+    display: none; // Hide mascot on tablet/mobile for cleaner layout
   }
 
   .notes-panel {
     width: 100%;
-    min-height: 400px;
+    min-height: auto;
     max-height: none;
   }
 
@@ -1245,100 +1259,443 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .notes-textarea {
-    min-height: 150px;
+    min-height: 120px;
   }
 }
 
 @media (max-width: 768px) {
+  .session-timer-page {
+    min-height: auto;
+  }
+
   .container {
-    padding: 16px 20px;
+    padding: 16px;
+    min-height: auto;
   }
 
   .session-header {
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .btn-back {
+      padding: 8px 14px;
+      font-size: 14px;
+      border-radius: 10px;
+
+      i {
+        font-size: 14px;
+      }
+    }
+
     .activity-title {
-      font-size: 20px;
+      font-size: 18px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 
-  .timer-circle {
-    width: 320px;
-    height: 320px;
-    padding: 30px;
+  .main-content-wrapper {
+    padding: 0;
+    gap: 20px;
+    align-items: stretch;
   }
 
-  .timer-display-box {
-    padding: 16px 32px;
+  .timer-section {
+    min-height: auto;
+    margin-left: 0;
+    perspective: none;
+  }
 
-    .time-value {
-      font-size: 36px;
+  .timer-circle {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1;
+    height: auto;
+    padding: 20px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+
+    &::before {
+      display: none;
     }
   }
 
   .timer-top {
+    margin-bottom: 12px;
+    gap: 8px;
+
     .session-type {
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .cycle-indicator {
       font-size: 14px;
+      padding: 4px 10px;
     }
   }
 
   .phase-labels {
+    gap: 20px;
+    margin-bottom: 16px;
+    width: 100%;
+    justify-content: center;
+
     .phase-label {
-      font-size: 16px;
+      font-size: 18px;
+      padding: 4px 12px;
+
+      &.active {
+        transform: scale(1.05);
+      }
+
+      .phase-time {
+        font-size: 11px;
+      }
+
+      &::after {
+        display: none;
+      }
+    }
+  }
+
+  .timer-display-box {
+    padding: 16px 32px;
+    min-width: 160px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+
+    .time-value {
+      font-size: 36px;
+      letter-spacing: 2px;
+    }
+
+    .edit-icon {
+      display: none;
     }
   }
 
   .timer-controls {
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
   }
 
   .btn-timer-control {
-    padding: 12px 32px;
-    font-size: 14px;
-    min-width: 120px;
+    padding: 10px 20px;
+    font-size: 13px;
+    border-radius: 10px;
+    min-width: auto;
+    flex: none;
+  }
+
+  .btn-stop {
+    padding: 10px 18px;
+    font-size: 13px;
+    border-radius: 10px;
+    min-width: auto;
+    flex: none;
   }
 
   .btn-fast-forward {
-    width: 44px;
-    height: 44px;
-    padding: 12px;
+    width: 38px;
+    height: 38px;
+    padding: 8px;
+    flex-shrink: 0;
 
     i {
-      font-size: 18px;
+      font-size: 14px;
+    }
+  }
+
+  .early-complete-section {
+    margin-top: 8px;
+  }
+
+  .btn-early-complete {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 6px;
+
+    i {
+      font-size: 10px;
     }
   }
 
   .notes-panel {
     padding: 16px;
+    min-height: auto;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .panel-header {
+    .notes-label {
+      font-size: 15px;
+    }
+
+    .btn-ai-suggest {
+      width: 34px;
+      height: 34px;
+      font-size: 14px;
+    }
+
+    .btn-add-todo {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+
+      .todo-label {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .todo-list {
+    max-height: 120px;
+    gap: 8px;
+  }
+
+  .todo-item {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 8px;
+
+    .todo-checkbox {
+      width: 16px;
+      height: 16px;
+    }
+
+    .todo-text {
+      font-size: 13px;
+    }
+
+    .btn-remove-todo {
+      width: 20px;
+      height: 20px;
+
+      i {
+        font-size: 10px;
+      }
+    }
+  }
+
+  .notes-textarea {
+    min-height: 150px;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 8px;
   }
 }
 
 @media (max-width: 480px) {
-  .timer-circle {
-    width: 280px;
-    height: 280px;
-    padding: 20px;
+  .container {
+    padding: 12px;
   }
 
-  .timer-display-box {
-    padding: 12px 24px;
+  .session-header {
+    gap: 8px;
+    margin-bottom: 12px;
 
-    .time-value {
-      font-size: 28px;
+    .btn-back {
+      padding: 6px 10px;
+      font-size: 13px;
+
+      span {
+        display: none;
+      }
     }
+
+    .activity-title {
+      font-size: 16px;
+    }
+  }
+
+  .main-content-wrapper {
+    gap: 16px;
+  }
+
+  .timer-circle {
+    max-width: 280px;
+    aspect-ratio: 1;
+    padding: 16px;
+    overflow: hidden;
   }
 
   .timer-top {
     flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 4px;
+    margin-bottom: 8px;
+
+    .session-type {
+      font-size: 16px;
+    }
+
+    .cycle-indicator {
+      font-size: 12px;
+      padding: 2px 8px;
+    }
   }
 
   .phase-labels {
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 12px;
+
+    .phase-label {
+      font-size: 16px;
+      padding: 2px 10px;
+    }
+  }
+
+  .timer-display-box {
+    padding: 12px 24px;
+    min-width: 140px;
+    margin-bottom: 12px;
+
+    .time-value {
+      font-size: 32px;
+      letter-spacing: 1px;
+    }
+  }
+
+  .timer-controls {
+    gap: 5px;
+    max-width: 240px;
+  }
+
+  .btn-timer-control {
+    padding: 8px 16px;
+    font-size: 12px;
+    flex: none;
+  }
+
+  .btn-stop {
+    padding: 8px 14px;
+    font-size: 12px;
+    flex: none;
+  }
+
+  .btn-fast-forward {
+    width: 34px;
+    height: 34px;
+
+    i {
+      font-size: 12px;
+    }
+  }
+
+  .btn-early-complete {
+    padding: 5px 10px;
+    font-size: 10px;
+
+    i {
+      font-size: 10px;
+    }
+  }
+
+  .notes-panel {
+    padding: 12px;
+  }
+
+  .panel-header {
+    .notes-label {
+      font-size: 14px;
+    }
+
+    .header-actions {
+      gap: 6px;
+    }
+
+    .btn-ai-suggest {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+    }
+
+    .btn-add-todo {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+  }
+
+  .todo-list {
+    max-height: 100px;
+    gap: 6px;
+  }
+
+  .todo-item {
+    padding: 6px 8px;
+    gap: 6px;
+
+    .todo-checkbox {
+      width: 14px;
+      height: 14px;
+    }
+
+    .todo-text {
+      font-size: 12px;
+    }
+  }
+
+  .notes-textarea {
+    min-height: 120px;
+    font-size: 12px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 360px) {
+  .timer-circle {
+    max-width: 260px;
+    aspect-ratio: 1;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .timer-display-box {
+    padding: 8px 16px;
+
+    .time-value {
+      font-size: 24px;
+    }
+  }
+
+  .phase-labels .phase-label {
+    font-size: 13px;
+  }
+
+  .timer-controls {
+    gap: 4px;
+    max-width: 220px;
+  }
+
+  .btn-timer-control {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .btn-stop {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .btn-fast-forward {
+    width: 30px;
+    height: 30px;
+
+    i {
+      font-size: 10px;
+    }
+  }
+
+  .btn-early-complete {
+    padding: 4px 8px;
+    font-size: 9px;
   }
 }
 

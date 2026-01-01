@@ -1,4 +1,3 @@
-// Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -27,7 +26,6 @@ $toggle-bg-inactive: #D0D0D0;
   position: relative;
 }
 
-// Mobile Overlay
 .mobile-overlay {
   display: none;
   position: fixed;
@@ -76,7 +74,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Sidebar Close Button
 .sidebar-close-btn {
   position: absolute;
   top: 16px;
@@ -273,14 +270,16 @@ $toggle-bg-inactive: #D0D0D0;
   width: 250px;
 }
 
-// Responsive adjustments
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease, width 0.3s ease;
+    width: 250px;
+    transform: translateX(-260px);
+    transition: transform 0.3s ease;
+    visibility: hidden;
     
     &.expanded {
       transform: translateX(0);
+      visibility: visible;
       box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
     }
   }
@@ -291,7 +290,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Main content
 .main-content {
   margin-left: 72px;
   flex: 1;
@@ -354,7 +352,6 @@ $toggle-bg-inactive: #D0D0D0;
   
   i {
     display: block;
-    font-size: 18px;
   }
 }
 
@@ -388,11 +385,117 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// OLD SETTINGS CONTAINER - REMOVED FOR NEW CARD DESIGN
+.save-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  animation: badgeFadeIn 0.3s ease;
+  margin-top: 12px;
+  
+  i {
+    font-size: 12px;
+  }
+  
+  &.saving {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+  }
+  
+  &.saved {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    
+    i {
+      animation: checkBounce 0.4s ease;
+    }
+  }
+}
 
+.save-toast {
+  display: none; 
+}
 
+@keyframes badgeFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
-// Centered Loading Overlay
+@keyframes checkBounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .save-badge {
+    display: none; 
+  }
+  
+  .save-toast {
+    display: flex;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    animation: toastSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    
+    i {
+      font-size: 16px;
+    }
+    
+    &.saving {
+      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+      color: white;
+      box-shadow: 0 8px 24px rgba(107, 114, 128, 0.3);
+    }
+    
+    &.saved {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+      
+      i {
+        animation: checkBounce 0.4s ease;
+      }
+    }
+  }
+  
+  @keyframes toastSlideUp {
+    0% {
+      transform: translateX(-50%) translateY(100px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -468,7 +571,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Simple Settings Grid Layout
 .settings-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -484,7 +586,6 @@ $toggle-bg-inactive: #D0D0D0;
   border: 1px solid var(--border);
 }
 
-// Clean Settings Container - Full Width
 .settings-container {
   flex: 1;
   padding: 40px;
@@ -510,7 +611,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Full-Width Row-Based Settings Sections
 .settings-sections {
   display: flex;
   flex-direction: column;
@@ -691,7 +791,6 @@ $toggle-bg-inactive: #D0D0D0;
   box-shadow: none;
 }
 
-// Settings Modal
 .settings-modal {
   position: fixed;
   top: 0;
@@ -799,8 +898,7 @@ $toggle-bg-inactive: #D0D0D0;
       font-size: 14px;
     }
   }
-  
-  // For delete/confirmation modals
+
   .warning-icon {
     width: 32px;
     height: 32px;
@@ -813,8 +911,7 @@ $toggle-bg-inactive: #D0D0D0;
   max-height: 60vh;
   overflow-y: auto;
   color: #2C3E50 !important;
-  
-  // For delete/confirmation modals
+
   .modal-text {
     font-size: 16px;
     color: #2C3E50;
@@ -857,7 +954,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Settings Items - Modal Style
 .setting-item {
   display: flex;
   align-items: center;
@@ -914,9 +1010,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Remove duplicate styles - now handled in .setting-item above
-
-// Toggle Switch
 .toggle-switch {
   position: relative;
   width: 56px;
@@ -969,7 +1062,6 @@ $toggle-bg-inactive: #D0D0D0;
   background-color: #000000;
 }
 
-// Data Buttons
 .data-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1005,9 +1097,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-
-
-// Responsive Design
 @media (max-width: 768px) {
   .sidebar {
     width: 56px;
@@ -1029,6 +1118,7 @@ $toggle-bg-inactive: #D0D0D0;
   .main-content {
     margin-left: 0 !important;
     width: 100% !important;
+    overflow-x: hidden;
   }
   
   .hamburger-btn {
@@ -1041,128 +1131,339 @@ $toggle-bg-inactive: #D0D0D0;
   }
   
   .settings-container {
-    padding: 24px 16px;
+    padding: 16px 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
   
   .settings-header {
-    margin-bottom: 24px;
-    
-    .settings-title {
-      font-size: 24px;
-    }
-    
-    .settings-subtitle {
-      font-size: 14px;
-    }
-  }
-  
-  .settings-sections {
-    gap: 16px;
-  }
-  
-  .section-header {
-    padding: 20px 24px;
-    
-    .section-icon {
-      width: 40px;
-      height: 40px;
-      margin-right: 12px;
-      
-      i {
-        font-size: 18px;
-      }
-    }
-    
-    .section-title {
-      font-size: 18px;
-    }
-    
-    .section-description {
-      font-size: 13px;
-    }
-  }
-  
-  .setting-row {
-    padding: 16px 24px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    
-    .setting-info {
-      margin-right: 0;
-      width: 100%;
-    }
-    
-    .setting-control {
-      width: 100%;
-      justify-content: flex-end;
-    }
-    
-    .action-btn {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-  
-  .header {
-    padding: 16px 24px;
-  }
-}
-
-@media (max-width: 480px) {
-  .settings-container {
-    padding: 20px 12px;
-  }
-  
-  .settings-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     
     .settings-title {
       font-size: 20px;
     }
     
     .settings-subtitle {
+      font-size: 12px;
+    }
+  }
+  
+  .settings-sections {
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .settings-section-card {
+    border-radius: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .section-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .section-header {
+    padding: 12px;
+    flex-direction: row;
+    gap: 10px;
+    
+    .section-title-group {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      
+      .section-title {
+        font-size: 14px;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      
+      .section-description {
+        font-size: 11px;
+      }
+    }
+    
+    .section-icon {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      
+      i {
+        font-size: 14px;
+      }
+    }
+  }
+  
+  .setting-row {
+    padding: 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: auto;
+    
+    .setting-info {
+      margin-right: 0;
+      flex: 1;
+      min-width: 0;
+      
+      .setting-label {
+        font-size: 13px;
+      }
+      
+      .setting-description {
+        font-size: 11px;
+      }
+    }
+    
+    .setting-control {
+      flex-shrink: 0;
+    }
+    
+    .toggle-switch {
+      flex-shrink: 0;
+    }
+
+    &:has(.sound-select),
+    &:has(.volume-slider),
+    &:has(.theme-toggle-container),
+    &:has(.action-btn) {
+      flex-direction: column;
+      align-items: flex-start;
+      
+      .setting-control {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
+    
+    .action-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 14px;
       font-size: 13px;
     }
   }
   
-  .settings-tabs {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .header {
+    padding: 12px 14px;
     
-    .tab-card {
-      padding: 20px 16px;
+    .page-title {
+      font-size: 18px;
+    }
+  }
+
+  .sound-select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+    box-sizing: border-box;
+  }
+  
+  .test-btn {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+    justify-content: center;
+  }
+  
+  .volume-slider {
+    width: 100%;
+  }
+
+  .theme-toggle-container {
+    align-self: flex-start;
+  }
+  
+  .theme-toggle-switch {
+    .theme-toggle-track {
+      width: 64px;
+      height: 32px;
       
-      .tab-icon {
-        width: 24px;
-        height: 24px;
-        margin-bottom: 8px;
+      .theme-toggle-thumb {
+        width: 28px;
+        height: 28px;
         
-        i {
-          font-size: 10px;
+        .theme-icon i {
+          font-size: 12px;
         }
       }
+    }
+    
+    &.dark .theme-toggle-track .theme-toggle-thumb {
+      transform: translateX(32px);
+    }
+    
+    .theme-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+      gap: 12px;
       
-      .tab-title {
-        font-size: 13px;
-      }
-      
-      .tab-description {
-        font-size: 11px;
+      .theme-label {
+        font-size: 10px;
       }
     }
   }
+
+  .toggle-switch {
+    width: 46px;
+    height: 26px;
+  }
+  
+  .toggle-label {
+    &::after {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .toggle-input:checked + .toggle-label::after {
+    transform: translateX(20px);
+  }
+  
+  .modal-content {
+    width: 92%;
+    max-width: none;
+    margin: 16px;
+    max-height: 85vh;
+  }
+  
+  .modal-header {
+    padding: 14px;
+    
+    .modal-title {
+      font-size: 15px;
+    }
+  }
+  
+  .modal-body {
+    padding: 14px;
+    
+    .modal-text {
+      font-size: 13px;
+    }
+    
+    .modal-warning {
+      font-size: 13px;
+    }
+    
+    .delete-list li {
+      font-size: 13px;
+    }
+  }
+  
+  .modal-actions {
+    padding: 14px;
+    gap: 8px;
+    
+    .modal-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+  }
+  
+  .profile-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
 
+@media (max-width: 480px) {
+  .settings-container {
+    padding: 12px 10px;
+  }
+  
+  .settings-header {
+    margin-bottom: 12px;
+    
+    .settings-title {
+      font-size: 18px;
+    }
+    
+    .settings-subtitle {
+      font-size: 11px;
+    }
+  }
+  
+  .section-header {
+    padding: 10px;
+    
+    .section-title-group {
+      .section-title {
+        font-size: 13px;
+      }
+      
+      .section-description {
+        font-size: 10px;
+      }
+    }
+    
+    .section-icon {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+  
+  .setting-row {
+    padding: 10px;
+    gap: 8px;
+    
+    .setting-info {
+      .setting-label {
+        font-size: 12px;
+      }
+      
+      .setting-description {
+        font-size: 10px;
+      }
+    }
+    
+    .action-btn {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+  }
+  
+  .header {
+    padding: 10px 12px;
+    
+    .page-title {
+      font-size: 16px;
+    }
+  }
+  
+  .profile-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}
 
-// Setting Description
 .setting-description {
   font-size: 14px;
   color: var(--muted);
   margin: 4px 0 0 0;
 }
 
-// Setting Control (for dropdowns and buttons)
 .setting-control {
   display: flex;
   gap: 12px;
@@ -1170,49 +1471,67 @@ $toggle-bg-inactive: #D0D0D0;
 }
 
 .sound-select {
-  padding: 8px 16px;
-  border: 1px solid #DEE2E6;
-  border-radius: 8px;
-  background-color: #FFFFFF;
-  color: #2C3E50;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--card);
+  color: var(--text);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235FA9A4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
+  min-width: 140px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
   
   option {
-    background-color: #FFFFFF;
-    color: #2C3E50;
+    background-color: var(--card);
+    color: var(--text);
+    padding: 12px;
   }
   
   &:hover {
-    border-color: #5FA9A4;
+    border-color: $primary-teal;
+    box-shadow: 0 4px 8px rgba(95, 169, 164, 0.1);
   }
   
   &:focus {
     outline: none;
-    border-color: #5FA9A4;
-    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+    border-color: $primary-teal;
+    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.15);
   }
 }
 
 .test-btn {
-  padding: 8px 16px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
-  background-color: $primary-teal;
+  border-radius: 10px;
+  background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
   color: $text-white;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
+  
+  i {
+    font-size: 14px;
+  }
   
   &:hover {
-    background-color: $primary-teal-dark;
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, $primary-teal-dark 0%, darken($primary-teal-dark, 5%) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(95, 169, 164, 0.35);
   }
   
   &:active {
@@ -1220,7 +1539,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Volume Slider
 .volume-slider {
   width: 100%;
   height: 8px;
@@ -1291,8 +1609,7 @@ $toggle-bg-inactive: #D0D0D0;
       transform: scale(1.05);
     }
   }
-  
-  // Focus styles for accessibility
+
   &:focus {
     &::-webkit-slider-thumb {
       box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.2);
@@ -1304,7 +1621,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Info Box
 .info-box {
   display: flex;
   align-items: flex-start;
@@ -1330,7 +1646,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Responsive adjustments for new elements
 @media (max-width: 768px) {
   .setting-control {
     flex-direction: column;
@@ -1356,8 +1671,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-
-// Modern Theme Toggle (like social media apps)
 .theme-toggle-container {
   display: flex;
   align-items: center;
@@ -1419,8 +1732,7 @@ $toggle-bg-inactive: #D0D0D0;
       }
     }
   }
-  
-  // Dark mode state
+
   &.dark {
     .theme-toggle-track {
       background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -1434,8 +1746,7 @@ $toggle-bg-inactive: #D0D0D0;
       }
     }
   }
-  
-  // Hover effects
+
   &:hover {
     .theme-toggle-track {
       transform: scale(1.02);
@@ -1446,8 +1757,7 @@ $toggle-bg-inactive: #D0D0D0;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
   }
-  
-  // Active state
+
   &:active {
     .theme-toggle-track {
       transform: scale(0.98);
@@ -1455,8 +1765,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Data Action Items
-// Data Action Items - Updated for new layout
 .data-action-item,
 .account-action-item {
   display: flex;
@@ -1603,7 +1911,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Responsive adjustments for new elements
 @media (max-width: 768px) {
   .data-action-item {
     flex-direction: column;
@@ -1637,7 +1944,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Modal Overlay and Content - Updated for theme support
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1662,8 +1968,7 @@ $toggle-bg-inactive: #D0D0D0;
   width: 90%;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease;
-  
-  // For delete/confirmation modals
+
   &:not(.general-modal):not(.privacy-modal):not(.account-modal):not(.about-modal) {
     padding: 32px;
   }
@@ -1679,8 +1984,6 @@ $toggle-bg-inactive: #D0D0D0;
     opacity: 1;
   }
 }
-
-// Duplicate styles removed - now handled in main modal-header section above
 
 .modal-actions {
   display: flex;
@@ -1728,7 +2031,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Responsive adjustments for modal
 @media (max-width: 768px) {
   .modal-content {
     padding: 24px;
@@ -1755,7 +2057,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Success Modal
 .success-modal {
   max-width: 400px;
   padding: 32px;
@@ -1792,15 +2093,14 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
 }
-/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
+
 :root.theme-dark {
   .settings-page {
     background: linear-gradient(135deg, #18191a 0%, #242526 100%);
     color: #e4e6ea;
     min-height: 100vh;
   }
-  
-  // Sidebar - Facebook style
+
   .sidebar {
     background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
     border-right: 1px solid #3e4042;
@@ -1852,8 +2152,7 @@ $toggle-bg-inactive: #D0D0D0;
       color: inherit;
     }
   }
-  
-  // Header - Facebook style
+
   .header {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border-bottom: 1px solid #3e4042;
@@ -1888,8 +2187,7 @@ $toggle-bg-inactive: #D0D0D0;
       }
     }
   }
-  
-  // Settings sections - Facebook style
+
   .settings-section {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border: 1px solid #3e4042;
@@ -1907,8 +2205,7 @@ $toggle-bg-inactive: #D0D0D0;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
   }
-  
-  // Setting items - Facebook style
+
   .setting-item {
     border-bottom-color: #3e4042;
     
@@ -2055,8 +2352,7 @@ $toggle-bg-inactive: #D0D0D0;
       background-color: rgba(239, 68, 68, 0.05);
     }
   }
-  
-  // Loading overlay dark mode
+
   .loading-overlay {
     background: rgba(0, 0, 0, 0.5);
   }
@@ -2079,8 +2375,7 @@ $toggle-bg-inactive: #D0D0D0;
       }
     }
   }
-  
-  // Modal dark mode - OVERRIDE LIGHT MODE STYLES
+
   .modal-overlay {
     background: rgba(0, 0, 0, 0.8) !important;
   }
@@ -2185,7 +2480,6 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
   
-  // Settings modal specific dark mode styles - OVERRIDE LIGHT MODE
   .setting-item {
     border-bottom-color: #374151 !important;
     
@@ -2305,7 +2599,7 @@ $toggle-bg-inactive: #D0D0D0;
       color: #9CA3AF;
     }
   }
-// About Pomodify Section Specific Styles
+
 .about-section {
   .app-info {
     padding: 40px 24px;
@@ -2417,7 +2711,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Credits Section
 .credits-section {
   padding: 32px 24px;
   text-align: center;
@@ -2451,7 +2744,7 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
 }
-// Specific Modal Content Styles
+
 .general-modal {
   .setting-group {
     .group-title {
@@ -2565,7 +2858,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Modal Footer (for action buttons)
 .modal-footer {
   padding: 16px 24px;
   border-top: 1px solid var(--border);
@@ -2602,34 +2894,3 @@ $toggle-bg-inactive: #D0D0D0;
     }
   }
 }
-
-// Sample Content Structure Comments for Reference
-/*
-GENERAL MODAL CONTENT:
-- Notifications (toggle)
-- Sound Effects (dropdown)
-- Theme (toggle)
-- Language (dropdown)
-- Auto-start breaks (toggle)
-- Auto-start pomodoros (toggle)
-
-PRIVACY MODAL CONTENT:
-- Data Collection (toggle)
-- Export Data (button)
-- Delete All Data (button)
-- Delete Account (button - danger zone)
-
-ACCOUNT MODAL CONTENT:
-- Profile Picture
-- Name (editable)
-- Email (editable)
-- Change Password (button)
-- Logout (button)
-
-ABOUT MODAL CONTENT:
-- App Logo & Name
-- Version Info
-- Description
-- Links (Help, Contact, Privacy Policy, Terms)
-- Credits
-*/
