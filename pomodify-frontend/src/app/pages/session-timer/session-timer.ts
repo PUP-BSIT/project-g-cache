@@ -332,9 +332,13 @@ export class SessionTimerComponent implements OnDestroy {
     const currentMinutes = Math.floor(this.remainingSeconds() / 60);
     const currentSeconds = this.remainingSeconds() % 60;
 
+    // Use responsive width based on screen size
+    const isMobile = window.innerWidth <= 600;
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      width: '900px',
-      disableClose: false
+      width: isMobile ? '300px' : '700px',
+      maxWidth: isMobile ? '300px' : '700px',
+      disableClose: false,
+      panelClass: isMobile ? 'mobile-time-picker-dialog' : 'desktop-time-picker-dialog'
     }) as any;
 
     // Set initial time
@@ -347,12 +351,44 @@ export class SessionTimerComponent implements OnDestroy {
       filter((result): result is TimePickerData => !!result)
     ).subscribe((timeData: TimePickerData) => {
       const totalSeconds = (timeData.minutes * 60) + timeData.seconds;
+      const newFocusMinutes = Math.ceil(totalSeconds / 60); // Round up to nearest minute for focusTimeInMinutes
+      
+      console.log('⏱️ Time picker closed with:', { minutes: timeData.minutes, seconds: timeData.seconds, totalSeconds, newFocusMinutes });
       
       // Update the sync service with new time
       this.timerSyncService.setRemainingSeconds(totalSeconds);
       
+      // Get current session status (not the captured one from dialog open)
+      const currentSession = this.session();
+      const actId = this.activityId();
+      
+      // Update local session state with new focus time
+      if (currentSession) {
+        this.session.set({
+          ...currentSession,
+          focusTimeInMinutes: newFocusMinutes,
+          remainingPhaseSeconds: totalSeconds
+        });
+      }
+      
+      // Sync focus time to backend (fire and forget)
+      if (currentSession && actId) {
+        this.sessionService.updateSession(actId, currentSession.id, {
+          focusTimeInMinutes: newFocusMinutes
+        }).pipe(
+          catchError(err => {
+            console.warn('Failed to sync focus time to backend:', err);
+            return of(null);
+          })
+        ).subscribe(updated => {
+          if (updated) {
+            console.log('✅ Focus time synced to backend:', updated.focusTimeInMinutes);
+          }
+        });
+      }
+      
       // If timer is running, restart it with the new time
-      if (sess.status === 'IN_PROGRESS') {
+      if (currentSession?.status === 'IN_PROGRESS') {
         this.timerSyncService.startTimer();
       }
     });
@@ -413,17 +449,21 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Capture current remaining time BEFORE pausing
+    const currentRemaining = this.timerSyncService.remainingSeconds();
+
     // Pause timer sync service
     this.timerSyncService.pauseTimer();
 
     // Update local state immediately
     const pausedSession: PomodoroSession = {
       ...sess,
-      status: 'PAUSED'
+      status: 'PAUSED',
+      remainingPhaseSeconds: currentRemaining
     };
     this.session.set(pausedSession);
 
-    // Try to sync with backend
+    // Try to sync with backend (fire and forget - don't update local state from response)
     this.sessionService.pauseSession(actId, sess.id).pipe(
       catchError(err => {
         console.log('[Session Timer] Pause sync failed, continuing with local state:', err);
@@ -432,8 +472,13 @@ export class SessionTimerComponent implements OnDestroy {
     ).subscribe({
       next: (updated) => {
         if (updated) {
-          this.session.set(updated);
-          this.timerSyncService.updateFromSession(updated);
+          // Only update session metadata, NOT the timer state
+          // Keep our local remaining time as the source of truth
+          this.session.set({
+            ...updated,
+            remainingPhaseSeconds: currentRemaining
+          });
+          // Don't call updateFromSession - it would overwrite our correct local timer
         }
       }
     });
@@ -599,8 +644,8 @@ export class SessionTimerComponent implements OnDestroy {
     // The timer sync service will continue tracking time in the background
     // When user returns, it will restore the correct timer state
     
-    // Navigate back to activities page
-    this.router.navigate(['/activities']);
+    // Navigate back to sessions list for this activity
+    this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
   }
 
   /* -------------------- ERROR HANDLING -------------------- */

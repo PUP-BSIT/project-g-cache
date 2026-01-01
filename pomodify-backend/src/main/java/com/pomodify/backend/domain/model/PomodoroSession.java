@@ -89,6 +89,9 @@ public class PomodoroSession {
     @Builder.Default
     private Long totalPausedDurationSeconds = 0L;
 
+    @Column(name = "remaining_seconds_at_pause")
+    private Long remainingSecondsAtPause;
+
     @Column(name = "cycles_completed", nullable = false)
     @Builder.Default
     private Integer cyclesCompleted = 0;
@@ -161,6 +164,12 @@ public class PomodoroSession {
     public Duration getRemainingTime() {
         Duration phaseDuration = getCurrentPhaseDuration();
         
+        // If paused and we have stored remaining time, return it
+        if (status == SessionStatus.PAUSED && remainingSecondsAtPause != null) {
+            return Duration.ofSeconds(remainingSecondsAtPause);
+        }
+        
+        // If not in progress or no phase start time, return full phase duration
         if (status != SessionStatus.IN_PROGRESS || phaseStartedAt == null) {
             return phaseDuration;
         }
@@ -168,11 +177,7 @@ public class PomodoroSession {
         // Calculate elapsed time in current phase
         Duration elapsedInPhase = Duration.between(phaseStartedAt, LocalDateTime.now());
         
-        // Subtract any paused time
-        Duration totalPausedDuration = Duration.ofSeconds(totalPausedDurationSeconds != null ? totalPausedDurationSeconds : 0);
-        Duration actualElapsed = elapsedInPhase.minus(totalPausedDuration);
-        
-        Duration remaining = phaseDuration.minus(actualElapsed);
+        Duration remaining = phaseDuration.minus(elapsedInPhase);
         return remaining.isNegative() ? Duration.ZERO : remaining;
     }
 
@@ -212,9 +217,19 @@ public class PomodoroSession {
         }
 
         this.status = SessionStatus.IN_PROGRESS;
-        this.startedAt = LocalDateTime.now();
-        // Don't reset phaseStartedAt - keep the original phase start time
-        // totalPausedDurationSeconds already accounts for paused time
+        
+        // Reset phase start time based on remaining time at pause
+        // This ensures getRemainingTime() calculates correctly from now
+        if (this.remainingSecondsAtPause != null) {
+            Duration phaseDuration = getCurrentPhaseDuration();
+            long elapsedSeconds = phaseDuration.getSeconds() - this.remainingSecondsAtPause;
+            this.phaseStartedAt = LocalDateTime.now().minusSeconds(elapsedSeconds);
+        } else {
+            this.phaseStartedAt = LocalDateTime.now();
+        }
+        
+        // Clear the stored remaining time
+        this.remainingSecondsAtPause = null;
     }
 
     public void pauseSession() {
@@ -224,14 +239,10 @@ public class PomodoroSession {
             throw new IllegalStateException("Pomodoro Session is not in progress and cannot be paused");
         }
 
-        this.status = SessionStatus.PAUSED;
+        // Store the remaining time before changing status
+        this.remainingSecondsAtPause = getRemainingTime().getSeconds();
         
-        // Add the time since last resume to total paused duration
-        if (this.startedAt != null) {
-            Duration pausedDuration = Duration.between(this.startedAt, LocalDateTime.now());
-            this.totalPausedDurationSeconds = (this.totalPausedDurationSeconds != null ? this.totalPausedDurationSeconds : 0) 
-                                            + pausedDuration.getSeconds();
-        }
+        this.status = SessionStatus.PAUSED;
     }
 
     public void stopSession() {
