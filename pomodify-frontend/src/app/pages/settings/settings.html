@@ -85,7 +85,7 @@
     </header>
 
     <!-- Settings Content -->
-    <!-- Toast Notification for Save Status (outside container for proper fixed positioning) -->
+    <!-- Mobile Toast Notification (hidden on desktop via CSS) -->
     @if (autoSaveStatus() === 'saving' || autoSaveStatus() === 'saved') {
       <div class="save-toast" [class.saving]="autoSaveStatus() === 'saving'" [class.saved]="autoSaveStatus() === 'saved'">
         @if (autoSaveStatus() === 'saving') {
@@ -103,6 +103,18 @@
       <div class="settings-header">
         <h1 class="settings-title">Preferences</h1>
         <p class="settings-subtitle">Customize your Pomodify experience</p>
+        <!-- Desktop Inline Badge (hidden on mobile via CSS) -->
+        @if (autoSaveStatus() === 'saving' || autoSaveStatus() === 'saved') {
+          <div class="save-badge" [class.saving]="autoSaveStatus() === 'saving'" [class.saved]="autoSaveStatus() === 'saved'">
+            @if (autoSaveStatus() === 'saving') {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <span>Saving {{ savedSettingName() }}...</span>
+            } @else {
+              <i class="fa-solid fa-check"></i>
+              <span>{{ savedSettingName() }} saved</span>
+            }
+          </div>
+        }
       </div>
 
       <!-- Settings Sections in Row Layout -->
