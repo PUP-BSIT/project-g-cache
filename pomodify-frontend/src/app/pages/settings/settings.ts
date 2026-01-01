@@ -111,7 +111,7 @@ export class Settings implements OnInit, AfterViewInit {
       this.updateThemeState();
     }, 100);
     
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Dark Mode');
   }
 
   private updateThemeState(): void {
@@ -125,7 +125,7 @@ export class Settings implements OnInit, AfterViewInit {
   protected toggleSound(): void {
     const currentEnabled = this.soundEnabled();
     this.settingsService.updateSoundSettings({ enabled: !currentEnabled });
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Notification Sound');
   }
 
   protected onSoundTypeChange(event: Event): void {
@@ -135,14 +135,14 @@ export class Settings implements OnInit, AfterViewInit {
     console.log('Current soundType() before update:', this.soundType());
     this.settingsService.updateSoundSettings({ type });
     console.log('Current soundType() after update:', this.soundType());
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Sound Type');
   }
 
   protected onVolumeChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const volume = parseInt(input.value, 10);
     this.settingsService.updateSoundSettings({ volume });
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Volume');
     console.log('Volume changed to:', volume);
   }
 
@@ -158,13 +158,13 @@ export class Settings implements OnInit, AfterViewInit {
   protected toggleAutoStartBreaks(): void {
     const currentAutoStartBreaks = this.autoStartBreaks();
     this.settingsService.updateAutoStartSettings({ autoStartBreaks: !currentAutoStartBreaks });
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Auto-start Breaks');
   }
 
   protected toggleAutoStartPomodoros(): void {
     const currentAutoStartPomodoros = this.autoStartPomodoros();
     this.settingsService.updateAutoStartSettings({ autoStartPomodoros: !currentAutoStartPomodoros });
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Auto-start Pomodoros');
   }
 
   // Other Settings Methods
@@ -173,7 +173,7 @@ export class Settings implements OnInit, AfterViewInit {
     const newNotificationState = !currentNotifications;
     
     this.settingsService.updateSettings({ notifications: newNotificationState });
-    this.showAutoSaveSuccess();
+    this.showAutoSaveSuccess('Desktop Notifications');
     
     // If enabling notifications, initialize FCM
     if (newNotificationState) {
@@ -220,13 +220,16 @@ export class Settings implements OnInit, AfterViewInit {
 
   // Auto-save feedback
   protected autoSaveStatus = signal<'idle' | 'saving' | 'saved'>('idle');
+  protected savedSettingName = signal<string>('');
 
-  private showAutoSaveSuccess(): void {
+  private showAutoSaveSuccess(settingName: string = 'Settings'): void {
+    this.savedSettingName.set(settingName);
     this.autoSaveStatus.set('saving');
     setTimeout(() => {
       this.autoSaveStatus.set('saved');
       setTimeout(() => {
         this.autoSaveStatus.set('idle');
+        this.savedSettingName.set('');
       }, 2000);
     }, 300);
   }
