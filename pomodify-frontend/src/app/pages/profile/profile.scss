@@ -10,7 +10,6 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-// Header
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -48,7 +47,6 @@
   }
 }
 
-// Content
 .modal-content {
   flex: 1;
   overflow-y: auto;
@@ -57,7 +55,6 @@
   flex-direction: column;
   gap: 12px;
 
-  // Custom scrollbar
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -77,7 +74,6 @@
   }
 }
 
-// Profile Picture Section
 .profile-picture-section {
   display: flex;
   align-items: center;
@@ -148,14 +144,12 @@
   }
 }
 
-// Divider
 .divider {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
   margin: 8px 0;
 }
 
-// Form Section
 .form-section {
   display: flex;
   flex-direction: column;
@@ -179,7 +173,6 @@
   margin-bottom: 4px;
 }
 
-// Form Inputs
 .form-input {
   width: 100%;
   padding: 12px 14px;
@@ -209,7 +202,6 @@
   }
 }
 
-// Inline forms
 .inline-form {
   display: flex;
   gap: 10px;
@@ -244,7 +236,6 @@
   }
 }
 
-// Email display
 .email-display {
   position: relative;
   display: flex;
@@ -268,7 +259,6 @@
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-// Password display
 .password-display {
   display: flex;
   gap: 10px;
@@ -295,7 +285,6 @@
   }
 }
 
-// Add link button
 .btn-add-link {
   background: none;
   border: none;
@@ -313,7 +302,6 @@
   }
 }
 
-// Add backup email button (prominent style)
 .btn-add-backup-email {
   display: flex;
   align-items: center;
@@ -342,13 +330,11 @@
   }
 }
 
-// Backup email section - prevent shrinking
 .backup-email-section {
   min-height: auto;
   flex-shrink: 0;
 }
 
-// Backup email form
 .backup-email-form {
   display: flex;
   flex-direction: column;
@@ -413,7 +399,6 @@
   font-style: italic;
 }
 
-// Verification Container
 .verification-container {
   padding: 20px;
   background: #f0f9fa;
@@ -517,7 +502,6 @@
   }
 }
 
-// Success badge
 .success-badge {
   display: inline-flex;
   align-items: center;
@@ -536,7 +520,6 @@
   }
 }
 
-// Password form
 .password-form {
   display: flex;
   flex-direction: column;
@@ -612,7 +595,6 @@
   }
 }
 
-// Footer
 .modal-footer {
   display: flex;
   gap: 12px;
@@ -660,7 +642,6 @@
   }
 }
 
-// Responsive Design
 @media (max-width: 600px) {
   .profile-modal {
     width: 94vw;
@@ -861,7 +842,6 @@
   }
 }
 
-// Update other elements to use CSS custom properties
 .profile-info-header {
   h3 {
     color: var(--text);
@@ -920,7 +900,6 @@
   color: var(--muted);
 }
 
-// Update scrollbar for theme consistency
 .modal-content {
   &::-webkit-scrollbar-track {
     background: var(--bg);
@@ -935,14 +914,11 @@
   }
 }
 
-// Ensure profile picture section uses theme colors
 .profile-picture-section {
   background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(123, 196, 191, 0.05) 100%);
   border: 2px solid var(--border);
 }
 
-
-// Badges Section (GitHub-style achievements)
 .badges-section {
   padding: 16px;
   background: var(--card);
@@ -1030,7 +1006,6 @@
   text-overflow: ellipsis;
 }
 
-// Custom tooltip
 .badge-tooltip {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -1044,11 +1019,10 @@
   z-index: 100;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease 0.3s; // 0.3s delay before showing/hiding
+  transition: all 0.2s ease 0.3s; 
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border);
 
-  // Arrow
   &::after {
     content: '';
     position: absolute;
@@ -1089,7 +1063,6 @@
   color: #6b7280;
 }
 
-// Responsive badges
 @media (max-width: 600px) {
   .badges-section {
     padding: 10px;
