@@ -413,17 +413,21 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Capture current remaining time BEFORE pausing
+    const currentRemaining = this.timerSyncService.remainingSeconds();
+
     // Pause timer sync service
     this.timerSyncService.pauseTimer();
 
     // Update local state immediately
     const pausedSession: PomodoroSession = {
       ...sess,
-      status: 'PAUSED'
+      status: 'PAUSED',
+      remainingPhaseSeconds: currentRemaining
     };
     this.session.set(pausedSession);
 
-    // Try to sync with backend
+    // Try to sync with backend (fire and forget - don't update local state from response)
     this.sessionService.pauseSession(actId, sess.id).pipe(
       catchError(err => {
         console.log('[Session Timer] Pause sync failed, continuing with local state:', err);
@@ -432,8 +436,13 @@ export class SessionTimerComponent implements OnDestroy {
     ).subscribe({
       next: (updated) => {
         if (updated) {
-          this.session.set(updated);
-          this.timerSyncService.updateFromSession(updated);
+          // Only update session metadata, NOT the timer state
+          // Keep our local remaining time as the source of truth
+          this.session.set({
+            ...updated,
+            remainingPhaseSeconds: currentRemaining
+          });
+          // Don't call updateFromSession - it would overwrite our correct local timer
         }
       }
     });
@@ -599,8 +608,8 @@ export class SessionTimerComponent implements OnDestroy {
     // The timer sync service will continue tracking time in the background
     // When user returns, it will restore the correct timer state
     
-    // Navigate back to activities page
-    this.router.navigate(['/activities']);
+    // Navigate back to sessions list for this activity
+    this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
   }
 
   /* -------------------- ERROR HANDLING -------------------- */
