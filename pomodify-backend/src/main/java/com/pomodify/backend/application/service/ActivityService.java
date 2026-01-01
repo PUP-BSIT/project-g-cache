@@ -51,6 +51,7 @@ public class ActivityService {
     }
 
     /* -------------------- GET -------------------- */
+    @Transactional
     @Cacheable(
             value = "activities",
             key = "{ #command.user(), #command.deleted(), #command.categoryId(), "

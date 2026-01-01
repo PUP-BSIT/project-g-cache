@@ -327,12 +327,16 @@ export class ActivitiesPage implements OnInit {
 
   // Open edit activity modal
   protected openEditActivityModal(activity: ActivityData): void {
+    console.log('[ActivitiesPage] Opening edit modal for activity:', activity);
+    console.log('[ActivitiesPage] Activity categoryName:', activity.categoryName);
+    
     const modalData: CreateActivityModalData = {
       name: activity.activityTitle,
       category: activity.categoryName || '',
       colorTag: activity.colorTag || 'teal',
       estimatedHoursPerWeek: 0,
     };
+    console.log('[ActivitiesPage] Modal data being passed:', modalData);
 
     this.dialog
       .open(EditActivityModal, { data: modalData })
