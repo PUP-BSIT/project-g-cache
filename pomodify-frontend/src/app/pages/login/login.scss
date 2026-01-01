@@ -5,8 +5,24 @@
   align-items: center;
   min-height: 100vh;
   padding: 0;
+  overflow-x: hidden;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
+  filter: blur(0px);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('/assets/images/login-background.png') center/cover no-repeat;
+    background-attachment: fixed;
+    filter: blur(2.5px);
+    z-index: -1;
+  }
 }
 
 .login-header {
@@ -14,19 +30,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 48px 24px 24px;
+  padding: 24px 48px;
   background: transparent;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  box-sizing: border-box;
+  margin-bottom: 0;
 }
 
 .header-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: 16px;
 }
 
 .brand-logo-icon {
@@ -42,22 +56,6 @@
   color: #ffffff;
   letter-spacing: 0.05em;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.brand-logo {
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: 0.05em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-
-  img {
-    height: 32px;
-    width: auto;
-    max-width: 140px;
-    object-fit: contain;
-  }
 }
 
 .header-nav {
@@ -85,11 +83,11 @@
   display: flex;
   width: min(500px, 100%);
   border-radius: 20px;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin-top: 100px;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
 }
 
 .login-card {
@@ -99,6 +97,32 @@
   padding: 48px 40px 40px;
   background: #FFFFFF;
   color: #2C3E50;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: #24505d;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba(36, 80, 93, 0.1);
+    color: #4da1a9;
+  }
+
+  &:active {
+    background-color: rgba(36, 80, 93, 0.2);
+  }
 }
 
 
@@ -344,17 +368,13 @@
   }
 }
 
-@media (max-width: 500px) {
-  .login-card {
-    padding: 40px 24px 32px;
-  }
-
-  .brand-header {
+@media (max-width: 960px) {
+  .login-header {
     padding: 16px 24px;
   }
 
-  .brand-logo {
-    font-size: 24px;
+  .brand-logo-icon {
+    height: 50px;
   }
 
   .header-nav {
@@ -367,7 +387,24 @@
 
   .login-panel {
     width: min(90%, 100%);
-    margin-top: 80px;
+  }
+}
+
+@media (max-width: 500px) {
+  .login-card {
+    padding: 40px 24px 32px;
+  }
+
+  .header-nav {
+    gap: 16px;
+  }
+
+  .nav-link {
+    font-size: 14px;
+  }
+
+  .login-panel {
+    width: min(90%, 100%);
   }
 }
 
