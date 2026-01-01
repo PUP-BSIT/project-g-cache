@@ -94,17 +94,16 @@ export class ActivitiesPage implements OnInit {
   protected categoryDropdownOpen = signal(false);
   protected allCategories = signal<Array<{categoryId: number, categoryName: string}>>([]);
 
-  // Computed categories list - only show categories that have activities
+  // Computed categories list - show all categories from API
   protected categories = computed(() => {
-    // Prefer categories from API - filter to only show categories with activities
+    // Get all categories from API
     const apiCategories = this.allCategories();
     if (apiCategories.length > 0) {
-      const categoriesWithActivities = apiCategories
-        .filter(c => (c as any).activitiesCount > 0)
+      const categoryNames = apiCategories
         .map(c => c.categoryName)
         .sort();
-      console.log('[ActivitiesPage] Categories with activities:', categoriesWithActivities);
-      return categoriesWithActivities;
+      console.log('[ActivitiesPage] Categories from API:', categoryNames);
+      return categoryNames;
     }
     
     // Fallback: extract from loaded activities
