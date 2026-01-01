@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Add Montserrat and Inter fonts to the entire app */
 body {
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -11,7 +10,6 @@ body {
   padding: 0;
 }
 
-/* Verify Email Dialog Styles */
 .verify-email-dialog {
   .mat-mdc-dialog-surface {
     border-radius: 16px !important;
@@ -20,12 +18,10 @@ body {
   }
 }
 
-/* Material overrides */
 .mat-mdc-dialog-surface {
   border-radius: 16px !important;
 }
 
-/* Create Session Dialog Styles */
 .create-session-dialog-panel {
   .mat-mdc-dialog-surface {
     border-radius: 16px !important;
@@ -34,9 +30,6 @@ body {
   }
 }
 
-/* Add any other global styles below */
-
-/* Global light/dark CSS variables */
 :root {
   --bg: #F8F9FA;
   --card: #FFFFFF;
@@ -53,11 +46,9 @@ body {
   --border: #1F2937;
 }
 
-/* CRITICAL: Override dark theme variables specifically for public pages */
 :root.theme-dark .landing-page,
 :root.theme-dark .login-page,
 :root.theme-dark .signup-page {
-  /* Force light theme variables to override dark theme */
   --bg: #F8F9FA !important;
   --card: #FFFFFF !important;
   --text: #2C3E50 !important;
@@ -65,15 +56,10 @@ body {
   --border: #DEE2E6 !important;
 }
 
-/* Base surfaces adopt variables ONLY for authenticated pages */
-/* Public pages (landing, login, signup) should NEVER be affected by theme system */
-
-/* Optional helpers for inputs/cards/dividers used across pages */
 .app-card { background: var(--card); border: 1px solid var(--border); }
 .input-surface { background: var(--card); border: 1px solid var(--border); color: var(--text); }
 .divider-surface { background: var(--border); }
 
-/* Force light theme as default for AUTHENTICATED pages only */
 .activities-page,
 .dashboard,
 .settings-page,
@@ -84,7 +70,6 @@ body {
   color: var(--text) !important;
 }
 
-/* Public pages keep their original styling (no theme system) */
 .landing-page,
 .login-page,
 .signup-page {
@@ -92,9 +77,7 @@ body {
   color: initial !important;
 }
 
-/* COMPREHENSIVE LIGHT THEME OVERRIDES - AUTHENTICATED PAGES ONLY */
 :root:not(.theme-dark) {
-  /* Authenticated page backgrounds only */
   .activities-page,
   .dashboard,
   .settings-page,
@@ -104,8 +87,7 @@ body {
     background: var(--bg) !important;
     color: var(--text) !important;
   }
-  
-  /* Public pages exclusion - no theme system */
+
   .landing-page,
   .login-page,
   .signup-page {
@@ -113,7 +95,6 @@ body {
     color: initial !important;
   }
 
-  /* Force light mode for modals */
   .modal-content {
     background: #FFFFFF !important;
     border: 1px solid #DEE2E6 !important;
@@ -161,8 +142,7 @@ body {
     color: #2C3E50 !important;
     border-bottom-color: #DEE2E6 !important;
   }
-  
-  /* Force light mode for sound select */
+
   .sound-select {
     background: #FFFFFF !important;
     color: #2C3E50 !important;
@@ -173,8 +153,7 @@ body {
       color: #2C3E50 !important;
     }
   }
-  
-  /* Force light mode for profile modal */
+
   .profile-modal {
     background: #FFFFFF !important;
     
@@ -223,13 +202,11 @@ body {
       background: linear-gradient(90deg, transparent 0%, #DEE2E6 50%, transparent 100%) !important;
     }
   }
-  
-  /* Force light mode for all modals (privacy/data confirmation modals) */
+
   .modal-overlay {
     background: rgba(0, 0, 0, 0.3) !important;
   }
-  
-  /* Angular Material modal overlays - light mode */
+
   .cdk-overlay-backdrop,
   .mat-overlay-backdrop {
     background: rgba(0, 0, 0, 0.3) !important;
@@ -305,19 +282,16 @@ body {
     }
   }
 
-  /* Sidebar styling */
   .sidebar {
     background-color: var(--card) !important;
     border-right-color: var(--border) !important;
   }
 
-  /* Header styling */
   .header {
     background-color: var(--card) !important;
     border-bottom-color: var(--border) !important;
   }
 
-  /* All card components (excluding landing page) */
   .settings-section,
   .activity-card,
   .focus-card,
@@ -329,10 +303,7 @@ body {
     border-color: var(--border) !important;
     color: var(--text) !important;
   }
-  
-  /* Preserve metric card colors in light mode - don't override them */
-  
-  /* Exclude landing page components */
+
   .landing-page .feature-box,
   .landing-page .hero-section,
   .landing-page .feature-grid {
@@ -341,12 +312,10 @@ body {
     border-color: initial !important;
   }
 
-  /* Navigation elements */
   .nav-icon {
     color: var(--muted) !important;
   }
 
-  /* Text elements */
   .section-title,
   .page-title,
   .activity-name,
@@ -355,7 +324,6 @@ body {
     color: var(--text) !important;
   }
 
-  /* Buttons */
   .hamburger-btn,
   .theme-btn,
   .profile-btn,
@@ -367,7 +335,6 @@ body {
     border-color: var(--border) !important;
   }
 
-  /* Form elements */
   input,
   textarea,
   select,
@@ -377,17 +344,14 @@ body {
     border-color: var(--border) !important;
   }
 
-  /* Override any hardcoded light backgrounds */
   .activities-list,
   .recent-sessions-list,
   .settings-grid {
     background: transparent !important;
   }
-  
-  /* Metric cards now have their colors defined in the theme-specific sections above */
+
 }
 
-/* COMPREHENSIVE DARK THEME OVERRIDES - AUTHENTICATED PAGES ONLY */
 :root.theme-dark {
   /* Authenticated page backgrounds only */
   .activities-page,
@@ -651,40 +615,32 @@ html:not(.theme-dark) .content-section {
   border: 1px solid #DEE2E6 !important;
 }
 
-/* PRESERVE METRIC CARD COLORS IN LIGHT MODE - SAME AS DARK MODE */
 html:not(.theme-dark) .metric-card {
-  /* Default teal gradient for base metric cards */
   background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
   border: none !important;
   color: #FFFFFF !important;
 }
 
 html:not(.theme-dark) .metric-card.streak {
-  /* Red gradient for streak cards */
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%) !important;
 }
 
 html:not(.theme-dark) .metric-card.streak-best {
-  /* Orange gradient for best streak cards */
   background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%) !important;
 }
 
 html:not(.theme-dark) .metric-card.primary {
-  /* Teal gradient for primary cards */
   background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
 }
 
 html:not(.theme-dark) .metric-card.secondary {
-  /* Light teal gradient for secondary cards */
   background: linear-gradient(135deg, #7BC4BF 0%, #9DD9D5 100%) !important;
 }
 
 html:not(.theme-dark) .metric-card.activities {
-  /* Teal gradient for activities cards */
   background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
 }
 
-/* Ensure all metric card text stays white on colored backgrounds in light mode */
 html:not(.theme-dark) .metric-card,
 html:not(.theme-dark) .metric-card *,
 html:not(.theme-dark) .metric-card .metric-header h3,
@@ -693,7 +649,6 @@ html:not(.theme-dark) .metric-card .metric-subtitle {
   color: #FFFFFF !important;
 }
 
-/* Add consistent shadows and hover effects for metric cards in light mode */
 html:not(.theme-dark) .metric-card {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
   transition: all 0.3s ease !important;
@@ -725,14 +680,12 @@ html:not(.theme-dark) .account-action-label {
   color: #2C3E50 !important;
 }
 
-/* Disable any dark mode styles when not in dark theme */
 html:not(.theme-dark) *[class*="dark"],
 html:not(.theme-dark) *[style*="background: linear-gradient"][style*="#"] {
   background: var(--card) !important;
 }
-/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR LIGHT MODE - AUTHENTICATED PAGES ONLY */
+
 html:not(.theme-dark) {
-  /* Exclude public pages from ALL theme overrides */
   .landing-page,
   .landing-page *,
   .login-page,
@@ -744,7 +697,6 @@ html:not(.theme-dark) {
     border-color: initial !important;
   }
 
-  /* All headings and titles - AUTHENTICATED PAGES ONLY */
   .activities-page h1, .activities-page h2, .activities-page h3, .activities-page h4, .activities-page h5, .activities-page h6,
   .dashboard h1, .dashboard h2, .dashboard h3, .dashboard h4, .dashboard h5, .dashboard h6,
   .settings-page h1, .settings-page h2, .settings-page h3, .settings-page h4, .settings-page h5, .settings-page h6,
@@ -763,7 +715,6 @@ html:not(.theme-dark) {
     color: #2C3E50 !important;
   }
 
-  /* All paragraph and body text */
   p, span, div, label,
   .description, .info, .text,
   .activity-info, .session-info,
@@ -773,7 +724,6 @@ html:not(.theme-dark) {
     color: #495057 !important;
   }
 
-  /* Muted/secondary text */
   .muted, .secondary, .light,
   .activity-time, .session-time,
   .metric-subtitle, .status-unit,
@@ -781,7 +731,6 @@ html:not(.theme-dark) {
     color: #6C757D !important;
   }
 
-  /* Navigation text */
   .nav-icon, .nav-text {
     color: #6C757D !important;
   }
@@ -794,13 +743,11 @@ html:not(.theme-dark) {
     color: #FFFFFF !important;
   }
 
-  /* Button text */
   .btn, button, .data-btn, .account-action-btn,
   .data-action-btn, .test-btn {
     color: #2C3E50 !important;
   }
 
-  /* Form elements text */
   input, textarea, select, option {
     color: #2C3E50 !important;
   }
@@ -809,7 +756,6 @@ html:not(.theme-dark) {
     color: #6C757D !important;
   }
 
-  /* Links */
   a {
     color: #5FA9A4 !important;
   }
@@ -818,21 +764,17 @@ html:not(.theme-dark) {
     color: #4D8B87 !important;
   }
 
-  /* Special cases - white text on colored backgrounds */
   .nav-icon.active,
-  // .btn-primary,
   .btn-signup,
   .control-btn,
   .modal-btn.btn-ok {
     color: #FFFFFF !important;
   }
 
-  /* Timer display */
   .timer-value {
     color: #2C3E50 !important;
   }
 
-  /* Status indicators */
   .session-status {
     color: inherit !important;
   }
@@ -850,24 +792,19 @@ html:not(.theme-dark) {
     color: #DC3545 !important;
   }
 }
-/* ADDITIONAL TEXT CONTRAST FIXES */
+
 html:not(.theme-dark) {
-/* Override any white text that might be hidden */
   *:not(.btn-signup){
     color: #2C3E50 !important;
   }
 
-  /* Specific dashboard elements */
   .dashboard .section-title,
   .dashboard .activity-name,
   .dashboard .session-title,
   .dashboard .status-number {
     color: #2C3E50 !important;
   }
-  
-  /* Metric values should stay white on colored backgrounds */
 
-  /* Settings page elements */
   .settings-page .setting-label,
   .settings-page .section-title,
   .settings-page .data-action-label,
@@ -875,14 +812,12 @@ html:not(.theme-dark) {
     color: #2C3E50 !important;
   }
 
-  /* Activities page elements */
   .activities-page .activity-name,
   .activities-page .section-title,
   .activities-page .activity-info {
     color: #2C3E50 !important;
   }
 
-  /* Ensure readability on white cards */
   .activity-card, .session-card, .status-card {
     color: #2C3E50 !important;
   }
@@ -891,22 +826,17 @@ html:not(.theme-dark) {
     color: inherit !important;
   }
   
-  /* Metric cards keep their own text colors (white on colored backgrounds) */
-
-  /* Fix any remaining invisible text */
   .recent-sessions-section *,
   .activities-section *,
   .focus-section *,
   .status-section * {
     color: #2C3E50 !important;
   }
-  
-  /* Exception: metric cards should keep their white text on colored backgrounds */
+
   .metric-card * {
     color: #FFFFFF !important;
   }
 
-  /* Exception for elements that should stay white */
   .nav-icon.active *,
   .btn-primary *,
   .btn-signup *,
@@ -915,8 +845,6 @@ html:not(.theme-dark) {
     color: #FFFFFF !important;
   }
 }
-/* ULTIMATE DARK THEME ENFORCEMENT - HIGHEST SPECIFICITY */
-/* Public pages are completely excluded from dark theme system */
 
 html.theme-dark .sidebar {
   background: #111827 !important;
@@ -960,8 +888,6 @@ html.theme-dark .status-card {
   border: 1px solid #1F2937 !important;
 }
 
-/* Metric cards have their own colored styling in dark mode */
-
 html.theme-dark .section-title,
 html.theme-dark .page-title,
 html.theme-dark .nav-text,
@@ -974,9 +900,7 @@ html.theme-dark .account-action-label {
   color: #E5E7EB !important;
 }
 
-/* COMPREHENSIVE TEXT VISIBILITY FIXES FOR DARK MODE - AUTHENTICATED PAGES ONLY */
 html.theme-dark {
-  /* Exclude public pages from ALL dark theme overrides */
   .landing-page,
   .landing-page *,
   .login-page,
@@ -988,7 +912,6 @@ html.theme-dark {
     border-color: initial !important;
   }
 
-  /* All headings and titles - AUTHENTICATED PAGES ONLY */
   .activities-page h1, .activities-page h2, .activities-page h3, .activities-page h4, .activities-page h5, .activities-page h6,
   .dashboard h1, .dashboard h2, .dashboard h3, .dashboard h4, .dashboard h5, .dashboard h6,
   .settings-page h1, .settings-page h2, .settings-page h3, .settings-page h4, .settings-page h5, .settings-page h6,
@@ -1007,7 +930,6 @@ html.theme-dark {
     color: #E5E7EB !important;
   }
 
-  /* All paragraph and body text */
   p, span, div, label,
   .description, .info, .text,
   .activity-info, .session-info,
@@ -1017,7 +939,6 @@ html.theme-dark {
     color: #D1D5DB !important;
   }
 
-  /* Muted/secondary text */
   .muted, .secondary, .light,
   .activity-time, .session-time,
   .metric-subtitle, .status-unit,
@@ -1025,13 +946,11 @@ html.theme-dark {
     color: #9CA3AF !important;
   }
 
-  /* Button text */
   .btn, button, .data-btn, .account-action-btn,
   .data-action-btn, .test-btn {
     color: #E5E7EB !important;
   }
 
-  /* Form elements text */
   input, textarea, select, option {
     color: #E5E7EB !important;
   }
@@ -1040,7 +959,6 @@ html.theme-dark {
     color: #9CA3AF !important;
   }
 
-  /* Links */
   a {
     color: #7BC4BF !important;
   }
@@ -1049,12 +967,10 @@ html.theme-dark {
     color: #5FA9A4 !important;
   }
 
-  /* Timer display */
   .timer-value {
     color: #E5E7EB !important;
   }
 
-  /* Status indicators */
   .session-status.completed {
     color: #22C55E !important;
   }
@@ -1068,15 +984,11 @@ html.theme-dark {
     color: #EF4444 !important;
   }
 
-  /* Ensure all card content is visible */
   .activity-card *, .session-card *, .status-card *,
   .recent-sessions-section *, .activities-section *, .focus-section *, .status-section * {
     color: #E5E7EB !important;
   }
   
-  /* Metric cards keep their own white text styling */
-
-  /* Exception for elements that should stay white */
   .nav-icon.active *,
   .btn-primary *,
   .btn-signup *,
@@ -1086,7 +998,6 @@ html.theme-dark {
   }
 }
 
-/* FIX SPECIFIC COLORED COMPONENTS IN DARK MODE */
 html.theme-dark .quick-start-card {
   background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
 }
@@ -1108,40 +1019,32 @@ html.theme-dark .quick-start-card .btn-quick-start:hover {
   background: rgba(255, 255, 255, 1) !important;
 }
 
-/* METRIC CARDS IN DARK MODE - DARKER VARIANTS OF SAME COLORS */
 html.theme-dark .metric-card {
-  /* Default darker teal gradient */
   background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
   border: none !important;
   color: #FFFFFF !important;
 }
 
 html.theme-dark .metric-card.streak {
-  /* Darker red gradient for streak cards */
   background: linear-gradient(135deg, #7C2D12 0%, #991B1B 100%) !important;
 }
 
 html.theme-dark .metric-card.streak-best {
-  /* Darker orange gradient for best streak cards */
   background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
 }
 
 html.theme-dark .metric-card.primary {
-  /* Darker teal gradient for primary cards */
   background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
 }
 
 html.theme-dark .metric-card.secondary {
-  /* Darker light teal gradient for secondary cards */
   background: linear-gradient(135deg, #134E4A 0%, #155E56 100%) !important;
 }
 
 html.theme-dark .metric-card.activities {
-  /* Darker teal gradient for activities cards */
   background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
 }
 
-/* Ensure all metric card text stays white on colored backgrounds in dark mode */
 html.theme-dark .metric-card,
 html.theme-dark .metric-card *,
 html.theme-dark .metric-card .metric-header h3,
@@ -1150,7 +1053,6 @@ html.theme-dark .metric-card .metric-subtitle {
   color: #FFFFFF !important;
 }
 
-/* Add consistent shadows and hover effects for metric cards in dark mode */
 html.theme-dark .metric-card {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4) !important;
   transition: all 0.3s ease !important;
@@ -1161,7 +1063,6 @@ html.theme-dark .metric-card:hover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* FORCE NEW SETTINGS LAYOUT */
 .settings-page .settings-container {
   max-width: 800px !important;
   margin: 0 auto !important;
@@ -1200,20 +1101,17 @@ html.theme-dark .signup-page,
 html.theme-dark .login-container,
 html.theme-dark .signup-container,
 html.theme-dark .landing-container {
-  /* FORCE WHITE THEME - MAXIMUM PRIORITY */
   --bg: #F8F9FA !important;
   --card: #FFFFFF !important;
   --text: #2C3E50 !important;
   --muted: #6C757D !important;
   --border: #DEE2E6 !important;
-  
-  /* FORCE WHITE BACKGROUNDS */
+
   background: #FFFFFF !important;
   background-color: #FFFFFF !important;
   color: #2C3E50 !important;
 }
 
-/* FORCE ORIGINAL CONTAINER GRADIENTS */
 html.theme-dark body .login-container,
 html.theme-dark body .signup-container,
 html.theme-dark .login-container,
@@ -1222,20 +1120,17 @@ html.theme-dark .signup-container {
   color: #2C3E50 !important;
 }
 
-/* MAXIMUM SPECIFICITY: Force ALL elements to light theme */
 html.theme-dark body .landing-page *,
 html.theme-dark body .login-page *,
 html.theme-dark body .signup-page *,
 html.theme-dark .landing-page *,
 html.theme-dark .login-page *,
 html.theme-dark .signup-page * {
-  /* FORCE LIGHT THEME ON EVERYTHING */
   background-color: transparent !important;
   color: #2C3E50 !important;
   border-color: #DEE2E6 !important;
 }
 
-/* MAXIMUM PRIORITY FORM ELEMENT OVERRIDES */
 html.theme-dark body .login-page input,
 html.theme-dark body .login-page textarea,
 html.theme-dark body .login-page select,
@@ -1252,14 +1147,12 @@ html.theme-dark .signup-page input,
 html.theme-dark .signup-page textarea,
 html.theme-dark .signup-page select,
 html.theme-dark .signup-page button {
-  /* FORCE ORIGINAL FORM STYLING */
   background: rgba(255, 255, 255, 0.9) !important;
   background-color: rgba(255, 255, 255, 0.9) !important;
   color: #2c5f63 !important;
   border-color: rgba(77, 161, 169, 0.35) !important;
 }
 
-/* MAXIMUM PRIORITY FOCUS STATES */
 html.theme-dark body .login-page input:focus,
 html.theme-dark body .signup-page input:focus,
 html.theme-dark .login-page input:focus,
@@ -1270,7 +1163,6 @@ html.theme-dark .signup-page input:focus {
   color: #2c5f63 !important;
 }
 
-/* MAXIMUM PRIORITY BUTTON OVERRIDES */
 html.theme-dark body .login-page .btn-login,
 html.theme-dark body .signup-page .btn-signup,
 html.theme-dark .login-page .btn-login,
@@ -1289,7 +1181,6 @@ html.theme-dark .login-page .btn-google {
   border-color: rgba(91, 154, 158, 0.4) !important;
 }
 
-/* MAXIMUM PRIORITY PLACEHOLDER TEXT */
 html.theme-dark body .login-page input::placeholder,
 html.theme-dark body .signup-page input::placeholder,
 html.theme-dark .login-page input::placeholder,
@@ -1297,7 +1188,6 @@ html.theme-dark .signup-page input::placeholder {
   color: rgba(44, 95, 99, 0.7) !important;
 }
 
-/* MAXIMUM PRIORITY COMPONENT OVERRIDES */
 html.theme-dark body .login-panel,
 html.theme-dark body .signup-panel,
 html.theme-dark body .login-card,
@@ -1311,7 +1201,6 @@ html.theme-dark .signup-card {
   color: #2C3E50 !important;
   border-color: #DEE2E6 !important;
 }
-/* CLEAN SETTINGS STYLING */
 .settings-page {
   background: var(--bg);
 }
@@ -1335,7 +1224,6 @@ html.theme-dark .signup-card {
   padding: 20px;
 }
 
-/* MAXIMUM PRIORITY ILLUSTRATION OVERRIDES */
 html.theme-dark body .login-illustration,
 html.theme-dark body .signup-illustration,
 html.theme-dark .login-illustration,
@@ -1344,7 +1232,6 @@ html.theme-dark .signup-illustration {
   color: #2C3E50 !important;
 }
 
-/* ULTIMATE SAFETY NET: Force text colors on ALL text elements */
 html.theme-dark body .login-page h1,
 html.theme-dark body .login-page h2,
 html.theme-dark body .login-page h3,
@@ -1392,7 +1279,6 @@ html.theme-dark .signup-page a {
   color: #2C3E50 !important;
 }
 
-/* PRESERVE METRIC CARD DECORATIVE ELEMENTS IN BOTH MODES */
 html:not(.theme-dark) .metric-card::before,
 html.theme-dark .metric-card::before {
   content: '' !important;
@@ -1406,7 +1292,6 @@ html.theme-dark .metric-card::before {
   pointer-events: none !important;
 }
 
-/* Light mode decorative elements */
 html:not(.theme-dark) .metric-card::before {
   background: rgba(255, 255, 255, 0.05) !important;
 }
@@ -1423,7 +1308,6 @@ html:not(.theme-dark) .metric-card.activities::before {
   background: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Dark mode decorative elements */
 html.theme-dark .metric-card::before {
   background: rgba(255, 255, 255, 0.03) !important;
 }
@@ -1440,7 +1324,6 @@ html.theme-dark .metric-card.activities::before {
   background: rgba(255, 255, 255, 0.06) !important;
 }
 
-/* DARK MODE MODAL OVERLAYS */
 html.theme-dark .modal-overlay {
   background: rgba(0, 0, 0, 0.6) !important;
 }
@@ -1453,4 +1336,107 @@ html.theme-dark .mat-overlay-backdrop {
 html.theme-dark .cdk-overlay-backdrop.cdk-overlay-backdrop-showing,
 html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
   background: rgba(0, 0, 0, 0.6) !important;
+}
+
+@media (max-width: 576px) {
+  .mat-mdc-dialog-panel.profile-dialog {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+.profile-modal {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.profile-modal .modal-content {
+  box-sizing: border-box !important;
+}
+
+.profile-modal .form-section {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.profile-modal .form-input {
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+  border-radius: 6px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.profile-modal .inline-form,
+.profile-modal .email-display,
+.profile-modal .password-display {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.profile-modal .btn-save-inline,
+.profile-modal .btn-change-password,
+.profile-modal .btn-save-modal,
+.profile-modal .btn-cancel-modal {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+}
+
+.profile-modal .modal-footer {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.logout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.logout-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px 48px;
+  background: var(--card, #ffffff);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text, #2C3E50);
+  }
+}
+
+.logout-spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(95, 169, 164, 0.2);
+  border-top-color: #5FA9A4;
+  border-radius: 50%;
+  animation: logout-spin 0.8s linear infinite;
+}
+
+@keyframes logout-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nav-icon:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

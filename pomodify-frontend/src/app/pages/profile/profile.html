@@ -93,15 +93,8 @@
     </div>
 
     <!-- Backup Email Section -->
-    <div class="form-section">
-      <div class="section-header-row">
-        <label class="section-label">Backup Email</label>
-        @if (!backupEmail()) {
-          <button class="btn-add-link" (click)="toggleBackupEmailForm()">
-            + Add backup email
-          </button>
-        }
-      </div>
+    <div class="form-section backup-email-section">
+      <label class="section-label">Backup Email</label>
       
       @if (backupEmail()) {
         <form [formGroup]="backupEmailForm" class="inline-form">
@@ -124,13 +117,20 @@
         </form>
       }
 
+      @if (!backupEmail() && !showBackupEmailForm()) {
+        <button class="btn-add-backup-email" (click)="toggleBackupEmailForm()">
+          <i class="fa-solid fa-plus"></i>
+          Add backup email
+        </button>
+      }
+
       @if (showBackupEmailForm() && !backupEmail()) {
         <form [formGroup]="backupEmailForm" class="backup-email-form">
           <input 
             type="email" 
             formControlName="backupEmail" 
             class="form-input"
-            placeholder="Email address"
+            placeholder="Enter backup email address"
             autocomplete="off"
           />
           <div class="form-actions-inline">

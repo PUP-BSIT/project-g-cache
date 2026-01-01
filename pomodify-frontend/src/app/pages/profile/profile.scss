@@ -160,6 +160,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .section-label {
@@ -310,6 +311,41 @@
     background: rgba(75, 159, 168, 0.1);
     transform: translateX(2px);
   }
+}
+
+// Add backup email button (prominent style)
+.btn-add-backup-email {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--card);
+  color: #5FA9A4;
+  border: 2px dashed #5FA9A4;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 12px;
+  }
+
+  &:hover {
+    background: rgba(95, 169, 164, 0.1);
+    border-style: solid;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.15);
+  }
+}
+
+// Backup email section - prevent shrinking
+.backup-email-section {
+  min-height: auto;
+  flex-shrink: 0;
 }
 
 // Backup email form

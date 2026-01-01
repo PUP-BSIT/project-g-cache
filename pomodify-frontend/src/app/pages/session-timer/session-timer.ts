@@ -599,8 +599,8 @@ export class SessionTimerComponent implements OnDestroy {
     // The timer sync service will continue tracking time in the background
     // When user returns, it will restore the correct timer state
     
-    // Navigate back immediately
-    (this.router as any).navigate(['/activities', this.activityTitle(), 'sessions']);
+    // Navigate back to activities page
+    this.router.navigate(['/activities']);
   }
 
   /* -------------------- ERROR HANDLING -------------------- */
