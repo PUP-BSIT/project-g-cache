@@ -312,8 +312,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .hamburger-btn {
   display: none;
-  background: none;
-  border: none;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;

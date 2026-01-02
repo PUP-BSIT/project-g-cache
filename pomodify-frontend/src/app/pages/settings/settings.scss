@@ -333,8 +333,8 @@ $toggle-bg-inactive: #D0D0D0;
 
 .hamburger-btn {
   display: none;
-  background: none;
-  border: none;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
@@ -1123,6 +1123,8 @@ $toggle-bg-inactive: #D0D0D0;
   
   .hamburger-btn {
     display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .logo img {
@@ -1258,10 +1260,10 @@ $toggle-bg-inactive: #D0D0D0;
   }
   
   .header {
-    padding: 12px 14px;
+    padding: 16px 24px;
     
     .page-title {
-      font-size: 18px;
+      font-size: 20px;
     }
   }
 
@@ -1376,9 +1378,9 @@ $toggle-bg-inactive: #D0D0D0;
   }
   
   .profile-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
   }
 }
 
@@ -1444,17 +1446,17 @@ $toggle-bg-inactive: #D0D0D0;
   }
   
   .header {
-    padding: 10px 12px;
+    padding: 16px 24px;
     
     .page-title {
-      font-size: 16px;
+      font-size: 20px;
     }
   }
   
   .profile-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
   }
 }
 

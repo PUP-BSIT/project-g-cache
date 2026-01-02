@@ -65,16 +65,21 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   border-right: 1px solid #E0E0E0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   padding: 24px 0;
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
+  max-height: 100vh;
   z-index: 100;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
 
   &.expanded {
     width: 250px;
+    align-items: flex-start;
+    padding: 24px 0;
   }
 }
 
@@ -119,20 +124,38 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 
 .logo {
   margin-bottom: 40px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  position: relative;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 8px 12px;
   width: 72px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  height: 52px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.2s ease;
+  border-radius: 6px;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
 
   img {
     display: block;
     width: 36px;
     height: 36px;
-    margin-left: 18px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    min-width: 36px;
+    margin-left: 6px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .app-name {
@@ -150,7 +173,10 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   width: 250px;
 
   img {
-    margin-left: 16px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    margin-left: 8px;
   }
 
   .app-name {
@@ -298,8 +324,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   background-color: var(--card);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 101;
 }
 
 .header-left {
@@ -317,8 +341,8 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 
 .hamburger-btn {
   display: none;
-  background: none;
-  border: none;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
@@ -1678,8 +1702,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   .sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease, width 0.3s ease;
-    position: fixed;
-    z-index: 101;
 
     &.expanded {
       transform: translateX(0);
@@ -1696,26 +1718,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
-    color: var(--text);
-    font-size: 24px;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease;
-    
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-    
-    &:active {
-      background-color: rgba(0, 0, 0, 0.15);
-    }
-    
-    i {
-      display: block;
-    }
   }
 
   .header {
