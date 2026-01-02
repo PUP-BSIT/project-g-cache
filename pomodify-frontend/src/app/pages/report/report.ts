@@ -207,25 +207,30 @@ export class Report implements OnInit {
       next: (summary) => this.updateFromSummary(summary),
       error: (error) => {
         console.error('Error loading report summary:', error);
-        // Clear all data when there's an error
-        this.totalFocusHours.set(0);
-        this.totalBreakHours.set(0);
-        this.averageSessionLengthMinutes.set(0);
-        this.dailyAverageFocusHours.set(0);
-        this.streakDays.set(0);
-        this.completionRate.set(0);
-        this.sessionsCount.set(0);
-        this.lastMonthAbandonedSessions.set(0);
-        this.periodInfo.set(null);
         
-        // Clear chart data
-        this.focusSeries.set([]);
-        this.chartTicks.set([]);
-        this.currentRangeTotalHours.set(0);
-        this.activityRanking.set([]);
-        this.focusProjects.set([]);
-        this.trends.set([]);
-        this.insights.set([]);
+        // If it's an authentication error, the interceptor will handle redirect
+        // For other errors, clear the data
+        if (error.status !== 401) {
+          // Clear all data when there's an error
+          this.totalFocusHours.set(0);
+          this.totalBreakHours.set(0);
+          this.averageSessionLengthMinutes.set(0);
+          this.dailyAverageFocusHours.set(0);
+          this.streakDays.set(0);
+          this.completionRate.set(0);
+          this.sessionsCount.set(0);
+          this.lastMonthAbandonedSessions.set(0);
+          this.periodInfo.set(null);
+          
+          // Clear chart data
+          this.focusSeries.set([]);
+          this.chartTicks.set([]);
+          this.currentRangeTotalHours.set(0);
+          this.activityRanking.set([]);
+          this.focusProjects.set([]);
+          this.trends.set([]);
+          this.insights.set([]);
+        }
       },
     });
   }
@@ -303,11 +308,8 @@ export class Report implements OnInit {
     this.streakDays.set(streak);
 
     // Build activity breakdown for each label based on recentSessions
-    // Backend already sends proper labels: "Mon", "Tue" for weekly, "1", "2" for monthly, "Jan", "Feb" for yearly
     const points: FocusPoint[] = labels.map((label: string, index: number) => {
-      // Activity breakdown is not currently supported with simplified labels
-      // We would need the backend to send date information with each label for proper matching
-      const activities: ActivityBreakdown[] = [];
+      const activities = this.getActivitiesForDateLabel(label, index, recentSessions, period);
       return {
         label: label,
         dateKey: label,
@@ -376,13 +378,15 @@ export class Report implements OnInit {
     }
   }
 
-  private getActivitiesForDateLabel(label: string, index: number, sessions: any[], dateKey?: string): ActivityBreakdown[] {
+  private getActivitiesForDateLabel(label: string, index: number, sessions: any[], period: any): ActivityBreakdown[] {
     const activityMap: { [key: string]: ActivityBreakdown } = {};
+    const range = this.selectedRange();
+
+    if (!period) return [];
 
     for (const session of sessions) {
-      // Extract date from session and match with label/dateKey
       const sessionDate = new Date(session.date);
-      const isMatch = this.isSessionMatchingLabel(sessionDate, label, index, dateKey);
+      const isMatch = this.isSessionMatchingLabel(sessionDate, label, period, range);
 
       if (isMatch) {
         const activityName = session.activityName || 'Untitled Session';
@@ -404,23 +408,46 @@ export class Report implements OnInit {
     return Object.values(activityMap);
   }
 
-  private isSessionMatchingLabel(date: Date, label: string, index: number, dateKey?: string): boolean {
-    const range = this.selectedRange();
-
+  private isSessionMatchingLabel(sessionDate: Date, label: string, period: any, range: ReportRange): boolean {
     if (range === ReportRange.WEEK) {
-      if (!dateKey) return false;
-      const sessionISO = date.toISOString().slice(0, 10);
-      return sessionISO === dateKey;
+      // For weekly: match day name (Mon, Tue, Wed, etc.)
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const sessionDayName = dayNames[sessionDate.getDay()];
+      
+      // Also check if session is within the period range
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      const sessionDateOnly = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+      
+      return sessionDayName === label && 
+             sessionDateOnly >= periodStart && 
+             sessionDateOnly <= periodEnd;
+             
     } else if (range === ReportRange.MONTH) {
-      // Label format: month name (e.g., 'Jan', 'Feb')
+      // For monthly: match day number (1, 2, 3, etc.)
+      const sessionDay = sessionDate.getDate();
+      const labelDay = parseInt(label);
+      
+      // Also check if it's the same month/year as the period
+      const periodStart = new Date(period.startDate);
+      const sameMonth = sessionDate.getMonth() === periodStart.getMonth();
+      const sameYear = sessionDate.getFullYear() === periodStart.getFullYear();
+      
+      return sessionDay === labelDay && sameMonth && sameYear;
+      
+    } else if (range === ReportRange.YEAR) {
+      // For yearly: match month name (Jan, Feb, Mar, etc.)
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const sessionMonth = monthNames[date.getMonth()];
-      return sessionMonth === label;
-    } else {
-      // YEAR range - Label format: year (e.g., '2025')
-      const sessionYear = date.getFullYear().toString();
-      return sessionYear === label;
+      const sessionMonth = monthNames[sessionDate.getMonth()];
+      
+      // Also check if it's the same year as the period
+      const periodStart = new Date(period.startDate);
+      const sameYear = sessionDate.getFullYear() === periodStart.getFullYear();
+      
+      return sessionMonth === label && sameYear;
     }
+    
+    return false;
   }
 
   private rebuildSeries(points: FocusPoint[]): void {
@@ -546,7 +573,23 @@ export class Report implements OnInit {
   }
 
   protected getTooltipTitle(point: FocusPoint): string {
-    // Backend sends formatted labels, just use them directly
+    const range = this.selectedRange();
+    const period = this.periodInfo();
+    
+    if (range === ReportRange.MONTH && period) {
+      // For monthly view, combine the day number with the month/year from period
+      const dayNumber = parseInt(point.label);
+      if (!isNaN(dayNumber)) {
+        const startDate = new Date(period.startDate);
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthName = monthNames[startDate.getMonth()];
+        const year = startDate.getFullYear();
+        return `${monthName} ${dayNumber}, ${year}`.toUpperCase();
+      }
+    }
+    
+    // For weekly and yearly views, just use the label directly
     return point.label.toUpperCase();
   }
 
