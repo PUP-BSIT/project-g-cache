@@ -10,11 +10,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {
-    path: 'landing',
-    canActivate: [publicPageGuard],
-    loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
-  },
-  {
     path: 'login',
     canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/login/login').then(m => m.Login),
