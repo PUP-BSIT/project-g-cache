@@ -1,6 +1,5 @@
 @use "sass:color";
 
-// Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -25,7 +24,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   position: relative;
 }
 
-// Mobile Overlay
 .mobile-overlay {
   display: none;
   position: fixed;
@@ -53,7 +51,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar 
 .sidebar {
   width: 72px;
   min-width: 72px;
@@ -74,7 +71,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar Close Button
 .sidebar-close-btn {
   position: absolute;
   top: 16px;

@@ -1,4 +1,3 @@
-// Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -52,7 +51,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar
 .sidebar {
   width: 72px;
   min-width: 72px;
@@ -79,7 +77,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar Close Button
 .sidebar-close-btn {
   position: absolute;
   top: 16px;
@@ -362,7 +359,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   width: 250px;
 }
 
-// Responsive adjustments
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -380,7 +376,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Main content
 .main-content {
   margin-left: 72px;
   flex: 1;
@@ -508,7 +503,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   flex: 1;
 }
 
-// Recent Activities Section
 .activities-section {
   display: flex;
   flex-direction: column;
@@ -644,7 +638,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   margin: 0;
 }
 
-// Focus Section
 .focus-section {
   display: flex;
   flex-direction: column;
@@ -788,7 +781,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Status Section
 .status-section {
   display: flex;
   flex-direction: column;
@@ -852,7 +844,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   color: var(--muted);
 }
 
-// Responsive Design
 @media (max-width: 1400px) {
   .content-grid {
     grid-template-columns: 280px 1fr;
@@ -930,7 +921,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Search Section Styling
 .search-section {
   display: flex;
   flex-direction: column;
@@ -975,7 +965,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Category Dropdown Container
 .category-dropdown-container {
   position: relative;
   display: block;
@@ -1090,7 +1079,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Old category filters (kept for reference)
 .category-filters {
   display: none;
 }
@@ -1118,7 +1106,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Content Wrapper
 .content-wrapper {
   display: grid;
   grid-template-columns: 1fr;
@@ -1126,7 +1113,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   min-height: auto;
 }
 
-// Page Content
 .page-content {
   display: flex;
   flex-direction: column;
@@ -1134,7 +1120,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 40px 0;
 }
 
-// Loading and Error States
 .loading-container,
 .error-container {
   display: flex;
@@ -1180,7 +1165,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   to { transform: rotate(360deg); }
 }
 
-// Metrics Section
 .metrics-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1299,7 +1283,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Quick Start Section
 .quick-start-section {
   padding: 0 60px;
   margin-bottom: 32px;
@@ -1407,7 +1390,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Recent Sessions Section
 .recent-sessions-section {
   padding: 0 60px;
   margin-bottom: 32px;
@@ -1595,7 +1577,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Weekly Distribution Section
 .weekly-distribution-section {
   padding: 0 60px;
   margin-bottom: 24px;
@@ -1663,7 +1644,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Empty State (used in recent sessions)
 .empty-recent {
   background: var(--card);
   padding: 48px 24px;
@@ -1767,20 +1747,18 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Grid View Section (for Activities page - keep minimal for navigation)
 .grid-view-section {
-  display: none; // Not used in dashboard
+  display: none; 
 }
 
 .activities-grid {
-  display: none; // Not used in dashboard
+  display: none; 
 }
 
 .activity-card {
-  display: none; // Not used in dashboard - see activities page instead
+  display: none; 
 }
 
-// Pagination
 .pagination-section {
   display: flex;
   align-items: center;
@@ -1820,13 +1798,10 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-weight: 500;
 }
 
-// Detail View Section (removed - no longer displayed)
-// Keeping hidden for reference but not used
 .detail-view-section {
   display: none;
 }
 
-// Responsive Adjustments
 @media (max-width: 1200px) {
   .content-wrapper {
     grid-template-columns: 1fr;
@@ -1861,20 +1836,17 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Stats Section (Removed - Replaced with API metrics)
 .stats-section {
   display: none;
 }
 
-/* -------------------- FACEBOOK-STYLE DARK MODE -------------------- */
 :root.theme-dark {
   .dashboard {
     background: linear-gradient(135deg, #18191a 0%, #242526 100%);
     color: #e4e6ea;
     min-height: 100vh;
   }
-  
-  // Facebook-style metric cards
+
   .metric-card {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%) !important;
     border: 1px solid #3e4042;
@@ -1900,8 +1872,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     .metric-subtitle {
       color: #b0b3b8;
     }
-    
-    // Override all specific card types with dark gradients
+
     &.streak {
       background: linear-gradient(135deg, #7C2D12 0%, #991B1B 100%) !important;
     }
@@ -1918,8 +1889,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       background: linear-gradient(135deg, #0F4C4C 0%, #134E4A 100%) !important;
     }
   }
-  
-  // Override the yellow "Ready to Focus?" section
+
   .quick-start-card {
     background: linear-gradient(135deg, #92400E 0%, #B45309 100%) !important;
     
@@ -1942,8 +1912,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
     }
   }
-  
-  // Sidebar - Facebook style
+
   .sidebar {
     background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
     border-right: 1px solid #3e4042;
@@ -1990,8 +1959,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       border-top: none;
     }
   }
-  
-  // Header - Facebook style
+
   .header {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border-bottom: 1px solid #3e4042;
@@ -2203,8 +2171,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
     }
   }
-  
-  // Time picker and other modals
+
   .time-display {
     background-color: #1F2937;
     color: #E5E7EB;
@@ -2229,8 +2196,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
   }
 }  
-  
-// Sidebar - Facebook style (duplicate section)
+
   .sidebar {
     background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
     border-right: 1px solid #3e4042;
@@ -2277,8 +2243,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       border-top: none;
     }
   }
-  
-  // Header - Facebook style (duplicate section)
+
   .header {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border-bottom: 1px solid #3e4042;
@@ -2410,8 +2375,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
       }
     }
   }
-  
-  // Loading and error states
+
   .loading-container {
     color: #9CA3AF;
     

@@ -1,7 +1,3 @@
-// ============================================
-// MODERN ACTIVITIES LIST PAGE - PROFESSIONAL DESIGN
-// ============================================
-
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -13,10 +9,6 @@ $sidebar-bg: #F8F9FA;
 $card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 
-// ============================================
-// ACTIVITIES PAGE LAYOUT
-// ============================================
-
 .activities-page {
   display: flex;
   min-height: 100vh;
@@ -26,7 +18,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   overflow-x: hidden;
 }
 
-// Mobile Overlay
 .mobile-overlay {
   display: none;
   position: fixed;
@@ -54,10 +45,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// SIDEBAR STYLES
-// ============================================
-
 .sidebar {
   width: 72px;
   min-width: 72px;
@@ -83,7 +70,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// Sidebar Close Button
 .sidebar-close-btn {
   position: absolute;
   top: 16px;
@@ -297,10 +283,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   width: 250px;
 }
 
-// ============================================
-// MAIN CONTENT
-// ============================================
-
 .main-content {
   margin-left: 72px;
   flex: 1;
@@ -402,10 +384,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// PAGE CONTENT AREA
-// ============================================
-
 .page-content {
   flex: 1;
   padding: 40px;
@@ -414,10 +392,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   width: 100%;
   box-sizing: border-box;
 }
-
-// ============================================
-// PAGE HEADER
-// ============================================
 
 .page-header {
   display: flex;
@@ -433,10 +407,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   margin: 0;
   flex: 1;
 }
-
-// ============================================
-// SEARCH AND FILTER SECTION
-// ============================================
 
 .search-section {
   display: flex;
@@ -601,10 +571,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// LOADING STATE
-// ============================================
-
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -634,10 +600,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-// ============================================
-// ERROR STATE
-// ============================================
 
 .error-state {
   display: flex;
@@ -699,10 +661,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 }
-
-// ============================================
-// EMPTY STATE (NO ACTIVITIES)
-// ============================================
 
 .empty-state {
   display: flex;
@@ -767,16 +725,12 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// ACTIVITIES GRID (4 COLUMNS)
-// ============================================
-
 .activities-content {
   display: flex;
   flex-direction: column;
   gap: 32px;
   width: 100%;
-  min-width: 0; // Prevent overflow
+  min-width: 0; 
 }
 
 .activities-grid {
@@ -786,10 +740,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   max-width: 100%;
   width: 100%;
 }
-
-// ============================================
-// ACTIVITY CARD
-// ============================================
 
 .activity-card {
   background: linear-gradient(135deg, $primary-teal 0%, #6BB5B0 100%);
@@ -802,7 +752,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   gap: 12px;
   cursor: pointer;
   color: white;
-  min-width: 0; // Prevent overflow
+  min-width: 0; 
 
   &:hover {
     transform: translateY(-4px);
@@ -810,7 +760,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// Activity Header with Icon and Name
 .activity-card-header {
   display: flex;
   flex-direction: column;
@@ -881,7 +830,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-// Action Buttons
 .card-actions {
   display: flex;
   gap: 8px;
@@ -921,7 +869,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// Add Session Button
 .add-session-btn {
   width: 100%;
   display: flex;
@@ -950,10 +897,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     font-size: 12px;
   }
 }
-
-// ============================================
-// PAGINATION
-// ============================================
 
 .pagination {
   display: flex;
@@ -1010,10 +953,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   box-shadow: $card-shadow;
 }
 
-// ============================================
-// TIMER CONTENT (KEEP FOR OTHER VIEWS)
-// ============================================
-
 .timer-content {
   flex: 1;
   padding: 48px 40px;
@@ -1021,10 +960,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   margin: 0 auto;
   width: 100%;
 }
-
-// ============================================
-// ACTIVITY INFO HEADER
-// ============================================
 
 .activity-info-header {
   display: flex;
@@ -1081,10 +1016,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     font-size: 11px;
   }
 }
-
-// ============================================
-// MODE SELECTOR CARDS
-// ============================================
 
 .mode-selector-cards {
   display: grid;
@@ -1158,10 +1089,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   color: $primary-teal;
   flex-shrink: 0;
 }
-
-// ============================================
-// TIMER MAIN SECTION
-// ============================================
 
 .timer-main-section {
   display: flex;
@@ -1312,10 +1239,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   margin-left: 4px;
 }
 
-// ============================================
-// SETTINGS SECTION
-// ============================================
-
 .settings-section {
   padding: 32px;
   background: white;
@@ -1445,7 +1368,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     opacity: 0.5;
   }
 
-  /* Remove number input arrows */
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -1492,10 +1414,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   color: $primary-teal-dark;
   margin-left: 4px;
 }
-
-// ============================================
-// TIMER CONTROLS
-// ============================================
 
 .timer-controls-section {
   display: flex;
@@ -1615,10 +1533,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// NO ACTIVITY STATE
-// ============================================
-
 .no-activity-state {
   display: flex;
   flex-direction: column;
@@ -1673,10 +1587,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     font-size: 18px;
   }
 }
-
-// ============================================
-// RESPONSIVE DESIGN
-// ============================================
 
 @media (max-width: 1400px) {
   .activities-grid {
@@ -1868,17 +1778,12 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// FACEBOOK-STYLE DARK MODE SUPPORT
-// ============================================
-
 :host-context(.theme-dark) {
   .activities-page {
     background: linear-gradient(135deg, #18191a 0%, #242526 100%);
     color: #e4e6ea;
   }
-  
-  // Header - Facebook style
+
   .header {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border-bottom: 1px solid #3e4042;
@@ -1914,7 +1819,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 
-  // Sidebar - Facebook style
   .sidebar {
     background: linear-gradient(180deg, #242526 0%, #1c1e21 100%);
     border-right: 1px solid #3e4042;
@@ -1962,14 +1866,12 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 
-  // Page content - Facebook style
   .page-content {
     .page-subtitle {
       color: #b0b3b8;
     }
   }
-  
-  // Search section - Facebook style
+
   .search-bar {
     input {
       background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
@@ -2033,7 +1935,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 
-  // Activity cards - Facebook style
   .activity-card {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
     border: 1px solid #3e4042;
@@ -2103,7 +2004,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 
-  // Empty state and error state - Facebook style
   .empty-state,
   .error-state {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
@@ -2137,8 +2037,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
       }
     }
   }
-  
-  // Loading state - Facebook style
+
   .loading-state {
     .spinner {
       border-color: #3e4042;
@@ -2150,7 +2049,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 
-  // Pagination - Facebook style
   .page-btn,
   .page-info {
     background: linear-gradient(135deg, #3a3b3c 0%, #2f3031 100%);
@@ -2164,8 +2062,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
       box-shadow: 0 2px 8px rgba(95, 169, 164, 0.3);
     }
   }
-  
-  // Primary button - Facebook style
+
   .btn-primary {
     background: linear-gradient(135deg, #5FA9A4, #4D8B87);
     box-shadow: 0 4px 16px rgba(95, 169, 164, 0.3);
@@ -2177,11 +2074,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   }
 }
 
-// ============================================
-// MODAL Z-INDEX FIX FOR ACTIVITIES PAGE
-// ============================================
-
-// Ensure all modals appear above activities page content
 :global(.cdk-overlay-container),
 :global(.modal-overlay),
 :global(.mat-dialog-container),
@@ -2194,7 +2086,6 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   z-index: 999 !important;
 }
 
-// Profile modal specific fix
 :global(.profile-modal),
 :global(.modal-content) {
   z-index: 1001 !important;
