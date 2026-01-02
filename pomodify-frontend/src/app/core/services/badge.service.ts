@@ -15,10 +15,6 @@ export interface Badge {
 export class BadgeService {
   constructor(private http: HttpClient) {}
 
-  /**
-   * Fetch all badges earned by the authenticated user
-   * GET /api/v2/badges
-   */
   getUserBadges(): Observable<Badge[]> {
     return this.http.get<Badge[]>(API.BADGES.GET_ALL);
   }

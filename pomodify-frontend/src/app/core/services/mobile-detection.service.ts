@@ -5,19 +5,13 @@ import { Injectable } from '@angular/core';
 })
 export class MobileDetectionService {
 
-  /**
-   * Detect if the current device is mobile
-   * Only uses user agent - screen size and touch are NOT reliable indicators
-   * (laptops can have small screens and touch capability)
-   */
   isMobile(): boolean {
     if (typeof window === 'undefined') return false;
     
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    
-    // Mobile device patterns - ONLY check user agent
+
     const mobilePatterns = [
-      /Android.*Mobile/i,  // Android phones (not tablets)
+      /Android.*Mobile/i,  
       /webOS/i,
       /iPhone/i,
       /iPod/i,
@@ -29,19 +23,14 @@ export class MobileDetectionService {
     
     return mobilePatterns.some(pattern => pattern.test(userAgent));
   }
-
-  /**
-   * Detect if device is tablet
-   */
   isTablet(): boolean {
     if (typeof window === 'undefined') return false;
     
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    
-    // Tablet patterns - ONLY check user agent
+
     const tabletPatterns = [
       /iPad/i,
-      /Android(?!.*Mobile)/i, // Android tablets don't have "Mobile" in user agent
+      /Android(?!.*Mobile)/i, 
       /Tablet/i
     ];
     
