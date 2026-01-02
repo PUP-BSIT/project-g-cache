@@ -92,6 +92,13 @@ public class PomodoroSession {
     @Column(name = "remaining_seconds_at_pause")
     private Long remainingSecondsAtPause;
 
+    @Column(name = "phase_end_time")
+    private LocalDateTime phaseEndTime;
+
+    @Column(name = "phase_notified")
+    @Builder.Default
+    private Boolean phaseNotified = false;
+
     @Column(name = "cycles_completed", nullable = false)
     @Builder.Default
     private Integer cyclesCompleted = 0;
@@ -207,6 +214,10 @@ public class PomodoroSession {
         this.startedAt = LocalDateTime.now();
         this.phaseStartedAt = LocalDateTime.now();
         this.totalPausedDurationSeconds = 0L;
+        
+        // Calculate phase end time for backend notifications
+        this.phaseEndTime = this.phaseStartedAt.plusSeconds(getCurrentPhaseDuration().getSeconds());
+        this.phaseNotified = false;
     }
 
     public void resumeSession() {
@@ -219,14 +230,20 @@ public class PomodoroSession {
         this.status = SessionStatus.IN_PROGRESS;
         
         // Reset phase start time based on remaining time at pause
-        // This ensures getRemainingTime() calculates correctly from now
         if (this.remainingSecondsAtPause != null) {
             Duration phaseDuration = getCurrentPhaseDuration();
             long elapsedSeconds = phaseDuration.getSeconds() - this.remainingSecondsAtPause;
             this.phaseStartedAt = LocalDateTime.now().minusSeconds(elapsedSeconds);
+            
+            // Calculate new phase end time based on remaining seconds
+            this.phaseEndTime = LocalDateTime.now().plusSeconds(this.remainingSecondsAtPause);
         } else {
             this.phaseStartedAt = LocalDateTime.now();
+            this.phaseEndTime = this.phaseStartedAt.plusSeconds(getCurrentPhaseDuration().getSeconds());
         }
+        
+        // Reset notification flag for resumed phase
+        this.phaseNotified = false;
         
         // Clear the stored remaining time
         this.remainingSecondsAtPause = null;
@@ -243,6 +260,9 @@ public class PomodoroSession {
         this.remainingSecondsAtPause = getRemainingTime().getSeconds();
         
         this.status = SessionStatus.PAUSED;
+        
+        // Clear phase end time since timer is paused (no notification needed)
+        this.phaseEndTime = null;
     }
 
     public void stopSession() {
@@ -291,6 +311,10 @@ public class PomodoroSession {
             this.currentPhase = CyclePhase.FOCUS;
             this.cyclesCompleted += 1;
         }
+
+        // Calculate new phase end time and reset notification flag
+        this.phaseEndTime = this.phaseStartedAt.plusSeconds(getCurrentPhaseDuration().getSeconds());
+        this.phaseNotified = false;
 
         checkCompletion();
         return this;
