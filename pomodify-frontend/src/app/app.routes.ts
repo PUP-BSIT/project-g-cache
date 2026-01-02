@@ -23,6 +23,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/signup/signup').then(m => m.Signup),
   },
   {
+    path: 'reset-password',
+    canActivate: [publicPageGuard],
+    loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPasswordPage),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard),
