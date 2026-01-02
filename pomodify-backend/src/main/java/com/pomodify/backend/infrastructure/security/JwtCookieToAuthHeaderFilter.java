@@ -21,6 +21,14 @@ public class JwtCookieToAuthHeaderFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String uri = request.getRequestURI();
+        
+        // Skip filter for refresh endpoint to avoid validating expired access tokens
+        if (uri.contains("/auth/refresh")) {
+            logger.info("[JwtCookieToAuthHeaderFilter] Skipping filter for refresh endpoint: {}", uri);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         logger.info("[JwtCookieToAuthHeaderFilter] (EARLY) {} {}", request.getMethod(), request.getRequestURI());
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || authHeader.isEmpty()) {

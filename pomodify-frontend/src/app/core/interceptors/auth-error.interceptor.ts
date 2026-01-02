@@ -34,16 +34,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
           return throwError(() => error);
         }
 
-        // Check if we recently tried to refresh and failed - don't spam refresh attempts
+        // Check if we recently tried to refresh - don't spam refresh attempts
         const now = Date.now();
         if (now - lastRefreshAttempt < REFRESH_COOLDOWN && !isRefreshing) {
-          console.log('[AuthErrorInterceptor] Recent refresh attempt failed, skipping retry');
-          // Don't redirect for non-critical requests (like sync), just fail silently
-          if (request.url.includes('/sessions/') && !request.url.includes('/auth/')) {
-            return throwError(() => error);
-          }
-          clearAuthData();
-          router.navigate(['/login']);
+          console.log('[AuthErrorInterceptor] Recent refresh attempt, skipping retry');
           return throwError(() => error);
         }
 
