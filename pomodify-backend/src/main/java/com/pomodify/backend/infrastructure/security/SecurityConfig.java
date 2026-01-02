@@ -131,7 +131,8 @@ public class SecurityConfig {
                                         .userService(customOAuth2UserService)
                                 )
                                 .successHandler(oAuth2AuthenticationSuccessHandler)
-                        );
+                        )
+                        .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
                 http.logout(AbstractHttpConfigurer::disable);
 
