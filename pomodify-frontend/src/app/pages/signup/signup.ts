@@ -82,7 +82,7 @@ export class Signup implements OnInit {
 
     this.auth.signup(firstName, lastName, email, password)
       .then(() => {
-        this.notificationService.showSuccess('Account Created Successfully', 'Please verify your email to complete signup.');
+        this.notificationService.showSuccess('Account Created Successfully', 'You can now login.');
         this.auth.showVerifyEmailModal();
       })
       .catch((error: Error & { message?: string }) => {
@@ -107,16 +107,16 @@ export class Signup implements OnInit {
     event.preventDefault();
     switch (page) {
       case 'home':
-        this.router.navigate(['/']);
+        this.router.navigate(['/'], { state: { skipRedirect: true } });
         break;
     }
   }
 
   onBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 
   onClose(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 }

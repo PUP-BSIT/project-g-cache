@@ -118,17 +118,14 @@ export class SettingsService {
   // Private methods
   private loadSettings(): AppSettings {
     if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-      console.log('Window or localStorage not available, using defaults');
       return DEFAULT_SETTINGS;
     }
     
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
-      console.log('Raw stored settings:', stored);
       
       if (stored) {
         const parsed = JSON.parse(stored);
-        console.log('Parsed stored settings:', parsed);
         
         // Deep merge with defaults to handle new settings and nested objects
         const merged = {
@@ -141,14 +138,12 @@ export class SettingsService {
           notifications: parsed.notifications !== undefined ? parsed.notifications : DEFAULT_SETTINGS.notifications
         };
         
-        console.log('Merged settings result:', merged);
         return merged;
       }
     } catch (error) {
       console.error('Error loading settings:', error);
     }
     
-    console.log('No stored settings found, using defaults');
     return DEFAULT_SETTINGS;
   }
   
