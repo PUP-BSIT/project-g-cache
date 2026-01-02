@@ -7,35 +7,27 @@ export class MobileDetectionService {
 
   /**
    * Detect if the current device is mobile
+   * Only uses user agent - screen size and touch are NOT reliable indicators
+   * (laptops can have small screens and touch capability)
    */
   isMobile(): boolean {
     if (typeof window === 'undefined') return false;
     
-    // Check user agent for mobile devices
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     
-    // Mobile device patterns
+    // Mobile device patterns - ONLY check user agent
     const mobilePatterns = [
-      /Android/i,
+      /Android.*Mobile/i,  // Android phones (not tablets)
       /webOS/i,
       /iPhone/i,
-      /iPad/i,
       /iPod/i,
       /BlackBerry/i,
       /Windows Phone/i,
-      /Mobile/i,
-      /Tablet/i
+      /Opera Mini/i,
+      /IEMobile/i
     ];
     
-    const isMobileUserAgent = mobilePatterns.some(pattern => pattern.test(userAgent));
-    
-    // Also check screen size (mobile-like dimensions)
-    const isMobileScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
-    
-    // Check for touch capability
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    return isMobileUserAgent || (isMobileScreen && isTouchDevice);
+    return mobilePatterns.some(pattern => pattern.test(userAgent));
   }
 
   /**
@@ -46,17 +38,14 @@ export class MobileDetectionService {
     
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     
-    // Tablet patterns
+    // Tablet patterns - ONLY check user agent
     const tabletPatterns = [
       /iPad/i,
       /Android(?!.*Mobile)/i, // Android tablets don't have "Mobile" in user agent
       /Tablet/i
     ];
     
-    const isTabletUserAgent = tabletPatterns.some(pattern => pattern.test(userAgent));
-    const isTabletScreen = window.innerWidth >= 768 && window.innerWidth <= 1024;
-    
-    return isTabletUserAgent || isTabletScreen;
+    return tabletPatterns.some(pattern => pattern.test(userAgent));
   }
 
   /**
