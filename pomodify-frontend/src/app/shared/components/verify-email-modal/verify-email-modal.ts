@@ -12,20 +12,14 @@ import { Router } from '@angular/router';
   styleUrls: ['./verify-email-modal.scss']
 })
 export class VerifyEmailModal {
-  @Output() openEmail = new EventEmitter<void>();
-  @Output() backToSignUp = new EventEmitter<void>();
+  @Output() goToLogin = new EventEmitter<void>();
   
   private dialogRef = inject(MatDialogRef<VerifyEmailModal>);
   private router = inject(Router);
 
-  onOpenEmail(): void {
-    this.openEmail.emit();
-    window.location.href = 'mailto:';
-  }
-
-  onBackToSignUp(): void {
-    this.backToSignUp.emit();
-    this.dialogRef.close();
-    this.router.navigate(['/signup']);
+  onGoToLogin(): void {
+    this.goToLogin.emit();
+    this.dialogRef.close('goToLogin');
+    this.router.navigate(['/login']);
   }
 }
