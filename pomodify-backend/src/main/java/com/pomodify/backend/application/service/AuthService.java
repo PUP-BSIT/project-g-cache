@@ -123,9 +123,19 @@ public class AuthService {
         VerificationToken newToken = new VerificationToken(user);
         tokenRepository.save(newToken);
 
-        // Send verification email with "Resend" flag
+        // Check if account is locked (grace period expired)
+        boolean isLocked = false;
+        if (user.getCreatedAt() != null) {
+             java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
+             if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
+                 isLocked = true;
+             }
+        }
+
+        // Send verification email
         try {
-            emailService.sendVerificationEmail(user.getEmail().getValue(), newToken.getToken(), baseUrl, true);
+            // Pass isLocked as the boolean flag to trigger the "Reactivate" template if needed
+            emailService.sendVerificationEmail(user.getEmail().getValue(), newToken.getToken(), baseUrl, isLocked);
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", user.getEmail().getValue(), e.getMessage());
             throw new RuntimeException("Failed to send verification email");
