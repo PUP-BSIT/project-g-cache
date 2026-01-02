@@ -183,9 +183,12 @@ public class AuthService {
             throw new BadCredentialsException("Invalid credentials or inactive account");
         }
 
-        // Check verification status
+        // Check verification status with 7-day grace period
         if (!user.isEmailVerified()) {
-             throw new org.springframework.security.authentication.LockedException("Account locked. Please verify your email.");
+            java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
+            if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
+                throw new org.springframework.security.authentication.LockedException("Account locked. Verification grace period (7 days) expired. Please verify your email.");
+            }
         }
 
         String accessToken = jwtService.generateAccessToken(user);
