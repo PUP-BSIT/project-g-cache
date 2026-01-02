@@ -1440,3 +1440,70 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+
+/* ========================================================================
+   TIME PICKER DIALOG STYLES
+   ======================================================================== */
+
+/* Desktop styles */
+.desktop-time-picker-dialog .mat-mdc-dialog-container {
+  padding: 32px 48px !important;
+  border-radius: 20px !important;
+}
+
+.desktop-time-picker-dialog .mat-mdc-dialog-surface {
+  border-radius: 20px !important;
+}
+
+/* Mobile styles */
+.cdk-overlay-pane.mobile-time-picker-dialog {
+  max-width: 300px !important;
+  width: 300px !important;
+  overflow: hidden !important;
+}
+
+.mobile-time-picker-dialog .mat-mdc-dialog-container,
+.mobile-time-picker-dialog .mdc-dialog__container,
+.mobile-time-picker-dialog .mdc-dialog__surface {
+  max-width: 300px !important;
+  width: 300px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+
+.mobile-time-picker-dialog .mat-mdc-dialog-surface {
+  max-width: 300px !important;
+  width: 300px !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+
+.mobile-time-picker-dialog .time-picker-modal {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.mobile-time-picker-dialog .button-row {
+  width: calc(100% - 32px) !important;
+  max-width: calc(100% - 32px) !important;
+  margin: 0 auto !important;
+  padding: 16px 0 16px 0 !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.mobile-time-picker-dialog .button-row button,
+.mobile-time-picker-dialog .btn-cancel,
+.mobile-time-picker-dialog .btn-confirm {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  max-width: 120px !important;
+  padding: 10px 8px !important;
+  font-size: 13px !important;
+  box-sizing: border-box !important;
+}

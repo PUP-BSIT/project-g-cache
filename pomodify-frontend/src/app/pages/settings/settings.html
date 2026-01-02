@@ -85,28 +85,36 @@
     </header>
 
     <!-- Settings Content -->
-    <div class="settings-container">
-      @if (autoSaveStatus() === 'saving') {
-        <div class="loading-overlay">
-          <div class="loading-spinner">
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Saving...</span>
-          </div>
-        </div>
-      }
-      @if (autoSaveStatus() === 'saved') {
-        <div class="loading-overlay">
-          <div class="loading-spinner saved">
-            <i class="fa-solid fa-check"></i>
-            <span>Saved</span>
-          </div>
-        </div>
-      }
+    <!-- Mobile Toast Notification (hidden on desktop via CSS) -->
+    @if (autoSaveStatus() === 'saving' || autoSaveStatus() === 'saved') {
+      <div class="save-toast" [class.saving]="autoSaveStatus() === 'saving'" [class.saved]="autoSaveStatus() === 'saved'">
+        @if (autoSaveStatus() === 'saving') {
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <span>Saving {{ savedSettingName() }}...</span>
+        } @else {
+          <i class="fa-solid fa-check"></i>
+          <span>{{ savedSettingName() }} saved</span>
+        }
+      </div>
+    }
 
+    <div class="settings-container">
       <!-- Full-Width Row-Based Layout -->
       <div class="settings-header">
         <h1 class="settings-title">Preferences</h1>
         <p class="settings-subtitle">Customize your Pomodify experience</p>
+        <!-- Desktop Inline Badge (hidden on mobile via CSS) -->
+        @if (autoSaveStatus() === 'saving' || autoSaveStatus() === 'saved') {
+          <div class="save-badge" [class.saving]="autoSaveStatus() === 'saving'" [class.saved]="autoSaveStatus() === 'saved'">
+            @if (autoSaveStatus() === 'saving') {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <span>Saving {{ savedSettingName() }}...</span>
+            } @else {
+              <i class="fa-solid fa-check"></i>
+              <span>{{ savedSettingName() }} saved</span>
+            }
+          </div>
+        }
       </div>
 
       <!-- Settings Sections in Row Layout -->

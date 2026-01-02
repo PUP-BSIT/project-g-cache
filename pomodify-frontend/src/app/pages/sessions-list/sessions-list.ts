@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { SessionService, PomodoroSession } from '../../core/services/session.service';
+import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -38,6 +38,28 @@ export class SessionsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadSessions();
+  }
+
+  /**
+   * Get the effective status for a session, checking local storage for running timers
+   */
+  protected getEffectiveStatus(session: PomodoroSession): SessionStatus {
+    try {
+      const key = `pomodify_timer_${session.id}`;
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const state = JSON.parse(stored);
+        const age = Date.now() - state.lastSyncTime;
+        // Only trust persisted state if it's recent (within 5 minutes)
+        if (age < 5 * 60 * 1000) {
+          if (state.isRunning) return 'IN_PROGRESS';
+          if (state.isPaused) return 'PAUSED';
+        }
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    return session.status;
   }
 
   protected loadSessions(): void {

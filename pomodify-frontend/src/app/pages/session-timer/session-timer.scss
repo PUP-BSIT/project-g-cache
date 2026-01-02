@@ -50,9 +50,10 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   color: $text-dark;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   position: relative;
-  overflow-x: hidden;
+  overflow: visible;
   width: 100%;
   box-sizing: border-box;
+  padding-bottom: 60px; // Prevent bottom cutoff
   
   // Animated background circles
   &::before,
@@ -225,7 +226,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .mascot-container {
   position: absolute;
-  left: -200px;
+  left: -280px;
   bottom: 60px;
   transform: translateX(0);
   display: flex;
@@ -255,7 +256,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Idle state - gentle bounce with breathing effect (lower left of timer)
   &.idle {
-    left: -200px;
+    left: -280px;
     bottom: 60px;
     transform: translateX(0);
     
@@ -268,7 +269,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Running state - stays beside timer (lower left)
   &.bouncing {
-    left: -190px;
+    left: -270px;
     bottom: 60px;
     transform: translateX(0);
     
@@ -297,7 +298,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Shake - stays on left side for urgency!
   &.shake {
-    left: -220px;
+    left: -300px;
     bottom: 40px;
     transform: translateX(0);
     
@@ -519,7 +520,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   min-height: 600px;
   perspective: 1000px;
   position: relative;
-  margin-left: 100px;
+  margin-left: 200px; // Increased to give room for mascot
   margin-top: -40px;
 }
 

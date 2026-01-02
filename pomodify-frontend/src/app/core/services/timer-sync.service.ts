@@ -45,6 +45,7 @@ export class TimerSyncService {
   private serverRemainingAtSync: number = 0;
   private syncInterval = 15000; // 15 seconds
   private maxDrift = 3; // 3 seconds max drift before correction
+  private hasCustomTime = false; // Track if user set a custom time
 
   // Storage keys
   private getStorageKey(sessionId: number): string {
@@ -61,14 +62,53 @@ export class TimerSyncService {
     this.activityId = activityId;
     
     // Load persisted state if available
-    this.loadPersistedState();
+    const persistedState = this.loadPersistedState();
     
-    // Set initial state from session
-    this.updateFromSession(session);
-    
-    // Start sync if session is running
-    if (session.status === 'IN_PROGRESS') {
+    // Trust persisted state if it says timer was running (server sync may have failed)
+    if (persistedState && persistedState.isRunning) {
+      // Timer was running locally - calculate elapsed time and continue
+      const age = Date.now() - persistedState.lastSyncTime;
+      const elapsedSinceLastPersist = Math.floor(age / 1000);
+      const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
+      
+      console.log('📊 Resuming running timer (persisted state):', {
+        persistedRemaining: persistedState.remainingSeconds,
+        elapsedSinceLastPersist,
+        adjustedRemaining,
+        serverStatus: session.status
+      });
+      
+      this._remainingSeconds.set(adjustedRemaining);
+      this.serverRemainingAtSync = adjustedRemaining;
+      this.localStartTime = Date.now();
+      
+      // Start the timer
       this.startTimer();
+    } else if (session.status === 'IN_PROGRESS') {
+      // Server says running, use server state
+      this.updateFromSession(session);
+      this.startTimer();
+    } else if (session.status === 'PAUSED' && persistedState && persistedState.isPaused) {
+      // Both server and local state agree it's paused
+      this._isRunning.set(false);
+      this._isPaused.set(true);
+      console.log('📊 Using persisted state for paused session:', {
+        status: session.status,
+        remainingSeconds: this._remainingSeconds(),
+        phase: session.currentPhase
+      });
+    } else if (session.status === 'PENDING' && persistedState && persistedState.remainingSeconds > 0) {
+      // PENDING session with custom time set - use persisted time
+      console.log('📊 Using persisted state for PENDING session:', {
+        persistedRemaining: persistedState.remainingSeconds,
+        serverRemaining: session.remainingPhaseSeconds
+      });
+      this._remainingSeconds.set(persistedState.remainingSeconds);
+      this._isRunning.set(false);
+      this._isPaused.set(false);
+    } else {
+      // No persisted state or other status, use server state
+      this.updateFromSession(session);
     }
   }
 
@@ -183,9 +223,14 @@ export class TimerSyncService {
    * Set remaining seconds (for manual timer adjustments)
    */
   setRemainingSeconds(seconds: number): void {
+    console.log('⏱️ Setting remaining seconds:', seconds);
     this._remainingSeconds.set(seconds);
     this.serverRemainingAtSync = seconds;
     this.localStartTime = Date.now();
+    this.hasCustomTime = true; // User set a custom time - don't let sync override it
+    
+    // Persist the new time to localStorage
+    this.persistState();
   }
 
   /**
@@ -260,15 +305,19 @@ export class TimerSyncService {
       serverRemaining,
       localRemaining,
       drift,
-      status: session.status
+      status: session.status,
+      hasCustomTime: this.hasCustomTime
     });
     
-    // Correct drift if significant
-    if (drift > this.maxDrift) {
+    // Only correct drift if user hasn't set a custom time
+    // When user sets custom time, local is authoritative
+    if (drift > this.maxDrift && !this.hasCustomTime) {
       console.log('⚠️ Correcting timer drift:', drift, 'seconds');
       this._remainingSeconds.set(serverRemaining);
       this.localStartTime = Date.now();
       this.serverRemainingAtSync = serverRemaining;
+    } else if (drift > this.maxDrift && this.hasCustomTime) {
+      console.log('📌 Skipping drift correction - user has custom time set');
     }
     
     // Handle status changes
@@ -338,8 +387,8 @@ export class TimerSyncService {
     }
   }
 
-  private loadPersistedState(): void {
-    if (!this.currentSession) return;
+  private loadPersistedState(): TimerState | null {
+    if (!this.currentSession) return null;
     
     try {
       const key = this.getStorageKey(this.currentSession.id);
@@ -354,11 +403,15 @@ export class TimerSyncService {
         if (age < 5 * 60 * 1000) {
           this._remainingSeconds.set(state.remainingSeconds);
           this._drift.set(state.drift || 0);
+          this._isPaused.set(state.isPaused);
+          this._isRunning.set(state.isRunning);
+          return state;
         }
       }
     } catch (error) {
       console.warn('Failed to load persisted timer state:', error);
     }
+    return null;
   }
 
   private clearPersistedState(): void {
