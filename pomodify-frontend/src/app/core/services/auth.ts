@@ -38,6 +38,12 @@ export class Auth {
   ) {}
   // Removed duplicate inject(HttpClient); using constructor injection only
   
+  resendVerification(email: string): Promise<void> {
+    return lastValueFrom(
+      this.http.post<void>(API.AUTH.RESEND_VERIFICATION, { email })
+    );
+  }
+
   /**
    * Fetch the current user profile from the backend (cookie-based auth)
    */
@@ -195,9 +201,28 @@ export class Auth {
     });
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {
-      if (result === 'backToSignUp') {
-        this.router.navigate(['/signup']);
+      if (result === 'goToLogin') {
+        this.router.navigate(['/login']);
       }
     });
+  }
+
+  /**
+   * Requests a password reset email.
+   * @param email - User's email address
+   */
+  forgotPassword(email: string): Promise<void> {
+    const url = API.AUTH.FORGOT_PASSWORD;
+    return lastValueFrom(this.http.post<void>(url, { email }));
+  }
+
+  /**
+   * Resets the user's password using the token from the email.
+   * @param token - Reset token
+   * @param newPassword - New password
+   */
+  resetPassword(token: string, newPassword: string): Promise<void> {
+    const url = API.AUTH.RESET_PASSWORD;
+    return lastValueFrom(this.http.post<void>(url, { token, newPassword }));
   }
 }
