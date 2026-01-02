@@ -49,10 +49,13 @@ export class AuthGuardService {
       // "The Permanent Flag" Logic
       const hasLoggedInBefore = localStorage.getItem('has_logged_in_before') === 'true';
       const targetUrl = state.url;
+      const navigation = this.router.getCurrentNavigation();
+      const skipRedirect = navigation?.extras?.state?.['skipRedirect'] === true;
       
       // If user has logged in before, and is visiting Landing ('/')
       // Redirect to Login instead of showing Landing
-      if (hasLoggedInBefore && targetUrl === '/') {
+      // UNLESS we explicitly skipped the redirect (e.g. clicking "Back" from Login)
+      if (hasLoggedInBefore && targetUrl === '/' && !skipRedirect) {
         this.router.navigate(['/login']);
         return false;
       }
