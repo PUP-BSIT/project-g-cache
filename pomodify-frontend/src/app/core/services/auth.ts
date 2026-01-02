@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { VerifyEmailModal } from '../../shared/components/verify-email-modal/verify-email-modal';
+import { VerifyEmailModal, VerifyEmailModalData } from '../../shared/components/verify-email-modal/verify-email-modal';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { API } from '../config/api.config';
@@ -193,11 +193,12 @@ export class Auth {
     }
   }
 
-  showVerifyEmailModal(): void {
+  showVerifyEmailModal(source: 'signup' | 'login' = 'signup'): void {
     const dialogRef = this.dialog.open(VerifyEmailModal, {
       width: '400px',
       disableClose: true,
-      panelClass: 'verify-email-dialog'
+      panelClass: 'verify-email-dialog',
+      data: { source }
     });
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {

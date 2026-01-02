@@ -1530,7 +1530,7 @@ $toggle-bg-inactive: #D0D0D0;
   }
   
   &:hover {
-    background: linear-gradient(135deg, $primary-teal-dark 0%, darken($primary-teal-dark, 5%) 100%);
+    background: linear-gradient(135deg, $primary-teal-dark 0%, color.adjust($primary-teal-dark, $lightness: -5%) 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(95, 169, 164, 0.35);
   }

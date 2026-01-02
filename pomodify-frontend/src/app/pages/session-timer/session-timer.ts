@@ -308,9 +308,46 @@ export class SessionTimerComponent implements OnDestroy {
           if (actId) {
             this.timerSyncService.initializeTimer(sess, actId);
           }
+          
+          // Check for missed notification (backend sent FCM but user wasn't in app)
+          this.checkForMissedNotification(sess);
         }
       }
     });
+  }
+
+  /**
+   * Check if backend sent a notification while user was away (browser closed)
+   * If phaseNotified is true and remainingPhaseSeconds is 0, show modal + sound
+   */
+  private checkForMissedNotification(sess: PomodoroSession): void {
+    if (sess.phaseNotified && sess.remainingPhaseSeconds !== undefined && sess.remainingPhaseSeconds <= 0) {
+      console.log('📱 Detected missed notification - showing modal with sound');
+      
+      const activityTitle = this.activityTitle() || 'Activity';
+      const isBreakPhase = sess.currentPhase === 'BREAK';
+      
+      const context = {
+        title: isBreakPhase ? '⏰ Break Over!' : '🍅 Focus Complete!',
+        body: isBreakPhase 
+          ? `Ready to focus on '${activityTitle}' again?`
+          : `Great work on '${activityTitle}'! Time for a break.`,
+        activityTitle,
+        type: 'phase-complete' as const,
+        nextAction: isBreakPhase 
+          ? 'Break time is over. Ready to focus again?'
+          : 'Time for a break! Step away from your work.'
+      };
+      
+      // Play sound
+      const settings = this.settingsService.getSettings();
+      if (settings.sound.enabled) {
+        this.settingsService.playSound(settings.sound.type);
+      }
+      
+      // Show notification (will show modal on mobile, browser notification on desktop)
+      this.notificationService.handlePhaseCompletion(context);
+    }
   }
 
   /* -------------------- TIMER LOGIC -------------------- */
