@@ -275,7 +275,7 @@ export class NotificationService {
   }
 
   /**
-   * Handle mobile foreground notifications (modal + sound)
+   * Handle mobile foreground notifications (browser notification with modal fallback + sound)
    */
   private async handleMobileForegroundNotification(
     context: NotificationContext, 
@@ -289,12 +289,67 @@ export class NotificationService {
       this.settingsService.playSound(settings.sound.type);
     }
 
-    // Show modal if notifications enabled
+    // Try browser notification first, fallback to modal if not supported
     if (settings.notifications) {
-      console.log('📱 Showing mobile notification modal');
-      this.showNotificationModal(context);
+      const notificationSent = await this.tryMobileBrowserNotification(context);
+      
+      if (!notificationSent) {
+        console.log('📱 Browser notification not available, showing modal fallback');
+        this.showNotificationModal(context);
+      }
     } else {
       console.log('📱 Mobile notifications disabled - sound only');
+    }
+  }
+
+  /**
+   * Try to send browser notification on mobile (Android)
+   * Returns true if notification was sent, false if not supported/denied
+   */
+  private async tryMobileBrowserNotification(context: NotificationContext): Promise<boolean> {
+    try {
+      // Check if Notification API is available
+      if (!('Notification' in window)) {
+        console.log('📱 Notification API not available on this device');
+        return false;
+      }
+
+      let permission = Notification.permission;
+
+      // Request permission if not yet determined
+      if (permission === 'default') {
+        console.log('📱 Requesting notification permission on mobile...');
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === 'granted') {
+        console.log('📱 Permission granted, sending mobile browser notification...');
+        
+        const notification = new Notification(context.title, {
+          body: context.body,
+          icon: '/assets/images/logo.png',
+          tag: 'pomodify-session',
+          requireInteraction: true // Keep notification visible until user interacts
+        });
+
+        notification.onclick = () => {
+          console.log('👆 Mobile notification clicked - focusing window');
+          window.focus();
+          notification.close();
+        };
+
+        console.log('🎉 Mobile browser notification sent successfully!');
+        return true;
+      }
+
+      if (permission === 'denied') {
+        console.log('📱 Notification permission denied on mobile');
+      }
+
+      return false;
+    } catch (error) {
+      console.error('📱 Mobile browser notification failed:', error);
+      return false;
     }
   }
 
