@@ -36,6 +36,9 @@ export const API = {
     REFRESH: `${ROOT}/auth/refresh`,
     LOGOUT: `${ROOT}/auth/logout`,
     OAUTH2_GOOGLE: `${ROOT}/auth/oauth2/google`,
+    RESEND_VERIFICATION: `${ROOT}/auth/resend-verification`,
+    FORGOT_PASSWORD: `${ROOT}/auth/forgot-password`,
+    RESET_PASSWORD: `${ROOT}/auth/reset-password`,
   },
 
   // User Resource

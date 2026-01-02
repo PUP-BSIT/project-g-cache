@@ -3,28 +3,15 @@
     <div class="icon-container">
       <img src="assets/images/verify-lock.png" alt="Verify Email">
     </div>
-    <h2 class="title">Verify your email address</h2>
+    <h2 class="title">Account Created Successfully</h2>
     <p class="message">
-      We've sent a verification link to your email address. Please check your inbox and click the link to activate your account.
+      Welcome aboard! Your account is ready. We’ve sent a verification link to your email. You can log in and explore right away, but please verify your email within 7 days to keep your account active.
     </p>
-    <p class="sub-message">
-      Didn't receive the email? Check your spam folder or request a new verification link.
-    </p>
-    <button mat-raised-button class="action-button" (click)="onOpenEmail()">
-      Open Email Client
-    </button>
-    <button mat-button class="back-link" (click)="onAction()">
-      @if (source === 'login') {
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="back-arrow">
-          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      }
-      {{ actionButtonText }}
-      @if (source === 'signup') {
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="forward-arrow">
-          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      }
+    <button mat-button class="back-link" (click)="onGoToLogin()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="back-arrow">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Go to Login
     </button>
   </div>
 </div>

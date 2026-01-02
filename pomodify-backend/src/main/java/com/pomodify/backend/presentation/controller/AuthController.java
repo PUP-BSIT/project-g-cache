@@ -9,6 +9,9 @@ import com.pomodify.backend.application.service.JwtService;
 import com.pomodify.backend.presentation.dto.request.auth.LoginRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RegisterRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ForgotPasswordRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ResetPasswordRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ResendVerificationRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.LogoutResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
@@ -37,19 +40,19 @@ public class AuthController {
     String accessTokenCookie = String.format(
         "accessToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         accessToken,
-        60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60))
+        15 * 60, // 15 minutes
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(15 * 60))
     );
     String refreshTokenCookie = String.format(
         "refreshToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         refreshToken,
-        7 * 24 * 60 * 60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
+        30 * 24 * 60 * 60, // 30 days
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(30 * 24 * 60 * 60))
     );
     response.setHeader("Set-Cookie", accessTokenCookie);
     response.addHeader("Set-Cookie", refreshTokenCookie);
-    log.info("Set-Cookie header for accessToken set");
-    log.info("Set-Cookie header for refreshToken set");
+    log.info("Set-Cookie header for accessToken set (15 min)");
+    log.info("Set-Cookie header for refreshToken set (30 days)");
     }
 
     private final AuthService authService;
@@ -175,6 +178,32 @@ public class AuthController {
         response.setHeader("Location", "/oauth2/authorization/google");
     }
 
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Forgot password request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.forgotPassword(request.email(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with token")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        log.info("Reset password request received");
+        authService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification email")
+    public ResponseEntity<Void> resendVerification(@RequestBody @Valid ResendVerificationRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Resend verification request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.resendVerificationEmail(request.email(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
     // ──────────────── Current User ────────────────
     @GetMapping("/users/me")
     @Operation(summary = "Get current authenticated user profile (RESTful)")
@@ -233,30 +262,6 @@ public class AuthController {
         public VerificationResponse(boolean success, String message) {
             this.success = success;
             this.message = message;
-        }
-    }
-
-    // ──────────────── Password Reset Request ────────────────
-    @PostMapping(value = "/request-password-reset", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Request password reset (sends email)")
-    public ResponseEntity<String> requestPasswordReset(@RequestBody String email) {
-        try {
-            authService.requestPasswordReset(email.replaceAll("\"", ""));
-            return ResponseEntity.ok("Password reset instructions sent (if user exists)");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    // ──────────────── Verify and Reset ────────────────
-    @GetMapping("/verify-and-reset")
-    @Operation(summary = "Verify email and redirect to password reset")
-    public ResponseEntity<String> verifyAndReset(@RequestParam("token") String token) {
-        try {
-            String result = authService.verifyAndReset(token);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

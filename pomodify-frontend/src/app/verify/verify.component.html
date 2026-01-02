@@ -1,9 +1,18 @@
 <div class="verify-container">
   @if (success === true) {
     <h1>✅ Account Verified</h1>
+    <p>{{ message }}</p>
+    <p>Redirecting to login...</p>
   }
   @if (success === false) {
     <h1>❌ Verification Failed</h1>
+    <p>{{ message }}</p>
+    
+    @if (isExpired) {
+        <p>Your verification link has expired.</p>
+        <button mat-raised-button color="primary" (click)="onLogin()">Login to Resend Verification</button>
+    } @else {
+        <button mat-button (click)="onLogin()">Go to Login</button>
+    }
   }
-  <p>{{ message }}</p>
 </div>

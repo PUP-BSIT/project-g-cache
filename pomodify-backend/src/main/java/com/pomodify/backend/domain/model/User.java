@@ -49,6 +49,14 @@ public class User {
     })
     private Email email;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     // ──────────────── State ────────────────
     @Column(name = "is_email_verified", nullable = false)
     @Builder.Default
@@ -72,15 +80,6 @@ public class User {
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
 
-    // ──────────────── Timestamps ────────────────
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     // ──────────────── Domain Logic ────────────────
     public void verifyEmail() {
         ensureActive();
@@ -96,6 +95,18 @@ public class User {
             this.email = newEmail;
             this.isEmailVerified = false;
         }
+    }
+
+    public void updatePassword(String newPasswordHash) {
+        ensureActive();
+        if (newPasswordHash == null || newPasswordHash.isBlank()) {
+             throw new IllegalArgumentException("Password cannot be empty");
+        }
+        this.passwordHash = newPasswordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public void deactivate() {

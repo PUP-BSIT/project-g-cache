@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, firstValueFrom } from 'rxjs';
+import { Observable, BehaviorSubject, firstValueFrom, Subject } from 'rxjs';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { API } from '../config/api.config';
@@ -19,6 +19,11 @@ export class FcmService {
   
   private app: any = null;
   private fcmToken$ = new BehaviorSubject<string | null>(null);
+  private messageSubject = new Subject<any>();
+
+  get messages$() {
+    return this.messageSubject.asObservable();
+  }
 
   private initializeFirebaseApp() {
     if (!this.app) {
@@ -43,7 +48,7 @@ export class FcmService {
     return this.app;
   }
 
-  async initializeFCM(jwt: string): Promise<void> {
+async initializeFCM(): Promise<void> {
     try {
       console.log('🔔 Starting FCM initialization...');
       
@@ -91,14 +96,15 @@ export class FcmService {
         
         // Register token with backend
         console.log('📡 Registering token with backend...');
-        const response = await firstValueFrom(this.registerToken(jwt, token));
+        const response = await firstValueFrom(this.registerToken(token));
         console.log('✅ Token registered with backend successfully:', response);
         
         // Listen for foreground messages
         onMessage(messaging, (payload: any) => {
           console.log('📨 Foreground FCM message:', payload);
+          this.messageSubject.next(payload);
         });
-
+        
         console.log('🎉 FCM initialization completed successfully!');
         
       } catch (firebaseError: any) {
@@ -109,7 +115,7 @@ export class FcmService {
         console.log('📡 Registering fallback token with backend...');
         
         try {
-          await firstValueFrom(this.registerToken(jwt, simpleToken));
+          await firstValueFrom(this.registerToken(simpleToken));
           console.log('✅ Fallback token registered successfully');
         } catch (tokenError: any) {
           console.log('❌ Fallback token registration failed:', tokenError?.message || tokenError);
@@ -125,29 +131,24 @@ export class FcmService {
     }
   }
 
-  registerToken(jwt: string, token: string): Observable<any> {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    return this.http.post(API.PUSH.REGISTER_TOKEN, { token }, { headers, responseType: 'text' });
+  registerToken(token: string): Observable<any> {
+    return this.http.post(API.PUSH.REGISTER_TOKEN, { token }, { withCredentials: true, responseType: 'text' });
   }
 
-  unregisterToken(jwt: string): Observable<any> {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    return this.http.delete(API.PUSH.UNREGISTER_TOKEN, { headers, responseType: 'text' });
+  unregisterToken(): Observable<any> {
+    return this.http.delete(API.PUSH.UNREGISTER_TOKEN, { withCredentials: true, responseType: 'text' });
   }
 
-  getStatus(jwt: string): Observable<PushStatus> {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    return this.http.get<PushStatus>(API.PUSH.STATUS, { headers });
+  getStatus(): Observable<PushStatus> {
+    return this.http.get<PushStatus>(API.PUSH.STATUS, { withCredentials: true });
   }
 
-  enablePush(jwt: string): Observable<any> {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    return this.http.put(API.PUSH.ENABLE, {}, { headers, responseType: 'text' });
+  enablePush(): Observable<any> {
+    return this.http.put(API.PUSH.ENABLE, {}, { withCredentials: true, responseType: 'text' });
   }
 
-  disablePush(jwt: string): Observable<any> {
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${jwt}` });
-    return this.http.put(API.PUSH.DISABLE, {}, { headers, responseType: 'text' });
+  disablePush(): Observable<any> {
+    return this.http.put(API.PUSH.DISABLE, {}, { withCredentials: true, responseType: 'text' });
   }
 
   getFcmToken(): Observable<string | null> {

@@ -18,6 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'landing',
+    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {
@@ -29,6 +30,11 @@ export const routes: Routes = [
     path: 'signup',
     canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/signup/signup').then(m => m.Signup),
+  },
+  {
+    path: 'reset-password',
+    canActivate: [publicPageGuard],
+    loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPasswordPage),
   },
   {
     path: 'dashboard',
