@@ -38,6 +38,12 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         const now = Date.now();
         if (now - lastRefreshAttempt < REFRESH_COOLDOWN && !isRefreshing) {
           console.log('[AuthErrorInterceptor] Recent refresh attempt, skipping retry');
+          // If we are in cooldown but not actively refreshing, it means the last refresh failed or we are in a loop.
+          // However, if we just refreshed successfully, we might want to retry the request instead of erroring.
+          // For now, let's allow the retry logic to handle it via the subject if it was a parallel request.
+          if (refreshTokenSubject.value === true) {
+               return next(request.clone({ withCredentials: true }));
+          }
           return throwError(() => error);
         }
 
