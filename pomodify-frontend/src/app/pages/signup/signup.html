@@ -126,7 +126,14 @@
         }
       </div>
 
-      <button type="submit" class="btn-signup" [disabled]="isLoading || signupForm.invalid">Sign Up</button>
+      <button type="submit" class="btn-signup" [disabled]="isLoading || signupForm.invalid">
+        @if (isLoading) {
+          <span class="spinner"></span>
+          Processing...
+        } @else {
+          Sign Up
+        }
+      </button>
 
       <p class="login-text">
         Already have an account?

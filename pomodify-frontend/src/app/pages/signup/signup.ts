@@ -82,7 +82,7 @@ export class Signup implements OnInit {
 
     this.auth.signup(firstName, lastName, email, password)
       .then(() => {
-        this.notificationService.showSuccess('Account Created Successfully', 'Please verify your email to complete signup.');
+        this.notificationService.showSuccess('Account Created Successfully', 'You can now login.');
         this.auth.showVerifyEmailModal();
       })
       .catch((error: Error & { message?: string }) => {
