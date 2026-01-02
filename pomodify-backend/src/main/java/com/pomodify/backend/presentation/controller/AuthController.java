@@ -40,19 +40,19 @@ public class AuthController {
     String accessTokenCookie = String.format(
         "accessToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         accessToken,
-        60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60))
+        15 * 60, // 15 minutes
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(15 * 60))
     );
     String refreshTokenCookie = String.format(
         "refreshToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         refreshToken,
-        7 * 24 * 60 * 60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
+        30 * 24 * 60 * 60, // 30 days
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(30 * 24 * 60 * 60))
     );
     response.setHeader("Set-Cookie", accessTokenCookie);
     response.addHeader("Set-Cookie", refreshTokenCookie);
-    log.info("Set-Cookie header for accessToken set");
-    log.info("Set-Cookie header for refreshToken set");
+    log.info("Set-Cookie header for accessToken set (15 min)");
+    log.info("Set-Cookie header for refreshToken set (30 days)");
     }
 
     private final AuthService authService;

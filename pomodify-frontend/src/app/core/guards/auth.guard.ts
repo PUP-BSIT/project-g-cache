@@ -12,26 +12,52 @@ export class AuthGuardService {
   private static profileChecked = false;
 
   async canActivate(): Promise<boolean> {
-    console.log('[AuthGuard] Checking authentication, profileChecked:', AuthGuardService.profileChecked);
     if (AuthGuardService.profileChecked) {
       // Prevent infinite loop
-      console.log('[AuthGuard] Already checking profile, preventing infinite loop');
       return false;
     }
     AuthGuardService.profileChecked = true;
     try {
-      console.log('[AuthGuard] Attempting to fetch user profile');
       await this.auth.fetchAndStoreUserProfile();
-      console.log('[AuthGuard] Profile fetched successfully, granting access');
       AuthGuardService.profileChecked = false;
       return true;
     } catch (e) {
       console.error('[AuthGuard] Profile fetch failed:', e);
       AuthGuardService.profileChecked = false;
       // Redirect to login page if not authenticated
-      console.log('[AuthGuard] Redirecting to login');
       this.router.navigate(['/login']);
       return false;
+    }
+  }
+
+  async canActivatePublic(state: RouterStateSnapshot): Promise<boolean> {
+    // If we've already checked the profile recently, don't check again to avoid loops
+    if (AuthGuardService.profileChecked) {
+      return true;
+    }
+
+    try {
+      AuthGuardService.profileChecked = true;
+      await this.auth.fetchAndStoreUserProfile();
+      AuthGuardService.profileChecked = false;
+      this.router.navigate(['/dashboard']);
+      return false;
+    } catch (e) {
+      // User is not logged in
+      AuthGuardService.profileChecked = false;
+      
+      // "The Permanent Flag" Logic
+      const hasLoggedInBefore = localStorage.getItem('has_logged_in_before') === 'true';
+      const targetUrl = state.url;
+      
+      // If user has logged in before, and is visiting Landing ('/')
+      // Redirect to Login instead of showing Landing
+      if (hasLoggedInBefore && targetUrl === '/') {
+        this.router.navigate(['/login']);
+        return false;
+      }
+
+      return true;
     }
   }
 }
@@ -48,7 +74,5 @@ export const authGuard: CanActivateFn = async (route, state) => {
  * Redirects them to dashboard instead
  */
 export const publicPageGuard: CanActivateFn = async (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
-  // Do not check profile or call any API on public pages (e.g., login, signup)
-  // If you want to redirect authenticated users away from login, you can check a local signal/flag if available
-  return true;
+  return await inject(AuthGuardService).canActivatePublic(state);
 };

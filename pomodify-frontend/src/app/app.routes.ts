@@ -6,10 +6,12 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {
     path: 'landing',
+    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {

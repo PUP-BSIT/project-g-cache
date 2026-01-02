@@ -5,6 +5,7 @@ import { ensurePublicPageLightTheme } from './shared/theme';
 import { SuccessNotificationComponent } from './shared/components/success-notification/success-notification.component';
 import { ErrorNotificationComponent } from './shared/components/error-notification/error-notification.component';
 import { SuccessNotificationService } from './core/services/success-notification.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class App implements OnInit {
   protected readonly title = signal('pomodify-frontend');
   private readonly router = inject(Router);
   protected readonly notificationService = inject(SuccessNotificationService);
+  private readonly pushNotificationService = inject(NotificationService);
 
   ngOnInit(): void {
     // Listen for navigation events to ensure public pages are always light theme

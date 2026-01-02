@@ -256,13 +256,19 @@ export class TimerSyncService {
       hasCustomTime: this.hasCustomTime
     });
 
-    if (drift > this.maxDrift && !this.hasCustomTime) {
+    // Only correct drift if it's significant AND we are not in the first few seconds of a session
+    // This prevents the "jump" when the server is slightly behind the client start
+    const isJustStarted = (this.currentSession?.status === 'IN_PROGRESS' && session.status === 'IN_PROGRESS' && serverRemaining > 55);
+    
+    if (drift > this.maxDrift && !this.hasCustomTime && !isJustStarted) {
       console.log('Correcting timer drift:', drift, 'seconds');
       this._remainingSeconds.set(serverRemaining);
       this.localStartTime = Date.now();
       this.serverRemainingAtSync = serverRemaining;
     } else if (drift > this.maxDrift && this.hasCustomTime) {
       console.log('Skipping drift correction - user has custom time set');
+    } else if (isJustStarted) {
+      console.log('Skipping drift correction - session just started');
     }
 
     if (session.status !== this.currentSession?.status) {

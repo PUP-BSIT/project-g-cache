@@ -116,16 +116,16 @@ export class Login implements OnInit {
     event.preventDefault();
     switch (page) {
       case 'home':
-        this.router.navigate(['/']);
+        this.router.navigate(['/landing']);
         break;
     }
   }
 
   onBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/landing']);
   }
 
   onClose(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/landing']);
   }
 }

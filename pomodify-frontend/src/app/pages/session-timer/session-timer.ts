@@ -437,17 +437,6 @@ export class SessionTimerComponent implements OnDestroy {
     console.log('🎬 Starting session...', { sessionId: sess?.id, activityId: actId, status: sess?.status });
     if (!sess || !actId) return;
 
-    // If paused after phase completion, just start timer locally without API call
-    if (sess.status === 'PAUSED' && this.remainingSeconds() > 0) {
-      const updatedSession: PomodoroSession = {
-        ...sess,
-        status: 'IN_PROGRESS'
-      };
-      this.session.set(updatedSession);
-      this.timerSyncService.startTimer();
-      return;
-    }
-
     // If paused normally (user pressed pause), resume via API
     if (sess.status === 'PAUSED') {
       this.resumeSession();
