@@ -73,7 +73,7 @@ public class EmailService {
         if (isResend) {
             subject = "Reactivate Your Pomodify Account";
             title = "Reactivate Your Account";
-            message = "Your account was locked because you were not able to verify it with the prescribed given time. Verify it to reactivate your account.to verify it with the prescribed given time. Verify it to reactivate your account.";
+            message = "Your account was locked because you were not able to verify it within the prescribed time. Verify it to reactivate your account.";
         } else {
             subject = "Verify your Pomodify Account";
             title = "Welcome to Pomodify!";
