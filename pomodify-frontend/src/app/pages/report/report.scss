@@ -1,6 +1,5 @@
 @use "sass:color";
 
-// Color palette
 $primary-teal: #5FA9A4;
 $primary-teal-light: #7BC4BF;
 $primary-teal-dark: #4D8B87;
@@ -25,7 +24,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   position: relative;
 }
 
-// Mobile Overlay
 .mobile-overlay {
   display: none;
   position: fixed;
@@ -53,7 +51,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar 
 .sidebar {
   width: 72px;
   min-width: 72px;
@@ -74,7 +71,6 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 }
 
-// Sidebar Close Button
 .sidebar-close-btn {
   position: absolute;
   top: 16px;
@@ -259,7 +255,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   margin-top: auto;
   padding: 24px 0;
   width: 72px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: none;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -312,8 +308,8 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .hamburger-btn {
   display: none;
-  background: none;
-  border: none;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
   color: var(--text);
   font-size: 24px;
   cursor: pointer;
@@ -1674,7 +1670,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     .nav-bottom {
-      border-top: 1px solid #3e4042;
+      border-top: none;
     }
   }
   
