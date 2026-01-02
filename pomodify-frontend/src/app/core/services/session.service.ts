@@ -22,6 +22,7 @@ export interface PomodoroSession {
   note: string | null;
   totalElapsedSeconds?: number; // Total elapsed time across all cycles
   remainingPhaseSeconds?: number; // Remaining time in current phase (from backend)
+  phaseNotified?: boolean; // Whether backend sent notification for current phase
   createdAt?: string;
   updatedAt?: string;
 }

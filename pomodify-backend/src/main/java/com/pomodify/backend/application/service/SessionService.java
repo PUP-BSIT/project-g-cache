@@ -352,6 +352,7 @@ public class SessionService {
                 .startedAt(s.getStartedAt())
                 .completedAt(s.getCompletedAt())
                 .createdAt(s.getCreatedAt())
+                .phaseNotified(s.getPhaseNotified())
                 .build();
     }
 }
