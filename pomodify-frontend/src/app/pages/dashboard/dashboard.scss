@@ -349,7 +349,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   padding: 24px 0;
   flex-shrink: 0;
   width: 72px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: none;
   margin-bottom: 24px;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
@@ -1987,7 +1987,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     .nav-bottom {
-      border-top: 1px solid #3e4042;
+      border-top: none;
     }
   }
   
@@ -2274,7 +2274,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
     
     .nav-bottom {
-      border-top: 1px solid #3e4042;
+      border-top: none;
     }
   }
   
