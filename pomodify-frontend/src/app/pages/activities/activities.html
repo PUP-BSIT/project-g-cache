@@ -192,7 +192,7 @@
                   <div class="activity-icon-section">
                     <i [class]="getIconClass(activity)"></i>
                   </div>
-                  <h4 class="activity-name">{{ activity.activityTitle }}</h4>
+                  <h4 class="activity-name" [title]="activity.activityTitle">{{ activity.activityTitle }}</h4>
                 </div>
 
                 <p class="last-accessed">Last: {{ getRelativeTime(activity.updatedAt || activity.createdAt || '') }}</p>
