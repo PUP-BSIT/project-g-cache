@@ -87,12 +87,12 @@
     <!-- Report Content -->
     <div class="report-content">
       <section class="report-main-grid">
-        <!-- ACTIVITY SUMMARY: Full Width -->
-        <div class="report-activity-panel">
-          <section class="activity-summary-section">
-            <h2 class="section-heading">Activity Summary</h2>
+          <!-- ACTIVITY SUMMARY: Full Width -->
+          <div class="report-activity-panel">
+            <section class="activity-summary-section">
+              <h2 class="section-heading">Activity Summary</h2>
 
-          <div class="summary-cards">
+            <div class="summary-cards">
             <div class="summary-card fade-in-up">
               <div class="summary-main">
                 <div class="summary-label">Total Hours Focused</div>
@@ -166,27 +166,6 @@
             </div>
           </div>
         </section>
-
-        <!-- Period Info Section -->
-        @if (periodInfo()) {
-          <section class="period-info-section">
-            <h2 class="section-heading">Report Period</h2>
-            <div class="period-card">
-              <div class="period-row">
-                <span class="period-label">Start Date:</span>
-                <span class="period-value">{{ periodInfo()!.startDate }}</span>
-              </div>
-              <div class="period-row">
-                <span class="period-label">End Date:</span>
-                <span class="period-value">{{ periodInfo()!.endDate }}</span>
-              </div>
-              <div class="period-row">
-                <span class="period-label">Range:</span>
-                <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
-              </div>
-            </div>
-          </section>
-        }
         </div>
 
         <!-- MIDDLE ROW: Insights (Left) and Trends (Right) -->
@@ -288,29 +267,36 @@
               </div>
             </div>
             <div class="total-meta">
-              <div class="meta-checkboxes">
-                <label class="meta-checkbox">
-                  <input
-                    type="checkbox"
-                    [checked]="expiredSessionFocusChecked()"
-                    (change)="onExpiredSessionFocusToggle($event)"
-                  />
-                  <span>Expired Sessions</span>
-                </label>
-              </div>
               <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
               <span class="meta-value">
-                @if (expiredSessionFocusChecked()) {
-                  {{ expiredSessionsCount() }} expired
-                } @else {
-                  {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
-                }
+                {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
               </span>
             </div>
+            @if (lastMonthAbandonedSessions() > 0) {
+              <div class="total-meta abandoned-sessions">
+                <span class="meta-label">Last Month Abandoned:</span>
+                <span class="meta-value">{{ lastMonthAbandonedSessions() }} sessions</span>
+              </div>
+            }
           </div>
 
           <div class="focus-chart">
-            @if (tooltipData()) {
+            @if (!hasData()) {
+              <div class="no-data-container">
+                <div class="no-data-content">
+                  <div class="no-data-icon">
+                    <i class="fa-solid fa-inbox"></i>
+                  </div>
+                  <h2>No Data Yet</h2>
+                  <p>Start your first Pomodoro session to see your focus hours chart.</p>
+                  <a routerLink="/dashboard" class="start-button">
+                    <i class="fa-solid fa-play"></i>
+                    Start a Session
+                  </a>
+                </div>
+              </div>
+            } @else {
+              @if (tooltipData()) {
               <div 
                       class="chart-tooltip"
                       [style.--tooltip-left.px]="tooltipPosition().x"
@@ -365,6 +351,7 @@
                 }
               </div>
             </div>
+            }
           </div>
 
           <!-- Projects summary under the graph -->

@@ -84,10 +84,12 @@ export class Report implements OnInit {
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
   protected readonly totalBreakHours = signal(0);
+  protected readonly averageSessionLengthMinutes = signal(0);
   protected readonly dailyAverageFocusHours = signal(0);
   protected readonly streakDays = signal(0);
   protected readonly completionRate = signal(0);
   protected readonly sessionsCount = signal(0);
+  protected readonly lastMonthAbandonedSessions = signal(0);
 
   // Period info
   protected readonly periodInfo = signal<PeriodInfo | null>(null);
@@ -103,8 +105,6 @@ export class Report implements OnInit {
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([]);
-  protected readonly expiredSessionFocusChecked = signal(false);
-  protected readonly expiredSessionsCount = signal(0);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -113,6 +113,11 @@ export class Report implements OnInit {
   
   // Chart unit mode: 'hours' or 'minutes'
   protected readonly chartUnitMode = signal<'hours' | 'minutes'>('hours');
+
+  // Track if user has any data in current period
+  protected readonly hasData = computed(() => {
+    return this.sessionsCount() > 0 || this.totalFocusHours() > 0;
+  });
 
   ngOnInit(): void {
     // Auto-collapse sidebar on mobile
@@ -184,12 +189,6 @@ export class Report implements OnInit {
 
   protected readonly ReportRange = ReportRange;
 
-  protected onExpiredSessionFocusToggle(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
-    if (!input) return;
-    this.expiredSessionFocusChecked.set(input.checked);
-  }
-
   protected onBarHover(point: FocusPoint, event: MouseEvent): void {
     this.tooltipData.set(point);
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -208,17 +207,18 @@ export class Report implements OnInit {
       next: (summary) => this.updateFromSummary(summary),
       error: (error) => {
         console.error('Error loading report summary:', error);
-        // Clear all data when there's an error - only show backend data
+        // Clear all data when there's an error
         this.totalFocusHours.set(0);
         this.totalBreakHours.set(0);
+        this.averageSessionLengthMinutes.set(0);
         this.dailyAverageFocusHours.set(0);
         this.streakDays.set(0);
         this.completionRate.set(0);
         this.sessionsCount.set(0);
-        this.expiredSessionsCount.set(0);
+        this.lastMonthAbandonedSessions.set(0);
         this.periodInfo.set(null);
         
-        // Clear chart data - show nothing instead of empty placeholders
+        // Clear chart data
         this.focusSeries.set([]);
         this.chartTicks.set([]);
         this.currentRangeTotalHours.set(0);
@@ -237,20 +237,20 @@ export class Report implements OnInit {
       return;
     }
 
-    const metrics = summary.metrics;
+    const overview = summary.overview;
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
     const recentSessions = summary.recentSessions ?? [];
-    const meta = summary.meta;
+    const period = summary.period;
     const trendData = summary.trends;
-    const insightData = summary.insights;
+    const insightData = summary.insights ?? [];
 
     // Update period info
-    if (meta) {
+    if (period) {
       this.periodInfo.set({
-        startDate: meta.startDate,
-        endDate: meta.endDate,
-        range: meta.range,
+        startDate: period.startDate,
+        endDate: period.endDate,
+        range: period.range,
       });
     }
 
@@ -268,25 +268,29 @@ export class Report implements OnInit {
 
     const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
-    // Guard against undefined metrics
-    if (metrics) {
-      this.totalFocusHours.set(metrics.totalFocusedHours ?? 0);
-      this.totalBreakHours.set(metrics.totalBreakHours ?? 0);
-      this.completionRate.set(metrics.completionRate ?? 0);
-      this.sessionsCount.set(metrics.sessionsCount ?? 0);
-      this.expiredSessionsCount.set(metrics.expiredSessionsCount ?? 0);
+    // Guard against undefined overview
+    if (overview) {
+      this.totalFocusHours.set(overview.totalFocusHours ?? 0);
+      this.totalBreakHours.set(overview.totalBreakHours ?? 0);
+      this.completionRate.set(overview.completionRate ?? 0);
+      this.sessionsCount.set(overview.sessionsCount ?? 0);
+      this.averageSessionLengthMinutes.set(overview.averageSessionLengthMinutes ?? 0);
     } else {
-      // Reset to defaults if metrics is undefined
+      // Reset to defaults if overview is undefined
       this.totalFocusHours.set(0);
       this.totalBreakHours.set(0);
       this.completionRate.set(0);
       this.sessionsCount.set(0);
-      this.expiredSessionsCount.set(0);
+      this.averageSessionLengthMinutes.set(0);
     }
+
+    // Set last month abandoned sessions
+    this.lastMonthAbandonedSessions.set(summary.lastMonthAbandonedSessions ?? 0);
 
     const labelCount = labels.length || 1;
     this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
 
+    // Calculate streak: consecutive days with focus at the end of the period
     let streak = 0;
     for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
       const v = paddedFocusHours[i] ?? 0;
@@ -299,25 +303,14 @@ export class Report implements OnInit {
     this.streakDays.set(streak);
 
     // Build activity breakdown for each label based on recentSessions
+    // Backend already sends proper labels: "Mon", "Tue" for weekly, "1", "2" for monthly, "Jan", "Feb" for yearly
     const points: FocusPoint[] = labels.map((label: string, index: number) => {
-      let displayLabel = label;
-      let dateKey: string | undefined = undefined;
-      if (this.selectedRange() === ReportRange.WEEK) {
-        const date = new Date(label);
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        displayLabel = dayNames[date.getDay()];
-        dateKey = label;
-      } else if (this.selectedRange() === ReportRange.MONTH) {
-        displayLabel = label;
-        dateKey = label;
-      } else {
-        displayLabel = label;
-        dateKey = label;
-      }
-      const activities = this.getActivitiesForDateLabel(displayLabel, index, recentSessions, dateKey);
+      // Activity breakdown is not currently supported with simplified labels
+      // We would need the backend to send date information with each label for proper matching
+      const activities: ActivityBreakdown[] = [];
       return {
-        label: displayLabel,
-        dateKey,
+        label: label,
+        dateKey: label,
         hours: paddedFocusHours[index] ?? 0,
         percentage: 0,
         activities,
@@ -553,14 +546,7 @@ export class Report implements OnInit {
   }
 
   protected getTooltipTitle(point: FocusPoint): string {
-    if (point.dateKey) {
-      // Parse ISO date string (YYYY-MM-DD) without timezone issues
-      const [year, month, day] = point.dateKey.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${day}`.toUpperCase();
-    }
+    // Backend sends formatted labels, just use them directly
     return point.label.toUpperCase();
   }
 

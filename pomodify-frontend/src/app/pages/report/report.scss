@@ -2185,6 +2185,83 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   border-top-color: #3a3b3c;
 }
 
+/* -------------------- NO DATA STATE -------------------- */
+.no-data-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(95, 169, 164, 0.05) 0%, rgba(95, 169, 164, 0.02) 100%);
+  border-radius: 12px;
+  margin: 20px 0;
+}
+
+.no-data-content {
+  text-align: center;
+  max-width: 400px;
+
+  .no-data-icon {
+    font-size: 64px;
+    color: $primary-teal;
+    margin-bottom: 20px;
+    opacity: 0.6;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $text-dark;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $text-light;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .start-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background-color: $primary-teal;
+    color: $text-white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $primary-teal-dark;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+    }
+
+    i {
+      font-size: 14px;
+    }
+  }
+}
+
+:host-context(.theme-dark) .no-data-container {
+  background: linear-gradient(135deg, rgba(95, 169, 164, 0.1) 0%, rgba(95, 169, 164, 0.05) 100%);
+}
+
+:host-context(.theme-dark) .no-data-content {
+  h2 {
+    color: #e0e0e0;
+  }
+
+  p {
+    color: #a0a0a0;
+  }
+}
+
 /* -------------------- RESPONSIVE ENHANCEMENTS -------------------- */
 @media (max-width: 768px) {
   .summary-cards {
@@ -2196,5 +2273,32 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   .focus-panel,
   .ranking-panel {
     animation-delay: 0.1s;
+  }
+
+  .no-data-container {
+    min-height: 300px;
+    padding: 30px 15px;
+  }
+
+  .no-data-content {
+    .no-data-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .start-button {
+      padding: 10px 20px;
+      font-size: 13px;
+    }
   }
 }
