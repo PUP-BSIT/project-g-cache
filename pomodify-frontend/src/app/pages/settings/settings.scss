@@ -53,7 +53,6 @@ $toggle-bg-inactive: #D0D0D0;
   }
 }
 
-// Sidebar
 .sidebar {
   width: 72px;
   min-width: 72px;
@@ -2457,8 +2456,7 @@ $toggle-bg-inactive: #D0D0D0;
   .warning-icon {
     filter: brightness(1.2) !important;
   }
-  
-  // Modal actions dark mode
+
   .modal-actions {
     .modal-btn {
       &.btn-ok {
