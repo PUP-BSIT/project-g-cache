@@ -107,16 +107,16 @@ export class Signup implements OnInit {
     event.preventDefault();
     switch (page) {
       case 'home':
-        this.router.navigate(['/landing']);
+        this.router.navigate(['/'], { state: { skipRedirect: true } });
         break;
     }
   }
 
   onBack(): void {
-    this.router.navigate(['/landing']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 
   onClose(): void {
-    this.router.navigate(['/landing']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 }
