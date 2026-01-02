@@ -176,6 +176,12 @@ public class PomodoroSession {
             return Duration.ofSeconds(remainingSecondsAtPause);
         }
         
+        // If paused without stored remaining time (e.g., after phase completion),
+        // return full phase duration since the new phase hasn't started yet
+        if (status == SessionStatus.PAUSED) {
+            return phaseDuration;
+        }
+        
         // If not in progress or no phase start time, return full phase duration
         if (status != SessionStatus.IN_PROGRESS || phaseStartedAt == null) {
             return phaseDuration;
