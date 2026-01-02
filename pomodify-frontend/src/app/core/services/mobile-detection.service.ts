@@ -5,58 +5,36 @@ import { Injectable } from '@angular/core';
 })
 export class MobileDetectionService {
 
-  /**
-   * Detect if the current device is mobile
-   */
   isMobile(): boolean {
     if (typeof window === 'undefined') return false;
     
-    // Check user agent for mobile devices
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    
-    // Mobile device patterns
+
     const mobilePatterns = [
-      /Android/i,
+      /Android.*Mobile/i,  
       /webOS/i,
       /iPhone/i,
-      /iPad/i,
       /iPod/i,
       /BlackBerry/i,
       /Windows Phone/i,
-      /Mobile/i,
-      /Tablet/i
+      /Opera Mini/i,
+      /IEMobile/i
     ];
     
-    const isMobileUserAgent = mobilePatterns.some(pattern => pattern.test(userAgent));
-    
-    // Also check screen size (mobile-like dimensions)
-    const isMobileScreen = window.innerWidth <= 768 || window.innerHeight <= 768;
-    
-    // Check for touch capability
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    return isMobileUserAgent || (isMobileScreen && isTouchDevice);
+    return mobilePatterns.some(pattern => pattern.test(userAgent));
   }
-
-  /**
-   * Detect if device is tablet
-   */
   isTablet(): boolean {
     if (typeof window === 'undefined') return false;
     
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-    
-    // Tablet patterns
+
     const tabletPatterns = [
       /iPad/i,
-      /Android(?!.*Mobile)/i, // Android tablets don't have "Mobile" in user agent
+      /Android(?!.*Mobile)/i, 
       /Tablet/i
     ];
     
-    const isTabletUserAgent = tabletPatterns.some(pattern => pattern.test(userAgent));
-    const isTabletScreen = window.innerWidth >= 768 && window.innerWidth <= 1024;
-    
-    return isTabletUserAgent || isTabletScreen;
+    return tabletPatterns.some(pattern => pattern.test(userAgent));
   }
 
   /**

@@ -20,5 +20,6 @@ public record SessionItem(
         SessionNoteDto note,
         LocalDateTime startedAt,
         LocalDateTime completedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Boolean phaseNotified
 ) {}

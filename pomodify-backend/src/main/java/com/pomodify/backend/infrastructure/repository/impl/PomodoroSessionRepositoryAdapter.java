@@ -85,4 +85,9 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
     public List<String> findRecentNotesByActivityId(Long activityId, int limit) {
         return springRepo.findRecentNotesByActivityId(activityId, org.springframework.data.domain.PageRequest.of(0, limit));
     }
+
+    @Override
+    public List<PomodoroSession> findSessionsNeedingNotification(java.time.LocalDateTime now) {
+        return springRepo.findSessionsNeedingNotification(now);
+    }
 }

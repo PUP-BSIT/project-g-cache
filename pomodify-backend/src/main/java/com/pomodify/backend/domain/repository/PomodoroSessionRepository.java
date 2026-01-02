@@ -108,4 +108,13 @@ public interface PomodoroSessionRepository {
      * @return List of notes (most recent first).
      */
     List<String> findRecentNotesByActivityId(Long activityId, int limit);
+
+    /**
+     * Find all IN_PROGRESS sessions where phase_end_time has passed and notification not yet sent.
+     * Used by scheduled job for backend-triggered push notifications.
+     *
+     * @param now Current timestamp to compare against phase_end_time.
+     * @return List of sessions needing notification.
+     */
+    List<PomodoroSession> findSessionsNeedingNotification(LocalDateTime now);
 }

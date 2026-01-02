@@ -41,4 +41,11 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
 
     @Query("SELECT n.content FROM PomodoroSession s JOIN s.note n WHERE s.activity.id = :activityId AND n.content IS NOT NULL ORDER BY s.completedAt DESC")
     List<String> findRecentNotesByActivityId(@Param("activityId") Long activityId, Pageable pageable);
+
+    @Query("SELECT s FROM PomodoroSession s JOIN FETCH s.activity a JOIN FETCH a.user " +
+           "WHERE s.status = 'IN_PROGRESS' " +
+           "AND s.phaseEndTime IS NOT NULL " +
+           "AND s.phaseEndTime <= :now " +
+           "AND (s.phaseNotified = false OR s.phaseNotified IS NULL)")
+    List<PomodoroSession> findSessionsNeedingNotification(@Param("now") java.time.LocalDateTime now);
 }

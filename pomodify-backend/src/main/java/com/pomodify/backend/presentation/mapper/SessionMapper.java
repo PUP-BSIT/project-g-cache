@@ -27,7 +27,8 @@ public final class SessionMapper {
             result.note(),
             result.startedAt(),
             result.completedAt(),
-            result.createdAt()
+            result.createdAt(),
+            result.phaseNotified()
         );
     }
 
