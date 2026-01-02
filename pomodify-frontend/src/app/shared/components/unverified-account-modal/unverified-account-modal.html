@@ -1,0 +1,26 @@
+<div class="unverified-modal-container">
+  <div class="modal-content">
+    <div class="icon-container">
+      <img src="assets/images/verify-lock.png" alt="Account Locked">
+    </div>
+    <h2 class="title">Verification Required</h2>
+    <p class="message">
+      Your account is currently locked because your email address has not been verified. 
+      Please verify your email to access your account.
+    </p>
+    
+    <div class="actions">
+      <button class="resend-btn" (click)="onResendVerification()" [disabled]="isResending()">
+        @if (isResending()) {
+          <span class="spinner"></span> Sending...
+        } @else {
+          Resend Verification Link
+        }
+      </button>
+      
+      <button class="close-btn" (click)="onClose()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
