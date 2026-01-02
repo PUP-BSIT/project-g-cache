@@ -6,6 +6,18 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./pages/admin/admin-login/admin-login').then(m => m.AdminLogin),
+  },
+  {
+    path: 'admin/dashboard',
+    loadComponent: () => import('./pages/admin/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard),
+  },
+  {
+    path: 'landing',
     canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
