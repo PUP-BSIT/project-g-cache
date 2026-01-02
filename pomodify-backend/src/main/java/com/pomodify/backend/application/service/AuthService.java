@@ -195,9 +195,11 @@ public class AuthService {
 
         // Check verification status with 7-day grace period
         if (!user.isEmailVerified()) {
-            java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
-            if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
-                throw new org.springframework.security.authentication.LockedException("Account locked. Verification grace period (7 days) expired. Please verify your email.");
+            if (user.getCreatedAt() != null) {
+                java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
+                if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
+                    throw new org.springframework.security.authentication.LockedException("Account locked. Verification grace period (7 days) expired. Please verify your email.");
+                }
             }
         }
 
