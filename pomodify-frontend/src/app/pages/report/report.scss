@@ -505,7 +505,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-top: 45px;
+  height: 100%;
 
   .section-heading {
     font-size: 18px;
@@ -642,6 +642,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 100%;
 
   .section-heading {
     font-size: 18px;
@@ -750,6 +751,14 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: start;
+}
+
+.report-middle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
 }
 
 .report-activity-panel {
@@ -1427,6 +1436,10 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
 
   .report-top-row {
+    grid-template-columns: 1fr;
+  }
+
+  .report-middle-row {
     grid-template-columns: 1fr;
   }
 

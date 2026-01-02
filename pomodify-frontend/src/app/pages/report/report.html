@@ -87,109 +87,110 @@
     <!-- Report Content -->
     <div class="report-content">
       <section class="report-main-grid">
-        <!-- TOP ROW: Activity Summary (Left) and Trends (Right) -->
-        <div class="report-top-row">
-          <!-- LEFT: Activity summary -->
-          <div class="report-activity-panel">
-            <section class="activity-summary-section">
-              <h2 class="section-heading">Activity Summary</h2>
+        <!-- ACTIVITY SUMMARY: Full Width -->
+        <div class="report-activity-panel">
+          <section class="activity-summary-section">
+            <h2 class="section-heading">Activity Summary</h2>
 
-            <div class="summary-cards">
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Total Hours Focused</div>
-                  <div class="summary-value">
-                    {{ formatHours(totalFocusHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-regular fa-clock"></i>
+          <div class="summary-cards">
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Total Hours Focused</div>
+                <div class="summary-value">
+                  {{ formatHours(totalFocusHours()) }}
                 </div>
               </div>
+              <div class="summary-icon">
+                <i class="fa-regular fa-clock"></i>
+              </div>
+            </div>
 
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Daily Avg Focus</div>
-                  <div class="summary-value">
-                    {{ formatHours(dailyAverageFocusHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-regular fa-hourglass"></i>
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Daily Avg Focus</div>
+                <div class="summary-value">
+                  {{ formatHours(dailyAverageFocusHours()) }}
                 </div>
               </div>
+              <div class="summary-icon">
+                <i class="fa-regular fa-hourglass"></i>
+              </div>
+            </div>
 
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Day Streak</div>
-                  <div class="summary-value">
-                    {{ streakDays() }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-fire"></i>
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Day Streak</div>
+                <div class="summary-value">
+                  {{ streakDays() }}
                 </div>
               </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-fire"></i>
+              </div>
+            </div>
 
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Total Break Hours</div>
-                  <div class="summary-value">
-                    {{ formatHours(totalBreakHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-pause"></i>
+            <div class="summary-card">
+              <div class="summary-main">
+                <div class="summary-label">Total Break Hours</div>
+                <div class="summary-value">
+                  {{ formatHours(totalBreakHours()) }}
                 </div>
               </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-pause"></i>
+              </div>
+            </div>
 
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Completion Rate</div>
-                  <div class="summary-value">
-                    {{ completionRate() }}%
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-check-circle"></i>
+            <div class="summary-card">
+              <div class="summary-main">
+                <div class="summary-label">Completion Rate</div>
+                <div class="summary-value">
+                  {{ completionRate() }}%
                 </div>
               </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-check-circle"></i>
+              </div>
+            </div>
 
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Total Sessions</div>
-                  <div class="summary-value">
-                    {{ sessionsCount() }}
-                  </div>
+            <div class="summary-card">
+              <div class="summary-main">
+                <div class="summary-label">Total Sessions</div>
+                <div class="summary-value">
+                  {{ sessionsCount() }}
                 </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-list-check"></i>
-                </div>
+              </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-list-check"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Period Info Section -->
+        @if (periodInfo()) {
+          <section class="period-info-section">
+            <h2 class="section-heading">Report Period</h2>
+            <div class="period-card">
+              <div class="period-row">
+                <span class="period-label">Start Date:</span>
+                <span class="period-value">{{ periodInfo()!.startDate }}</span>
+              </div>
+              <div class="period-row">
+                <span class="period-label">End Date:</span>
+                <span class="period-value">{{ periodInfo()!.endDate }}</span>
+              </div>
+              <div class="period-row">
+                <span class="period-label">Range:</span>
+                <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
               </div>
             </div>
           </section>
+        }
+        </div>
 
-          <!-- Period Info Section -->
-          @if (periodInfo()) {
-            <section class="period-info-section">
-              <h2 class="section-heading">Report Period</h2>
-              <div class="period-card">
-                <div class="period-row">
-                  <span class="period-label">Start Date:</span>
-                  <span class="period-value">{{ periodInfo()!.startDate }}</span>
-                </div>
-                <div class="period-row">
-                  <span class="period-label">End Date:</span>
-                  <span class="period-value">{{ periodInfo()!.endDate }}</span>
-                </div>
-                <div class="period-row">
-                  <span class="period-label">Range:</span>
-                  <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
-                </div>
-              </div>
-            </section>
-          }
-
+        <!-- MIDDLE ROW: Insights (Left) and Trends (Right) -->
+        <div class="report-middle-row">
           <!-- Insights Section -->
           @if (insights().length > 0) {
             <section class="insights-section">
@@ -209,9 +210,8 @@
               </div>
             </section>
           }
-          </div>
 
-          <!-- RIGHT: Trends Section (Top Right) -->
+          <!-- Trends Section -->
           <section class="trends-section fade-in-up">
             @if (trends().length > 0) {
               <h2 class="section-heading">Trends</h2>
