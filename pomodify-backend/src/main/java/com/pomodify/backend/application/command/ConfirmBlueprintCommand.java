@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+import java.util.List;
 
 /**
  * Command for confirming and saving an AI-generated blueprint.
@@ -33,6 +34,11 @@ public record ConfirmBlueprintCommand(
         @Size(max = 500, message = "First session note must be 500 characters or less")
         String firstSessionNote,
 
-        Long categoryId
+        Long categoryId,
+
+        List<String> todos,
+
+        @Size(max = 500, message = "Tip note must be 500 characters or less")
+        String tipNote
 ) {
 }

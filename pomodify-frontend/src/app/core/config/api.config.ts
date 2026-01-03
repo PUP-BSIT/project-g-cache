@@ -38,7 +38,7 @@ export const API = {
     OAUTH2_GOOGLE: `${ROOT}/auth/oauth2/google`,
     RESEND_VERIFICATION: `${ROOT}/auth/resend-verification`,
     FORGOT_PASSWORD: `${ROOT}/auth/forgot-password`,
-    FORGOT_PASSWORD_BACKUP: `${ROOT}/auth/forgot-password/backup`,
+    FORGOT_PASSWORD_BACKUP: `${ROOT}/auth/forgot-password-backup`,
     CHECK_BACKUP_EMAIL: `${ROOT}/auth/check-backup-email`,
     RESET_PASSWORD: `${ROOT}/auth/reset-password`,
   },
@@ -85,8 +85,14 @@ export const API = {
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/resume`,
       STOP: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/stop`,
+      COMPLETE_EARLY: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/complete-early`,
       COMPLETE_PHASE: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/complete-phase`,
+      SKIP_PHASE: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/skip`,
+      RESET: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/reset`,
       FINISH: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/finish`,
       UPDATE_NOTE: (activityId: number, sessionId: number) => 
@@ -139,6 +145,8 @@ export const API = {
     GENERATE_PREVIEW: `${ROOT}/ai/generate-preview`,
     GENERATE_PREVIEW_ASYNC: `${ROOT}/ai/generate-preview-async`,
     GET_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-preview-async/${requestId}`,
+    GENERATE_DUAL_PREVIEW_ASYNC: `${ROOT}/ai/generate-dual-preview-async`,
+    GET_DUAL_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-dual-preview-async/${requestId}`,
     CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
     QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
   },

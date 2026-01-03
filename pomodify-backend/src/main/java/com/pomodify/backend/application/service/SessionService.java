@@ -145,23 +145,50 @@ public class SessionService {
     }
 
     @Transactional
+    public SessionResult completeEarly(CompleteEarlyCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.completeEarly(command.sessionId());
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
     public SessionResult completePhase(CompletePhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         activity.completePhase(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
-        // Notify user on phase change
-        String title = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")
-            ? "Focus ended — take a break"
-            : "Break ended — back to focus";
-        String body = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("FOCUS")
-            ? "Cycles completed: " + (saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0)
-            : "Stay mindful and recharge.";
-        pushNotificationService.sendNotificationToUser(command.user(), title, body);
+        
+        // Notify user on phase change with heads-up style messages
+        String title;
+        String body;
+        
+        if (saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")) {
+            // Just entered BREAK phase (focus completed)
+            int focusMinutes = (int) saved.getFocusDuration().toMinutes();
+            title = "☕ It's Break Time!";
+            body = String.format("%d minutes of focus completed", focusMinutes);
+        } else {
+            // Just entered FOCUS phase (break completed)
+            title = "🔥 Focus Now!";
+            body = "Break is done. Time to get back to work!";
+        }
+        
+        try {
+            pushNotificationService.sendNotificationToUser(command.user(), title, body);
+        } catch (IllegalStateException e) {
+            // Notifications disabled - ignore
+        }
+        
         // If session just became COMPLETED (classic), send completion push
         if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
             int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
-            pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
+            try {
+                pushNotificationService.sendNotificationToUser(command.user(), "🎉 Session Complete!", "You finished " + completed + " focus cycle(s). Great work!");
+            } catch (IllegalStateException e) {
+                // Notifications disabled - ignore
+            }
             // Award badges if user reached new streaks
             // Award badges if eligible (BadgeService computes current streak internally)
             badgeService.awardBadgesIfEligible(command.user());
@@ -175,6 +202,15 @@ public class SessionService {
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         session.skipPhase();
         PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult resetSession(ResetSessionCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        session.resetSession();
+        PomodoroSession saved = sessionRepository.save(session);
+        log.info("Reset session {} to NOT_STARTED", saved.getId());
         return toResult(saved);
     }
 

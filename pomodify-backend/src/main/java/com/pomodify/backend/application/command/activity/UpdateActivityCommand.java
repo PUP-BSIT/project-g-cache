@@ -14,6 +14,7 @@ public record UpdateActivityCommand(
 
         Long changeCategoryIdTo,
         String changeActivityTitleTo,
-        String changeActivityDescriptionTo
+        String changeActivityDescriptionTo,
+        String changeColorTo
 ) {
 }

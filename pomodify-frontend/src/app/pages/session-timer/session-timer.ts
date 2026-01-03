@@ -98,10 +98,32 @@ export class SessionTimerComponent implements OnDestroy {
   // Timer state - now using TimerSyncService
   currentPhase = computed(() => this.session()?.currentPhase || 'FOCUS');
   remainingSeconds = computed(() => this.timerSyncService.remainingSeconds());
-  isPaused = computed(() => this.timerSyncService.isPaused());
+  // isPaused: timer is not running AND session is active (not PENDING/COMPLETED/ABANDONED)
+  isPaused = computed(() => {
+    const sess = this.session();
+    if (!sess) return false;
+    // Session is "paused" if timer is not running and session is not in terminal state
+    const isTerminalState = sess.status === 'PENDING' || sess.status === 'COMPLETED' || sess.status === 'ABANDONED';
+    const isTimerStopped = !this.timerSyncService.isRunning();
+    return isTimerStopped && !isTerminalState;
+  });
   isRunning = computed(() => this.timerSyncService.isRunning());
   isPending = computed(() => this.session()?.status === 'PENDING');
   isCompleted = computed(() => this.session()?.status === 'COMPLETED');
+  isAbandoned = computed(() => this.session()?.status === 'ABANDONED');
+
+  // Track if session has been reset (for Reset -> Stop button transition)
+  private sessionHasBeenReset = signal(false);
+  
+  // Public method to check if session was reset
+  protected hasBeenReset = computed(() => this.sessionHasBeenReset());
+
+  // Track if we're at the start of a new phase (not mid-phase pause)
+  // This determines if button shows "Start" vs "Resume"
+  private isAtPhaseStart = signal(true);
+  
+  // Button should show "Start" if at phase start, "Resume" if mid-phase pause
+  protected showStartButton = computed(() => this.isAtPhaseStart());
 
   
   // Shake when time is running low (last 60 seconds)
@@ -111,6 +133,23 @@ export class SessionTimerComponent implements OnDestroy {
 
   // Timer display (MM:SS format) - now using sync service
   timerDisplay = computed(() => this.timerSyncService.getTimerDisplay());
+
+  // Split timer display for inline editing
+  minutesDisplay = computed(() => {
+    const seconds = this.remainingSeconds();
+    return Math.floor(seconds / 60).toString().padStart(2, '0');
+  });
+
+  secondsDisplay = computed(() => {
+    const seconds = this.remainingSeconds();
+    return (seconds % 60).toString().padStart(2, '0');
+  });
+
+  // Inline Editing State
+  isEditingMinutes = signal(false);
+  isEditingSeconds = signal(false);
+  tempMinutes = signal(0);
+  tempSeconds = signal(0);
 
   // Focus and Break time displays (for reference)
   focusTimeDisplay = computed(() => {
@@ -359,74 +398,362 @@ export class SessionTimerComponent implements OnDestroy {
 
   /* -------------------- USER ACTIONS -------------------- */
 
-  protected openTimePicker(): void {
-    // Allow editing the timer at any time (PENDING, IN_PROGRESS, or PAUSED)
+  // Inline Timer Editing - Only Freestyle sessions can be edited
+  protected canEditTimer(): boolean {
     const sess = this.session();
-    if (!sess || sess.status === 'COMPLETED') {
-      return;
-    }
+    // Only allow editing for FREESTYLE sessions when PENDING or PAUSED
+    // CLASSIC sessions have fixed durations: 25 min focus, 5 min break, 15 min long break
+    return !!sess && 
+           sess.sessionType === 'FREESTYLE' && 
+           sess.status !== 'COMPLETED' && 
+           sess.status !== 'IN_PROGRESS';
+  }
 
-    const currentMinutes = Math.floor(this.remainingSeconds() / 60);
-    const currentSeconds = this.remainingSeconds() % 60;
+  protected openTimePicker(): void {
+    if (!this.canEditTimer()) return;
 
-    // Use responsive width based on screen size
-    const isMobile = window.innerWidth <= 600;
+    const currentSeconds = this.remainingSeconds();
+    const minutes = Math.floor(currentSeconds / 60);
+    const seconds = currentSeconds % 60;
+
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      width: isMobile ? '300px' : '700px',
-      maxWidth: isMobile ? '300px' : '700px',
-      disableClose: false,
-      panelClass: isMobile ? 'mobile-time-picker-dialog' : 'desktop-time-picker-dialog'
-    }) as any;
+      data: { minutes, seconds } as TimePickerData,
+      width: '400px',
+      panelClass: 'time-picker-dialog'
+    });
 
-    // Set initial time
-    dialogRef.componentInstance.time.set({
-      minutes: currentMinutes,
-      seconds: currentSeconds
+    dialogRef.afterClosed().subscribe((result: TimePickerData | undefined) => {
+      if (result) {
+        this.updateTimerFromPicker(result);
+      }
+    });
+  }
+
+  private updateTimerFromPicker(data: TimePickerData): void {
+    const phase = this.currentPhase();
+    let totalSeconds = (data.minutes * 60) + data.seconds;
+    let totalMinutes = Math.ceil(totalSeconds / 60);
+
+    // Validation (Clamp)
+    if (phase === 'FOCUS') {
+      if (totalMinutes < 1) totalMinutes = 1;
+      if (totalMinutes > 180) totalMinutes = 180;
+    } else if (phase === 'BREAK') {
+      if (totalMinutes < 2) totalMinutes = 2;
+      if (totalMinutes > 10) totalMinutes = 10;
+    } else if (phase === 'LONG_BREAK') {
+      if (totalMinutes < 15) totalMinutes = 15;
+      if (totalMinutes > 30) totalMinutes = 30;
+    }
+    
+    // Clamp seconds based on minutes limits
+    let minSec = 0;
+    let maxSec = 0;
+    
+    if (phase === 'FOCUS') {
+        minSec = 1 * 60;
+        maxSec = 180 * 60;
+    } else if (phase === 'BREAK') {
+        minSec = 2 * 60;
+        maxSec = 10 * 60;
+    } else if (phase === 'LONG_BREAK') {
+        minSec = 15 * 60;
+        maxSec = 30 * 60;
+    }
+    
+    if (totalSeconds < minSec) totalSeconds = minSec;
+    if (totalSeconds > maxSec) totalSeconds = maxSec;
+    
+    // Update Timer
+    this.timerSyncService.setRemainingSeconds(totalSeconds);
+    
+    // Update Backend
+    const sess = this.session();
+    const actId = this.activityId();
+    if (sess && actId) {
+        let updateReq: any = {
+            sessionType: sess.sessionType,
+            focusTimeInMinutes: sess.focusTimeInMinutes,
+            breakTimeInMinutes: sess.breakTimeInMinutes,
+            cycles: sess.cycles,
+            enableLongBreak: sess.enableLongBreak,
+            longBreakTimeInMinutes: sess.longBreakTimeInMinutes,
+            longBreakIntervalInMinutes: sess.longBreakIntervalInMinutes
+        };
+        
+        // We send minutes to backend.
+        const minutesToSend = Math.ceil(totalSeconds / 60);
+        
+        if (phase === 'FOCUS') {
+            updateReq.focusTimeInMinutes = minutesToSend;
+        } else if (phase === 'BREAK') {
+            updateReq.breakTimeInMinutes = minutesToSend;
+        } else if (phase === 'LONG_BREAK') {
+            updateReq.longBreakTimeInMinutes = minutesToSend;
+        }
+        
+        this.sessionService.updateSession(actId, sess.id, updateReq).subscribe({
+            next: (updatedSession) => {
+                this.session.set(updatedSession);
+                console.log('✅ Session settings updated:', updatedSession);
+            },
+            error: (err) => console.error('❌ Failed to update session settings:', err)
+        });
+    }
+  }
+
+  protected completeEarly(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Complete Session Early?',
+        message: 'Are you sure you want to complete this session early? If at least 1 focus phase is completed, it will be marked as COMPLETED. Otherwise, it will be marked as NOT STARTED.',
+        confirmText: 'Complete Early',
+        cancelText: 'Cancel',
+        type: 'warning'
+      } as ConfirmDialogData
     });
 
     dialogRef.afterClosed().pipe(
-      filter((result): result is TimePickerData => !!result)
-    ).subscribe((timeData: TimePickerData) => {
-      const totalSeconds = (timeData.minutes * 60) + timeData.seconds;
-      const newFocusMinutes = Math.ceil(totalSeconds / 60); // Round up to nearest minute for focusTimeInMinutes
-      
-      console.log('⏱️ Time picker closed with:', { minutes: timeData.minutes, seconds: timeData.seconds, totalSeconds, newFocusMinutes });
-      
-      // Update the sync service with new time
-      this.timerSyncService.setRemainingSeconds(totalSeconds);
-      
-      // Get current session status (not the captured one from dialog open)
-      const currentSession = this.session();
-      const actId = this.activityId();
-      
-      // Update local session state with new focus time
-      if (currentSession) {
-        this.session.set({
-          ...currentSession,
-          focusTimeInMinutes: newFocusMinutes,
-          remainingPhaseSeconds: totalSeconds
-        });
+      filter(result => !!result),
+      switchMap(() => {
+        this.loading.set(true);
+        return this.sessionService.completeEarly(actId, sess.id);
+      })
+    ).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        this.loading.set(false);
+        this.goBack();
+      },
+      error: (err) => {
+        this.handleError(err, 'complete session early');
+        this.loading.set(false);
       }
-      
-      // Sync focus time to backend (fire and forget)
-      if (currentSession && actId) {
-        this.sessionService.updateSession(actId, currentSession.id, {
-          focusTimeInMinutes: newFocusMinutes
-        }).pipe(
-          catchError(err => {
-            console.warn('Failed to sync focus time to backend:', err);
-            return of(null);
-          })
-        ).subscribe(updated => {
-          if (updated) {
-            console.log('✅ Focus time synced to backend:', updated.focusTimeInMinutes);
-          }
-        });
+    });
+  }
+
+  /**
+   * Complete Session button handler (Freestyle only)
+   * If no cycle completed -> NOT_STARTED
+   * If at least 1 cycle completed -> COMPLETED
+   */
+  protected completeSession(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    const cyclesCompleted = sess.cyclesCompleted || 0;
+    const hasCompletedFocus = cyclesCompleted > 0;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Complete Session?',
+        message: hasCompletedFocus 
+          ? `You have completed ${cyclesCompleted} cycle(s). This session will be marked as COMPLETED and you won't be able to edit the notes anymore.`
+          : 'You haven\'t completed any cycles yet. This session will be marked as NOT STARTED and reset.',
+        confirmText: hasCompletedFocus ? 'Complete Session' : 'Mark as Not Started',
+        cancelText: 'Cancel',
+        type: hasCompletedFocus ? 'info' : 'warning'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().pipe(
+      filter(result => !!result),
+      switchMap(() => {
+        this.loading.set(true);
+        this.timerSyncService.stopTimer();
+        return this.sessionService.completeEarly(actId, sess.id);
+      })
+    ).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        this.loading.set(false);
+        this.goBack();
+      },
+      error: (err) => {
+        this.handleError(err, 'complete session');
+        this.loading.set(false);
       }
-      
-      // If timer is running, restart it with the new time
-      if (currentSession?.status === 'IN_PROGRESS') {
-        this.timerSyncService.startTimer();
+    });
+  }
+
+  /**
+   * Start session with confirmation modal (only for FREESTYLE sessions)
+   * CLASSIC sessions start directly without confirmation since they are uneditable
+   */
+  protected confirmAndStartSession(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    // Classic sessions start directly without confirmation (they're uneditable anyway)
+    if (sess.sessionType === 'CLASSIC') {
+      this.startSession();
+      return;
+    }
+
+    // Freestyle sessions show confirmation modal
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Start Session?',
+        message: 'Once you start this session, it will be marked as IN PROGRESS. You won\'t be able to edit the timer duration while the session is running.',
+        confirmText: 'Start Session',
+        cancelText: 'Cancel',
+        type: 'info'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.startSession();
+      }
+    });
+  }
+
+  /**
+   * Skip to next phase
+   * - If current phase is FOCUS, switches to BREAK (doesn't count as cycle completion)
+   * - If current phase is BREAK, switches to FOCUS (cycle only counts if focus was completed)
+   */
+  protected skipPhase(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    const currentPhase = sess.currentPhase || 'FOCUS';
+    const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    
+    // Call backend to skip phase
+    this.sessionService.skipPhase(actId, sess.id).subscribe({
+      next: (updated) => {
+        this.session.set(updated);
+        this.timerSyncService.updateFromSession(updated);
+        
+        // If was running, keep it running in the new phase
+        if (sess.status === 'IN_PROGRESS') {
+          this.timerSyncService.startTimer();
+        }
+      },
+      error: (err) => {
+        // Handle locally if backend fails
+        console.warn('[Session Timer] Skip phase failed, handling locally:', err);
+        
+        // Calculate the new timer value based on the next phase
+        const newTime = nextPhase === 'FOCUS' 
+          ? (sess.focusTimeInMinutes || 25) * 60
+          : (sess.breakTimeInMinutes || 5) * 60;
+        
+        const localUpdated: PomodoroSession = {
+          ...sess,
+          currentPhase: nextPhase,
+          remainingPhaseSeconds: newTime
+        };
+        
+        this.session.set(localUpdated);
+        this.timerSyncService.updateFromSession(localUpdated);
+        
+        // If was running, keep it running
+        if (sess.status === 'IN_PROGRESS') {
+          this.timerSyncService.startTimer();
+        }
+      }
+    });
+  }
+
+  /**
+   * Reset session to beginning (NOT_STARTED)
+   * Only appears after pause
+   */
+  protected resetSession(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Reset Session?',
+        message: 'Are you sure you want to reset this session? All progress will be lost and the session will be marked as NOT STARTED. You can then start fresh or stop to abandon the session.',
+        confirmText: 'Reset Session',
+        cancelText: 'Cancel',
+        type: 'danger'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().pipe(
+      filter(result => !!result),
+      switchMap(() => {
+        this.loading.set(true);
+        this.timerSyncService.stopTimer();
+        return this.sessionService.resetSession(actId, sess.id);
+      })
+    ).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        this.timerSyncService.updateFromSession(updatedSession);
+        this.sessionHasBeenReset.set(true);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        // Handle locally if backend fails
+        console.warn('[Session Timer] Reset session failed, handling locally:', err);
+        
+        const resetSession: PomodoroSession = {
+          ...sess,
+          status: 'PENDING',
+          currentPhase: 'FOCUS',
+          cyclesCompleted: 0,
+          remainingPhaseSeconds: (sess.focusTimeInMinutes || 25) * 60
+        };
+        
+        this.session.set(resetSession);
+        this.timerSyncService.updateFromSession(resetSession);
+        this.sessionHasBeenReset.set(true);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  /**
+   * Resume session action (public method for template)
+   */
+  protected resumeSessionAction(): void {
+    this.resumeSession();
+  }
+
+  protected abandonSession(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Abandon Session?',
+        message: 'Are you sure you want to abandon this session? It will be marked as ABANDONED.',
+        confirmText: 'Abandon',
+        cancelText: 'Cancel',
+        type: 'danger'
+      } as ConfirmDialogData
+    });
+
+    dialogRef.afterClosed().pipe(
+      filter(result => !!result),
+      switchMap(() => {
+        this.loading.set(true);
+        return this.sessionService.stopSession(actId, sess.id);
+      })
+    ).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        this.loading.set(false);
+        this.goBack();
+      },
+      error: (err) => {
+        this.handleError(err, 'abandon session');
+        this.loading.set(false);
       }
     });
   }
@@ -436,6 +763,9 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     console.log('🎬 Starting session...', { sessionId: sess?.id, activityId: actId, status: sess?.status });
     if (!sess || !actId) return;
+
+    // Clear the reset flag when starting
+    this.sessionHasBeenReset.set(false);
 
     // If paused normally (user pressed pause), resume via API
     if (sess.status === 'PAUSED') {
@@ -480,6 +810,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Pause timer sync service
     this.timerSyncService.pauseTimer();
+    
+    // Mark that we're pausing mid-phase (not at start of new phase)
+    this.isAtPhaseStart.set(false);
 
     // Update local state immediately
     const pausedSession: PomodoroSession = {
@@ -510,10 +843,53 @@ export class SessionTimerComponent implements OnDestroy {
     });
   }
 
+  /**
+   * Start a new phase (called when at beginning of a phase, not resuming mid-phase)
+   */
+  protected startPhase(): void {
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+
+    console.log('[Session Timer] Starting new phase:', sess.currentPhase);
+    
+    // Clear the reset flag when starting a phase
+    this.sessionHasBeenReset.set(false);
+    
+    // Mark that we're no longer at phase start
+    this.isAtPhaseStart.set(false);
+
+    // Call start/resume on backend to begin the phase
+    this.sessionService.resumeSession(actId, sess.id).subscribe({
+      next: (updated) => {
+        const runningSession: PomodoroSession = {
+          ...updated,
+          status: 'IN_PROGRESS'
+        };
+        this.session.set(runningSession);
+        this.timerSyncService.updateFromSession(runningSession);
+        this.timerSyncService.startTimer();
+      },
+      error: (err) => {
+        // If API fails, start timer locally anyway
+        console.log('[Session Timer] Start phase API failed, starting locally:', err);
+        const runningSession: PomodoroSession = {
+          ...sess,
+          status: 'IN_PROGRESS'
+        };
+        this.session.set(runningSession);
+        this.timerSyncService.startTimer();
+      }
+    });
+  }
+
   private resumeSession(): void {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) return;
+
+    // Clear the reset flag when resuming (for classic mode button pairing)
+    this.sessionHasBeenReset.set(false);
 
     this.sessionService.resumeSession(actId, sess.id).subscribe({
       next: (updated) => {
@@ -616,43 +992,60 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Calculate the next phase immediately for optimistic UI update
+    const currentPhase = sess.currentPhase || 'FOCUS';
+    const nextPhase: 'FOCUS' | 'BREAK' = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    const newCyclesCompleted = currentPhase === 'BREAK' ? (sess.cyclesCompleted || 0) + 1 : sess.cyclesCompleted || 0;
+    
+    // Mark that we're at the start of a new phase (button should show "Start" not "Resume")
+    this.isAtPhaseStart.set(true);
+    
+    // Optimistic update: immediately update the UI to show new phase
+    // Use IN_PROGRESS status but timer is not running (controlled by frontend)
+    const optimisticSession: PomodoroSession = {
+      ...sess,
+      status: 'IN_PROGRESS', // Keep as IN_PROGRESS, timer just isn't running
+      currentPhase: nextPhase,
+      cyclesCompleted: newCyclesCompleted
+    };
+    this.session.set(optimisticSession);
+    
+    // Update timer to show the new phase duration (not running yet)
+    const newPhaseDuration = nextPhase === 'FOCUS' 
+      ? (sess.focusTimeInMinutes || 25) * 60 
+      : (sess.breakTimeInMinutes || 5) * 60;
+    this.timerSyncService.setRemainingSeconds(newPhaseDuration);
+    this.timerSyncService.pauseTimer(); // Ensure timer is paused
+    
+    // Trigger notification immediately
+    this.triggerPhaseCompletionNotification();
+
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
-        this.session.set(updated);
+        // Sync with backend response
+        const syncedSession: PomodoroSession = {
+          ...updated,
+          status: 'IN_PROGRESS' // Keep IN_PROGRESS, frontend controls timer
+        };
+        this.session.set(syncedSession);
         
-        // If session is now completed, show completion message
+        // If session is now completed (Classic sessions only), show completion message
         if (updated.status === 'COMPLETED') {
           console.log('🎉 Session completed - triggering session completion notification');
+          this.session.set(updated);
           this.timerSyncService.setRemainingSeconds(0);
           this.triggerSessionCompletionNotification();
-        } else {
-          // Phase completed but session continues - set to PAUSED so user must manually start next phase
-          const pausedSession: PomodoroSession = {
-            ...updated,
-            status: 'PAUSED'
-          };
-          this.session.set(pausedSession);
-          this.timerSyncService.updateFromSession(pausedSession);
+          return;
         }
+        
+        // Check auto-start settings and start next phase if enabled
+        this.checkAndAutoStartNextPhase(nextPhase);
       },
       error: (err) => {
-        console.log('[Session Timer] Complete phase failed, handling locally:', err);
+        console.log('[Session Timer] Complete phase failed, optimistic update already applied:', err);
         
-        // Still trigger notifications even if API fails
-        this.triggerPhaseCompletionNotification();
-        
-        // Reset timer and set to paused state
-        const currentPhase = sess.currentPhase || 'FOCUS';
-        const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
-        
-        const pausedSession: PomodoroSession = {
-          ...sess,
-          status: 'PAUSED',
-          currentPhase: nextPhase
-        };
-        
-        this.session.set(pausedSession);
-        this.timerSyncService.updateFromSession(pausedSession);
+        // Still check auto-start even if backend fails
+        this.checkAndAutoStartNextPhase(nextPhase);
         
         // Only show error for non-auth issues
         if (!(err instanceof HttpErrorResponse && err.status === 401)) {
@@ -660,6 +1053,26 @@ export class SessionTimerComponent implements OnDestroy {
         }
       }
     });
+  }
+  
+  /**
+   * Check auto-start settings and automatically start the next phase if enabled
+   */
+  private checkAndAutoStartNextPhase(nextPhase: 'FOCUS' | 'BREAK'): void {
+    const settings = this.settingsService.getSettings();
+    const shouldAutoStart = nextPhase === 'BREAK' 
+      ? settings.autoStart.autoStartBreaks 
+      : settings.autoStart.autoStartPomodoros;
+    
+    if (shouldAutoStart) {
+      console.log(`[Session Timer] Auto-starting ${nextPhase} phase based on settings`);
+      // Use a short delay to let UI update, then auto-start
+      setTimeout(() => {
+        this.startPhase();
+      }, 500);
+    } else {
+      console.log(`[Session Timer] Auto-start disabled for ${nextPhase}, waiting for user input`);
+    }
   }
 
   protected goBack(): void {

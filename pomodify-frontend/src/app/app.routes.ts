@@ -6,6 +6,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {
@@ -18,22 +19,18 @@ export const routes: Routes = [
   },
   {
     path: 'landing',
-    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/landing/landing').then(m => m.Landing),
   },
   {
     path: 'login',
-    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/login/login').then(m => m.Login),
   },
   {
     path: 'signup',
-    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/signup/signup').then(m => m.Signup),
   },
   {
     path: 'reset-password',
-    canActivate: [publicPageGuard],
     loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPasswordPage),
   },
   {
@@ -87,6 +84,10 @@ export const routes: Routes = [
   {
     path: 'careers',
     loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('./pages/contact/contact').then(m => m.ContactPage),
   },
   {
     path: 'activities/:activityTitle/sessions',

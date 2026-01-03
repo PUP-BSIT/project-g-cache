@@ -32,7 +32,6 @@ type Activity = {
   icon: string;
   category: string;
   colorTag: string;
-  estimatedHoursPerWeek: number;
   lastAccessed: string;
   sessions: Session[];
 };

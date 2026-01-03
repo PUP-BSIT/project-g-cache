@@ -67,6 +67,7 @@ public class ActivityController {
                 .categoryId(request.categoryId())
                 .createActivityTitle(request.title())
                 .createDescription(request.description())
+                .color(request.color())
                 .build();
 
         ActivityItem item = ActivityMapper.toActivityItem(activityService.createActivity(command));
@@ -165,6 +166,7 @@ public class ActivityController {
                 .changeCategoryIdTo(request.newCategoryId())
                 .changeActivityTitleTo(request.newActivityTitle())
                 .changeActivityDescriptionTo(request.newActivityDescription())
+                .changeColorTo(request.newColor())
                 .build();
 
         ActivityItem item = ActivityMapper.toActivityItem(activityService.updateActivity(command));

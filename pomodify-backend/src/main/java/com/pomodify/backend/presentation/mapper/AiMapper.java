@@ -2,12 +2,14 @@ package com.pomodify.backend.presentation.mapper;
 
 import com.pomodify.backend.application.result.BlueprintResult;
 import com.pomodify.backend.application.result.ConfirmBlueprintResult;
+import com.pomodify.backend.application.result.DualBlueprintResult;
 import com.pomodify.backend.application.result.QuickFocusResult;
 import com.pomodify.backend.presentation.dto.item.BlueprintItem;
 import com.pomodify.backend.presentation.dto.item.ConfirmBlueprintItem;
 import com.pomodify.backend.presentation.dto.item.QuickFocusItem;
 import com.pomodify.backend.presentation.dto.response.BlueprintResponse;
 import com.pomodify.backend.presentation.dto.response.ConfirmBlueprintResponse;
+import com.pomodify.backend.presentation.dto.response.DualBlueprintResponse;
 import com.pomodify.backend.presentation.dto.response.QuickFocusResponse;
 
 /**
@@ -70,6 +72,28 @@ public class AiMapper {
                 .message(message)
                 .activityId(item.activityId())
                 .sessionId(item.sessionId())
+                .build();
+    }
+
+    /* -------------------- DUAL BLUEPRINT -------------------- */
+    public static DualBlueprintResponse toDualBlueprintResponse(DualBlueprintResult result, String message) {
+        return DualBlueprintResponse.builder()
+                .message(message)
+                .beginnerPlan(toDualBlueprintPlan(result.beginnerPlan()))
+                .intermediatePlan(toDualBlueprintPlan(result.intermediatePlan()))
+                .isFallback(result.isFallback())
+                .build();
+    }
+
+    private static DualBlueprintResponse.BlueprintPlan toDualBlueprintPlan(DualBlueprintResult.BlueprintPlanResult plan) {
+        return DualBlueprintResponse.BlueprintPlan.builder()
+                .level(plan.level())
+                .activityTitle(plan.activityTitle())
+                .activityDescription(plan.activityDescription())
+                .focusMinutes(plan.focusMinutes())
+                .breakMinutes(plan.breakMinutes())
+                .todos(plan.todos())
+                .tipNote(plan.tipNote())
                 .build();
     }
 }

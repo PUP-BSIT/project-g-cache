@@ -6,10 +6,11 @@ import { SuccessNotificationComponent } from './shared/components/success-notifi
 import { ErrorNotificationComponent } from './shared/components/error-notification/error-notification.component';
 import { SuccessNotificationService } from './core/services/success-notification.service';
 import { NotificationService } from './core/services/notification.service';
+import { FloatingTimerComponent } from './shared/components/floating-timer/floating-timer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, SuccessNotificationComponent, ErrorNotificationComponent],
+  imports: [RouterOutlet, SuccessNotificationComponent, ErrorNotificationComponent, FloatingTimerComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
