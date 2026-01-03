@@ -126,6 +126,52 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Async
+    public void sendContactEmail(String senderName, String senderEmail, String reason, String messageContent) {
+        String toEmail = "contact@pomodify.site";
+        String subject = String.format("[Pomodify Contact] %s - %s", reason, senderName);
+        
+        String htmlContent = generateContactHtmlContent(senderName, senderEmail, reason, messageContent);
+        
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setReplyTo(senderEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Contact email sent successfully from {} to {}", senderEmail, toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send contact email from {}: {}", senderEmail, e.getMessage());
+            throw new RuntimeException("Failed to send contact email", e);
+        }
+    }
+
+    private String generateContactHtmlContent(String senderName, String senderEmail, String reason, String messageContent) {
+        return String.format("""
+            <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                    <h2 style="color: #4da1a9;">New Contact Form Submission</h2>
+                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                        <p><strong>From:</strong> %s</p>
+                        <p><strong>Email:</strong> <a href="mailto:%s">%s</a></p>
+                        <p><strong>Reason:</strong> %s</p>
+                    </div>
+                    <h3 style="color: #24425A;">Message:</h3>
+                    <div style="background-color: #fff; padding: 15px; border: 1px solid #eee; border-radius: 4px;">
+                        <p style="white-space: pre-wrap;">%s</p>
+                    </div>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #999;">This message was sent via the Pomodify Contact Form.</p>
+                </div>
+            </body>
+            </html>
+            """, senderName, senderEmail, senderEmail, reason, messageContent);
+    }
+
     private String generateHtmlContent(String title, String message, String buttonText, String link, String footerMessage) {
         return String.format("""
             <html>

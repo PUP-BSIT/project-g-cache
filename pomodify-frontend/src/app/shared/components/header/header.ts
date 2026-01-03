@@ -1,6 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-header',
@@ -9,17 +11,37 @@ import { Router, RouterLink } from '@angular/router';
   templateUrl: './header.html',
   styleUrls: ['./header.scss'],
 })
-export class Header implements OnInit {
+export class Header implements OnInit, OnDestroy {
   mobileMenuOpen = false;
+  isContactPage = false;
+  private routerSubscription?: Subscription;
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.updateBodyClass();
+    this.checkCurrentRoute();
+    
+    this.routerSubscription = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.checkCurrentRoute());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
+  }
+
+  private checkCurrentRoute(): void {
+    this.isContactPage = this.router.url === '/contact';
   }
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen = !this.mobileMenuOpen;
+    this.updateBodyClass();
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
     this.updateBodyClass();
   }
 
