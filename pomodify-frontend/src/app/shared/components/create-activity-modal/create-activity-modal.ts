@@ -57,7 +57,7 @@ export class CreateActivityModal implements OnInit {
       name: [
         '',
         {
-          validators: [Validators.required, Validators.minLength(1)],
+          validators: [Validators.required, Validators.minLength(1), Validators.maxLength(40)],
         },
       ],
       category: [
@@ -69,7 +69,7 @@ export class CreateActivityModal implements OnInit {
       customCategory: [
         '',
         {
-          validators: [],
+          validators: [Validators.maxLength(40)],
         },
       ],
       colorTag: [

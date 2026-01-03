@@ -14,10 +14,19 @@
         formControlName="name"
         class="form-input"
         placeholder="Enter activity name"
+        maxlength="40"
       />
+      <div class="char-counter" [class.warning]="activityForm.get('name')?.value?.length >= 35">
+        {{ activityForm.get('name')?.value?.length || 0 }} / 40 characters
+      </div>
       @if (activityForm.get('name')?.invalid && activityForm.get('name')?.touched) {
         <div class="error-message">
-          Activity name is required
+          @if (activityForm.get('name')?.errors?.['required']) {
+            Activity name is required
+          }
+          @if (activityForm.get('name')?.errors?.['maxlength']) {
+            Activity name cannot exceed 40 characters
+          }
         </div>
       }
     </div>
@@ -41,7 +50,11 @@
         class="form-input custom-category-input"
         placeholder="Or type a new category"
         style="margin-top: 8px;"
+        maxlength="40"
       />
+      <div class="char-counter" [class.warning]="activityForm.get('customCategory')?.value?.length >= 35">
+        {{ activityForm.get('customCategory')?.value?.length || 0 }} / 40 characters
+      </div>
     </div>
 
     <!-- Color Tag -->

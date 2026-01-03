@@ -125,6 +125,18 @@
   margin-top: 4px;
 }
 
+.char-counter {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: right;
+  
+  &.warning {
+    color: #f59e0b;
+    font-weight: 500;
+  }
+}
+
 .modal-actions {
   display: flex;
   gap: 12px;
