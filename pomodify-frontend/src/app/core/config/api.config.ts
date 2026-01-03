@@ -81,8 +81,14 @@ export const API = {
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/resume`,
       STOP: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/stop`,
+      COMPLETE_EARLY: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/complete-early`,
       COMPLETE_PHASE: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/complete-phase`,
+      SKIP_PHASE: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/skip`,
+      RESET: (activityId: number, sessionId: number) => 
+        `${ROOT}/activities/${activityId}/sessions/${sessionId}/reset`,
       FINISH: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/finish`,
       UPDATE_NOTE: (activityId: number, sessionId: number) => 
