@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { BadgeService, Badge } from '../../core/services/badge.service';
+import { Auth } from '../../core/services/auth';
 
 export type ProfileData = {
   name: string;
@@ -24,6 +25,7 @@ export class Profile implements OnInit {
   private dialogRef = inject(MatDialogRef<Profile>);
   private fb = inject(FormBuilder);
   private badgeService = inject(BadgeService);
+  private auth = inject(Auth);
 
   @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
@@ -41,6 +43,7 @@ export class Profile implements OnInit {
   protected verificationCode = signal('');
   protected isVerificationValid = signal(false);
   protected isLoadingProfile = signal(true);
+  protected isSavingBackupEmail = signal(false);
   
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
@@ -126,6 +129,12 @@ export class Profile implements OnInit {
         }
         if (user.email) {
           this.userEmail.set(user.email);
+        }
+        if (user.backupEmail) {
+          this.backupEmail.set(user.backupEmail);
+          if (this.backupEmailForm) {
+            this.backupEmailForm.patchValue({ backupEmail: user.backupEmail });
+          }
         }
         this.isLoadingProfile.set(false);
       },
@@ -255,17 +264,33 @@ export class Profile implements OnInit {
   protected saveBackupEmail(): void {
     if (this.backupEmailForm.valid) {
       const email = this.backupEmailForm.get('backupEmail')?.value;
-      this.backupEmail.set(email);
-      this.showBackupEmailForm.set(false);
-      // TODO(Delumen, Ivan): Call API to save backup email
+      this.isSavingBackupEmail.set(true);
+      
+      this.auth.updateBackupEmail(email).then(() => {
+        this.backupEmail.set(email);
+        this.showBackupEmailForm.set(false);
+        this.isSavingBackupEmail.set(false);
+      }).catch((error) => {
+        console.error('Failed to save backup email:', error);
+        alert('Failed to save backup email. Please try again.');
+        this.isSavingBackupEmail.set(false);
+      });
     }
   }
   
   protected updateBackupEmail(): void {
     if (this.backupEmailForm.valid) {
       const email = this.backupEmailForm.get('backupEmail')?.value;
-      this.backupEmail.set(email);
-      // TODO(Delumen, Ivan): Call API to update backup email
+      this.isSavingBackupEmail.set(true);
+      
+      this.auth.updateBackupEmail(email).then(() => {
+        this.backupEmail.set(email);
+        this.isSavingBackupEmail.set(false);
+      }).catch((error) => {
+        console.error('Failed to update backup email:', error);
+        alert('Failed to update backup email. Please try again.');
+        this.isSavingBackupEmail.set(false);
+      });
     }
   }
   
