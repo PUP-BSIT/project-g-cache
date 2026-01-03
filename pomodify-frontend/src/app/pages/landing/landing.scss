@@ -460,6 +460,18 @@
 }
 .contact-panel textarea { resize: vertical; }
 .contact-panel .form-error { color: #b00020; font-weight: 700; margin-bottom: 8px; }
+.contact-panel .contact-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+  color: #2e7d32;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.contact-panel .contact-success i { font-size: 20px; }
 .contact-panel .submit {
   background: #4da1a9;
   color: #ffffff;
@@ -469,6 +481,16 @@
   border-radius: 8px;
   font-weight: 800;
   cursor: pointer;
+}
+.contact-panel .submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.contact-panel input:disabled,
+.contact-panel select:disabled,
+.contact-panel textarea:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 520px) {

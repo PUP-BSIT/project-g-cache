@@ -86,6 +86,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/static-page/static-page').then(m => m.StaticPage),
   },
   {
+    path: 'contact',
+    loadComponent: () => import('./pages/contact/contact').then(m => m.ContactPage),
+  },
+  {
     path: 'activities/:activityTitle/sessions',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/sessions-list/sessions-list').then(m => m.SessionsListComponent),

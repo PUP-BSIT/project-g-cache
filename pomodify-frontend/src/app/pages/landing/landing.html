@@ -137,14 +137,21 @@
             </header>
 
             <form (ngSubmit)="submitContact()" #contactForm="ngForm" novalidate>
+                <!-- Success message -->
+                <div class="contact-success" *ngIf="contactSuccess">
+                    <i class="fa fa-check-circle" aria-hidden="true"></i>
+                    <span>Message sent successfully!</span>
+                </div>
+
+                <ng-container *ngIf="!contactSuccess">
                 <label for="c-name">Name</label>
-                <input id="c-name" name="name" [(ngModel)]="contactData.name" required />
+                <input id="c-name" name="name" [(ngModel)]="contactData.name" required [disabled]="contactSubmitting" />
 
                 <label for="c-email">Email</label>
-                <input id="c-email" name="email" type="email" [(ngModel)]="contactData.email" required />
+                <input id="c-email" name="email" type="email" [(ngModel)]="contactData.email" required [disabled]="contactSubmitting" />
 
                 <label for="c-reason">Reason for Contact</label>
-                <select id="c-reason" name="reason" [(ngModel)]="contactData.reason" required>
+                <select id="c-reason" name="reason" [(ngModel)]="contactData.reason" required [disabled]="contactSubmitting">
                   <option value="">Select a reason</option>
                   <option value="support">Support</option>
                   <option value="bug">Report a bug</option>
@@ -153,11 +160,15 @@
                 </select>
 
                 <label for="c-message">Message</label>
-                <textarea id="c-message" name="message" rows="4" [(ngModel)]="contactData.message" required></textarea>
+                <textarea id="c-message" name="message" rows="4" [(ngModel)]="contactData.message" required [disabled]="contactSubmitting"></textarea>
 
                 <div class="form-error" *ngIf="contactFormError">{{ contactFormError }}</div>
 
-                <button type="submit" class="submit">Send</button>
+                <button type="submit" class="submit" [disabled]="contactSubmitting">
+                    <span *ngIf="!contactSubmitting">Send</span>
+                    <span *ngIf="contactSubmitting"><i class="fa fa-spinner fa-spin" aria-hidden="true"></i> Sending...</span>
+                </button>
+                </ng-container>
             </form>
         </div>
 
