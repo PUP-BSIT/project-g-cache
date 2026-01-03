@@ -108,6 +108,18 @@ public class User {
         this.passwordHash = newPasswordHash;
     }
 
+    public void updateName(String firstName, String lastName) {
+        ensureActive();
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Last name cannot be empty");
+        }
+        this.firstName = firstName.trim();
+        this.lastName = lastName.trim();
+    }
+
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }

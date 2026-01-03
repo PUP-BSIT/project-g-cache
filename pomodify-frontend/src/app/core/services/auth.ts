@@ -307,4 +307,24 @@ export class Auth {
     const url = API.AUTH.RESET_PASSWORD;
     return lastValueFrom(this.http.post<void>(url, { token, newPassword }));
   }
+
+  /**
+   * Changes the password for the authenticated user.
+   * @param currentPassword - Current password
+   * @param newPassword - New password
+   */
+  changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const url = API.USER.CHANGE_PASSWORD;
+    return lastValueFrom(this.http.post<void>(url, { currentPassword, newPassword }, { withCredentials: true }));
+  }
+
+  /**
+   * Updates the user's profile (name).
+   * @param firstName - New first name
+   * @param lastName - New last name
+   */
+  updateProfile(firstName: string, lastName: string): Promise<any> {
+    const url = API.USER.UPDATE_PROFILE;
+    return lastValueFrom(this.http.put<any>(url, { firstName, lastName }, { withCredentials: true }));
+  }
 }
