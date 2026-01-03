@@ -21,14 +21,6 @@ type FocusPoint = {
   activities: ActivityBreakdown[];
 };
 
-type ActivityRank = {
-  id: string;
-  name: string;
-  icon: string;
-  totalHours: number;
-  sessions: number;
-};
-
 type FocusProject = {
   id: string;
   name: string;
@@ -108,7 +100,6 @@ export class Report implements OnInit {
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  protected readonly activityRanking = signal<ActivityRank[]>([]);
   protected readonly focusProjects = signal<FocusProject[]>([]);
   
   // Chart unit mode: 'hours' or 'minutes'
@@ -226,7 +217,6 @@ export class Report implements OnInit {
           this.focusSeries.set([]);
           this.chartTicks.set([]);
           this.currentRangeTotalHours.set(0);
-          this.activityRanking.set([]);
           this.focusProjects.set([]);
           this.trends.set([]);
           this.insights.set([]);
@@ -323,22 +313,13 @@ export class Report implements OnInit {
 
     this.currentRangeTotalHours.set(totalHours);
 
-    // Map top activities to ranking and focus projects
-    const ranking: ActivityRank[] = topActivities.map((activity) => ({
-      id: activity.name,
-      name: activity.name,
-      icon: '',
-      totalHours: (activity.totalDurationMinutes ?? 0) / 60,
-      sessions: activity.sessionCount ?? 0,
-    }));
-
+    // Map top activities to focus projects
     const projects: FocusProject[] = topActivities.map((activity) => ({
       id: activity.name,
       name: activity.name,
       totalMinutes: activity.totalDurationMinutes ?? 0,
     }));
 
-    this.activityRanking.set(ranking);
     this.focusProjects.set(projects);
 
     // Process trends if available

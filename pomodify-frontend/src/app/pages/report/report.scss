@@ -453,6 +453,39 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   font-weight: 700;
 }
 
+.summary-sublabel {
+  font-size: 11px;
+  opacity: 0.85;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+// Abandoned sessions card styling
+.abandoned-card {
+  background: linear-gradient(135deg, #e8505b, #f27c85);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(232, 80, 91, 0.25);
+  }
+}
+
+.abandoned-value {
+  font-size: 26px;
+}
+
+.abandoned-icon {
+  background: rgba(255, 255, 255, 0.2);
+  
+  i {
+    font-size: 18px;
+  }
+}
+
+.abandoned-card:hover .abandoned-icon {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 // Period Info Section
 .period-info-section {
   background: $bg-white;

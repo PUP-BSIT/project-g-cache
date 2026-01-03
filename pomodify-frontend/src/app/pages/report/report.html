@@ -143,18 +143,6 @@
 
             <div class="summary-card">
               <div class="summary-main">
-                <div class="summary-label">Completion Rate</div>
-                <div class="summary-value">
-                  {{ completionRate() }}%
-                </div>
-              </div>
-              <div class="summary-icon">
-                <i class="fa-solid fa-check-circle"></i>
-              </div>
-            </div>
-
-            <div class="summary-card">
-              <div class="summary-main">
                 <div class="summary-label">Total Sessions</div>
                 <div class="summary-value">
                   {{ sessionsCount() }}
@@ -162,6 +150,19 @@
               </div>
               <div class="summary-icon">
                 <i class="fa-solid fa-list-check"></i>
+              </div>
+            </div>
+
+            <div class="summary-card abandoned-card">
+              <div class="summary-main">
+                <div class="summary-label">Abandoned Sessions</div>
+                <div class="summary-sublabel">Last Month</div>
+                <div class="summary-value abandoned-value">
+                  {{ lastMonthAbandonedSessions() }}
+                </div>
+              </div>
+              <div class="summary-icon abandoned-icon">
+                <i class="fa-solid fa-circle-xmark"></i>
               </div>
             </div>
           </div>
