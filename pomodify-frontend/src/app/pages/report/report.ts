@@ -21,14 +21,6 @@ type FocusPoint = {
   activities: ActivityBreakdown[];
 };
 
-type ActivityRank = {
-  id: string;
-  name: string;
-  icon: string;
-  totalHours: number;
-  sessions: number;
-};
-
 type FocusProject = {
   id: string;
   name: string;
@@ -84,10 +76,12 @@ export class Report implements OnInit {
   // Summary metrics
   protected readonly totalFocusHours = signal(0);
   protected readonly totalBreakHours = signal(0);
+  protected readonly averageSessionLengthMinutes = signal(0);
   protected readonly dailyAverageFocusHours = signal(0);
   protected readonly streakDays = signal(0);
   protected readonly completionRate = signal(0);
   protected readonly sessionsCount = signal(0);
+  protected readonly lastMonthAbandonedSessions = signal(0);
 
   // Period info
   protected readonly periodInfo = signal<PeriodInfo | null>(null);
@@ -103,16 +97,18 @@ export class Report implements OnInit {
   protected readonly focusSeries = signal<FocusPoint[]>([]);
   protected readonly currentRangeTotalHours = signal(0);
   protected readonly chartTicks = signal<number[]>([]);
-  protected readonly expiredSessionFocusChecked = signal(false);
-  protected readonly expiredSessionsCount = signal(0);
   protected readonly tooltipData = signal<FocusPoint | null>(null);
   protected readonly tooltipPosition = signal<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  protected readonly activityRanking = signal<ActivityRank[]>([]);
   protected readonly focusProjects = signal<FocusProject[]>([]);
   
   // Chart unit mode: 'hours' or 'minutes'
   protected readonly chartUnitMode = signal<'hours' | 'minutes'>('hours');
+
+  // Track if user has any data in current period
+  protected readonly hasData = computed(() => {
+    return this.sessionsCount() > 0 || this.totalFocusHours() > 0;
+  });
 
   ngOnInit(): void {
     // Auto-collapse sidebar on mobile
@@ -184,12 +180,6 @@ export class Report implements OnInit {
 
   protected readonly ReportRange = ReportRange;
 
-  protected onExpiredSessionFocusToggle(event: Event): void {
-    const input = event.target as HTMLInputElement | null;
-    if (!input) return;
-    this.expiredSessionFocusChecked.set(input.checked);
-  }
-
   protected onBarHover(point: FocusPoint, event: MouseEvent): void {
     this.tooltipData.set(point);
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -208,24 +198,29 @@ export class Report implements OnInit {
       next: (summary) => this.updateFromSummary(summary),
       error: (error) => {
         console.error('Error loading report summary:', error);
-        // Clear all data when there's an error - only show backend data
-        this.totalFocusHours.set(0);
-        this.totalBreakHours.set(0);
-        this.dailyAverageFocusHours.set(0);
-        this.streakDays.set(0);
-        this.completionRate.set(0);
-        this.sessionsCount.set(0);
-        this.expiredSessionsCount.set(0);
-        this.periodInfo.set(null);
         
-        // Clear chart data - show nothing instead of empty placeholders
-        this.focusSeries.set([]);
-        this.chartTicks.set([]);
-        this.currentRangeTotalHours.set(0);
-        this.activityRanking.set([]);
-        this.focusProjects.set([]);
-        this.trends.set([]);
-        this.insights.set([]);
+        // If it's an authentication error, the interceptor will handle redirect
+        // For other errors, clear the data
+        if (error.status !== 401) {
+          // Clear all data when there's an error 
+          this.totalFocusHours.set(0);
+          this.totalBreakHours.set(0);
+          this.averageSessionLengthMinutes.set(0);
+          this.dailyAverageFocusHours.set(0);
+          this.streakDays.set(0);
+          this.completionRate.set(0);
+          this.sessionsCount.set(0);
+          this.lastMonthAbandonedSessions.set(0);
+          this.periodInfo.set(null);
+          
+          // Clear chart data
+          this.focusSeries.set([]);
+          this.chartTicks.set([]);
+          this.currentRangeTotalHours.set(0);
+          this.focusProjects.set([]);
+          this.trends.set([]);
+          this.insights.set([]);
+        }
       },
     });
   }
@@ -237,20 +232,20 @@ export class Report implements OnInit {
       return;
     }
 
-    const metrics = summary.metrics;
+    const overview = summary.overview;
     const chartData = summary.chartData;
     const topActivities = summary.topActivities ?? [];
     const recentSessions = summary.recentSessions ?? [];
-    const meta = summary.meta;
+    const period = summary.period;
     const trendData = summary.trends;
-    const insightData = summary.insights;
+    const insightData = summary.insights ?? [];
 
     // Update period info
-    if (meta) {
+    if (period) {
       this.periodInfo.set({
-        startDate: meta.startDate,
-        endDate: meta.endDate,
-        range: meta.range,
+        startDate: period.startDate,
+        endDate: period.endDate,
+        range: period.range,
       });
     }
 
@@ -268,56 +263,57 @@ export class Report implements OnInit {
 
     const totalHours = paddedFocusHours.reduce((sum, value) => sum + (value ?? 0), 0);
 
-    // Guard against undefined metrics
-    if (metrics) {
-      this.totalFocusHours.set(metrics.totalFocusedHours ?? 0);
-      this.totalBreakHours.set(metrics.totalBreakHours ?? 0);
-      this.completionRate.set(metrics.completionRate ?? 0);
-      this.sessionsCount.set(metrics.sessionsCount ?? 0);
-      this.expiredSessionsCount.set(metrics.expiredSessionsCount ?? 0);
+    // Guard against undefined overview
+    if (overview) {
+      this.totalFocusHours.set(overview.totalFocusHours ?? 0);
+      this.totalBreakHours.set(overview.totalBreakHours ?? 0);
+      this.completionRate.set(overview.completionRate ?? 0);
+      this.sessionsCount.set(overview.sessionsCount ?? 0);
+      this.averageSessionLengthMinutes.set(overview.averageSessionLengthMinutes ?? 0);
+      
+      if (overview.dailyAverageFocusHours !== undefined) {
+        this.dailyAverageFocusHours.set(overview.dailyAverageFocusHours);
+      } else {
+        // Fallback calculation if backend doesn't provide it
+        const labelCount = labels.length || 1;
+        this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
+      }
+      
+      if (overview.streakDays !== undefined) {
+        this.streakDays.set(overview.streakDays);
+      } else {
+        // Fallback calculation if backend doesn't provide it
+        let streak = 0;
+        for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
+          const v = paddedFocusHours[i] ?? 0;
+          if (v > 0) {
+            streak += 1;
+          } else if (streak > 0) {
+            break;
+          }
+        }
+        this.streakDays.set(streak);
+      }
     } else {
-      // Reset to defaults if metrics is undefined
+      // Reset to defaults if overview is undefined
       this.totalFocusHours.set(0);
       this.totalBreakHours.set(0);
       this.completionRate.set(0);
       this.sessionsCount.set(0);
-      this.expiredSessionsCount.set(0);
+      this.averageSessionLengthMinutes.set(0);
+      this.dailyAverageFocusHours.set(0);
+      this.streakDays.set(0);
     }
 
-    const labelCount = labels.length || 1;
-    this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
-
-    let streak = 0;
-    for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
-      const v = paddedFocusHours[i] ?? 0;
-      if (v > 0) {
-        streak += 1;
-      } else if (streak > 0) {
-        break;
-      }
-    }
-    this.streakDays.set(streak);
+    // Set last month abandoned sessions
+    this.lastMonthAbandonedSessions.set(summary.lastMonthAbandonedSessions ?? 0);
 
     // Build activity breakdown for each label based on recentSessions
     const points: FocusPoint[] = labels.map((label: string, index: number) => {
-      let displayLabel = label;
-      let dateKey: string | undefined = undefined;
-      if (this.selectedRange() === ReportRange.WEEK) {
-        const date = new Date(label);
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        displayLabel = dayNames[date.getDay()];
-        dateKey = label;
-      } else if (this.selectedRange() === ReportRange.MONTH) {
-        displayLabel = label;
-        dateKey = label;
-      } else {
-        displayLabel = label;
-        dateKey = label;
-      }
-      const activities = this.getActivitiesForDateLabel(displayLabel, index, recentSessions, dateKey);
+      const activities = this.getActivitiesForDateLabel(label, index, recentSessions, period);
       return {
-        label: displayLabel,
-        dateKey,
+        label: label,
+        dateKey: label,
         hours: paddedFocusHours[index] ?? 0,
         percentage: 0,
         activities,
@@ -328,22 +324,13 @@ export class Report implements OnInit {
 
     this.currentRangeTotalHours.set(totalHours);
 
-    // Map top activities to ranking and focus projects
-    const ranking: ActivityRank[] = topActivities.map((activity) => ({
-      id: activity.name,
-      name: activity.name,
-      icon: '',
-      totalHours: (activity.totalDurationMinutes ?? 0) / 60,
-      sessions: activity.sessionCount ?? 0,
-    }));
-
+    // Map top activities to focus projects
     const projects: FocusProject[] = topActivities.map((activity) => ({
       id: activity.name,
       name: activity.name,
       totalMinutes: activity.totalDurationMinutes ?? 0,
     }));
 
-    this.activityRanking.set(ranking);
     this.focusProjects.set(projects);
 
     // Process trends if available
@@ -383,13 +370,15 @@ export class Report implements OnInit {
     }
   }
 
-  private getActivitiesForDateLabel(label: string, index: number, sessions: any[], dateKey?: string): ActivityBreakdown[] {
+  private getActivitiesForDateLabel(label: string, index: number, sessions: any[], period: any): ActivityBreakdown[] {
     const activityMap: { [key: string]: ActivityBreakdown } = {};
+    const range = this.selectedRange();
+
+    if (!period) return [];
 
     for (const session of sessions) {
-      // Extract date from session and match with label/dateKey
       const sessionDate = new Date(session.date);
-      const isMatch = this.isSessionMatchingLabel(sessionDate, label, index, dateKey);
+      const isMatch = this.isSessionMatchingLabel(sessionDate, label, period, range);
 
       if (isMatch) {
         const activityName = session.activityName || 'Untitled Session';
@@ -411,23 +400,46 @@ export class Report implements OnInit {
     return Object.values(activityMap);
   }
 
-  private isSessionMatchingLabel(date: Date, label: string, index: number, dateKey?: string): boolean {
-    const range = this.selectedRange();
-
+  private isSessionMatchingLabel(sessionDate: Date, label: string, period: any, range: ReportRange): boolean {
     if (range === ReportRange.WEEK) {
-      if (!dateKey) return false;
-      const sessionISO = date.toISOString().slice(0, 10);
-      return sessionISO === dateKey;
+      // For weekly: match day name (Mon, Tue, Wed, etc.)
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const sessionDayName = dayNames[sessionDate.getDay()];
+      
+      // Also check if session is within the period range
+      const periodStart = new Date(period.startDate);
+      const periodEnd = new Date(period.endDate);
+      const sessionDateOnly = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+      
+      return sessionDayName === label && 
+             sessionDateOnly >= periodStart && 
+             sessionDateOnly <= periodEnd;
+             
     } else if (range === ReportRange.MONTH) {
-      // Label format: month name (e.g., 'Jan', 'Feb')
+      // For monthly: match day number (1, 2, 3, etc.)
+      const sessionDay = sessionDate.getDate();
+      const labelDay = parseInt(label);
+      
+      // Also check if it's the same month/year as the period
+      const periodStart = new Date(period.startDate);
+      const sameMonth = sessionDate.getMonth() === periodStart.getMonth();
+      const sameYear = sessionDate.getFullYear() === periodStart.getFullYear();
+      
+      return sessionDay === labelDay && sameMonth && sameYear;
+      
+    } else if (range === ReportRange.YEAR) {
+      // For yearly: match month name (Jan, Feb, Mar, etc.)
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const sessionMonth = monthNames[date.getMonth()];
-      return sessionMonth === label;
-    } else {
-      // YEAR range - Label format: year (e.g., '2025')
-      const sessionYear = date.getFullYear().toString();
-      return sessionYear === label;
+      const sessionMonth = monthNames[sessionDate.getMonth()];
+      
+      // Also check if it's the same year as the period
+      const periodStart = new Date(period.startDate);
+      const sameYear = sessionDate.getFullYear() === periodStart.getFullYear();
+      
+      return sessionMonth === label && sameYear;
     }
+    
+    return false;
   }
 
   private rebuildSeries(points: FocusPoint[]): void {
@@ -553,14 +565,29 @@ export class Report implements OnInit {
   }
 
   protected getTooltipTitle(point: FocusPoint): string {
-    if (point.dateKey) {
-      // Parse ISO date string (YYYY-MM-DD) without timezone issues
-      const [year, month, day] = point.dateKey.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${day}`.toUpperCase();
+    const range = this.selectedRange();
+    const period = this.periodInfo();
+    
+    if (range === ReportRange.MONTH && period) {
+      // For monthly view, show month and day without year
+      const dayNumber = parseInt(point.label);
+      if (!isNaN(dayNumber)) {
+        const startDate = new Date(period.startDate);
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const monthName = monthNames[startDate.getMonth()];
+        return `${monthName} ${dayNumber}`.toUpperCase();
+      }
     }
+    
+    if (range === ReportRange.YEAR && period) {
+      // For yearly view, show month and year
+      const startDate = new Date(period.startDate);
+      const year = startDate.getFullYear();
+      return `${point.label} ${year}`.toUpperCase();
+    }
+    
+    // For weekly view, just use the label directly
     return point.label.toUpperCase();
   }
 
