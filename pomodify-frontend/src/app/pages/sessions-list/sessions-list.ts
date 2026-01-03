@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, input } from '@angular/core';
+import { Component, OnInit, inject, signal, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
@@ -6,6 +6,7 @@ import { ActivityService } from '../../core/services/activity.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
+import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component'; // Need to create this or use existing?
 
 // Use PomodoroSession from SessionService for type safety
 
@@ -35,6 +36,26 @@ export class SessionsListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   activityId = signal<number | null>(null);
+  
+  showAbandoned = signal(false);
+  
+  filteredSessions = computed(() => {
+    const all = this.sessions();
+    const show = this.showAbandoned();
+    return all.filter(s => show || s.status !== 'ABANDONED');
+  });
+
+  hasActiveSession = computed(() => {
+    return this.sessions().some(s => 
+      s.status === 'PENDING' || 
+      s.status === 'IN_PROGRESS' || 
+      s.status === 'PAUSED'
+    );
+  });
+
+  toggleAbandoned() {
+    this.showAbandoned.update(v => !v);
+  }
 
   ngOnInit(): void {
     this.loadSessions();
@@ -94,10 +115,9 @@ export class SessionsListComponent implements OnInit {
   }
 
   protected openSession(session: PomodoroSession): void {
-    // Only navigate if session is NOT completed
+    if (session.status === 'ABANDONED') return;
+    
     if (session.status === 'COMPLETED') {
-      // Optional: Show a message or navigate to summary page
-      console.log('Session is already completed');
       return;
     }
     
@@ -105,7 +125,25 @@ export class SessionsListComponent implements OnInit {
     this.router.navigate(['/activities', this.activityTitle(), 'sessions', session.id]);
   }
 
+  protected viewNotes(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    const noteText = this.getNoteText(session.note);
+    
+    this.dialog.open(SessionNoteDialogComponent, {
+      data: {
+        title: 'Session Notes',
+        note: noteText || 'No notes for this session.'
+      },
+      width: '500px'
+    });
+  }
+
   protected createNewSession(): void {
+    if (this.hasActiveSession()) {
+      alert('You have an active session. Please complete or abandon it before creating a new one.');
+      return;
+    }
+
     const actId = this.activityId();
     if (!actId) {
       console.error('Activity ID not available');
@@ -113,7 +151,8 @@ export class SessionsListComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(CreateSessionDialogComponent, {
-      width: '420px',
+      width: '600px',
+      maxWidth: '95vw',
       disableClose: false,
       panelClass: 'create-session-dialog-panel'
     });

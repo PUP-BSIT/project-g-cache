@@ -1,5 +1,6 @@
-import { Component, input, model, computed, effect, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, input, model, computed, effect, AfterViewInit, ViewChild, ElementRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 /**
  * Pure Presentation Component (Dumb Component)
@@ -8,7 +9,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-digital-clock-picker',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="digital-clock-picker">
       <div class="time-display">
@@ -17,16 +18,36 @@ import { CommonModule } from '@angular/common';
           <div class="section-label">MINUTES</div>
           <div class="digit-wrapper">
             <div class="fade-overlay top"></div>
-            <div class="digit-container" #minutesScroll>
+            
+            <!-- Scrollable List -->
+            <div class="digit-container" #minutesScroll [class.hidden]="editingMinutes()">
               @for (min of minutes(); track min) {
                 <div 
                   class="digit-option" 
                   [class.selected]="min === time().minutes"
-                  (click)="selectMinute(min)">
+                  (click)="onMinuteClick(min)">
                   {{ min.toString().padStart(2, '0') }}
                 </div>
               }
             </div>
+
+            <!-- Input for Editing -->
+            @if (editingMinutes()) {
+              <div class="input-container">
+                <input 
+                  #minutesInput
+                  type="number" 
+                  class="digit-input" 
+                  [ngModel]="time().minutes" 
+                  (ngModelChange)="updateMinutes($event)"
+                  (blur)="finishEditMinutes()" 
+                  (keydown.enter)="finishEditMinutes()"
+                  (keydown.tab)="onTabFromMinutes()"
+                  min="0"
+                  max="60">
+              </div>
+            }
+
             <div class="fade-overlay bottom"></div>
           </div>
         </div>
@@ -38,16 +59,36 @@ import { CommonModule } from '@angular/common';
           <div class="section-label">SECONDS</div>
           <div class="digit-wrapper">
             <div class="fade-overlay top"></div>
-            <div class="digit-container" #secondsScroll>
+            
+            <!-- Scrollable List -->
+            <div class="digit-container" #secondsScroll [class.hidden]="editingSeconds()">
               @for (sec of seconds(); track sec) {
                 <div 
                   class="digit-option" 
                   [class.selected]="sec === time().seconds"
-                  (click)="selectSecond(sec)">
+                  (click)="onSecondClick(sec)">
                   {{ sec.toString().padStart(2, '0') }}
                 </div>
               }
             </div>
+
+            <!-- Input for Editing -->
+            @if (editingSeconds()) {
+              <div class="input-container">
+                <input 
+                  #secondsInput
+                  type="number" 
+                  class="digit-input" 
+                  [ngModel]="time().seconds" 
+                  (ngModelChange)="updateSeconds($event)"
+                  (blur)="finishEditSeconds()" 
+                  (keydown.enter)="finishEditSeconds()"
+                  (keydown.tab)="onTabFromSeconds()"
+                  min="0"
+                  max="59">
+              </div>
+            }
+
             <div class="fade-overlay bottom"></div>
           </div>
         </div>
@@ -148,6 +189,43 @@ import { CommonModule } from '@angular/common';
       &::-webkit-scrollbar {
         display: none !important;
       }
+      
+      &.hidden {
+        visibility: hidden;
+      }
+    }
+
+    .input-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .digit-input {
+      font-size: 7rem;
+      font-weight: 900;
+      color: #5FA9A4;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: center;
+      font-family: 'Segoe UI', 'Arial', sans-serif;
+      outline: none;
+      padding: 0;
+      margin: 0;
+      -moz-appearance: textfield;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
     }
 
     .digit-option {
@@ -174,6 +252,11 @@ import { CommonModule } from '@angular/common';
         color: #5FA9A4;
         font-weight: 900;
         transform: scale(1.1);
+        
+        &:hover {
+            cursor: text;
+            text-shadow: 0 0 10px rgba(95, 169, 164, 0.3);
+        }
       }
     }
 
@@ -290,12 +373,81 @@ export class DigitalClockPickerComponent implements AfterViewInit {
   private secondsScrollTimeout: any;
   private isInitialScroll = true;
 
+  // Editing state
+  editingMinutes = signal(false);
+  editingSeconds = signal(false);
+
+  @ViewChild('minutesInput') minutesInputRef?: ElementRef<HTMLInputElement>;
+  @ViewChild('secondsInput') secondsInputRef?: ElementRef<HTMLInputElement>;
+
   constructor() {
     // Auto-scroll to selected values when time changes
     effect(() => {
       const currentTime = this.time();
-      this.scrollToSelected();
+      // Only scroll if not editing
+      if (!this.editingMinutes() && !this.editingSeconds()) {
+        this.scrollToSelected();
+      }
     });
+  }
+
+  onMinuteClick(min: number) {
+    if (!this.isEditable()) return;
+    if (min === this.time().minutes) {
+      this.editingMinutes.set(true);
+      setTimeout(() => this.minutesInputRef?.nativeElement.focus(), 50);
+    } else {
+      this.selectMinute(min);
+    }
+  }
+
+  onSecondClick(sec: number) {
+    if (!this.isEditable()) return;
+    if (sec === this.time().seconds) {
+      this.editingSeconds.set(true);
+      setTimeout(() => this.secondsInputRef?.nativeElement.focus(), 50);
+    } else {
+      this.selectSecond(sec);
+    }
+  }
+
+  updateMinutes(val: number) {
+    if (val === null || val === undefined) return;
+    let newMin = val;
+    if (newMin < 0) newMin = 0;
+    if (newMin > 60) newMin = 60;
+    this.time.update(t => ({ ...t, minutes: newMin }));
+  }
+
+  updateSeconds(val: number) {
+    if (val === null || val === undefined) return;
+    let newSec = val;
+    if (newSec < 0) newSec = 0;
+    if (newSec > 59) newSec = 59;
+    this.time.update(t => ({ ...t, seconds: newSec }));
+  }
+
+  finishEditMinutes() {
+    this.editingMinutes.set(false);
+    this.scrollToSelected();
+  }
+
+  finishEditSeconds() {
+    this.editingSeconds.set(false);
+    this.scrollToSelected();
+  }
+
+  onTabFromMinutes() {
+    // Commit the minutes value and move focus to seconds
+    this.finishEditMinutes();
+    // Start editing seconds
+    this.editingSeconds.set(true);
+    setTimeout(() => this.secondsInputRef?.nativeElement.focus(), 50);
+  }
+
+  onTabFromSeconds() {
+    // Commit the seconds value - the blur will handle the rest
+    this.finishEditSeconds();
   }
 
   ngAfterViewInit() {

@@ -49,8 +49,18 @@ public class PushNotificationService {
         Message message = Message.builder()
                 .setToken(token)
                 .setWebpushConfig(WebpushConfig.builder()
-                        .setNotification(new WebpushNotification(title, body))
+                        .setNotification(WebpushNotification.builder()
+                                .setTitle(title)
+                                .setBody(body)
+                                .setIcon("/assets/images/logo.png")
+                                .setBadge("/assets/images/logo.png")
+                                .setTag("pomodify-session")
+                                .setRequireInteraction(true)
+                                .setRenotify(true)
+                                .putCustomData("sound", "default")
+                                .build())
                         .build())
+                .putData("sound", "default")
                 .build();
         try {
             String response = FirebaseMessaging.getInstance().send(message);

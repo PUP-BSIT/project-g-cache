@@ -5,7 +5,7 @@ import { map } from 'rxjs/operators';
 import { API } from '../config/api.config';
 
 export type SessionType = 'CLASSIC' | 'FREESTYLE';
-export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
 export type SessionPhase = 'FOCUS' | 'BREAK';
 
 export interface PomodoroSession {
@@ -15,7 +15,7 @@ export interface PomodoroSession {
   status: SessionStatus;
   focusTimeInMinutes: number;
   breakTimeInMinutes: number;
-  cycles: number;
+  cycles: number | null;
   currentPhase: SessionPhase | null;
   cyclesCompleted: number;
   note: string | null;
@@ -24,14 +24,20 @@ export interface PomodoroSession {
   phaseNotified?: boolean; 
   createdAt?: string;
   updatedAt?: string;
+  enableLongBreak?: boolean;
+  longBreakTimeInMinutes?: number;
+  longBreakIntervalInMinutes?: number;
 }
 
 export interface CreateSessionRequest {
   sessionType: SessionType;
   focusTimeInMinutes: number;
   breakTimeInMinutes: number;
-  cycles: number;
+  cycles: number | null;
   note?: string;
+  enableLongBreak?: boolean;
+  longBreakTimeInMinutes?: number;
+  longBreakIntervalInMinutes?: number;
 }
 
 export interface SessionResponse {
@@ -123,6 +129,12 @@ export class SessionService {
     );
   }
 
+  completeEarly(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.COMPLETE_EARLY(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
   completePhase(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {
@@ -132,6 +144,28 @@ export class SessionService {
       map(response => extractSession(response))
     );
   }
+
+  /**
+   * Skip to the next phase without completing the current one
+   * - FOCUS -> BREAK: Doesn't count as cycle completion
+   * - BREAK -> FOCUS: Moves to next focus phase
+   */
+  skipPhase(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.SKIP_PHASE(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
+  /**
+   * Reset session to initial state (NOT_STARTED/PENDING)
+   * Clears all progress but keeps session configuration
+   */
+  resetSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.RESET(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
   finishSession(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {

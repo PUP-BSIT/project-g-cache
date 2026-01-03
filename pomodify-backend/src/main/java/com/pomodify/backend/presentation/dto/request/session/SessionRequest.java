@@ -18,19 +18,19 @@ public record SessionRequest(
         @Min(value = 1, message = "Cycles must be at least 1")
         Integer cycles,
 
-        boolean isDeleted,
-
-        Integer cyclesCompleted,
-
-        Integer totalTimeInMinutes,
-
-        boolean enableLongBreak,
+        Boolean enableLongBreak,
 
         @Min(value = 15, message = "Long break must be at least 15 minutes")
         @Max(value = 30, message = "Long break must be at most 30 minutes")
         Integer longBreakTimeInMinutes,
 
-        @Min(value = 180, message = "Long break interval must be at least 180 minutes (3 hours)")
+        @Min(value = 1, message = "Long break interval must be at least 1 minute")
         Integer longBreakIntervalInMinutes
 ) {
+    // Constructor with defaults for optional fields
+    public SessionRequest {
+        if (enableLongBreak == null) enableLongBreak = false;
+        if (longBreakTimeInMinutes == null) longBreakTimeInMinutes = 15;
+        if (longBreakIntervalInMinutes == null) longBreakIntervalInMinutes = 150; // 5 cycles * 30 min
+    }
 }

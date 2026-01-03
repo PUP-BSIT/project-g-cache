@@ -167,14 +167,24 @@ public class SessionController {
     }
 
     @PostMapping("/{id}/stop")
-    @Operation(summary = "Smart stop session", description = "Stops the current phase timer. If no cycles were completed and phase is FOCUS, returns to NOT_STARTED; otherwise PAUSED.")
+    @Operation(summary = "Abandon session", description = "Abandons the session. The session will be marked as ABANDONED.")
     public ResponseEntity<SessionResponse> stopSession(@AuthenticationPrincipal Jwt jwt,
                                                     @PathVariable Long activityId,
                                                     @PathVariable Long id,
                                                     @RequestParam(required = false) String note) {
         Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.stop(StopSessionCommand.builder().user(userId).sessionId(id).note(note).build()));
-        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session stopped successfully"));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session abandoned successfully"));
+    }
+
+    @PostMapping("/{id}/complete-early")
+    @Operation(summary = "Complete session early", description = "Marks the session complete if at least 1 focus phase is completed, otherwise marks it as not started.")
+    public ResponseEntity<SessionResponse> completeEarly(@AuthenticationPrincipal Jwt jwt,
+                                                        @PathVariable Long activityId,
+                                                        @PathVariable Long id) {
+        Long userId = requireUserId(jwt);
+        SessionItem item = SessionMapper.toItem(sessionService.completeEarly(CompleteEarlyCommand.builder().user(userId).sessionId(id).build()));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session completed early"));
     }
     
     @PostMapping("/{id}/skip")
@@ -185,6 +195,16 @@ public class SessionController {
         Long userId = requireUserId(jwt);
         SessionItem item = SessionMapper.toItem(sessionService.skipPhase(SkipPhaseCommand.builder().user(userId).sessionId(id).build()));
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Phase skipped successfully"));
+    }
+
+    @PostMapping("/{id}/reset")
+    @Operation(summary = "Reset session", description = "Resets a session to NOT_STARTED state, clearing all progress but keeping configuration.")
+    public ResponseEntity<SessionResponse> resetSession(@AuthenticationPrincipal Jwt jwt,
+                                                        @PathVariable Long activityId,
+                                                        @PathVariable Long id) {
+        Long userId = requireUserId(jwt);
+        SessionItem item = SessionMapper.toItem(sessionService.resetSession(ResetSessionCommand.builder().user(userId).sessionId(id).build()));
+        return ResponseEntity.ok(SessionMapper.toResponse(item, "Session reset successfully"));
     }
 
     @PatchMapping("/{id}")

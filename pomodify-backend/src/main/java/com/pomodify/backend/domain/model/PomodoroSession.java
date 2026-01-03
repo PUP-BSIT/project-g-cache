@@ -276,13 +276,25 @@ public class PomodoroSession {
 
         this.elapsedTime = Duration.ZERO;
         this.startedAt = null;
+        this.status = SessionStatus.ABANDONED;
+    }
+
+    public void completeEarly() {
+        ensureActiveAndNotCompleted();
 
         int completed = this.cyclesCompleted != null ? this.cyclesCompleted : 0;
 
-        if (completed == 0 && this.currentPhase == CyclePhase.FOCUS) {
-            this.status = SessionStatus.NOT_STARTED;
+        // Mark as COMPLETED if at least 1 focus phase is completed.
+        // This means either we have completed full cycles, OR we are currently in a BREAK/LONG_BREAK phase (meaning the preceding FOCUS is done).
+        if (completed >= 1 || this.currentPhase != CyclePhase.FOCUS) {
+            this.status = SessionStatus.COMPLETED;
+            this.completedAt = LocalDateTime.now();
         } else {
-            this.status = SessionStatus.PAUSED;
+            this.status = SessionStatus.NOT_STARTED;
+            this.startedAt = null;
+            this.elapsedTime = Duration.ZERO;
+            this.cyclesCompleted = 0;
+            this.currentPhase = CyclePhase.FOCUS;
         }
     }
 
@@ -301,11 +313,15 @@ public class PomodoroSession {
     public PomodoroSession completeCyclePhase () {
         ensureActiveAndNotCompleted();
 
-        // Reset for new phase
+        // Reset elapsed time for new phase but DON'T start the timer
+        // Frontend controls when the next phase starts (user must press Start/Resume)
         this.elapsedTime = Duration.ZERO;
-        this.phaseStartedAt = LocalDateTime.now();
-        this.startedAt = LocalDateTime.now();
         this.totalPausedDurationSeconds = 0L;
+        this.remainingSecondsAtPause = null;
+        
+        // Clear the phase start time - will be set when user starts the phase
+        this.phaseStartedAt = null;
+        this.phaseEndTime = null;
 
         if (this.currentPhase == CyclePhase.FOCUS) {
             if (shouldTriggerLongBreak()) {
@@ -318,9 +334,11 @@ public class PomodoroSession {
             this.cyclesCompleted += 1;
         }
 
-        // Calculate new phase end time and reset notification flag
-        this.phaseEndTime = this.phaseStartedAt.plusSeconds(getCurrentPhaseDuration().getSeconds());
+        // Reset notification flag for new phase
         this.phaseNotified = false;
+        
+        // Set status to PAUSED so user must explicitly start the next phase
+        this.status = SessionStatus.PAUSED;
 
         checkCompletion();
         return this;
@@ -355,6 +373,11 @@ public class PomodoroSession {
     }
 
     private void checkCompletion() {
+        // FREESTYLE sessions have unlimited cycles - only complete when user manually completes
+        if (this.sessionType == SessionType.FREESTYLE) {
+            return;
+        }
+        
         if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
             this.status = SessionStatus.COMPLETED;
             this.completedAt = LocalDateTime.now();
@@ -382,6 +405,32 @@ public class PomodoroSession {
             this.startedAt = LocalDateTime.now();
             this.phaseStartedAt = LocalDateTime.now();
         }
+    }
+
+    /**
+     * Reset session to initial state (NOT_STARTED).
+     * Clears all progress but keeps session configuration.
+     */
+    public void resetSession() {
+        // Can only reset if not already completed or abandoned
+        if (this.status == SessionStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot reset a completed session");
+        }
+        if (this.status == SessionStatus.ABANDONED) {
+            throw new IllegalStateException("Cannot reset an abandoned session");
+        }
+
+        // Reset to initial state
+        this.status = SessionStatus.NOT_STARTED;
+        this.currentPhase = CyclePhase.FOCUS;
+        this.cyclesCompleted = 0;
+        this.elapsedTime = Duration.ZERO;
+        this.totalPausedDurationSeconds = 0L;
+        this.startedAt = null;
+        this.phaseStartedAt = null;
+        this.remainingSecondsAtPause = null;
+        this.phaseEndTime = null;
+        this.phaseNotified = false;
     }
 
     public Duration calculateTotalElapsed() {

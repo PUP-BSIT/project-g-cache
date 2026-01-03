@@ -30,12 +30,17 @@ export class VerifyEmailModal {
   }
 
   get actionButtonText(): string {
-    return this.source === 'signup' ? 'Continue to Login' : 'Back to Login';
+    return this.source === 'signup' ? 'Go to Dashboard' : 'Back to Login';
   }
 
   onGoToLogin(): void {
     this.goToLogin.emit();
     this.dialogRef.close('goToLogin');
-    this.router.navigate(['/login']);
+    // After signup, user is already logged in, navigate to dashboard
+    if (this.source === 'signup') {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 }

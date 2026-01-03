@@ -149,9 +149,8 @@ export class NotificationService {
   }
 
   private shouldShowPendingNotifications(): boolean {
-    // Check if user is logged in
-    const jwt = this.authService.getAccessToken();
-    if (!jwt) {
+    // Check if user is logged in using auth service's isLoggedIn method
+    if (!this.authService.isLoggedIn()) {
       console.log('User not logged in - clearing pending notifications');
       this.pendingNotifications = [];
       return false;

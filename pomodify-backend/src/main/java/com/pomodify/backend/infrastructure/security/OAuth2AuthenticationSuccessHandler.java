@@ -34,8 +34,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             }
             String accessToken = jwtService.generateAccessToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
-            log.info("Generated accessToken: {}", accessToken);
-            log.info("Generated refreshToken: {}", refreshToken);
+            log.info("Generated tokens for user: {}", user.getEmail());
 
             // Set cookies manually with correct attributes and expires format
             boolean isSecure = request.isSecure();
@@ -55,8 +54,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             );
             response.setHeader("Set-Cookie", accessTokenCookie);
             response.addHeader("Set-Cookie", refreshTokenCookie);
-            log.info("Set-Cookie header for accessToken: {}", accessTokenCookie);
-            log.info("Set-Cookie header for refreshToken: {}", refreshTokenCookie);
+            log.info("Set-Cookie headers set for OAuth2 success");
 
             // Respond with 200 OK and JS redirect
             String targetUrl = "https://pomodify.site/oauth2/redirect";
