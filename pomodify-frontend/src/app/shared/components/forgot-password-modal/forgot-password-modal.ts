@@ -1,9 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Auth } from '../../../core/services/auth';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -16,9 +13,6 @@ type ModalStep = 'email' | 'backup-option' | 'backup-email-input' | 'add-backup-
   imports: [
     CommonModule, 
     MatDialogModule, 
-    MatButtonModule, 
-    MatInputModule, 
-    MatFormFieldModule, 
     FormsModule, 
     ReactiveFormsModule,
     MatSnackBarModule
