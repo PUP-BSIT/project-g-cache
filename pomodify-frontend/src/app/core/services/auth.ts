@@ -43,6 +43,19 @@ export class Auth {
   ) {}
   // Removed duplicate inject(HttpClient); using constructor injection only
   
+  /**
+   * Sync login state with the service worker for background notifications
+   */
+  private syncLoginStateWithServiceWorker(isLoggedIn: boolean): void {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SET_LOGIN_STATE',
+        isLoggedIn
+      });
+      console.log('[Auth] Synced login state with service worker:', isLoggedIn);
+    }
+  }
+  
   resendVerification(email: string): Promise<void> {
     return lastValueFrom(
       this.http.post<void>(API.AUTH.RESEND_VERIFICATION, { email })
@@ -71,6 +84,10 @@ export class Auth {
 
   private clearAuthData(): void {
     this.tokenExpirationTime = 0;
+    // Clear login state for FCM/PWA notifications
+    localStorage.setItem('isLoggedIn', 'false');
+    // Sync with service worker
+    this.syncLoginStateWithServiceWorker(false);
     // Only clear in-memory state and history; tokens are managed by cookies
     try {
       this.historyService.clearHistory();
@@ -91,8 +108,29 @@ export class Auth {
    * Returns a promise that resolves when the token is valid.
    */
   ensureTokenValidity(): Promise<void> {
-    // If no expiration time is set (e.g. not logged in), assume valid or let it fail
+    // If user has logged in before but tokenExpirationTime is 0, 
+    // it means page was reloaded - try to refresh the token
+    const hasLoggedInBefore = localStorage.getItem('has_logged_in_before') === 'true';
+    
     if (this.tokenExpirationTime === 0) {
+      if (hasLoggedInBefore) {
+        // User might still have valid cookies - try to refresh proactively
+        if (this.refreshPromise) {
+          return this.refreshPromise;
+        }
+        
+        console.log('[Auth] Page reloaded with existing session - refreshing token...');
+        this.refreshPromise = this.refreshToken()
+          .catch((err) => {
+            // If refresh fails, the user's session has expired - this is ok
+            console.log('[Auth] Token refresh failed after page reload - session may have expired:', err);
+          })
+          .finally(() => {
+            this.refreshPromise = null;
+          });
+        return this.refreshPromise;
+      }
+      // No previous login - let request proceed and handle 401 in interceptor
       return Promise.resolve();
     }
 
@@ -168,8 +206,11 @@ export class Auth {
         // No need to store tokens in localStorage; backend sets cookies
         // Optionally, update in-memory user state here
         
-        // Set the permanent flag
+        // Set the permanent flag and login state for FCM/PWA
         localStorage.setItem('has_logged_in_before', 'true');
+        localStorage.setItem('isLoggedIn', 'true');
+        // Sync with service worker for background notifications
+        this.syncLoginStateWithServiceWorker(true);
 
         this.updateTokenExpiration();
 
@@ -223,6 +264,15 @@ export class Auth {
    */
   // getAccessToken is deprecated; tokens are managed by cookies
   getAccessToken(): null { return null; }
+
+  /**
+   * Check if user is currently logged in (has active session)
+   * Uses the isLoggedIn flag in localStorage which is only cleared on explicit logout
+   */
+  isLoggedIn(): boolean {
+    // Check the explicit isLoggedIn flag - only set to false on logout
+    return localStorage.getItem('isLoggedIn') === 'true';
+  }
 
   /**
    * Initialize FCM after successful login with proper error handling
