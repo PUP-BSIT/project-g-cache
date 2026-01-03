@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 "/api/v2/auth/verify", "/api/v2/auth/resend-verification",
                                 "/api/v2/auth/forgot-password", "/api/v2/auth/forgot-password/backup",
                                 "/api/v2/auth/check-backup-email", "/api/v2/auth/reset-password",
+                                "/admin/**",
                                 "/api/v2/admin/**",
                                 "/api/v2/contact",
                                 "/contact",

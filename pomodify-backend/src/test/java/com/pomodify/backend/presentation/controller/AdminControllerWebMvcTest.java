@@ -53,7 +53,7 @@ class AdminControllerWebMvcTest {
     }
 
     @Nested
-    @DisplayName("POST /api/v2/admin/login")
+    @DisplayName("POST /admin/login")
     class AdminLoginTests {
 
         @Test
@@ -66,7 +66,7 @@ class AdminControllerWebMvcTest {
                     "password", "password123"
             );
 
-            mockMvc.perform(post("/api/v2/admin/login")
+            mockMvc.perform(post("/admin/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(credentials)))
                     .andExpect(status().isOk())
@@ -86,7 +86,7 @@ class AdminControllerWebMvcTest {
                     "password", "wrongpass"
             );
 
-            mockMvc.perform(post("/api/v2/admin/login")
+            mockMvc.perform(post("/admin/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(credentials)))
                     .andExpect(status().isUnauthorized())
@@ -96,7 +96,7 @@ class AdminControllerWebMvcTest {
     }
 
     @Nested
-    @DisplayName("GET /api/v2/admin/users")
+    @DisplayName("GET /admin/users")
     class GetAllUsersTests {
 
         @Test
@@ -108,7 +108,7 @@ class AdminControllerWebMvcTest {
             );
             when(adminService.getAllUsers()).thenReturn(users);
 
-            mockMvc.perform(get("/api/v2/admin/users"))
+            mockMvc.perform(get("/admin/users"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(2)))
                     .andExpect(jsonPath("$[0].firstName").value("John"))
@@ -122,14 +122,14 @@ class AdminControllerWebMvcTest {
         void shouldReturnEmptyListWhenNoUsers() throws Exception {
             when(adminService.getAllUsers()).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/v2/admin/users"))
+            mockMvc.perform(get("/admin/users"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
         }
     }
 
     @Nested
-    @DisplayName("GET /api/v2/admin/users/search")
+    @DisplayName("GET /admin/users/search")
     class SearchUsersTests {
 
         @Test
@@ -140,7 +140,7 @@ class AdminControllerWebMvcTest {
             );
             when(adminService.searchUsers("John")).thenReturn(users);
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "John"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
@@ -154,7 +154,7 @@ class AdminControllerWebMvcTest {
         void shouldReturnEmptyListForNonMatchingQuery() throws Exception {
             when(adminService.searchUsers("nonexistent")).thenReturn(Collections.emptyList());
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "nonexistent"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
@@ -169,14 +169,14 @@ class AdminControllerWebMvcTest {
             );
             when(adminService.searchUsers("")).thenReturn(allUsers);
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", ""))
                     .andExpect(status().isOk());
         }
     }
 
     @Nested
-    @DisplayName("DELETE /api/v2/admin/users/{userId}")
+    @DisplayName("DELETE /admin/users/{userId}")
     class DeleteUserTests {
 
         @Test
@@ -184,7 +184,7 @@ class AdminControllerWebMvcTest {
         void shouldDeleteUserSuccessfully() throws Exception {
             doNothing().when(adminService).deleteUser(1L);
 
-            mockMvc.perform(delete("/api/v2/admin/users/1"))
+            mockMvc.perform(delete("/admin/users/1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("User deleted successfully"));
@@ -198,7 +198,7 @@ class AdminControllerWebMvcTest {
             doThrow(new IllegalArgumentException("User not found with id: 999"))
                     .when(adminService).deleteUser(999L);
 
-            mockMvc.perform(delete("/api/v2/admin/users/999"))
+            mockMvc.perform(delete("/admin/users/999"))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message", containsString("not found")));
@@ -215,7 +215,7 @@ class AdminControllerWebMvcTest {
             AdminUserDto user = createTestUserDto(1L, "Test", "User", "test@example.com");
             when(adminService.searchUsers("test@example.com")).thenReturn(List.of(user));
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "test@example.com"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].id").value(1))

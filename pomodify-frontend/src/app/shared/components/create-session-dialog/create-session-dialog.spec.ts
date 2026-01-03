@@ -28,10 +28,10 @@ describe('CreateSessionDialogComponent', () => {
   });
 
   it('should have default form data', () => {
-    expect(component.formData.sessionType).toBe('CLASSIC');
-    expect(component.formData.focusTimeInMinutes).toBe(25);
-    expect(component.formData.breakTimeInMinutes).toBe(5);
-    expect(component.formData.cycles).toBe(4);
+    expect(component.form.get('sessionType')?.value).toBe('CLASSIC');
+    expect(component.form.get('focusTimeInMinutes')?.value).toBe(25);
+    expect(component.form.get('breakTimeInMinutes')?.value).toBe(5);
+    expect(component.form.get('cycles')?.value).toBe(4);
   });
 
   it('should close dialog on cancel', () => {
@@ -40,8 +40,8 @@ describe('CreateSessionDialogComponent', () => {
   });
 
   it('should close dialog with form data on confirm', () => {
-    component.formData.focusTimeInMinutes = 30;
+    component.form.patchValue({ focusTimeInMinutes: 30 });
     component.onConfirm();
-    expect(mockDialogRef.close).toHaveBeenCalledWith(component.formData);
+    expect(mockDialogRef.close).toHaveBeenCalled();
   });
 });

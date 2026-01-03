@@ -59,7 +59,7 @@ describe('ActivityService', () => {
       totalItems: 1
     };
 
-    service.createActivity({ activityTitle: 'New', activityDescription: 'New Desc' }).subscribe(activity => {
+    service.createActivity({ title: 'New', description: 'New Desc' }).subscribe(activity => {
       expect(activity.activityTitle).toBe('New');
     });
 
