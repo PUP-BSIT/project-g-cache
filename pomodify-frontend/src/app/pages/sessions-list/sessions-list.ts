@@ -7,6 +7,7 @@ import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
 import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component'; // Need to create this or use existing?
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Use PomodoroSession from SessionService for type safety
 
@@ -163,9 +164,15 @@ export class SessionsListComponent implements OnInit {
         console.log('[Sessions List] Creating session:', formData);
         return this.sessionService.createSession(actId, formData);
       }),
-      catchError(error => {
+      catchError((error: HttpErrorResponse) => {
         console.error('[Sessions List] Failed to create session:', error);
-        this.error.set('Failed to create session. Please try again.');
+        // Handle 409 Conflict - active session exists
+        if (error.status === 409) {
+          const message = error.error?.message || 'An active session already exists. Please complete or abandon it before creating a new one.';
+          this.error.set(message);
+        } else {
+          this.error.set('Failed to create session. Please try again.');
+        }
         return of(null);
       })
     ).subscribe(newSession => {

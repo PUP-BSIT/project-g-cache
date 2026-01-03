@@ -54,7 +54,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        // Use CONFLICT (409) for business logic state errors, not UNAUTHORIZED (401)
+        // 401 triggers auth refresh/logout in the frontend interceptor
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("message", e.getMessage()));
     }
 
