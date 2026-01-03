@@ -49,6 +49,7 @@ export const API = {
     UPDATE_PROFILE: `${ROOT}/auth/users/me`,
     VERIFY_EMAIL: `${ROOT}/auth/verify`,
     UPDATE_BACKUP_EMAIL: `${ROOT}/auth/users/me/backup-email`,
+    CHANGE_PASSWORD: `${ROOT}/auth/users/me/password`,
   },
 
   // Activities Resource

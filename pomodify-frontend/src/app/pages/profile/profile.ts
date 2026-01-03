@@ -44,6 +44,10 @@ export class Profile implements OnInit {
   protected isVerificationValid = signal(false);
   protected isLoadingProfile = signal(true);
   protected isSavingBackupEmail = signal(false);
+  protected isSavingName = signal(false);
+  protected isChangingPassword = signal(false);
+  protected passwordChangeError = signal<string | null>(null);
+  protected passwordChangeSuccess = signal(false);
   
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
@@ -186,17 +190,29 @@ export class Profile implements OnInit {
   // Name update
   protected updateName(): void {
     if (this.profileForm.valid) {
-      const newName = this.profileForm.get('name')?.value;
-      this.userName.set(newName);
-      // TODO(Delumen, Ivan): Call API to update name
+      const fullName = this.profileForm.get('name')?.value;
+      const nameParts = fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+      
+      this.isSavingName.set(true);
+      
+      this.auth.updateProfile(firstName, lastName).then(() => {
+        this.userName.set(fullName);
+        this.isSavingName.set(false);
+      }).catch((error) => {
+        console.error('Failed to update name:', error);
+        alert('Failed to update name. Please try again.');
+        this.isSavingName.set(false);
+      });
     }
   }
   
   // Password change flow
   protected requestPasswordChange(): void {
     this.showPasswordVerification.set(true);
-    this.startVerificationTimer();
-    // TODO(Delumen, Ivan): Call API to send verification code to email
+    this.passwordChangeError.set(null);
+    this.passwordChangeSuccess.set(false);
   }
   
   protected startVerificationTimer(): void {
@@ -230,24 +246,39 @@ export class Profile implements OnInit {
   }
   
   protected submitPasswordChange(): void {
-    if (this.passwordForm.valid && this.isVerificationValid()) {
+    if (this.passwordForm.valid) {
+      const currentPassword = this.passwordForm.get('currentPassword')?.value;
       const newPassword = this.passwordForm.get('newPassword')?.value;
       const confirmPassword = this.passwordForm.get('confirmPassword')?.value;
       
       if (newPassword !== confirmPassword) {
-        alert('Passwords do not match');
+        this.passwordChangeError.set('Passwords do not match');
         return;
       }
       
-      // TODO(Delumen, Ivan): Call API to update password
-      alert('Password updated successfully!');
-      this.cancelPasswordChange();
+      this.isChangingPassword.set(true);
+      this.passwordChangeError.set(null);
+      
+      this.auth.changePassword(currentPassword, newPassword).then(() => {
+        this.passwordChangeSuccess.set(true);
+        this.isChangingPassword.set(false);
+        // Reset form after short delay
+        setTimeout(() => {
+          this.cancelPasswordChange();
+        }, 2000);
+      }).catch((error) => {
+        console.error('Failed to change password:', error);
+        this.passwordChangeError.set('Current password is incorrect or failed to update.');
+        this.isChangingPassword.set(false);
+      });
     }
   }
   
   protected cancelPasswordChange(): void {
     this.showPasswordVerification.set(false);
     this.isVerificationValid.set(false);
+    this.passwordChangeError.set(null);
+    this.passwordChangeSuccess.set(false);
     this.passwordForm.reset();
     this.verificationForm.reset();
     
