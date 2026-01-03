@@ -41,8 +41,9 @@ describe('Profile', () => {
     expect((component as any).profileImage()).toBe('assets/images/default-avatar.svg');
   });
 
-  it('should have default user name', () => {
-    expect((component as any).userName()).toBe('John Doe');
+  it('should have empty user name initially before API response', () => {
+    // userName starts empty and gets populated after API call
+    expect((component as any).userName()).toBe('');
   });
 
   it('should close dialog on close', () => {

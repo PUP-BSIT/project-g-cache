@@ -1,0 +1,130 @@
+<app-header></app-header>
+
+<main class="contact-page">
+  <div class="contact-container">
+    <div class="contact-header">
+      <h1>Contact Us</h1>
+      <p>Have a question, feedback, or need support? We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.</p>
+    </div>
+
+    <div class="contact-content">
+      <div class="contact-form-section">
+        <!-- Success Message -->
+        <div class="success-message" *ngIf="successMessage()">
+          <i class="fa fa-check-circle" aria-hidden="true"></i>
+          <span>{{ successMessage() }}</span>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" *ngIf="errorMessage()">
+          <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+
+        <form (ngSubmit)="submitForm()" *ngIf="!successMessage()">
+          <div class="form-group" [class.has-error]="formErrors()['name']">
+            <label for="name">Name <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              [(ngModel)]="contactData.name"
+              (input)="clearFieldError('name')"
+              placeholder="Your name"
+              [disabled]="isSubmitting()"
+            />
+            <span class="field-error" *ngIf="formErrors()['name']">{{ formErrors()['name'] }}</span>
+          </div>
+
+          <div class="form-group" [class.has-error]="formErrors()['email']">
+            <label for="email">Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              [(ngModel)]="contactData.email"
+              (input)="clearFieldError('email')"
+              placeholder="your.email@example.com"
+              [disabled]="isSubmitting()"
+            />
+            <span class="field-error" *ngIf="formErrors()['email']">{{ formErrors()['email'] }}</span>
+          </div>
+
+          <div class="form-group" [class.has-error]="formErrors()['reason']">
+            <label for="reason">Reason for Contact <span class="required">*</span></label>
+            <select 
+              id="reason" 
+              name="reason" 
+              [(ngModel)]="contactData.reason"
+              (change)="clearFieldError('reason')"
+              [disabled]="isSubmitting()"
+            >
+              <option value="">Select a reason</option>
+              <option *ngFor="let option of reasonOptions" [value]="option.value">{{ option.label }}</option>
+            </select>
+            <span class="field-error" *ngIf="formErrors()['reason']">{{ formErrors()['reason'] }}</span>
+          </div>
+
+          <div class="form-group" [class.has-error]="formErrors()['message']">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea 
+              id="message" 
+              name="message" 
+              rows="6"
+              [(ngModel)]="contactData.message"
+              (input)="clearFieldError('message')"
+              placeholder="Tell us how we can help you..."
+              [disabled]="isSubmitting()"
+            ></textarea>
+            <span class="field-error" *ngIf="formErrors()['message']">{{ formErrors()['message'] }}</span>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+            <span *ngIf="!isSubmitting()">Send Message</span>
+            <span *ngIf="isSubmitting()" class="loading">
+              <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+              Sending...
+            </span>
+          </button>
+        </form>
+
+        <!-- Show send another message button after success -->
+        <div class="send-another" *ngIf="successMessage()">
+          <button class="send-another-btn" (click)="successMessage.set('')">
+            <i class="fa fa-envelope" aria-hidden="true"></i>
+            Send Another Message
+          </button>
+        </div>
+      </div>
+
+      <div class="contact-info-section">
+        <div class="info-card">
+          <div class="info-icon">
+            <i class="fa fa-envelope" aria-hidden="true"></i>
+          </div>
+          <h3>Email Us Directly</h3>
+          <p>Prefer to send an email? Reach us at:</p>
+          <a href="mailto:contact@pomodify.site" class="email-link">contact&#64;pomodify.site</a>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">
+            <i class="fa fa-clock" aria-hidden="true"></i>
+          </div>
+          <h3>Response Time</h3>
+          <p>We typically respond within 24-48 hours during business days.</p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">
+            <i class="fa fa-question-circle" aria-hidden="true"></i>
+          </div>
+          <h3>FAQ</h3>
+          <p>Check our <a routerLink="/" fragment="faq">FAQ section</a> for quick answers to common questions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

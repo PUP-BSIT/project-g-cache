@@ -9,9 +9,17 @@ import com.pomodify.backend.application.service.JwtService;
 import com.pomodify.backend.presentation.dto.request.auth.LoginRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RegisterRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ForgotPasswordRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ForgotPasswordBackupEmailRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ResetPasswordRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ResendVerificationRequest;
+import com.pomodify.backend.presentation.dto.request.user.UpdateBackupEmailRequest;
+import com.pomodify.backend.presentation.dto.request.user.ChangePasswordRequest;
+import com.pomodify.backend.presentation.dto.request.user.UpdateProfileRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.LogoutResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
+import com.pomodify.backend.presentation.dto.response.CheckBackupEmailResponse;
 import com.pomodify.backend.presentation.mapper.AuthMapper;
 import com.pomodify.backend.presentation.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,19 +45,19 @@ public class AuthController {
     String accessTokenCookie = String.format(
         "accessToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         accessToken,
-        60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(60))
+        15 * 60, // 15 minutes
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(15 * 60))
     );
     String refreshTokenCookie = String.format(
         "refreshToken=%s; Path=/; HttpOnly; SameSite=None; Max-Age=%d; Expires=%s; Secure",
         refreshToken,
-        7 * 24 * 60 * 60,
-        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(7 * 24 * 60 * 60))
+        30 * 24 * 60 * 60, // 30 days
+        java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).plusSeconds(30 * 24 * 60 * 60))
     );
     response.setHeader("Set-Cookie", accessTokenCookie);
     response.addHeader("Set-Cookie", refreshTokenCookie);
-    log.info("Set-Cookie header for accessToken set");
-    log.info("Set-Cookie header for refreshToken set");
+    log.info("Set-Cookie header for accessToken set (15 min)");
+    log.info("Set-Cookie header for refreshToken set (30 days)");
     }
 
     private final AuthService authService;
@@ -175,6 +183,140 @@ public class AuthController {
         response.setHeader("Location", "/oauth2/authorization/google");
     }
 
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Forgot password request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.forgotPassword(request.email(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password/backup")
+    @Operation(summary = "Request password reset via backup email")
+    public ResponseEntity<Void> forgotPasswordViaBackupEmail(@RequestBody @Valid ForgotPasswordBackupEmailRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Forgot password via backup email request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.forgotPasswordViaBackupEmail(request.email(), request.backupEmail(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/check-backup-email")
+    @Operation(summary = "Check if user has backup email configured")
+    public ResponseEntity<CheckBackupEmailResponse> checkBackupEmail(@RequestParam String email) {
+        log.info("Check backup email request for: {}", email);
+        String maskedBackupEmail = authService.checkBackupEmail(email);
+        return ResponseEntity.ok(new CheckBackupEmailResponse(maskedBackupEmail != null, maskedBackupEmail));
+    }
+
+    @PostMapping("/users/me/backup-email")
+    @Operation(summary = "Update backup email for authenticated user")
+    public ResponseEntity<Void> updateBackupEmail(@RequestBody @Valid UpdateBackupEmailRequest request, HttpServletRequest httpRequest) {
+        String token = null;
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        if ((token == null || token.isEmpty()) && httpRequest.getCookies() != null) {
+            for (Cookie cookie : httpRequest.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Update backup email request for user: {}", email);
+        authService.updateBackupEmail(email, request.backupEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/users/me/password")
+    @Operation(summary = "Change password for authenticated user")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request, HttpServletRequest httpRequest) {
+        String token = extractToken(httpRequest);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Change password request for user: {}", email);
+        try {
+            authService.changePassword(email, request.currentPassword(), request.newPassword());
+            return ResponseEntity.ok().build();
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PutMapping("/users/me")
+    @Operation(summary = "Update user profile (name)")
+    public ResponseEntity<UserResponse> updateProfile(@RequestBody @Valid UpdateProfileRequest request, HttpServletRequest httpRequest) {
+        String token = extractToken(httpRequest);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Update profile request for user: {}", email);
+        UserResponse response = UserMapper.toUserResponse(authService.updateProfile(email, request.firstName(), request.lastName()));
+        return ResponseEntity.ok(response);
+    }
+
+    // Helper method to extract token from request
+    private String extractToken(HttpServletRequest request) {
+        String token = null;
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        if ((token == null || token.isEmpty()) && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        return (token != null && !token.isEmpty()) ? token : null;
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with token")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        log.info("Reset password request received");
+        authService.resetPassword(request.token(), request.newPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification email")
+    public ResponseEntity<Void> resendVerification(@RequestBody @Valid ResendVerificationRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Resend verification request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.resendVerificationEmail(request.email(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
     // ──────────────── Current User ────────────────
     @GetMapping("/users/me")
     @Operation(summary = "Get current authenticated user profile (RESTful)")
@@ -233,30 +375,6 @@ public class AuthController {
         public VerificationResponse(boolean success, String message) {
             this.success = success;
             this.message = message;
-        }
-    }
-
-    // ──────────────── Password Reset Request ────────────────
-    @PostMapping(value = "/request-password-reset", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Request password reset (sends email)")
-    public ResponseEntity<String> requestPasswordReset(@RequestBody String email) {
-        try {
-            authService.requestPasswordReset(email.replaceAll("\"", ""));
-            return ResponseEntity.ok("Password reset instructions sent (if user exists)");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    // ──────────────── Verify and Reset ────────────────
-    @GetMapping("/verify-and-reset")
-    @Operation(summary = "Verify email and redirect to password reset")
-    public ResponseEntity<String> verifyAndReset(@RequestParam("token") String token) {
-        try {
-            String result = authService.verifyAndReset(token);
-            return ResponseEntity.ok(result);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

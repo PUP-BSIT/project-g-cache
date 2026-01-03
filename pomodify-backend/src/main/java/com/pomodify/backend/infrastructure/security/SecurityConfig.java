@@ -47,13 +47,24 @@ public class SecurityConfig {
     @Bean
     @Profile("test")
     public SecurityFilterChain securityFilterChainTest(HttpSecurity http) throws Exception {
-        System.out.println("[SecurityConfig] Building TEST security filter chain");
-        System.out.println("[SecurityConfig] customJwtDecoder is: " + (customJwtDecoder != null ? "available" : "NULL"));
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
+                        .requestMatchers(
+                                "/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", 
+                                "/auth/forgot-password", "/auth/forgot-password/backup", 
+                                "/auth/check-backup-email", "/auth/reset-password",
+                                "/api/v2/auth/register", "/api/v2/auth/login", "/api/v2/auth/refresh", 
+                                "/api/v2/auth/verify", "/api/v2/auth/resend-verification",
+                                "/api/v2/auth/forgot-password", "/api/v2/auth/forgot-password/backup",
+                                "/api/v2/auth/check-backup-email", "/api/v2/auth/reset-password",
+                                "/admin/**",
+                                "/api/v2/admin/**",
+                                "/api/v2/contact",
+                                "/contact",
+                                "/actuator/**"
+                        )
                         .permitAll()
                         .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
@@ -63,7 +74,6 @@ public class SecurityConfig {
                 // Add JwtCookieToAuthHeaderFilter for test profile too
                 .addFilterBefore(new JwtCookieToAuthHeaderFilter(), BearerTokenAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 -> {
-                    System.out.println("[SecurityConfig] Configuring oauth2ResourceServer with customJwtDecoder: " + customJwtDecoder);
                     oauth2.jwt(jwt -> jwt
                             .decoder(customJwtDecoder)
                             .jwtAuthenticationConverter(jwtAuthenticationConverter())
@@ -108,6 +118,14 @@ public class SecurityConfig {
                                         "/api/v2/auth/login",
                                         "/api/v2/auth/refresh",
                                         "/api/v2/auth/verify",
+                                        "/api/v2/auth/resend-verification",
+                                        "/api/v2/auth/forgot-password",
+                                        "/api/v2/auth/forgot-password/backup",
+                                        "/api/v2/auth/check-backup-email",
+                                        "/api/v2/auth/reset-password",
+                                        "/admin/**",
+                                        "/api/v2/admin/**",
+                                        "/api/v2/contact",
                                         "/actuator/health",
                                         "/actuator/info",
                                         "/v3/api-docs/**",
@@ -128,7 +146,8 @@ public class SecurityConfig {
                                         .userService(customOAuth2UserService)
                                 )
                                 .successHandler(oAuth2AuthenticationSuccessHandler)
-                        );
+                        )
+                        .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
                 http.logout(AbstractHttpConfigurer::disable);
 

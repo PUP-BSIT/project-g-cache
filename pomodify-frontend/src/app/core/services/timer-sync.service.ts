@@ -20,58 +20,54 @@ export class TimerSyncService {
   private sessionService = inject(SessionService);
   private notificationService = inject(NotificationService);
 
-  // Timer state signals
   private _remainingSeconds = signal(0);
   private _isRunning = signal(false);
   private _isPaused = signal(false);
   private _isConnected = signal(true);
   private _lastSyncTime = signal(0);
   private _drift = signal(0);
+  private _currentSessionId = signal<number | null>(null);
+  private _currentActivityId = signal<number | null>(null);
 
-  // Public readonly signals
   remainingSeconds = this._remainingSeconds.asReadonly();
   isRunning = this._isRunning.asReadonly();
   isPaused = this._isPaused.asReadonly();
   isConnected = this._isConnected.asReadonly();
   lastSyncTime = this._lastSyncTime.asReadonly();
   drift = this._drift.asReadonly();
+  currentSessionId = this._currentSessionId.asReadonly();
+  currentActivityId = this._currentActivityId.asReadonly();
 
-  // Private state
   private currentSession: PomodoroSession | null = null;
   private activityId: number | null = null;
   private timerSub?: Subscription;
   private syncSub?: Subscription;
   private localStartTime: number = 0;
   private serverRemainingAtSync: number = 0;
-  private syncInterval = 15000; // 15 seconds
-  private maxDrift = 3; // 3 seconds max drift before correction
-  private hasCustomTime = false; // Track if user set a custom time
+  private syncInterval = 15000; 
+  private maxDrift = 3; 
+  private hasCustomTime = false; 
 
-  // Storage keys
   private getStorageKey(sessionId: number): string {
     return `pomodify_timer_${sessionId}`;
   }
 
-  /**
-   * Initialize timer for a session
-   */
   initializeTimer(session: PomodoroSession, activityId: number): void {
-    console.log('🔄 Initializing timer sync service for session:', session.id);
+    console.log('Initializing timer sync service for session:', session.id);
     
     this.currentSession = session;
     this.activityId = activityId;
-    
-    // Load persisted state if available
+    this._currentSessionId.set(session.id);
+    this._currentActivityId.set(activityId);
+
     const persistedState = this.loadPersistedState();
-    
-    // Trust persisted state if it says timer was running (server sync may have failed)
+
     if (persistedState && persistedState.isRunning) {
-      // Timer was running locally - calculate elapsed time and continue
       const age = Date.now() - persistedState.lastSyncTime;
       const elapsedSinceLastPersist = Math.floor(age / 1000);
       const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
       
-      console.log('📊 Resuming running timer (persisted state):', {
+      console.log('Resuming running timer (persisted state):', {
         persistedRemaining: persistedState.remainingSeconds,
         elapsedSinceLastPersist,
         adjustedRemaining,
@@ -81,25 +77,21 @@ export class TimerSyncService {
       this._remainingSeconds.set(adjustedRemaining);
       this.serverRemainingAtSync = adjustedRemaining;
       this.localStartTime = Date.now();
-      
-      // Start the timer
+
       this.startTimer();
     } else if (session.status === 'IN_PROGRESS') {
-      // Server says running, use server state
       this.updateFromSession(session);
       this.startTimer();
     } else if (session.status === 'PAUSED' && persistedState && persistedState.isPaused) {
-      // Both server and local state agree it's paused
       this._isRunning.set(false);
       this._isPaused.set(true);
-      console.log('📊 Using persisted state for paused session:', {
+      console.log('Using persisted state for paused session:', {
         status: session.status,
         remainingSeconds: this._remainingSeconds(),
         phase: session.currentPhase
       });
     } else if (session.status === 'PENDING' && persistedState && persistedState.remainingSeconds > 0) {
-      // PENDING session with custom time set - use persisted time
-      console.log('📊 Using persisted state for PENDING session:', {
+      console.log('Using persisted state for PENDING session:', {
         persistedRemaining: persistedState.remainingSeconds,
         serverRemaining: session.remainingPhaseSeconds
       });
@@ -107,39 +99,29 @@ export class TimerSyncService {
       this._isRunning.set(false);
       this._isPaused.set(false);
     } else {
-      // No persisted state or other status, use server state
       this.updateFromSession(session);
     }
   }
 
-  /**
-   * Start the timer with sync
-   */
   startTimer(): void {
     if (!this.currentSession) return;
     
-    console.log('🚀 Starting timer with sync...');
+    console.log('Starting timer with sync...');
     
     this._isRunning.set(true);
     this._isPaused.set(false);
     this.localStartTime = Date.now();
     this.serverRemainingAtSync = this.remainingSeconds();
-    
-    // Start local timer
+
     this.startLocalTimer();
     
-    // Start periodic sync
     this.startPeriodicSync();
-    
-    // Persist state
+
     this.persistState();
   }
 
-  /**
-   * Pause the timer
-   */
   pauseTimer(): void {
-    console.log('⏸️ Pausing timer...');
+    console.log('⏸Pausing timer...');
     
     this._isRunning.set(false);
     this._isPaused.set(true);
@@ -148,11 +130,8 @@ export class TimerSyncService {
     this.persistState();
   }
 
-  /**
-   * Stop the timer completely
-   */
   stopTimer(): void {
-    console.log('⏹️ Stopping timer...');
+    console.log('⏹Stopping timer...');
     
     this._isRunning.set(false);
     this._isPaused.set(false);
@@ -161,35 +140,27 @@ export class TimerSyncService {
     this.clearPersistedState();
   }
 
-  /**
-   * Update timer state from session data
-   */
   updateFromSession(session: PomodoroSession): void {
     this.currentSession = session;
-    
-    // Use server's remaining time as authoritative
+
     const serverRemaining = session.remainingPhaseSeconds || 0;
     this._remainingSeconds.set(serverRemaining);
-    
-    // Update running state
+
     this._isRunning.set(session.status === 'IN_PROGRESS');
     this._isPaused.set(session.status === 'PAUSED');
     
-    console.log('📊 Updated from session:', {
+    console.log('Updated from session:', {
       status: session.status,
       remainingSeconds: serverRemaining,
       phase: session.currentPhase
     });
   }
 
-  /**
-   * Force sync with backend
-   */
   async forceSync(): Promise<void> {
     if (!this.currentSession || !this.activityId) return;
     
     try {
-      console.log('🔄 Force syncing with backend...');
+      console.log('Force syncing with backend...');
       const updated = await this.sessionService.getSession(this.activityId, this.currentSession.id).toPromise();
       
       if (updated) {
@@ -197,14 +168,11 @@ export class TimerSyncService {
         this._isConnected.set(true);
       }
     } catch (error) {
-      console.warn('❌ Force sync failed:', error);
+      console.warn('Force sync failed:', error);
       this._isConnected.set(false);
     }
   }
 
-  /**
-   * Get timer display string
-   */
   getTimerDisplay(): string {
     const total = this.remainingSeconds();
     const mins = Math.floor(total / 60);
@@ -212,57 +180,42 @@ export class TimerSyncService {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Check if timer has completed
-   */
   isTimerComplete(): boolean {
     return this.remainingSeconds() <= 0 && this.isRunning();
   }
 
-  /**
-   * Set remaining seconds (for manual timer adjustments)
-   */
   setRemainingSeconds(seconds: number): void {
-    console.log('⏱️ Setting remaining seconds:', seconds);
+    console.log('⏱Setting remaining seconds:', seconds);
     this._remainingSeconds.set(seconds);
     this.serverRemainingAtSync = seconds;
     this.localStartTime = Date.now();
-    this.hasCustomTime = true; // User set a custom time - don't let sync override it
-    
-    // Persist the new time to localStorage
+    this.hasCustomTime = true; 
+
     this.persistState();
   }
 
-  /**
-   * Cleanup when component is destroyed
-   */
   cleanup(): void {
     this.stopTimers();
     this.currentSession = null;
     this.activityId = null;
   }
 
-  // Private methods
-
   private startLocalTimer(): void {
     this.timerSub?.unsubscribe();
     
     this.timerSub = timer(0, 1000).subscribe(() => {
       if (!this.isRunning()) return;
-      
-      // Calculate local elapsed time
+
       const now = Date.now();
       const localElapsed = Math.floor((now - this.localStartTime) / 1000);
       const localRemaining = Math.max(0, this.serverRemainingAtSync - localElapsed);
       
       this._remainingSeconds.set(localRemaining);
-      
-      // Check for completion
+
       if (localRemaining <= 0) {
         this.handleTimerComplete();
       }
-      
-      // Persist state periodically
+
       if (localElapsed % 5 === 0) {
         this.persistState();
       }
@@ -281,7 +234,7 @@ export class TimerSyncService {
         return this.sessionService.getSession(this.activityId, this.currentSession.id);
       }),
       catchError(error => {
-        console.warn('🔄 Sync failed:', error);
+        console.warn('Sync failed:', error);
         this._isConnected.set(false);
         return [];
       })
@@ -301,28 +254,31 @@ export class TimerSyncService {
     this._drift.set(drift);
     this._lastSyncTime.set(Date.now());
     
-    console.log('🔄 Sync response:', {
+    console.log('Sync response:', {
       serverRemaining,
       localRemaining,
       drift,
       status: session.status,
       hasCustomTime: this.hasCustomTime
     });
+
+    // Only correct drift if it's significant AND we are not in the first few seconds of a session
+    // This prevents the "jump" when the server is slightly behind the client start
+    const isJustStarted = (this.currentSession?.status === 'IN_PROGRESS' && session.status === 'IN_PROGRESS' && serverRemaining > 55);
     
-    // Only correct drift if user hasn't set a custom time
-    // When user sets custom time, local is authoritative
-    if (drift > this.maxDrift && !this.hasCustomTime) {
-      console.log('⚠️ Correcting timer drift:', drift, 'seconds');
+    if (drift > this.maxDrift && !this.hasCustomTime && !isJustStarted) {
+      console.log('Correcting timer drift:', drift, 'seconds');
       this._remainingSeconds.set(serverRemaining);
       this.localStartTime = Date.now();
       this.serverRemainingAtSync = serverRemaining;
     } else if (drift > this.maxDrift && this.hasCustomTime) {
-      console.log('📌 Skipping drift correction - user has custom time set');
+      console.log('Skipping drift correction - user has custom time set');
+    } else if (isJustStarted) {
+      console.log('Skipping drift correction - session just started');
     }
-    
-    // Handle status changes
+
     if (session.status !== this.currentSession?.status) {
-      console.log('🔄 Status changed:', this.currentSession?.status, '->', session.status);
+      console.log('Status changed:', this.currentSession?.status, '->', session.status);
       this.updateFromSession(session);
       
       if (session.status === 'PAUSED') {
@@ -336,12 +292,11 @@ export class TimerSyncService {
   }
 
   private handleTimerComplete(): void {
-    console.log('⏰ Timer completed!');
+    console.log('Timer completed!');
     
     this.stopTimers();
     this._remainingSeconds.set(0);
-    
-    // Trigger notifications
+
     this.triggerPhaseCompleteNotification();
   }
 
@@ -396,9 +351,8 @@ export class TimerSyncService {
       
       if (stored) {
         const state: TimerState = JSON.parse(stored);
-        console.log('📱 Loaded persisted timer state:', state);
-        
-        // Only use persisted state if it's recent (within 5 minutes)
+        console.log('Loaded persisted timer state:', state);
+
         const age = Date.now() - state.lastSyncTime;
         if (age < 5 * 60 * 1000) {
           this._remainingSeconds.set(state.remainingSeconds);

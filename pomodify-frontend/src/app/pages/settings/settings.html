@@ -224,7 +224,46 @@
           </div>
         </div>
 
+        <!-- Timer Settings Section -->
+        <div class="settings-section-card">
+          <div class="section-header">
+            <div class="section-title-group">
+              <h2 class="section-title">Timer Settings</h2>
+              <p class="section-description">Configure auto-start behavior for focus and break phases</p>
+            </div>
+            <div class="section-icon">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+          </div>
+          
+          <div class="section-content">
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Auto-start Breaks</h3>
+                <p class="setting-description">Automatically start break timer after focus phase completes</p>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="auto-start-breaks-toggle" class="toggle-input" 
+                       [checked]="autoStartBreaks()" 
+                       (change)="toggleAutoStartBreaks()">
+                <label for="auto-start-breaks-toggle" class="toggle-label"></label>
+              </div>
+            </div>
 
+            <div class="setting-row">
+              <div class="setting-info">
+                <h3 class="setting-label">Auto-start Focus</h3>
+                <p class="setting-description">Automatically start focus timer after break phase completes</p>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="auto-start-pomodoros-toggle" class="toggle-input" 
+                       [checked]="autoStartPomodoros()" 
+                       (change)="toggleAutoStartPomodoros()">
+                <label for="auto-start-pomodoros-toggle" class="toggle-label"></label>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Privacy & Data Section -->
         <div class="settings-section-card">

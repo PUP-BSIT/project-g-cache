@@ -19,17 +19,12 @@ export class VerifyEmailService {
       data: { email }
     });
 
-    const openEmailSub = dialogRef.componentInstance.openEmail.subscribe(() => {
-      window.location.href = `mailto:${email}`;
-    });
-
-    const backToSignUpSub = dialogRef.componentInstance.backToSignUp.subscribe(() => {
-      this.router.navigate(['/signup']);
+    const goToLoginSub = dialogRef.componentInstance.goToLogin.subscribe(() => {
+      this.router.navigate(['/login']);
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      openEmailSub.unsubscribe();
-      backToSignUpSub.unsubscribe();
+      goToLoginSub.unsubscribe();
     });
   }
 }

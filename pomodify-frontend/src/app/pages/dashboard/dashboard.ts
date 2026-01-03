@@ -16,6 +16,7 @@ import { DashboardService, DashboardMetrics, RecentSession } from '../../core/se
 import { SmartActionComponent, SmartActionMode } from '../../shared/components/smart-action/smart-action.component';
 import { SmartActionWizardComponent } from './smart-action-wizard';
 import { ActivityService } from '../../core/services/activity.service';
+import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
 export type Session = {
   id: string;
@@ -31,7 +32,6 @@ type Activity = {
   icon: string;
   category: string;
   colorTag: string;
-  estimatedHoursPerWeek: number;
   lastAccessed: string;
   sessions: Session[];
 };
@@ -55,13 +55,16 @@ export class Dashboard implements OnInit {
   private auth = inject(Auth);
   private dashboardService = inject(DashboardService);
   private activityService = inject(ActivityService);
+  private notificationService = inject(SuccessNotificationService);
 
   protected sidebarExpanded = signal(true);
   protected isLoggingOut = signal(false);
+  protected profile = signal<any>(null);
 
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
   protected dashboardError = signal<string | null>(null);
+  protected isResendingEmail = signal(false);
 
   smartActionWizardOpen = false;
   smartActionMode: SmartActionMode = null;
@@ -80,6 +83,23 @@ export class Dashboard implements OnInit {
       this.sidebarExpanded.set(false);
     }
     this.loadDashboardMetrics();
+    this.auth.fetchAndStoreUserProfile().then(user => {
+        this.profile.set(user);
+    }).catch(err => console.error('Failed to fetch profile', err));
+  }
+
+  protected onResendVerification(): void {
+      const email = this.profile()?.email;
+      if (!email) return;
+      
+      this.isResendingEmail.set(true);
+      this.auth.resendVerification(email).then(() => {
+          this.notificationService.showSuccess('Email Sent', 'Verification email sent successfully.');
+      }).catch(() => {
+          this.notificationService.showError('Error', 'Failed to send verification email.');
+      }).finally(() => {
+          this.isResendingEmail.set(false);
+      });
   }
 
   private loadDashboardMetrics(): void {
@@ -94,7 +114,8 @@ export class Dashboard implements OnInit {
         console.log('[Dashboard] Metrics loaded successfully:', {
           sessions: data.totalSessions,
           focusTime: data.focusHoursAllTime,
-          recentSessionsCount: data.recentSessions?.length || 0
+          recentSessionsCount: data.recentSessions?.length || 0,
+          recentSessions: data.recentSessions
         });
         this.dashboardMetrics.set(data);
         this.isLoadingDashboard.set(false);

@@ -1,8 +1,12 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Output, inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+
+export interface VerifyEmailModalData {
+  source: 'signup' | 'login';
+}
 
 @Component({
   selector: 'app-verify-email-modal',
@@ -12,20 +16,31 @@ import { Router } from '@angular/router';
   styleUrls: ['./verify-email-modal.scss']
 })
 export class VerifyEmailModal {
-  @Output() openEmail = new EventEmitter<void>();
-  @Output() backToSignUp = new EventEmitter<void>();
+  @Output() goToLogin = new EventEmitter<void>();
   
   private dialogRef = inject(MatDialogRef<VerifyEmailModal>);
   private router = inject(Router);
+  
+  source: 'signup' | 'login' = 'signup';
 
-  onOpenEmail(): void {
-    this.openEmail.emit();
-    window.location.href = 'mailto:';
+  constructor(@Optional() @Inject(MAT_DIALOG_DATA) data: VerifyEmailModalData) {
+    if (data?.source) {
+      this.source = data.source;
+    }
   }
 
-  onBackToSignUp(): void {
-    this.backToSignUp.emit();
-    this.dialogRef.close();
-    this.router.navigate(['/signup']);
+  get actionButtonText(): string {
+    return this.source === 'signup' ? 'Go to Dashboard' : 'Back to Login';
+  }
+
+  onGoToLogin(): void {
+    this.goToLogin.emit();
+    this.dialogRef.close('goToLogin');
+    // After signup, user is already logged in, navigate to dashboard
+    if (this.source === 'signup') {
+      this.router.navigate(['/dashboard']);
+    } else {
+      this.router.navigate(['/login']);
+    }
   }
 }

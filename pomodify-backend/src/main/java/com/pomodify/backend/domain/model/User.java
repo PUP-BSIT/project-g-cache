@@ -49,6 +49,14 @@ public class User {
     })
     private Email email;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     // ──────────────── State ────────────────
     @Column(name = "is_email_verified", nullable = false)
     @Builder.Default
@@ -63,6 +71,9 @@ public class User {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(name = "backup_email")
+    private String backupEmail;
+
     // ──────────────── Relationships ────────────────
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
@@ -71,15 +82,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Activity> activities = new ArrayList<>();
-
-    // ──────────────── Timestamps ────────────────
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     // ──────────────── Domain Logic ────────────────
     public void verifyEmail() {
@@ -96,6 +98,30 @@ public class User {
             this.email = newEmail;
             this.isEmailVerified = false;
         }
+    }
+
+    public void updatePassword(String newPasswordHash) {
+        ensureActive();
+        if (newPasswordHash == null || newPasswordHash.isBlank()) {
+             throw new IllegalArgumentException("Password cannot be empty");
+        }
+        this.passwordHash = newPasswordHash;
+    }
+
+    public void updateName(String firstName, String lastName) {
+        ensureActive();
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Last name cannot be empty");
+        }
+        this.firstName = firstName.trim();
+        this.lastName = lastName.trim();
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public void deactivate() {
@@ -130,19 +156,19 @@ public class User {
     }
 
     // ──────────────── Activity Operations ────────────────
-    public Activity createActivity(String title, String description, Category category) {
+    public Activity createActivity(String title, String description, Category category, String color) {
         ensureActive();
-        Activity activity = Activity.create(title, description, this, category);
+        Activity activity = Activity.create(title, description, this, category, color);
         this.activities.add(activity);
         return activity;
     }
 
-    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory) {
+    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory, String newColor) {
         ensureActive();
         if (activityToUpdate == null)
             throw new IllegalArgumentException("Activity cannot be null");
 
-        activityToUpdate.updateDetails(newTitle, newDescription, newCategory);
+        activityToUpdate.updateDetails(newTitle, newDescription, newCategory, newColor);
         return activityToUpdate;
     }
 
@@ -207,5 +233,9 @@ public class User {
 
     public void setEmailVerified(boolean isEmailVerified) {
         this.isEmailVerified = isEmailVerified;
+    }
+
+    public void setBackupEmail(String backupEmail) {
+        this.backupEmail = backupEmail;
     }
 }

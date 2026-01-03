@@ -115,7 +115,7 @@ class ActivityControllerIntegrationTest {
 
     @Test
     void testCreateActivity_Success() throws Exception {
-        CreateActivityRequest request = new CreateActivityRequest("Code review", "Review pull requests", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Code review", "Review pull requests", categoryId, null);
 
         MvcResult result = mockMvc.perform(post("/activities")
                 .with(csrf())
@@ -133,7 +133,7 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetAllActivities() throws Exception {
         // Create an activity first
-        CreateActivityRequest request = new CreateActivityRequest("Unit testing", "Write unit tests", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Unit testing", "Write unit tests", categoryId, null);
         mockMvc.perform(post("/activities")
                 .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
@@ -151,7 +151,7 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetActivityById() throws Exception {
         // Create activity
-        CreateActivityRequest request = new CreateActivityRequest("Documentation", "Write API docs", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Documentation", "Write API docs", categoryId, null);
         MvcResult createResult = mockMvc.perform(post("/activities")
                 .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
@@ -173,7 +173,7 @@ class ActivityControllerIntegrationTest {
     @Test
     void testUpdateActivity() throws Exception {
         // Create activity
-        CreateActivityRequest request = new CreateActivityRequest("Design", "UI design mockups", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Design", "UI design mockups", categoryId, null);
         MvcResult createResult = mockMvc.perform(post("/activities")
                 .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
@@ -206,7 +206,7 @@ class ActivityControllerIntegrationTest {
     @Test
     void testDeleteActivity() throws Exception {
         // Create activity
-        CreateActivityRequest request = new CreateActivityRequest("Temporary Task", "To be deleted", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Temporary Task", "To be deleted", categoryId, null);
         MvcResult createResult = mockMvc.perform(post("/activities")
                 .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)
@@ -231,7 +231,7 @@ class ActivityControllerIntegrationTest {
 
     @Test
     void testCreateActivity_Unauthenticated() throws Exception {
-        CreateActivityRequest request = new CreateActivityRequest("Task", "Some task", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("Task", "Some task", categoryId, null);
 
         mockMvc.perform(post("/activities")
                 .with(csrf())
@@ -244,7 +244,7 @@ class ActivityControllerIntegrationTest {
     @Test
     void testGetDeletedActivities() throws Exception {
         // Create an activity
-        CreateActivityRequest request = new CreateActivityRequest("To Delete Activity", "This will be deleted", categoryId);
+        CreateActivityRequest request = new CreateActivityRequest("To Delete Activity", "This will be deleted", categoryId, null);
         MvcResult createResult = mockMvc.perform(post("/activities")
                 .with(csrf())
                 .header("Authorization", "Bearer " + accessToken)

@@ -4,5 +4,6 @@ public record UserResponse(
         String firstName,
         String lastName,
         String email,
-        boolean isEmailVerified
+        boolean isEmailVerified,
+        String backupEmail
 ) {}

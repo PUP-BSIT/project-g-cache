@@ -9,6 +9,7 @@ public record ActivityItem(
         String categoryName,
         String activityTitle,
         String activityDescription,
+        String color,
         String createdAt,
         String updatedAt
 ) {

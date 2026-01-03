@@ -29,12 +29,18 @@ header.site-header .login-link {
   gap: 10px;
   text-decoration: none;
   color: inherit;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 .logo {
   height: 36px;
   width: auto;
   object-fit: contain;
+  background: none;
+  border: none;
 }
 
 .brand-text {
@@ -54,17 +60,20 @@ header.site-header .login-link {
   margin: 0;
 }
 
+a.nav-link,
 .nav-link {
   text-decoration: none;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500;
+  color: #ffffff !important;
 }
 
+a.login-link,
 .login-link {
   /* plain text link on the right (not a button) — slightly emphasized */
   display: inline-block;
   padding: 6px 10px;
-  color: #ffffff;
+  color: #ffffff !important;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -72,8 +81,15 @@ header.site-header .login-link {
   letter-spacing: 0.2px;
   text-decoration: none;
   transition: color 140ms ease, background 140ms ease, transform 120ms ease;
+  position: relative;
+  top: 2px;
 }
-.login-link:hover { color: #f1ffff; background: rgba(255,255,255,0.03); transform: translateY(-1px); }
+a.login-link:hover,
+.login-link:hover { 
+  color: #ffffff !important; 
+  background: transparent; 
+  transform: translateY(-1px);
+}
 
 .spacer { flex: 1 1 auto; }
 
@@ -91,22 +107,37 @@ header.site-header .login-link {
   position: relative;
   cursor: pointer;
   outline: none;
+  color: #ffffff !important;
 }
 
-.caret { margin-left: 6px; font-size: 12px; }
+.dropdown span {
+  color: #ffffff !important;
+}
+
+.caret { 
+  margin-left: 6px; 
+  font-size: 25px; 
+  position: relative;
+  top: 3px;
+}
 
 .menu {
   display: none;
   position: absolute;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   top: calc(100% + 10px);
-  background: #ffffff;
-  color: #123;
-  min-width: 180px;
+  background: #4DA1A9;
+  color: #ffffff !important;
+  min-width: 220px;
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   padding: 8px;
   z-index: 10;
+}
+
+.menu * {
+  color: #ffffff !important;
 }
 
 .dropdown:focus .menu,
@@ -116,15 +147,17 @@ header.site-header .login-link {
   display: block;
   padding: 10px 12px;
   text-decoration: none;
-  color: inherit;
+  color: #ffffff !important;
   border-radius: 6px;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   cursor: pointer;
   transition: background 0.2s ease;
+  text-align: center;
 }
 
 .menu-item:hover { 
-  background: #f2f6f7; 
+  background: rgba(0, 0, 0, 0.15);
+  color: #ffffff !important;
 }
 
 /* Hamburger Menu Button */
@@ -154,6 +187,14 @@ header.site-header .login-link {
     z-index: 1000;
   }
 
+  .site-brand {
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
   .hamburger {
     display: flex;
   }
@@ -169,22 +210,27 @@ header.site-header .login-link {
     padding: 0;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease;
+    transition: max-height 0.4s ease, padding 0.4s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
   }
 
   .right-actions { display: none; }
   .mobile-login { display: block; }
 
   .nav.active {
-    max-height: 500px;
+    max-height: calc(100vh - 64px);
     padding: 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .nav-link {
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: block;
+    box-sizing: border-box;
+    text-align: center;
   }
 
   .login-link { border-bottom: none; padding: 10px 12px; }
@@ -194,16 +240,24 @@ header.site-header .login-link {
   }
 
   .dropdown {
-    position: static;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
   }
 
   .menu {
     position: static;
     display: none;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.15);
     margin-top: 8px;
+    margin-bottom: 8px;
     box-shadow: none;
     min-width: auto;
+    width: 100%;
+    transform: none;
+    left: auto;
+    box-sizing: border-box;
   }
 
   .dropdown:focus .menu,
@@ -238,9 +292,12 @@ header.site-header .login-link {
   .nav {
     top: 56px;
     padding: 0;
+    max-height: 0;
   }
 
   .nav.active {
     padding: 12px;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
   }
 }

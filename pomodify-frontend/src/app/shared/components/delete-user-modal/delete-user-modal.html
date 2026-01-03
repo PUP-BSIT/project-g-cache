@@ -1,0 +1,39 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <div class="warning-icon">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h2>Delete User Account</h2>
+    <button class="close-btn" (click)="onCancel()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <p class="warning-text">
+      You are about to permanently delete this user account. This action cannot be undone.
+    </p>
+    
+    <div class="user-preview">
+      <div class="user-avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="user-details">
+        <span class="user-name">{{ userName }}</span>
+        <span class="user-email">{{ userEmail }}</span>
+      </div>
+    </div>
+
+    <p class="consequence-text">
+      All user data including activities, sessions, and settings will be permanently removed.
+    </p>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
+    <button class="btn btn-delete" (click)="onDelete()">
+      <i class="fa-solid fa-trash"></i>
+      Delete User
+    </button>
+  </div>
+</div>

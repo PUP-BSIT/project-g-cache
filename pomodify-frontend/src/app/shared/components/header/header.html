@@ -8,9 +8,10 @@
     <div class="spacer" aria-hidden="true"></div>
 
     <nav class="nav" [class.active]="mobileMenuOpen">
-        <a routerLink="/" class="nav-link">Home</a>
-
-        <div class="nav-link dropdown" tabindex="0">
+        <!-- Show Home link when on contact page, Features dropdown otherwise -->
+        <a *ngIf="isContactPage" routerLink="/" class="nav-link" (click)="closeMobileMenu()">Home</a>
+        
+        <div *ngIf="!isContactPage" class="nav-link dropdown" tabindex="0">
         <span>Features</span>
         <span class="caret">▾</span>
         <div class="menu">
@@ -21,6 +22,8 @@
             <a class="menu-item" (click)="scrollToFeature('accounts')">Manage user accounts securely</a>
         </div>
         </div>
+
+        <a *ngIf="!isContactPage" routerLink="/contact" class="nav-link" (click)="closeMobileMenu()">Contact</a>
 
         <!-- Mobile-only Log In (shown inside collapsed nav on small screens) -->
         <a routerLink="/login" class="nav-link mobile-login">Log In</a>

@@ -1,19 +1,44 @@
-<button class="smart-action-btn" (click)="openMenu()">
-  <span class="icon">+</span>
+<button class="smart-action-btn" [class.open]="open" (click)="openMenu()">
+  <i class="fa-solid fa-plus"></i>
 </button>
 @if (open) {
+  <div class="smart-action-overlay" (click)="closeMenu()"></div>
   <div class="smart-action-modal">
+    <div class="modal-header">
+      <h3>Create New</h3>
+    </div>
     <div class="modal-content">
       <button class="action-tier primary" (click)="select('wizard')">
-        <span class="icon">✨</span> Generate a Plan
+        <div class="action-icon wizard">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Generate a Plan</span>
+          <span class="action-desc">AI-powered study plan</span>
+        </div>
       </button>
       <button class="action-tier secondary" (click)="select('quick')">
-        <span class="icon">⚡</span> Quick Focus
+        <div class="action-icon quick">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Quick Focus</span>
+          <span class="action-desc">Start 25min session now</span>
+        </div>
       </button>
       <button class="action-tier tertiary" (click)="select('custom')">
-        <span class="icon">📝</span> Custom Activity
+        <div class="action-icon custom">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+        <div class="action-text">
+          <span class="action-title">Custom Activity</span>
+          <span class="action-desc">Create your own</span>
+        </div>
       </button>
-      <button class="close-btn" (click)="closeMenu()">Close</button>
     </div>
+    <button class="close-btn" (click)="closeMenu()">
+      <i class="fa-solid fa-xmark"></i>
+      Close
+    </button>
   </div>
 }

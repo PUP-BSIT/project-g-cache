@@ -1,26 +1,46 @@
-import { Component, OnInit, inject, signal, input } from '@angular/core';
+import { Component, OnInit, inject, signal, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
+import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component';
+import { AlertDialogComponent, AlertDialogData } from '../../shared/components/alert-dialog/alert-dialog';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Use PomodoroSession from SessionService for type safety
 
 @Component({
   selector: 'app-sessions-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sessions-list.html',
   styleUrls: ['./sessions-list.scss']
 })
 export class SessionsListComponent implements OnInit {
 
     getNoteText(note: any): string {
+      // Handle null/undefined
+      if (!note) return '';
+      
+      // Handle plain string
       if (typeof note === 'string') return note;
-      if (note && typeof note === 'object' && 'text' in note && typeof note.text === 'string') return note.text;
+      
+      // Handle object formats
+      if (typeof note === 'object') {
+        // Backend SessionNoteDto format: { id, content, items }
+        if ('content' in note && note.content) {
+          return String(note.content);
+        }
+        // Alternative format with 'text' property
+        if ('text' in note && note.text) {
+          return String(note.text);
+        }
+      }
+      
       return '';
     }
   protected router = inject(Router);
@@ -35,6 +55,31 @@ export class SessionsListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   activityId = signal<number | null>(null);
+  
+  showAbandoned = signal(false);
+  
+  // Note editing state
+  editingNoteForSession = signal<number | null>(null);
+  noteDraft = signal<string>('');
+  savingNote = signal(false);
+  
+  filteredSessions = computed(() => {
+    const all = this.sessions();
+    const show = this.showAbandoned();
+    return all.filter(s => show || s.status !== 'ABANDONED');
+  });
+
+  hasActiveSession = computed(() => {
+    return this.sessions().some(s => 
+      s.status === 'PENDING' || 
+      s.status === 'IN_PROGRESS' || 
+      s.status === 'PAUSED'
+    );
+  });
+
+  toggleAbandoned() {
+    this.showAbandoned.update(v => !v);
+  }
 
   ngOnInit(): void {
     this.loadSessions();
@@ -88,16 +133,16 @@ export class SessionsListComponent implements OnInit {
         return of([]);
       })
     ).subscribe(sessions => {
+      console.log('[Sessions List] Loaded sessions with notes:', sessions.map(s => ({ id: s.id, note: s.note })));
       this.sessions.set(sessions);
       this.loading.set(false);
     });
   }
 
   protected openSession(session: PomodoroSession): void {
-    // Only navigate if session is NOT completed
+    if (session.status === 'ABANDONED') return;
+    
     if (session.status === 'COMPLETED') {
-      // Optional: Show a message or navigate to summary page
-      console.log('Session is already completed');
       return;
     }
     
@@ -105,7 +150,29 @@ export class SessionsListComponent implements OnInit {
     this.router.navigate(['/activities', this.activityTitle(), 'sessions', session.id]);
   }
 
+  protected viewNotes(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    const noteText = this.getNoteText(session.note);
+    
+    this.dialog.open(SessionNoteDialogComponent, {
+      data: {
+        title: 'Session Notes',
+        note: noteText || 'No notes for this session.'
+      },
+      width: '500px'
+    });
+  }
+
   protected createNewSession(): void {
+    if (this.hasActiveSession()) {
+      this.showAlertDialog(
+        'Active Session Exists',
+        'You have an active session. Please complete or abandon it before creating a new one.',
+        'warning'
+      );
+      return;
+    }
+
     const actId = this.activityId();
     if (!actId) {
       console.error('Activity ID not available');
@@ -113,7 +180,8 @@ export class SessionsListComponent implements OnInit {
     }
 
     const dialogRef = this.dialog.open(CreateSessionDialogComponent, {
-      width: '420px',
+      width: '600px',
+      maxWidth: '95vw',
       disableClose: false,
       panelClass: 'create-session-dialog-panel'
     });
@@ -124,9 +192,15 @@ export class SessionsListComponent implements OnInit {
         console.log('[Sessions List] Creating session:', formData);
         return this.sessionService.createSession(actId, formData);
       }),
-      catchError(error => {
+      catchError((error: HttpErrorResponse) => {
         console.error('[Sessions List] Failed to create session:', error);
-        this.error.set('Failed to create session. Please try again.');
+        // Handle 409 Conflict - active session exists
+        if (error.status === 409) {
+          const message = error.error?.message || 'An active session already exists. Please complete or abandon it before creating a new one.';
+          this.showAlertDialog('Active Session Exists', message, 'warning');
+        } else {
+          this.showAlertDialog('Error', 'Failed to create session. Please try again.', 'error');
+        }
         return of(null);
       })
     ).subscribe(newSession => {
@@ -135,6 +209,81 @@ export class SessionsListComponent implements OnInit {
         // Navigate to the session timer page
         this.router.navigate(['/activities', this.activityTitle(), 'sessions', newSession.id]);
       }
+    });
+  }
+
+  /**
+   * Check if notes can be edited for a session based on status
+   * Editable: IN_PROGRESS, PAUSED, PENDING (stopped), ABANDONED
+   */
+  protected canEditNote(status: string): boolean {
+    const editableStatuses = ['IN_PROGRESS', 'PAUSED', 'PENDING', 'ABANDONED'];
+    return editableStatuses.includes(status?.toUpperCase());
+  }
+
+  /**
+   * Check if notes are view-only (completed sessions)
+   */
+  protected isNoteViewOnly(status: string): boolean {
+    return status?.toUpperCase() === 'COMPLETED';
+  }
+
+  /**
+   * Start editing a note for a session
+   */
+  protected startEditNote(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    this.editingNoteForSession.set(session.id);
+    this.noteDraft.set(this.getNoteText(session.note));
+  }
+
+  /**
+   * Cancel note editing
+   */
+  protected cancelEditNote(event: Event): void {
+    event.stopPropagation();
+    this.editingNoteForSession.set(null);
+    this.noteDraft.set('');
+  }
+
+  /**
+   * Save the note for a session
+   */
+  protected saveNote(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    const actId = this.activityId();
+    if (!actId) return;
+
+    this.savingNote.set(true);
+    const noteText = this.noteDraft();
+
+    this.sessionService.updateNote(actId, session.id, noteText).subscribe({
+      next: () => {
+        // Update local state
+        const updated = this.sessions().map(s => 
+          s.id === session.id ? { ...s, note: noteText } : s
+        );
+        this.sessions.set(updated);
+        this.editingNoteForSession.set(null);
+        this.noteDraft.set('');
+        this.savingNote.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to save note:', err);
+        this.savingNote.set(false);
+      }
+    });
+  }
+
+  private showAlertDialog(title: string, message: string, type: 'info' | 'warning' | 'error' = 'info'): void {
+    this.dialog.open(AlertDialogComponent, {
+      width: '400px',
+      data: {
+        title,
+        message,
+        type,
+        buttonText: 'OK'
+      } as AlertDialogData
     });
   }
 

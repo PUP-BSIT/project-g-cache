@@ -89,6 +89,26 @@
 
   <!-- Main Content -->
   <main class="main-content">
+    @if (profile() && !profile()?.isEmailVerified) {
+        <div class="verification-banner" style="background: #fff3cd; color: #856404; padding: 10px; text-align: center; border-bottom: 1px solid #ffeeba; display: flex; justify-content: center; align-items: center; gap: 10px;">
+            <span>Please verify your email address to secure your account.</span>
+            <button (click)="onResendVerification()" [disabled]="isResendingEmail()" style="background: none; border: 1px solid #856404; color: #856404; padding: 2px 8px; cursor: pointer; border-radius: 4px;">
+                @if (isResendingEmail()) {
+                    Sending...
+                } @else {
+                    Resend Email
+                }
+            </button>
+        </div>
+    }
+    @if (profile() && profile()?.isEmailVerified && !profile()?.backupEmail) {
+        <div class="backup-email-banner">
+            <span>Add a backup email address to help recover your account if needed.</span>
+            <button (click)="openProfileModal()">
+                Add Backup Email
+            </button>
+        </div>
+    }
     <!-- Header -->
     <header class="header">
       <div class="header-left">

@@ -4,10 +4,16 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { API } from '../config/api.config';
 
-// Session types based on backend API (STRICT ADHERENCE)
 export type SessionType = 'CLASSIC' | 'FREESTYLE';
-export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED';
+export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
 export type SessionPhase = 'FOCUS' | 'BREAK';
+
+// Note structure from backend
+export interface SessionNoteDto {
+  id: number | null;
+  content: string | null;
+  items: Array<{ id: number; text: string; done: boolean }>;
+}
 
 export interface PomodoroSession {
   id: number;
@@ -16,22 +22,29 @@ export interface PomodoroSession {
   status: SessionStatus;
   focusTimeInMinutes: number;
   breakTimeInMinutes: number;
-  cycles: number;
+  cycles: number | null;
   currentPhase: SessionPhase | null;
   cyclesCompleted: number;
-  note: string | null;
-  totalElapsedSeconds?: number; // Total elapsed time across all cycles
-  remainingPhaseSeconds?: number; // Remaining time in current phase (from backend)
+  note: SessionNoteDto | string | null;
+  totalElapsedSeconds?: number; 
+  remainingPhaseSeconds?: number; 
+  phaseNotified?: boolean; 
   createdAt?: string;
   updatedAt?: string;
+  enableLongBreak?: boolean;
+  longBreakTimeInMinutes?: number;
+  longBreakIntervalInMinutes?: number;
 }
 
 export interface CreateSessionRequest {
   sessionType: SessionType;
   focusTimeInMinutes: number;
   breakTimeInMinutes: number;
-  cycles: number;
+  cycles: number | null;
   note?: string;
+  enableLongBreak?: boolean;
+  longBreakTimeInMinutes?: number;
+  longBreakIntervalInMinutes?: number;
 }
 
 export interface SessionResponse {
@@ -65,18 +78,12 @@ export class SessionService {
     }
   private http = inject(HttpClient);
 
-  /**
-   * Create a new session for an activity
-   */
   createSession(activityId: number, request: CreateSessionRequest): Observable<PomodoroSession> {
     return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.CREATE(activityId), request).pipe(
       map(response => extractSession(response))
     );
   }
 
-  /**
-   * Get all sessions for an activity
-   */
   getSessions(activityId: number, status?: SessionStatus): Observable<PomodoroSession[]> {
     let params = new HttpParams();
     if (status) {
@@ -87,34 +94,22 @@ export class SessionService {
     );
   }
 
-  /**
-   * Get a specific session
-   */
   getSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
     return this.http.get<SessionResponse>(API.ACTIVITIES.SESSIONS.DETAILS(activityId, sessionId)).pipe(
       map(response => extractSession(response))
     );
   }
 
-  /**
-   * Delete a session
-   */
   deleteSession(activityId: number, sessionId: number): Observable<void> {
     return this.http.delete<void>(API.ACTIVITIES.SESSIONS.DELETE(activityId, sessionId));
   }
 
-  /**
-   * Start a session
-   */
   startSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
     return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.START(activityId, sessionId), null).pipe(
       map(response => extractSession(response))
     );
   }
 
-  /**
-   * Pause a session
-   */
   pauseSession(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {
@@ -125,18 +120,12 @@ export class SessionService {
     );
   }
 
-  /**
-   * Resume a paused session
-   */
   resumeSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
     return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.RESUME(activityId, sessionId), null).pipe(
       map(response => extractSession(response))
     );
   }
 
-  /**
-   * Stop the current cycle (invalidates current cycle)
-   */
   stopSession(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {
@@ -147,10 +136,12 @@ export class SessionService {
     );
   }
 
+  completeEarly(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.COMPLETE_EARLY(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
 
-  /**
-   * Complete the current phase (FOCUS or BREAK)
-   */
   completePhase(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {
@@ -162,8 +153,26 @@ export class SessionService {
   }
 
   /**
-   * Finish the session (mark as completed)
+   * Skip to the next phase without completing the current one
+   * - FOCUS -> BREAK: Doesn't count as cycle completion
+   * - BREAK -> FOCUS: Moves to next focus phase
    */
+  skipPhase(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.SKIP_PHASE(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
+  /**
+   * Reset session to initial state (NOT_STARTED/PENDING)
+   * Clears all progress but keeps session configuration
+   */
+  resetSession(activityId: number, sessionId: number): Observable<PomodoroSession> {
+    return this.http.post<SessionResponse>(API.ACTIVITIES.SESSIONS.RESET(activityId, sessionId), null).pipe(
+      map(response => extractSession(response))
+    );
+  }
+
   finishSession(activityId: number, sessionId: number, note?: string): Observable<PomodoroSession> {
     let params = new HttpParams();
     if (note) {
@@ -174,11 +183,7 @@ export class SessionService {
     );
   }
 
-  /**
-   * Update session note
-   */
   updateNote(activityId: number, sessionId: number, note: string): Observable<PomodoroSession> {
-    // Always send a string for note (never undefined or null)
     const safeNote = typeof note === 'string' ? note : (note == null ? '' : String(note));
     const params = new HttpParams().set('note', safeNote);
     return this.http.put<SessionResponse>(API.ACTIVITIES.SESSIONS.UPDATE_NOTE(activityId, sessionId), null, { params }).pipe(
@@ -186,9 +191,6 @@ export class SessionService {
     );
   }
 
-  /**
-   * Update session settings (focus time, break time, cycles, etc.)
-   */
   updateSession(activityId: number, sessionId: number, updates: {
     sessionType?: SessionType;
     focusTimeInMinutes?: number;
@@ -199,10 +201,6 @@ export class SessionService {
       map(response => extractSession(response))
     );
   }
-
-  /**
-   * Connect to Server-Sent Events for real-time session updates
-   */
   connectToSessionEvents(activityId: number, sessionId: number): EventSource {
     return new EventSource(API.ACTIVITIES.SESSIONS.EVENTS(activityId, sessionId));
   }
@@ -216,7 +214,7 @@ function extractSession(response: SessionResponse): PomodoroSession {
     const normalized = { ...s, status: normalizedStatus };
     return normalized;
   }
-  // Some endpoints may return a single session object instead of array
+
   const anyResp = response as unknown as { session?: PomodoroSession };
   if (anyResp && anyResp.session) {
     const s = anyResp.session;

@@ -740,6 +740,72 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       0 2px 4px rgba(0, 0, 0, 0.2),
       0 0 20px rgba(255, 255, 255, 0.3);
     animation: pulse-time 2s ease-in-out infinite;
+    
+    // Flex layout for inline editing components
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    .separator {
+      display: inline-block;
+      margin: 0 2px;
+      position: relative;
+      top: -4px; // Slight adjustment for alignment
+    }
+
+    .editable {
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 0 8px;
+      transition: all 0.2s ease;
+      position: relative;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        text-shadow: 0 0 25px rgba(255, 255, 255, 1);
+        transform: scale(1.05);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
+    .timer-input {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
+      color: $bg-white;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      width: 1.8em; // Width for 2 characters approx
+      text-align: center;
+      padding: 0;
+      margin: 0;
+      outline: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      
+      &::selection {
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      &:focus {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: $bg-white;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+      }
+      
+      // Hide number spinners
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      -moz-appearance: textfield;
+    }
   }
   
   @keyframes pulse-time {
@@ -760,6 +826,24 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     opacity: 0;
     transition: all 0.3s ease;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  .locked-icon {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    opacity: 0.7;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  &.classic-locked {
+    cursor: default;
+    
+    .locked-icon {
+      opacity: 0.8;
+    }
   }
 
   &.clickable {
@@ -952,6 +1036,139 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 }
 
+// Skip button (similar to fast-forward but with text)
+.btn-skip {
+  background: var(--activity-color);
+  color: $bg-white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: $card-shadow;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $card-shadow;
+  }
+}
+
+// Reset button (yellow/orange warning style)
+.btn-reset {
+  background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
+  color: $bg-white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: $card-shadow;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $card-shadow;
+  }
+}
+
+// Complete session section and button
+.complete-session-section {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-complete-session {
+  background: linear-gradient(145deg, #27AE60 0%, #1E8449 100%);
+  color: $bg-white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: $card-shadow;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  i {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: linear-gradient(145deg, #1E8449 0%, #186A3B 100%);
+    transform: translateY(-2px);
+    box-shadow: $card-shadow-hover;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: $card-shadow;
+  }
+}
+
+// Specific button state styles
+.btn-start {
+  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
+}
+
+.btn-pause {
+  background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
+  
+  &:hover {
+    background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
+  }
+}
+
+.btn-resume {
+  background: linear-gradient(145deg, #27AE60 0%, #1E8449 100%);
+  
+  &:hover {
+    background: linear-gradient(145deg, #1E8449 0%, #186A3B 100%);
+  }
+}
+
 /* -------------------- NOTES PANEL (RIGHT SIDE) -------------------- */
 
 .notes-panel {
@@ -968,6 +1185,43 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   box-sizing: border-box;
   box-shadow: $card-shadow-hover;
   border: 1px solid rgba(95, 169, 164, 0.2);
+  
+  // Read-only state for completed sessions
+  &.read-only {
+    background: #FAFAFA;
+    border-color: rgba(127, 140, 141, 0.3);
+    
+    .notes-textarea,
+    .todo-text {
+      background: #F0F0F0;
+      cursor: not-allowed;
+      color: $text-light;
+    }
+    
+    .todo-checkbox:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+}
+
+// Read-only badge for completed sessions
+.read-only-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(127, 140, 141, 0.15);
+  color: $text-light;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  
+  i {
+    font-size: 10px;
+  }
 }
 
 /* -------------------- PANEL HEADER -------------------- */

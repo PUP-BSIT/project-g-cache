@@ -20,6 +20,7 @@ public class ActivityMapper {
             .categoryName(result.categoryName())
             .activityTitle(result.activityTitle())
             .activityDescription(result.activityDescription())
+            .color(result.color())
             .createdAt(result.createdAt() != null ? result.createdAt().toString() : null)
             .updatedAt(result.updatedAt() != null ? result.updatedAt().toString() : null)
             .build();

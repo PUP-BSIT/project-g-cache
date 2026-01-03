@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Header } from '../../shared/components/header/header';
 import { RouterLink } from '@angular/router';
 import { Footer } from '../../shared/components/footer/footer';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
 import { CommonModule } from '@angular/common';
+import { ContactService } from '../../core/services/contact.service';
 
 @Component({
   selector: 'app-landing',
@@ -14,6 +15,8 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./landing.scss'],
 })
 export class Landing implements OnInit, OnDestroy, AfterViewInit {
+  private contactService = inject(ContactService);
+  
   currentSlide = 0;
   slides = [0, 1, 2, 3, 4]; // 5 feature cards
   faqs: Array<{ q: string; a: string }> = [
@@ -38,6 +41,8 @@ export class Landing implements OnInit, OnDestroy, AfterViewInit {
   contactOpen = false;
   contactData = { name: '', email: '', reason: '', message: '' };
   contactFormError = '';
+  contactSubmitting = false;
+  contactSuccess = false;
   private autoPlayInterval: any;
   private readonly AUTO_PLAY_DELAY = 5000; // 5 seconds
 
@@ -70,11 +75,24 @@ export class Landing implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
     this.contactFormError = '';
-    // TODO: wire to API — for now log and close
-    // eslint-disable-next-line no-console
-    console.log('Contact form submitted', this.contactData);
-    this.contactOpen = false;
-    this.contactData = { name: '', email: '', reason: '', message: '' };
+    this.contactSubmitting = true;
+    
+    this.contactService.submitContactForm({ name, email, reason, message }).subscribe({
+      next: () => {
+        this.contactSubmitting = false;
+        this.contactSuccess = true;
+        this.contactData = { name: '', email: '', reason: '', message: '' };
+        // Auto-close after showing success
+        setTimeout(() => {
+          this.contactOpen = false;
+          this.contactSuccess = false;
+        }, 3000);
+      },
+      error: (err) => {
+        this.contactSubmitting = false;
+        this.contactFormError = err.error?.message || 'Failed to send message. Please try again.';
+      }
+    });
   }
 
   @HostListener('window:resize')

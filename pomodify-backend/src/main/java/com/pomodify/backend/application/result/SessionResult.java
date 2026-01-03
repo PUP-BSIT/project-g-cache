@@ -22,5 +22,6 @@ public record SessionResult(
         SessionNoteDto note,
         LocalDateTime startedAt,
         LocalDateTime completedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Boolean phaseNotified
 ) {}

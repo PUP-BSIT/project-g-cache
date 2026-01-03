@@ -115,7 +115,7 @@ export class TestFcmComponent {
       
       // Step 3: Initialize FCM service
       this.addLog('🔧 Initializing FCM service...');
-        await this.fcmService.initializeFCM('dummy-jwt');
+        await this.fcmService.initializeFCM();
       this.addLog('✅ FCM service initialized successfully');
       
       this.refreshStatus();

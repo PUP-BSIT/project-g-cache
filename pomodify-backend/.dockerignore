@@ -1,5 +1,4 @@
-target/
-
+# Docker build exclusions
 .git/
 
 .idea/
@@ -14,6 +13,8 @@ node_modules/
 .env
 .env.*
 
+# Build artifacts (Dockerfile does fresh build)
+target/
 out/
 build/
 

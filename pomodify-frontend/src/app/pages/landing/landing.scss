@@ -8,6 +8,7 @@
   background: linear-gradient(135deg, #fafbfc 0%, #f5f8f9 50%, #fafbfc 100%);
   position: relative;
   overflow: hidden;
+  scroll-margin-top: 160px;
 }
 
 .feature-grid::before {
@@ -105,7 +106,7 @@
   padding: 30px 25px;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  scroll-margin-top: 80px;
+  scroll-margin-top: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -389,8 +390,8 @@
     gap: 12px !important;
     padding: 16px 12px 32px !important;
   }
-  .landing .hero .hero-right { order: -1 !important; width: 100% !important; }
-  .landing .hero .hero-left { order: 2 !important; width: 100% !important; text-align: center !important; }
+  .landing .hero .hero-right { order: 2 !important; width: 100% !important; }
+  .landing .hero .hero-left { order: -1 !important; width: 100% !important; text-align: center !important; }
   /* Ensure mobile-specific image shows and desktop one hides */
   .hero-right .mobile-layout { display: block !important; }
   .hero-right .desktop-layout { display: none !important; }
@@ -459,6 +460,18 @@
 }
 .contact-panel textarea { resize: vertical; }
 .contact-panel .form-error { color: #b00020; font-weight: 700; margin-bottom: 8px; }
+.contact-panel .contact-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+  color: #2e7d32;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.contact-panel .contact-success i { font-size: 20px; }
 .contact-panel .submit {
   background: #4da1a9;
   color: #ffffff;
@@ -468,6 +481,16 @@
   border-radius: 8px;
   font-weight: 800;
   cursor: pointer;
+}
+.contact-panel .submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.contact-panel input:disabled,
+.contact-panel select:disabled,
+.contact-panel textarea:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 520px) {
@@ -775,11 +798,14 @@
   padding: 0;
   background: #ffffff;
   min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 @media (max-width: 1024px) {
   .landing {
-    overflow: visible !important;
+    overflow-x: hidden !important;
   }
 }
 
@@ -862,18 +888,20 @@
   color: #4DA1A9;
 }
 
+a.btn-primary,
 .btn-primary {
   background: #4DA1A9;
-  color: #fff;
+  color: #ffffff !important;
   border: 2px solid #4DA1A9;
   min-width: 220px; /* increased width after removing duplicate login CTA */
   padding: 0 32px; /* more horizontal padding for a prominent CTA */
 }
 
+a.btn-primary:hover,
 .btn-primary:hover {
   background: #3f8c93;
   border-color: #3f8c93;
-  color: #fff !important;
+  color: #ffffff !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.12);
 }
 
@@ -943,9 +971,11 @@
   }
   
   .hero-left .site-brand {
-    padding: 14px 16px;
-    width: 220px;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+    padding: 0;
+    width: auto;
+    box-shadow: none;
+    background: none;
+    border: none;
     z-index: 10;
     text-align: left;
   }

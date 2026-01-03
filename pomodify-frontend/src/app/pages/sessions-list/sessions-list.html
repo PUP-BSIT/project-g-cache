@@ -5,10 +5,15 @@
       Back
     </button>
     <h1>{{ activityTitle() }}</h1>
-    <button class="create-session-btn" (click)="createNewSession()">
-      <i class="fa-solid fa-plus"></i>
-      New Session
-    </button>
+    <div class="header-actions" style="display: flex; gap: 10px;">
+      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer;">
+        {{ showAbandoned() ? 'Hide Abandoned' : 'Show Abandoned' }}
+      </button>
+      <button class="create-session-btn" (click)="createNewSession()" [disabled]="hasActiveSession()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
+        <i class="fa-solid fa-plus"></i>
+        New Session
+      </button>
+    </div>
   </header>
 
   @if (loading()) {
@@ -34,8 +39,8 @@
     </div>
   } @else {
     <div class="sessions-grid">
-      @for (session of sessions(); track session.id) {
-        <div class="session-card" (click)="openSession(session)">
+      @for (session of filteredSessions(); track session.id) {
+        <div class="session-card" (click)="openSession(session)" [style.cursor]="(session.status === 'ABANDONED' || session.status === 'COMPLETED') ? 'default' : 'pointer'">
           <div class="session-header">
             <div class="session-type">
               <i class="fa-solid fa-stopwatch"></i>
@@ -65,12 +70,20 @@
             </div>
           </div>
 
-          @if (session.note) {
-            <div class="session-note">
+          <!-- Notes Preview Section -->
+          <div class="session-notes-preview">
+            <div class="notes-header">
               <i class="fa-solid fa-note-sticky"></i>
-              {{ getNoteText(session.note) }}
+              <span class="notes-label">Notes</span>
             </div>
-          }
+            <div class="notes-content">
+              @if (getNoteText(session.note)) {
+                <p class="note-text">{{ getNoteText(session.note) }}</p>
+              } @else {
+                <p class="note-empty">No notes for this session</p>
+              }
+            </div>
+          </div>
 
           <div class="session-footer">
             <span class="created-at">

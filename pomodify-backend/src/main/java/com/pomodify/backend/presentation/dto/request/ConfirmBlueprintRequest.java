@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 /**
  * Request DTO for confirming and saving an AI-generated blueprint.
@@ -28,6 +29,11 @@ public record ConfirmBlueprintRequest(
         @Size(max = 500, message = "First session note must be 500 characters or less")
         String firstSessionNote,
 
-        Long categoryId
+        Long categoryId,
+
+        List<String> todos,
+
+        @Size(max = 500, message = "Tip note must be 500 characters or less")
+        String tipNote
 ) {
 }

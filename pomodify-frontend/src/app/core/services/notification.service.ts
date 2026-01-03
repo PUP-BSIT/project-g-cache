@@ -33,15 +33,19 @@ export class NotificationService {
 
   constructor() {
     this.initializeVisibilityTracking();
+    
+    // Subscribe to FCM messages to handle foreground notifications
+    this.fcmService.messages$.subscribe(payload => {
+      console.log('🔔 Received foreground FCM message in NotificationService:', payload);
+      this.handleFcmMessage(payload);
+    });
   }
 
   private initializeVisibilityTracking(): void {
-    console.log('🔍 Initializing tab visibility tracking...');
     
     // Track tab visibility changes
     document.addEventListener('visibilitychange', () => {
       const isVisible = !document.hidden;
-      console.log('👁️ Tab visibility changed:', isVisible ? 'VISIBLE' : 'HIDDEN');
       this.isTabVisible$.next(isVisible);
       
       if (isVisible) {
@@ -51,17 +55,13 @@ export class NotificationService {
 
     // Track window focus/blur
     window.addEventListener('focus', () => {
-      console.log('🎯 Window focused');
       this.isTabVisible$.next(true);
       this.handleTabBecameVisible();
     });
 
     window.addEventListener('blur', () => {
-      console.log('😴 Window blurred');
       this.isTabVisible$.next(false);
     });
-    
-    console.log('✅ Tab visibility tracking initialized');
     
     // Add global debug functions for troubleshooting
     this.addGlobalDebugFunctions();
@@ -73,7 +73,7 @@ export class NotificationService {
       const settings = this.settingsService.getSettings();
       const deviceType = this.mobileDetection.getDeviceType();
       
-      console.log('🔧 Current notification settings:');
+      console.log('Current notification settings:');
       console.log('  - Device type:', deviceType);
       console.log('  - Notifications enabled:', settings.notifications);
       console.log('  - Sound enabled:', settings.sound.enabled);
@@ -83,11 +83,11 @@ export class NotificationService {
       console.log('  - PWA notifications supported:', this.mobileDetection.supportsPWANotifications());
       
       if (!settings.notifications) {
-        console.log('💡 To enable notifications: Go to Settings → Turn on "Notifications" toggle');
+        console.log('To enable notifications: Go to Settings → Turn on "Notifications" toggle');
       }
       
       if (Notification.permission !== 'granted') {
-        console.log('💡 To grant browser permission: Click "Allow" when prompted or check browser settings');
+        console.log('To grant browser permission: Click "Allow" when prompted or check browser settings');
       }
       
       return {
@@ -101,9 +101,9 @@ export class NotificationService {
     };
     
     (window as any).forceTestNotification = async () => {
-      console.log('🚨 Force testing notification...');
+      console.log('Force testing notification...');
       const testContext = {
-        title: '🧪 Force Test Notification',
+        title: 'Force Test Notification',
         body: 'This notification bypasses app settings for testing',
         type: 'phase-complete' as const,
         activityTitle: 'Test Activity'
@@ -112,49 +112,36 @@ export class NotificationService {
     };
     
     (window as any).enableNotifications = () => {
-      console.log('🔧 Enabling notifications in app settings...');
+      console.log('Enabling notifications in app settings...');
       this.settingsService.updateSettings({ notifications: true });
-      console.log('✅ Notifications enabled! Now test with a timer completion.');
+      console.log('Notifications enabled! Now test with a timer completion.');
     };
     
     (window as any).testFCMRegistration = async () => {
-      console.log('🧪 Testing FCM registration...');
-      const jwt = this.authService.getAccessToken();
-      if (!jwt) {
-        console.log('❌ No JWT token available. Please login first.');
-        return;
-      }
+      console.log('Testing FCM registration...');
+      // JWT is no longer needed, auth is handled by cookies
       
       try {
-        await this.fcmService.initializeFCM(jwt);
-        console.log('✅ FCM registration test completed successfully!');
+        await this.fcmService.initializeFCM();
+        console.log('FCM registration test completed successfully!');
       } catch (error) {
-        console.log('❌ FCM registration test failed:', error);
+        console.log('FCM registration test failed:', error);
       }
     };
     
     (window as any).testMobileModal = () => {
       console.log('📱 Testing mobile notification modal...');
       this.showNotificationModal({
-        title: '🧪 Test Mobile Modal',
+        title: 'Test Mobile Modal',
         body: 'This is a test of the mobile notification modal',
         type: 'session-complete',
         activityTitle: 'Test Activity',
         nextAction: 'Great job! Take a break.'
       });
     };
-    
-    console.log('🔧 Added global debug functions:');
-    console.log('  - checkNotificationSettings() - Check current settings');
-    console.log('  - forceTestNotification() - Force test notification');
-    console.log('  - enableNotifications() - Enable notifications in app');
-    console.log('  - testFCMRegistration() - Test FCM registration');
-    console.log('  - testMobileModal() - Test mobile notification modal');
   }
 
   private handleTabBecameVisible(): void {
-    // When user returns to tab, show any pending notifications as modals
-    // BUT only if user is still logged in and on a relevant page
     if (this.pendingNotifications.length > 0 && this.shouldShowPendingNotifications()) {
       this.showPendingNotificationsAsModals();
       this.pendingNotifications = [];
@@ -162,10 +149,9 @@ export class NotificationService {
   }
 
   private shouldShowPendingNotifications(): boolean {
-    // Check if user is logged in
-    const jwt = this.authService.getAccessToken();
-    if (!jwt) {
-      console.log('🚫 User not logged in - clearing pending notifications');
+    // Check if user is logged in using auth service's isLoggedIn method
+    if (!this.authService.isLoggedIn()) {
+      console.log('User not logged in - clearing pending notifications');
       this.pendingNotifications = [];
       return false;
     }
@@ -175,19 +161,17 @@ export class NotificationService {
     const irrelevantPages = ['/login', '/signup', '/landing', '/'];
     
     if (irrelevantPages.some(page => currentUrl.includes(page))) {
-      console.log('🚫 User on irrelevant page - not showing pending notifications');
+      console.log('User on irrelevant page - not showing pending notifications');
       return false;
     }
 
-    // Check if notifications are from recent session (within last 30 minutes)
     const thirtyMinutesAgo = Date.now() - (30 * 60 * 1000);
     const recentNotifications = this.pendingNotifications.filter(notification => {
-      // Add timestamp to notifications when they're created
       return (notification as any).timestamp > thirtyMinutesAgo;
     });
 
     if (recentNotifications.length !== this.pendingNotifications.length) {
-      console.log('🕒 Filtering out old pending notifications');
+      console.log('Filtering out old pending notifications');
       this.pendingNotifications = recentNotifications;
     }
 
@@ -195,10 +179,31 @@ export class NotificationService {
   }
 
   private showPendingNotificationsAsModals(): void {
-    // Show pending notifications as modals when user returns
     this.pendingNotifications.forEach(context => {
       this.showNotificationModal(context);
     });
+  }
+
+  /**
+   * Handle incoming FCM message
+   */
+  private handleFcmMessage(payload: any): void {
+    const notification = payload.notification;
+    const data = payload.data;
+    
+    if (!notification) return;
+
+    const context: NotificationContext = {
+      title: notification.title,
+      body: notification.body,
+      sessionId: data?.sessionId ? parseInt(data.sessionId) : undefined,
+      activityId: data?.activityId ? parseInt(data.activityId) : undefined,
+      type: 'session-complete', // Default to session complete if not specified
+      nextAction: 'View Session'
+    };
+
+    // We treat FCM messages as "foreground" if the app is open
+    this.handleNotification(context);
   }
 
   /**
@@ -238,7 +243,7 @@ export class NotificationService {
     const deviceType = this.mobileDetection.getDeviceType();
     const jwt = this.authService.getAccessToken();
 
-    console.log('🎯 Notification triggered:', {
+    console.log('Notification triggered:', {
       type: context.type,
       tabVisible: isTabVisible,
       deviceType,
@@ -247,10 +252,8 @@ export class NotificationService {
     });
 
     if (isTabVisible) {
-      // Site is visible - handle foreground notifications
       await this.handleForegroundNotification(context, settings, deviceType);
     } else {
-      // Site is not visible - handle background notifications
       await this.handleBackgroundNotification(context, settings, jwt);
     }
   }
@@ -263,38 +266,87 @@ export class NotificationService {
     settings: AppSettings, 
     deviceType: string
   ): Promise<void> {
-    console.log('🔍 Foreground notification - Device:', deviceType);
+    console.log('Foreground notification - Device:', deviceType);
     
     if (deviceType === 'mobile' || deviceType === 'tablet') {
-      // MOBILE/TABLET: Show modal instead of push notification
       await this.handleMobileForegroundNotification(context, settings);
     } else {
-      // DESKTOP: Same behavior as background (push notification + sound)
       await this.handleDesktopForegroundNotification(context, settings);
     }
   }
 
   /**
-   * Handle mobile foreground notifications (modal + sound)
+   * Handle mobile foreground notifications (browser notification with modal fallback + sound)
    */
   private async handleMobileForegroundNotification(
     context: NotificationContext, 
     settings: AppSettings
   ): Promise<void> {
-    console.log('📱 Mobile foreground notification');
-    
-    // Play sound if enabled
+    console.log('Mobile foreground notification');
+
     if (settings.sound.enabled) {
-      console.log('🔊 Playing mobile completion sound:', settings.sound.type);
+      console.log('Playing mobile completion sound:', settings.sound.type);
       this.settingsService.playSound(settings.sound.type);
     }
 
-    // Show modal if notifications enabled
     if (settings.notifications) {
-      console.log('📱 Showing mobile notification modal');
-      this.showNotificationModal(context);
+      const notificationSent = await this.tryMobileBrowserNotification(context);
+      
+      if (!notificationSent) {
+        console.log('Browser notification not available, showing modal fallback');
+        this.showNotificationModal(context);
+      }
     } else {
-      console.log('📱 Mobile notifications disabled - sound only');
+      console.log('Mobile notifications disabled - sound only');
+    }
+  }
+
+  /**
+   * Try to send browser notification on mobile (Android)
+   * Returns true if notification was sent, false if not supported/denied
+   */
+  private async tryMobileBrowserNotification(context: NotificationContext): Promise<boolean> {
+    try {
+      if (!('Notification' in window)) {
+        console.log('Notification API not available on this device');
+        return false;
+      }
+
+      let permission = Notification.permission;
+
+      if (permission === 'default') {
+        console.log('Requesting notification permission on mobile...');
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission === 'granted') {
+        console.log('Permission granted, sending mobile browser notification...');
+        
+        const notification = new Notification(context.title, {
+          body: context.body,
+          icon: '/assets/images/logo.png',
+          tag: 'pomodify-session',
+          requireInteraction: true 
+        });
+
+        notification.onclick = () => {
+          console.log('Mobile notification clicked - focusing window');
+          window.focus();
+          notification.close();
+        };
+
+        console.log('Mobile browser notification sent successfully!');
+        return true;
+      }
+
+      if (permission === 'denied') {
+        console.log('Notification permission denied on mobile');
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Mobile browser notification failed:', error);
+      return false;
     }
   }
 
@@ -307,24 +359,21 @@ export class NotificationService {
   ): Promise<void> {
     const jwt = this.authService.getAccessToken();
     
-    console.log('🖥️ Desktop foreground notification - same as background behavior');
+    console.log('Desktop foreground notification - same as background behavior');
     
     if (settings.notifications && settings.sound.enabled) {
-      // Both push notification AND sound enabled
-      console.log('📱🔊 Both notifications and sound enabled - sending push notification + playing sound');
+      console.log('Both notifications and sound enabled - sending push notification + playing sound');
       await this.sendPushNotification(context, jwt);
       this.settingsService.playSound(settings.sound.type);
     } else if (settings.notifications && !settings.sound.enabled) {
-      // Push notification enabled but sound disabled
-      console.log('📱 Only notifications enabled - sending push notification (no sound)');
+      console.log('Only notifications enabled - sending push notification (no sound)');
       await this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
-      // Only sound enabled, no push notification
-      console.log('🔊 Only sound enabled - playing sound (no push notification)');
+      console.log('Only sound enabled - playing sound (no push notification)');
       this.settingsService.playSound(settings.sound.type);
     } else {
       // Both disabled - nothing happens
-      console.log('❌ Both notifications and sound disabled - doing nothing');
+      console.log('Both notifications and sound disabled - doing nothing');
     }
   }
 
@@ -336,28 +385,22 @@ export class NotificationService {
     settings: AppSettings, 
     jwt: string | null
   ): Promise<void> {
-    // BACKGROUND BEHAVIOR - Same for all devices
-    console.log('🔍 Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
+    console.log('Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
-      // Both push notification AND sound enabled → both happen at the same time
-      console.log('📱🔊 Both notifications and sound enabled - sending push notification + playing sound');
+      console.log('Both notifications and sound enabled - sending push notification + playing sound');
       await this.sendPushNotification(context, jwt);
       this.playBackgroundSound();
     } else if (settings.notifications && !settings.sound.enabled) {
-      // Push notification enabled but sound disabled → only push notification, no sound
-      console.log('📱 Only notifications enabled - sending push notification (no sound)');
+      console.log('Only notifications enabled - sending push notification (no sound)');
       await this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
-      // Only sound enabled, no push notification
-      console.log('🔊 Only sound enabled - playing sound (no push notification)');
+      console.log('Only sound enabled - playing sound (no push notification)');
       this.playBackgroundSound();
     } else {
-      // Both disabled - nothing happens
-      console.log('❌ Both notifications and sound disabled - doing nothing');
+      console.log('Both notifications and sound disabled - doing nothing');
     }
 
-    // Store for modal display when user returns (with timestamp)
     const contextWithTimestamp = {
       ...context,
       timestamp: Date.now()
@@ -387,7 +430,6 @@ export class NotificationService {
       data: modalData
     });
 
-    // No auto-close - let user decide when to dismiss
     dialogRef.afterClosed().subscribe(result => {
       console.log('📱 Notification modal closed by user:', result);
     });
@@ -398,19 +440,19 @@ export class NotificationService {
    */
   private async sendPushNotification(context: NotificationContext, jwt: string | null): Promise<void> {
     try {
-      console.log('🔔 Sending desktop push notification:', context.title);
+      console.log('Sending desktop push notification:', context.title);
       
       // Check notification permission first
       let permission = Notification.permission;
       
       if (permission === 'default') {
-        console.log('📱 Requesting notification permission...');
+        console.log('Requesting notification permission...');
         permission = await Notification.requestPermission();
       }
       
       if (permission === 'granted') {
         // Send browser notification directly (most reliable)
-        console.log('✅ Permission granted, sending desktop notification...');
+        console.log('Permission granted, sending desktop notification...');
         
         try {
           const notification = new Notification(context.title, {
@@ -421,7 +463,7 @@ export class NotificationService {
           
           // Add click handler to focus the app
           notification.onclick = () => {
-            console.log('👆 Notification clicked - focusing window');
+            console.log('Notification clicked - focusing window');
             window.focus();
             notification.close();
           };
@@ -431,39 +473,37 @@ export class NotificationService {
           console.log('🎉 Desktop notification sent successfully!');
           
         } catch (notificationError) {
-          console.error('❌ Notification creation failed:', notificationError);
+          console.error('Notification creation failed:', notificationError);
           
           // Ultra-simple fallback
           try {
             new Notification(context.title);
-            console.log('✅ Fallback notification sent');
+            console.log('Fallback notification sent');
           } catch (fallbackError) {
-            console.error('❌ Even fallback notification failed:', fallbackError);
+            console.error('Even fallback notification failed:', fallbackError);
           }
         }
         
         // Also try FCM registration in background (for future use)
-        if (jwt) {
-          this.fcmService.initializeFCM(jwt).catch(error => {
-            console.log('⚠️ FCM registration failed (not critical):', error);
-          });
-        }
+        // JWT is no longer needed, auth is handled by cookies
+        this.fcmService.initializeFCM().catch(error => {
+          console.log('FCM registration failed (not critical):', error);
+        });
         
       } else if (permission === 'denied') {
-        console.log('❌ Notification permission denied by user');
+        console.log('Notification permission denied by user');
       } else {
-        console.log('⚠️ Notification permission not available');
+        console.log('Notification permission not available');
       }
       
     } catch (error) {
-      console.error('❌ Failed to send push notification:', error);
+      console.error('Failed to send push notification:', error);
     }
   }
 
   private playBackgroundSound(): void {
-    // Play notification sound even when tab is not visible
     const settings = this.settingsService.getSettings();
-    console.log('🔊 Playing background sound:', settings.sound.type);
+    console.log('Playing background sound:', settings.sound.type);
     this.settingsService.playSound(settings.sound.type);
   }
 
@@ -485,7 +525,7 @@ export class NotificationService {
    * Clear pending notifications
    */
   clearPendingNotifications(): void {
-    console.log('🧹 Clearing pending notifications');
+    console.log('Clearing pending notifications');
     this.pendingNotifications = [];
   }
 
@@ -493,7 +533,7 @@ export class NotificationService {
    * Clear pending notifications on logout
    */
   onUserLogout(): void {
-    console.log('👋 User logged out - clearing all pending notifications');
+    console.log('User logged out - clearing all pending notifications');
     this.clearPendingNotifications();
   }
 
@@ -501,7 +541,7 @@ export class NotificationService {
    * Test desktop notification directly
    */
   async testDesktopNotification(): Promise<void> {
-    console.log('🧪 Testing desktop notification from service...');
+    console.log('Testing desktop notification from service...');
     
     const testContext: NotificationContext = {
       title: 'Pomodify Test Notification',
@@ -510,15 +550,13 @@ export class NotificationService {
       activityTitle: 'Test Activity'
     };
     
-    // Force background behavior to test desktop notification
     const settings = this.settingsService.getSettings();
     const jwt = this.authService.getAccessToken();
     
-    console.log('🔧 Test settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
+    console.log('Test settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
     
     if (!settings.notifications) {
-      console.log('⚠️ Notifications are disabled in settings. Enabling temporarily for test...');
-      // Force send notification for testing even if disabled
+      console.log('Notifications are disabled in settings. Enabling temporarily for test...');
       await this.sendPushNotification(testContext, jwt);
     } else {
       await this.sendPushNotification(testContext, jwt);
@@ -529,7 +567,7 @@ export class NotificationService {
    * Force send desktop notification (bypasses settings check)
    */
   async forceDesktopNotification(context: NotificationContext): Promise<void> {
-    console.log('🚨 Force sending desktop notification (bypassing settings)...');
+    console.log('Force sending desktop notification (bypassing settings)...');
     const jwt = this.authService.getAccessToken();
     await this.sendPushNotification(context, jwt);
   }

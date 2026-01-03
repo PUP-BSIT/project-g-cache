@@ -16,6 +16,8 @@ import com.pomodify.backend.domain.repository.RevokedTokenRepository;
 import com.pomodify.backend.infrastructure.mail.EmailService;
 import com.pomodify.backend.domain.model.VerificationToken;
 import com.pomodify.backend.domain.repository.VerificationTokenRepository;
+import com.pomodify.backend.domain.model.PasswordResetToken;
+import com.pomodify.backend.domain.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,6 +45,7 @@ public class AuthService {
 
     private final EmailService emailService;
     private final VerificationTokenRepository tokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
     // Register
     @Transactional
@@ -61,7 +64,10 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         // Token Rotation: Delete existing token if any
-        tokenRepository.findByUser(savedUser).ifPresent(tokenRepository::delete);
+        tokenRepository.findByUser(savedUser).ifPresent(token -> {
+            tokenRepository.delete(token);
+            tokenRepository.flush();
+        });
         // Generate new token (24h expiry handled in Entity constructor)
         VerificationToken newToken = new VerificationToken(savedUser);
         tokenRepository.save(newToken);
@@ -78,6 +84,7 @@ public class AuthService {
             .lastName(savedUser.getLastName())
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
+            .backupEmail(savedUser.getBackupEmail())
             .build();
 
     }
@@ -97,35 +104,156 @@ public class AuthService {
         return "Email verified successfully";
     }
 
-    // Password reset request
     @Transactional
-    public void requestPasswordReset(String email) {
+    public void resendVerificationEmail(String email, String baseUrl) {
         Email emailVO = Email.of(email);
         User user = userRepository.findByEmail(emailVO)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         if (user.isEmailVerified()) {
-            emailService.sendPasswordResetEmail(user.getEmail().getValue());
-        } else {
-            // Deadlock Fix: Send "Verify & Reset"
-            tokenRepository.findByUser(user).ifPresent(tokenRepository::delete);
-            VerificationToken newToken = new VerificationToken(user);
-            tokenRepository.save(newToken);
-            emailService.sendVerifyAndResetEmail(user.getEmail().getValue(), newToken.getToken());
+            throw new IllegalArgumentException("Email already verified");
+        }
+
+        // Token Rotation: Delete existing token if any
+        tokenRepository.findByUser(user).ifPresent(token -> {
+            tokenRepository.delete(token);
+            tokenRepository.flush(); // Force delete to happen before insert
+        });
+        
+        // Generate new token
+        VerificationToken newToken = new VerificationToken(user);
+        tokenRepository.save(newToken);
+
+        // Check if account is locked (grace period expired)
+        boolean isLocked = false;
+        if (user.getCreatedAt() != null) {
+             java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
+             if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
+                 isLocked = true;
+             }
+        }
+
+        // Send verification email
+        try {
+            // Pass isLocked as the boolean flag to trigger the "Reactivate" template if needed
+            emailService.sendVerificationEmail(user.getEmail().getValue(), newToken.getToken(), baseUrl, isLocked);
+        } catch (Exception e) {
+            log.error("Failed to send verification email to {}: {}", user.getEmail().getValue(), e.getMessage());
+            throw new RuntimeException("Failed to send verification email");
         }
     }
 
-    // Verify and reset
+    // Password reset request
     @Transactional
-    public String verifyAndReset(String token) {
-        VerificationToken verificationToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Token"));
-        if (verificationToken.isExpired()) throw new IllegalArgumentException("Token Expired");
-        User user = verificationToken.getUser();
-        user.setEmailVerified(true);
+    public void forgotPassword(String email, String baseUrl) {
+        Email emailVO = Email.of(email);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Delete existing token if any
+        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+
+        // Create new token
+        PasswordResetToken token = new PasswordResetToken(user);
+        passwordResetTokenRepository.save(token);
+
+        // Send email
+        try {
+            emailService.sendPasswordResetEmail(user.getEmail().getValue(), token.getToken(), baseUrl);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", email, e.getMessage(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    // Password reset request via backup email
+    @Transactional
+    public void forgotPasswordViaBackupEmail(String primaryEmail, String backupEmail, String baseUrl) {
+        Email emailVO = Email.of(primaryEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Verify the backup email matches
+        if (user.getBackupEmail() == null || !user.getBackupEmail().equalsIgnoreCase(backupEmail)) {
+            throw new IllegalArgumentException("Backup email does not match");
+        }
+
+        // Delete existing token if any
+        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+
+        // Create new token
+        PasswordResetToken token = new PasswordResetToken(user);
+        passwordResetTokenRepository.save(token);
+
+        // Send email to backup email
+        try {
+            emailService.sendPasswordResetEmail(user.getBackupEmail(), token.getToken(), baseUrl);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to backup email {}: {}", backupEmail, e.getMessage(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    // Check if user has backup email configured
+    @Transactional(readOnly = true)
+    public String checkBackupEmail(String email) {
+        Email emailVO = Email.of(email);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getBackupEmail() == null || user.getBackupEmail().isBlank()) {
+            return null;
+        }
+
+        // Return masked backup email (e.g., j***@gmail.com)
+        return maskEmail(user.getBackupEmail());
+    }
+
+    // Update backup email for authenticated user
+    @Transactional
+    public void updateBackupEmail(String userEmail, String backupEmail) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Validate backup email is different from primary
+        if (user.getEmail().getValue().equalsIgnoreCase(backupEmail)) {
+            throw new IllegalArgumentException("Backup email cannot be the same as primary email");
+        }
+
+        user.setBackupEmail(backupEmail);
         userRepository.save(user);
-        tokenRepository.delete(verificationToken);
-        // In a real app, generate a short-lived "Reset Session Token" here
-        return "REDIRECT_TO_FRONTEND_RESET_PASSWORD";
+    }
+
+    // Helper method to mask email
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return null;
+        }
+        String[] parts = email.split("@");
+        String localPart = parts[0];
+        String domain = parts[1];
+        
+        if (localPart.length() <= 2) {
+            return localPart.charAt(0) + "***@" + domain;
+        }
+        return localPart.charAt(0) + "***" + localPart.charAt(localPart.length() - 1) + "@" + domain;
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired password reset token"));
+
+        if (resetToken.isExpired()) {
+            throw new IllegalArgumentException("Token expired");
+        }
+
+        User user = resetToken.getUser();
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(resetToken);
     }
 
     // Login
@@ -138,6 +266,16 @@ public class AuthService {
 
         if (user == null || !user.isActive() || !passwordEncoder.matches(command.password(), user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid credentials or inactive account");
+        }
+
+        // Check verification status with 7-day grace period
+        if (!user.isEmailVerified()) {
+            if (user.getCreatedAt() != null) {
+                java.time.LocalDateTime gracePeriodEnd = user.getCreatedAt().plusDays(7);
+                if (java.time.LocalDateTime.now().isAfter(gracePeriodEnd)) {
+                    throw new org.springframework.security.authentication.LockedException("Account locked. Verification grace period (7 days) expired. Please verify your email.");
+                }
+            }
         }
 
         String accessToken = jwtService.generateAccessToken(user);
@@ -212,6 +350,50 @@ public class AuthService {
             .lastName(user.getLastName())
             .email(user.getEmail().getValue())
             .isEmailVerified(user.isEmailVerified())
+            .backupEmail(user.getBackupEmail())
+            .build();
+    }
+
+    // Change password for authenticated user
+    @Transactional
+    public void changePassword(String userEmail, String currentPassword, String newPassword) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        // Validate new password is different
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("New password must be different from current password");
+        }
+
+        // Update password
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password changed successfully for user: {}", userEmail);
+    }
+
+    // Update user profile (name)
+    @Transactional
+    public UserResult updateProfile(String userEmail, String firstName, String lastName) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.updateName(firstName, lastName);
+        User savedUser = userRepository.save(user);
+        log.info("Profile updated successfully for user: {}", userEmail);
+
+        return UserResult.builder()
+            .firstName(savedUser.getFirstName())
+            .lastName(savedUser.getLastName())
+            .email(savedUser.getEmail().getValue())
+            .isEmailVerified(savedUser.isEmailVerified())
+            .backupEmail(savedUser.getBackupEmail())
             .build();
     }
 }

@@ -6,6 +6,9 @@ import { Auth } from '../../core/services/auth';
 import { API, OAUTH2_GOOGLE_URL } from '../../core/config/api.config';
 import { ensurePublicPageLightTheme } from '../../shared/theme';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ForgotPasswordModal } from '../../shared/components/forgot-password-modal/forgot-password-modal';
+import { UnverifiedAccountModal } from '../../shared/components/unverified-account-modal/unverified-account-modal';
 
 type LoginResponse = {
   success: boolean;
@@ -29,6 +32,7 @@ export class Login implements OnInit {
   private readonly auth = inject(Auth);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(SuccessNotificationService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', { validators: [Validators.required, Validators.email] }],
@@ -67,13 +71,23 @@ export class Login implements OnInit {
       .then((result: LoginResponse) => {
         this.notificationService.showSuccess('Login Successful', 'You have logged in successfully.');
         if (result.needsVerification) {
-          this.auth.showVerifyEmailModal();
+          this.auth.showVerifyEmailModal('login');
         }
       })
       .catch((error: Error & { message?: string }) => {
         console.error('Login error:', error);
         this.credentialsRejected = true;
-        this.notificationService.showError('Login Failed', error?.message || 'Invalid email or password');
+        const msg = error?.message || 'Invalid email or password';
+        
+        if (msg.includes('Account locked')) {
+            this.dialog.open(UnverifiedAccountModal, {
+                data: { email },
+                width: '400px',
+                panelClass: 'unverified-account-modal'
+            });
+        } else {
+            this.notificationService.showError('Login Failed', msg);
+        }
       })
       .finally(() => {
         this.isLoading = false;
@@ -86,7 +100,11 @@ export class Login implements OnInit {
 
   onForgotPassword(event: Event): void {
     event.preventDefault();
-    // TODO(User, Name): Implement forgot password navigation
+    this.dialog.open(ForgotPasswordModal, {
+      width: '400px',
+      disableClose: true,
+      panelClass: 'forgot-password-dialog'
+    });
   }
 
   onSignUp(event: Event): void {
@@ -98,16 +116,16 @@ export class Login implements OnInit {
     event.preventDefault();
     switch (page) {
       case 'home':
-        this.router.navigate(['/']);
+        this.router.navigate(['/'], { state: { skipRedirect: true } });
         break;
     }
   }
 
   onBack(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 
   onClose(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
   }
 }

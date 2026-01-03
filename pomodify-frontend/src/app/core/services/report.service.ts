@@ -10,19 +10,20 @@ export enum ReportRange {
   YEAR = 'year',
 }
 
-type SummaryItemMeta = {
-  range: string;
+type Period = {
   startDate: string;
   endDate: string;
+  range: string;
 };
 
-type SummaryItemMetrics = {
-  totalFocusedHours: number;
+type Overview = {
+  totalFocusHours: number;
   totalBreakHours: number;
   completionRate: number;
-  avgSessionMinutes: number;
   sessionsCount: number;
-  expiredSessionsCount?: number;
+  averageSessionLengthMinutes: number;
+  dailyAverageFocusHours?: number; 
+  streakDays?: number; 
 };
 
 type SummaryItemChartData = {
@@ -69,13 +70,14 @@ type Insight = {
 };
 
 export type SummaryItem = {
-  meta: SummaryItemMeta;
-  metrics: SummaryItemMetrics;
+  period: Period;
+  overview: Overview;
   chartData: SummaryItemChartData;
-  trends?: Trends;
-  insights?: Insight[];
+  trends: Trends;
+  insights: Insight[];
   recentSessions: RecentSession[];
   topActivities: TopActivity[];
+  lastMonthAbandonedSessions: number;
 };
 
 type SummaryResponse = {

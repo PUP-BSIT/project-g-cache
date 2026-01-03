@@ -194,6 +194,8 @@ jobs:
               -e SMTP_USERNAME=${{ secrets.SMTP_USERNAME }} \
               -e SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }} \
               -e GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }} \
+              -e ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }} \
+              -e ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} \
               $FIREBASE_ENV \
               $FIREBASE_MOUNT \
               ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to start backend container"; exit 1; }

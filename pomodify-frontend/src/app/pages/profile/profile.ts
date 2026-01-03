@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { BadgeService, Badge } from '../../core/services/badge.service';
+import { Auth } from '../../core/services/auth';
 
 export type ProfileData = {
   name: string;
@@ -24,6 +25,7 @@ export class Profile implements OnInit {
   private dialogRef = inject(MatDialogRef<Profile>);
   private fb = inject(FormBuilder);
   private badgeService = inject(BadgeService);
+  private auth = inject(Auth);
 
   @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
@@ -40,11 +42,17 @@ export class Profile implements OnInit {
   protected verificationTimer = signal(60);
   protected verificationCode = signal('');
   protected isVerificationValid = signal(false);
+  protected isLoadingProfile = signal(true);
+  protected isSavingBackupEmail = signal(false);
+  protected isSavingName = signal(false);
+  protected isChangingPassword = signal(false);
+  protected passwordChangeError = signal<string | null>(null);
+  protected passwordChangeSuccess = signal(false);
   
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
-  protected userName = signal('John Doe');
-  protected userEmail = signal('johndoe@gmail.com');
+  protected userName = signal('');
+  protected userEmail = signal('');
   protected backupEmail = signal<string | null>(null);
   protected badges = signal<Badge[]>([]);
   protected badgesLoading = signal(false);
@@ -113,6 +121,7 @@ export class Profile implements OnInit {
    * Fetch user profile from backend and update UI (cookie-based auth)
    */
   private fetchUserProfile(): void {
+    this.isLoadingProfile.set(true);
     this.http.get(API.USER.PROFILE, { withCredentials: true }).subscribe({
       next: (user: any) => {
         if (user.firstName && user.lastName) {
@@ -125,11 +134,19 @@ export class Profile implements OnInit {
         if (user.email) {
           this.userEmail.set(user.email);
         }
+        if (user.backupEmail) {
+          this.backupEmail.set(user.backupEmail);
+          if (this.backupEmailForm) {
+            this.backupEmailForm.patchValue({ backupEmail: user.backupEmail });
+          }
+        }
+        this.isLoadingProfile.set(false);
       },
       error: () => {
         // Optionally clear UI or show error
         this.userName.set('');
         this.userEmail.set('');
+        this.isLoadingProfile.set(false);
       }
     });
   }
@@ -141,34 +158,14 @@ export class Profile implements OnInit {
     this.badgesLoading.set(true);
     this.badgeService.getUserBadges().subscribe({
       next: (badges) => {
-        // Use API badges if available, otherwise use mock data for testing
-        if (badges && badges.length > 0) {
-          this.badges.set(badges);
-        } else {
-          this.badges.set(this.getMockBadges());
-        }
+        this.badges.set(badges ?? []);
         this.badgesLoading.set(false);
       },
       error: () => {
-        // Fallback to mock badges for testing when API fails
-        this.badges.set(this.getMockBadges());
+        this.badges.set([]);
         this.badgesLoading.set(false);
       }
     });
-  }
-
-  /**
-   * Mock badges for testing UI (remove in production)
-   */
-  private getMockBadges(): Badge[] {
-    return [
-      { id: 1, name: 'The Bookmark', milestoneDays: 3, dateAwarded: '2025-12-20', imageUrl: 'assets/images/badges/the-bookmark.png' },
-      { id: 2, name: 'Deep Work', milestoneDays: 7, dateAwarded: '2025-12-24', imageUrl: 'assets/images/badges/deep-work.png' },
-      { id: 3, name: 'The Protégé', milestoneDays: 14, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-protégé.png' },
-      { id: 4, name: 'The Curator', milestoneDays: 30, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-curator.png' },
-      { id: 5, name: 'The Scholar', milestoneDays: 100, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-scholar.png' },
-      { id: 6, name: 'The Alchemist', milestoneDays: 365, dateAwarded: '2025-12-29', imageUrl: 'assets/images/badges/the-alchemist.png' },
-    ];
   }
 
   // Profile image handling
@@ -193,17 +190,29 @@ export class Profile implements OnInit {
   // Name update
   protected updateName(): void {
     if (this.profileForm.valid) {
-      const newName = this.profileForm.get('name')?.value;
-      this.userName.set(newName);
-      // TODO(Delumen, Ivan): Call API to update name
+      const fullName = this.profileForm.get('name')?.value;
+      const nameParts = fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+      
+      this.isSavingName.set(true);
+      
+      this.auth.updateProfile(firstName, lastName).then(() => {
+        this.userName.set(fullName);
+        this.isSavingName.set(false);
+      }).catch((error) => {
+        console.error('Failed to update name:', error);
+        alert('Failed to update name. Please try again.');
+        this.isSavingName.set(false);
+      });
     }
   }
   
   // Password change flow
   protected requestPasswordChange(): void {
     this.showPasswordVerification.set(true);
-    this.startVerificationTimer();
-    // TODO(Delumen, Ivan): Call API to send verification code to email
+    this.passwordChangeError.set(null);
+    this.passwordChangeSuccess.set(false);
   }
   
   protected startVerificationTimer(): void {
@@ -237,24 +246,39 @@ export class Profile implements OnInit {
   }
   
   protected submitPasswordChange(): void {
-    if (this.passwordForm.valid && this.isVerificationValid()) {
+    if (this.passwordForm.valid) {
+      const currentPassword = this.passwordForm.get('currentPassword')?.value;
       const newPassword = this.passwordForm.get('newPassword')?.value;
       const confirmPassword = this.passwordForm.get('confirmPassword')?.value;
       
       if (newPassword !== confirmPassword) {
-        alert('Passwords do not match');
+        this.passwordChangeError.set('Passwords do not match');
         return;
       }
       
-      // TODO(Delumen, Ivan): Call API to update password
-      alert('Password updated successfully!');
-      this.cancelPasswordChange();
+      this.isChangingPassword.set(true);
+      this.passwordChangeError.set(null);
+      
+      this.auth.changePassword(currentPassword, newPassword).then(() => {
+        this.passwordChangeSuccess.set(true);
+        this.isChangingPassword.set(false);
+        // Reset form after short delay
+        setTimeout(() => {
+          this.cancelPasswordChange();
+        }, 2000);
+      }).catch((error) => {
+        console.error('Failed to change password:', error);
+        this.passwordChangeError.set('Current password is incorrect or failed to update.');
+        this.isChangingPassword.set(false);
+      });
     }
   }
   
   protected cancelPasswordChange(): void {
     this.showPasswordVerification.set(false);
     this.isVerificationValid.set(false);
+    this.passwordChangeError.set(null);
+    this.passwordChangeSuccess.set(false);
     this.passwordForm.reset();
     this.verificationForm.reset();
     
@@ -271,17 +295,33 @@ export class Profile implements OnInit {
   protected saveBackupEmail(): void {
     if (this.backupEmailForm.valid) {
       const email = this.backupEmailForm.get('backupEmail')?.value;
-      this.backupEmail.set(email);
-      this.showBackupEmailForm.set(false);
-      // TODO(Delumen, Ivan): Call API to save backup email
+      this.isSavingBackupEmail.set(true);
+      
+      this.auth.updateBackupEmail(email).then(() => {
+        this.backupEmail.set(email);
+        this.showBackupEmailForm.set(false);
+        this.isSavingBackupEmail.set(false);
+      }).catch((error) => {
+        console.error('Failed to save backup email:', error);
+        alert('Failed to save backup email. Please try again.');
+        this.isSavingBackupEmail.set(false);
+      });
     }
   }
   
   protected updateBackupEmail(): void {
     if (this.backupEmailForm.valid) {
       const email = this.backupEmailForm.get('backupEmail')?.value;
-      this.backupEmail.set(email);
-      // TODO(Delumen, Ivan): Call API to update backup email
+      this.isSavingBackupEmail.set(true);
+      
+      this.auth.updateBackupEmail(email).then(() => {
+        this.backupEmail.set(email);
+        this.isSavingBackupEmail.set(false);
+      }).catch((error) => {
+        console.error('Failed to update backup email:', error);
+        alert('Failed to update backup email. Please try again.');
+        this.isSavingBackupEmail.set(false);
+      });
     }
   }
   
