@@ -43,4 +43,9 @@ public interface UserRepository {
      * Get all active (non-deleted) users.
      */
     List<User> findAllActive();
+
+    /**
+     * Find a user by their backup email.
+     */
+    Optional<User> findByBackupEmail(String backupEmail);
 }

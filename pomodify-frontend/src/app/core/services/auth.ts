@@ -270,6 +270,35 @@ export class Auth {
   }
 
   /**
+   * Requests a password reset email via backup email.
+   * @param email - User's primary email address
+   * @param backupEmail - User's backup email address
+   */
+  forgotPasswordViaBackupEmail(email: string, backupEmail: string): Promise<void> {
+    const url = API.AUTH.FORGOT_PASSWORD_BACKUP;
+    return lastValueFrom(this.http.post<void>(url, { email, backupEmail }));
+  }
+
+  /**
+   * Checks if user has a backup email configured.
+   * @param email - User's email address
+   * @returns Promise with hasBackupEmail flag and masked backup email
+   */
+  checkBackupEmail(email: string): Promise<{ hasBackupEmail: boolean; maskedBackupEmail: string | null }> {
+    const url = `${API.AUTH.CHECK_BACKUP_EMAIL}?email=${encodeURIComponent(email)}`;
+    return lastValueFrom(this.http.get<{ hasBackupEmail: boolean; maskedBackupEmail: string | null }>(url));
+  }
+
+  /**
+   * Updates the backup email for the authenticated user.
+   * @param backupEmail - New backup email address
+   */
+  updateBackupEmail(backupEmail: string): Promise<void> {
+    const url = API.USER.UPDATE_BACKUP_EMAIL;
+    return lastValueFrom(this.http.post<void>(url, { backupEmail }, { withCredentials: true }));
+  }
+
+  /**
    * Resets the user's password using the token from the email.
    * @param token - Reset token
    * @param newPassword - New password

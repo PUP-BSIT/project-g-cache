@@ -52,4 +52,9 @@ public class UserRepositoryJpaAdapter extends BaseRepositoryImpl implements User
     public List<User> findAllActive() {
         return springUserJpaRepository.findAllActive();
     }
+
+    @Override
+    public Optional<User> findByBackupEmail(String backupEmail) {
+        return springUserJpaRepository.findByBackupEmail(checkNotNull(backupEmail, "Backup Email"));
+    }
 }
