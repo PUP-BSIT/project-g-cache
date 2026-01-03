@@ -554,7 +554,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
   border: none;
   border-radius: 10px;
-  color: white;
+  color: white !important;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -849,18 +849,18 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   min-width: 0;
 
   &.edit-btn {
-    background: rgba(0, 0, 0, 0.4);
-    color: white;
+    background: #4A90A4;
+    color: white !important;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.5);
+      background: #3A7A8E;
       transform: translateY(-1px);
     }
   }
 
   &.delete-btn {
     background: #C0392B;
-    color: white;
+    color: white !important;
 
     &:hover {
       background: #A93226;
@@ -876,10 +876,10 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: #4CAF50;
+  border: none;
   border-radius: 10px;
-  color: white;
+  color: white !important;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -887,8 +887,7 @@ $card-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(0, 0, 0, 0.4);
+    background: #45A049;
     transform: translateY(-1px);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
   }

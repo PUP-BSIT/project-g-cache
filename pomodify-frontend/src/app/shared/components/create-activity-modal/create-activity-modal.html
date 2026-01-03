@@ -25,12 +25,22 @@
     <!-- Category/Tag -->
     <div class="form-group">
       <label for="category">Category/Tag (Optional)</label>
-      <input
+      <select
         id="category"
-        type="text"
         formControlName="category"
         class="form-input"
-        placeholder="e.g., Work, Study, Personal"
+      >
+        <option value="">Select or enter new category</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+      <input
+        type="text"
+        formControlName="customCategory"
+        class="form-input custom-category-input"
+        placeholder="Or type a new category"
+        style="margin-top: 8px;"
       />
     </div>
 
@@ -53,21 +63,6 @@
       </div>
     </div>
 
-    <!-- Estimated Focus Hours per Week -->
-    <div class="form-group">
-      <label for="estimatedHours">Estimated Focus Hours / Week (Optional)</label>
-      <div class="hours-input-wrapper">
-        <input
-          id="estimatedHours"
-          type="number"
-          formControlName="estimatedHoursPerWeek"
-          class="form-input hours-input"
-          min="0"
-          max="168"
-        />
-        <span class="hours-label">hrs</span>
-      </div>
-    </div>
   </form>
 
   <div class="modal-actions">

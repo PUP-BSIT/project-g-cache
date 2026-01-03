@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,14 +9,13 @@ export type ActivityData = {
   name: string;
   category?: string;
   colorTag: string;
-  estimatedHoursPerWeek?: number;
 };
 
 type ActivityFormValue = {
   name: string;
   category: string;
+  customCategory: string;
   colorTag: string;
-  estimatedHoursPerWeek: number;
 };
 
 @Component({
@@ -35,9 +34,11 @@ type ActivityFormValue = {
 export class CreateActivityModal implements OnInit {
   private dialogRef = inject(MatDialogRef<CreateActivityModal>);
   private fb = inject(FormBuilder);
+  private data = inject(MAT_DIALOG_DATA, { optional: true }) as { categories?: string[] } | null;
 
   activityForm!: FormGroup;
   selectedColor: string = 'red';
+  categories: string[] = [];
   
   colors = [
     { name: 'red', hex: '#EF4444' },
@@ -49,6 +50,9 @@ export class CreateActivityModal implements OnInit {
   ];
 
   ngOnInit(): void {
+    // Get categories from data if provided
+    this.categories = this.data?.categories || [];
+    
     this.activityForm = this.fb.group({
       name: [
         '',
@@ -62,16 +66,16 @@ export class CreateActivityModal implements OnInit {
           validators: [],
         },
       ],
+      customCategory: [
+        '',
+        {
+          validators: [],
+        },
+      ],
       colorTag: [
         this.selectedColor,
         {
           validators: [Validators.required],
-        },
-      ],
-      estimatedHoursPerWeek: [
-        1,
-        {
-          validators: [Validators.min(0), Validators.max(168)],
         },
       ],
     });
@@ -88,7 +92,7 @@ export class CreateActivityModal implements OnInit {
 
   onCreateActivity(): void {
     if (this.activityForm.valid) {
-      const { name, category, estimatedHoursPerWeek } = this.activityForm.getRawValue() as ActivityFormValue;
+      const { name, category, customCategory } = this.activityForm.getRawValue() as ActivityFormValue;
       
       if (!name || name.trim() === '') {
         console.error('[CreateActivityModal] Activity name is required');
@@ -96,11 +100,13 @@ export class CreateActivityModal implements OnInit {
         return;
       }
       
+      // Use custom category if provided, otherwise use dropdown selection
+      const finalCategory = customCategory?.trim() || category || undefined;
+      
       const activityData: ActivityData = {
         name: name.trim(),
-        category: category || undefined,
+        category: finalCategory,
         colorTag: this.selectedColor,
-        estimatedHoursPerWeek: estimatedHoursPerWeek || 0,
       };
       console.log('[CreateActivityModal] Closing with data:', activityData);
       this.dialogRef.close(activityData);

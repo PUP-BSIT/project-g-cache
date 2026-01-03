@@ -9,8 +9,8 @@ import { ActivityData } from '../create-activity-modal/create-activity-modal';
 type ActivityFormValue = {
   name: string;
   category: string;
+  customCategory: string;
   colorTag: string;
-  estimatedHoursPerWeek: number;
 };
 
 @Component({
@@ -29,10 +29,11 @@ type ActivityFormValue = {
 export class EditActivityModal implements OnInit {
   private dialogRef = inject(MatDialogRef<EditActivityModal>);
   private fb = inject(FormBuilder);
-  private data = inject(MAT_DIALOG_DATA) as ActivityData | undefined;
+  private data = inject(MAT_DIALOG_DATA) as (ActivityData & { categories?: string[] }) | undefined;
 
   activityForm!: FormGroup;
   selectedColor: string = 'red';
+  categories: string[] = [];
 
   colors = [
     { name: 'red', hex: '#EF4444' },
@@ -45,6 +46,8 @@ export class EditActivityModal implements OnInit {
 
   ngOnInit(): void {
     this.selectedColor = this.data?.colorTag ?? this.selectedColor;
+    // Get categories from data if provided
+    this.categories = this.data?.categories || [];
 
     this.activityForm = this.fb.group({
       name: [
@@ -59,16 +62,16 @@ export class EditActivityModal implements OnInit {
           validators: [],
         },
       ],
+      customCategory: [
+        '',
+        {
+          validators: [],
+        },
+      ],
       colorTag: [
         this.selectedColor,
         {
           validators: [Validators.required],
-        },
-      ],
-      estimatedHoursPerWeek: [
-        this.data?.estimatedHoursPerWeek ?? 1,
-        {
-          validators: [Validators.min(0), Validators.max(168)],
         },
       ],
     });
@@ -85,12 +88,15 @@ export class EditActivityModal implements OnInit {
 
   onSaveChanges(): void {
     if (this.activityForm.valid) {
-      const { name, category, estimatedHoursPerWeek } = this.activityForm.getRawValue() as ActivityFormValue;
+      const { name, category, customCategory } = this.activityForm.getRawValue() as ActivityFormValue;
+      
+      // Use custom category if provided, otherwise use dropdown selection
+      const finalCategory = customCategory?.trim() || category || undefined;
+      
       const updated: ActivityData = {
         name,
-        category: category || undefined,
+        category: finalCategory,
         colorTag: this.selectedColor,
-        estimatedHoursPerWeek: estimatedHoursPerWeek || 0,
       };
       this.dialogRef.close(updated);
     }

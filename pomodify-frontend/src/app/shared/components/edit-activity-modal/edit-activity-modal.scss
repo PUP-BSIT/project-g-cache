@@ -93,40 +93,6 @@
   }
 }
 
-.hours-input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.hours-input {
-  flex: 1;
-  max-width: 100px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 14px;
-  background: var(--card);
-  color: var(--text);
-}
-
-.hours-input::-webkit-outer-spin-button,
-.hours-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.hours-input[type='number'] {
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-.hours-label {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 500;
-}
-
 .color-picker {
   display: flex;
   gap: 12px;
@@ -195,7 +161,7 @@
 
 .btn-primary {
   background-color: #4b9fa8;
-  color: white;
+  color: white !important;
 
   &:hover:not(:disabled) {
     background-color: #3d8490;
