@@ -31,4 +31,9 @@ public interface SpringUserJpaRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.isActive = true")
     List<User> findAllActive();
+
+    /**
+     * Find user by backup email.
+     */
+    Optional<User> findByBackupEmail(String backupEmail);
 }

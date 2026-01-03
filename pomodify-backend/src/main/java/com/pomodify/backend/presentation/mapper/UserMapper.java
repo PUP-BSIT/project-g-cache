@@ -13,7 +13,8 @@ public class UserMapper {
                 result.firstName(),
                 result.lastName(),
                 result.email(),
-                result.isEmailVerified()
+                result.isEmailVerified(),
+                result.backupEmail()
         );
     }
 }

@@ -10,11 +10,14 @@ import com.pomodify.backend.presentation.dto.request.auth.LoginRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RegisterRequest;
 import com.pomodify.backend.presentation.dto.request.auth.RefreshTokensRequest;
 import com.pomodify.backend.presentation.dto.request.auth.ForgotPasswordRequest;
+import com.pomodify.backend.presentation.dto.request.auth.ForgotPasswordBackupEmailRequest;
 import com.pomodify.backend.presentation.dto.request.auth.ResetPasswordRequest;
 import com.pomodify.backend.presentation.dto.request.auth.ResendVerificationRequest;
+import com.pomodify.backend.presentation.dto.request.user.UpdateBackupEmailRequest;
 import com.pomodify.backend.presentation.dto.response.AuthResponse;
 import com.pomodify.backend.presentation.dto.response.LogoutResponse;
 import com.pomodify.backend.presentation.dto.response.UserResponse;
+import com.pomodify.backend.presentation.dto.response.CheckBackupEmailResponse;
 import com.pomodify.backend.presentation.mapper.AuthMapper;
 import com.pomodify.backend.presentation.mapper.UserMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -184,6 +187,54 @@ public class AuthController {
         log.info("Forgot password request for: {}", request.email());
         String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
         authService.forgotPassword(request.email(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password/backup")
+    @Operation(summary = "Request password reset via backup email")
+    public ResponseEntity<Void> forgotPasswordViaBackupEmail(@RequestBody @Valid ForgotPasswordBackupEmailRequest request, @RequestHeader(value = "Origin", required = false) String origin, @RequestHeader(value = "Referer", required = false) String referer) {
+        log.info("Forgot password via backup email request for: {}", request.email());
+        String baseUrl = (origin != null) ? origin : (referer != null ? referer.split("/", 4)[0] + "//" + referer.split("/", 4)[2] : null);
+        authService.forgotPasswordViaBackupEmail(request.email(), request.backupEmail(), baseUrl);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/check-backup-email")
+    @Operation(summary = "Check if user has backup email configured")
+    public ResponseEntity<CheckBackupEmailResponse> checkBackupEmail(@RequestParam String email) {
+        log.info("Check backup email request for: {}", email);
+        String maskedBackupEmail = authService.checkBackupEmail(email);
+        return ResponseEntity.ok(new CheckBackupEmailResponse(maskedBackupEmail != null, maskedBackupEmail));
+    }
+
+    @PostMapping("/users/me/backup-email")
+    @Operation(summary = "Update backup email for authenticated user")
+    public ResponseEntity<Void> updateBackupEmail(@RequestBody @Valid UpdateBackupEmailRequest request, HttpServletRequest httpRequest) {
+        String token = null;
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+        if ((token == null || token.isEmpty()) && httpRequest.getCookies() != null) {
+            for (Cookie cookie : httpRequest.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Update backup email request for user: {}", email);
+        authService.updateBackupEmail(email, request.backupEmail());
         return ResponseEntity.ok().build();
     }
 

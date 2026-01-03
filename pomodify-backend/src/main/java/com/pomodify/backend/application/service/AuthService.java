@@ -84,6 +84,7 @@ public class AuthService {
             .lastName(savedUser.getLastName())
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
+            .backupEmail(savedUser.getBackupEmail())
             .build();
 
     }
@@ -163,6 +164,80 @@ public class AuthService {
             log.error("Failed to send password reset email to {}: {}", email, e.getMessage(), e);
             throw new RuntimeException("Failed to send password reset email", e);
         }
+    }
+
+    // Password reset request via backup email
+    @Transactional
+    public void forgotPasswordViaBackupEmail(String primaryEmail, String backupEmail, String baseUrl) {
+        Email emailVO = Email.of(primaryEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Verify the backup email matches
+        if (user.getBackupEmail() == null || !user.getBackupEmail().equalsIgnoreCase(backupEmail)) {
+            throw new IllegalArgumentException("Backup email does not match");
+        }
+
+        // Delete existing token if any
+        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+
+        // Create new token
+        PasswordResetToken token = new PasswordResetToken(user);
+        passwordResetTokenRepository.save(token);
+
+        // Send email to backup email
+        try {
+            emailService.sendPasswordResetEmail(user.getBackupEmail(), token.getToken(), baseUrl);
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to backup email {}: {}", backupEmail, e.getMessage(), e);
+            throw new RuntimeException("Failed to send password reset email", e);
+        }
+    }
+
+    // Check if user has backup email configured
+    @Transactional(readOnly = true)
+    public String checkBackupEmail(String email) {
+        Email emailVO = Email.of(email);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getBackupEmail() == null || user.getBackupEmail().isBlank()) {
+            return null;
+        }
+
+        // Return masked backup email (e.g., j***@gmail.com)
+        return maskEmail(user.getBackupEmail());
+    }
+
+    // Update backup email for authenticated user
+    @Transactional
+    public void updateBackupEmail(String userEmail, String backupEmail) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Validate backup email is different from primary
+        if (user.getEmail().getValue().equalsIgnoreCase(backupEmail)) {
+            throw new IllegalArgumentException("Backup email cannot be the same as primary email");
+        }
+
+        user.setBackupEmail(backupEmail);
+        userRepository.save(user);
+    }
+
+    // Helper method to mask email
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return null;
+        }
+        String[] parts = email.split("@");
+        String localPart = parts[0];
+        String domain = parts[1];
+        
+        if (localPart.length() <= 2) {
+            return localPart.charAt(0) + "***@" + domain;
+        }
+        return localPart.charAt(0) + "***" + localPart.charAt(localPart.length() - 1) + "@" + domain;
     }
 
     @Transactional
@@ -275,6 +350,7 @@ public class AuthService {
             .lastName(user.getLastName())
             .email(user.getEmail().getValue())
             .isEmailVerified(user.isEmailVerified())
+            .backupEmail(user.getBackupEmail())
             .build();
     }
 }

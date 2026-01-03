@@ -122,9 +122,9 @@
             type="button"
             class="btn-save-inline"
             (click)="updateBackupEmail()"
-            [disabled]="backupEmailForm.invalid || backupEmailForm.pristine"
+            [disabled]="backupEmailForm.invalid || backupEmailForm.pristine || isSavingBackupEmail()"
           >
-            Update
+            {{ isSavingBackupEmail() ? 'Saving...' : 'Update' }}
           </button>
         </form>
       }
@@ -150,6 +150,7 @@
               type="button"
               class="btn-secondary-small"
               (click)="toggleBackupEmailForm()"
+              [disabled]="isSavingBackupEmail()"
             >
               Cancel
             </button>
@@ -157,9 +158,9 @@
               type="button"
               class="btn-primary-small"
               (click)="saveBackupEmail()"
-              [disabled]="backupEmailForm.invalid"
+              [disabled]="backupEmailForm.invalid || isSavingBackupEmail()"
             >
-              Save
+              {{ isSavingBackupEmail() ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
