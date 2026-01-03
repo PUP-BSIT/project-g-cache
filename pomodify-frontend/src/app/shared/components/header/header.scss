@@ -73,7 +73,11 @@ header.site-header .login-link {
   text-decoration: none;
   transition: color 140ms ease, background 140ms ease, transform 120ms ease;
 }
-.login-link:hover { color: #f1ffff; background: rgba(255,255,255,0.03); transform: translateY(-1px); }
+.login-link:hover { 
+  color: #24505d; 
+  background: rgba(255,255,255,0.95); 
+  transform: translateY(-1px);
+}
 
 .spacer { flex: 1 1 auto; }
 

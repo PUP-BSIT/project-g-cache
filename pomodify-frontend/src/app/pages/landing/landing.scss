@@ -8,6 +8,7 @@
   background: linear-gradient(135deg, #fafbfc 0%, #f5f8f9 50%, #fafbfc 100%);
   position: relative;
   overflow: hidden;
+  scroll-margin-top: 160px;
 }
 
 .feature-grid::before {
@@ -105,7 +106,7 @@
   padding: 30px 25px;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  scroll-margin-top: 80px;
+  scroll-margin-top: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
