@@ -56,7 +56,7 @@ public class DashboardServiceTest {
         when(userRepository.findUser(userId)).thenReturn(Optional.of(user));
         when(activityRepository.countActivities(userId, false, null)).thenReturn(3L);
 
-        Activity act = user.createActivity("Test", null, null);
+        Activity act = user.createActivity("Test", null, null, null);
 
         // Completed yesterday and today for a 2-day streak
         PomodoroSession sYesterday = PomodoroSession.builder()
