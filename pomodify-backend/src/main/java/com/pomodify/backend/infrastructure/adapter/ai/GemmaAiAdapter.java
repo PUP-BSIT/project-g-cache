@@ -4,6 +4,7 @@ import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import com.pomodify.backend.application.port.out.AiGenerationPort;
 import com.pomodify.backend.application.result.AiSuggestionResult;
+import com.pomodify.backend.application.result.DualBlueprintResult;
 import com.pomodify.backend.domain.model.ai.AiActivityBlueprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,6 +213,176 @@ public class GemmaAiAdapter implements AiGenerationPort {
             modelResetTimes.get(model).set(now);
         }
         logger.info("[Rotation] All model counters reset");
+    }
+
+    @Override
+    public DualBlueprintResult generateDualBlueprints(String topic, List<String> previousSuggestions) {
+        logger.info("[GemmaAiAdapter] generateDualBlueprints for topic: {}", topic);
+        String prompt = buildDualBlueprintPrompt(topic, previousSuggestions);
+        
+        for (String model : MODELS) {
+            if (canMakeRequest(model)) {
+                try {
+                    logger.info("[GemmaAiAdapter] Trying model {} for dual blueprints", model);
+                    return callGeminiApiForDualBlueprints(model, prompt);
+                } catch (Exception e) {
+                    logger.warn("[GemmaAiAdapter] Model {} failed for dual blueprints: {}", model, e.getMessage());
+                }
+            }
+        }
+        
+        // All models exhausted - return fallback
+        logger.warn("[GemmaAiAdapter] All models exhausted, returning fallback dual blueprints");
+        return createFallbackDualBlueprints(topic);
+    }
+
+    private String buildDualBlueprintPrompt(String topic, List<String> previousSuggestions) {
+        StringBuilder avoidClause = new StringBuilder();
+        if (previousSuggestions != null && !previousSuggestions.isEmpty()) {
+            avoidClause.append("\n\nIMPORTANT: Generate DIFFERENT suggestions. Avoid these previous titles:\n");
+            for (String prev : previousSuggestions) {
+                avoidClause.append("- ").append(prev).append("\n");
+            }
+        }
+        
+        return """
+            You are a productivity expert.
+            Task: Create TWO study plan blueprints for the topic: '%s'.
+            One for BEGINNER level and one for INTERMEDIATE level.
+            %s
+            Return a RAW JSON object with this exact structure:
+            {
+              "beginnerPlan": {
+                "level": "Beginner",
+                "activityTitle": "Catchy beginner-friendly title",
+                "activityDescription": "Short goal summary for beginners",
+                "focusMinutes": 25,
+                "breakMinutes": 5,
+                "todos": ["First simple task", "Second simple task", "Third simple task"],
+                "tipNote": "Helpful tip for beginners"
+              },
+              "intermediatePlan": {
+                "level": "Intermediate",
+                "activityTitle": "Catchy intermediate title",
+                "activityDescription": "Short goal summary for intermediate learners",
+                "focusMinutes": 50,
+                "breakMinutes": 10,
+                "todos": ["First challenging task", "Second challenging task", "Third challenging task"],
+                "tipNote": "Helpful tip for intermediate learners"
+              }
+            }
+            Constraint: JSON only. No markdown. Each plan must have exactly 3 todos.
+            """.formatted(topic, avoidClause.toString());
+    }
+
+    private DualBlueprintResult callGeminiApiForDualBlueprints(String model, String prompt) {
+        Client c = getClient();
+        GenerateContentResponse response = c.models.generateContent(model, prompt, null);
+        String rawOutput = response.text();
+        logger.info("[GemmaAiAdapter] Dual blueprint response from {}: {}", model, rawOutput);
+        return parseDualBlueprintResponse(rawOutput);
+    }
+
+    private DualBlueprintResult parseDualBlueprintResponse(String rawOutput) {
+        if (rawOutput == null || rawOutput.trim().isEmpty()) {
+            throw new RuntimeException("Empty response from Gemini API");
+        }
+        
+        // Strip markdown code blocks
+        String cleaned = rawOutput
+                .replaceAll("(?i)^\\s*```json", "")
+                .replaceAll("^\\s*```", "")
+                .replaceAll("```\\s*$", "")
+                .trim();
+        
+        // Parse beginner plan
+        DualBlueprintResult.BlueprintPlanResult beginnerPlan = parsePlanFromJson(cleaned, "beginnerPlan", "Beginner");
+        DualBlueprintResult.BlueprintPlanResult intermediatePlan = parsePlanFromJson(cleaned, "intermediatePlan", "Intermediate");
+        
+        return DualBlueprintResult.builder()
+                .beginnerPlan(beginnerPlan)
+                .intermediatePlan(intermediatePlan)
+                .isFallback(false)
+                .build();
+    }
+
+    private DualBlueprintResult.BlueprintPlanResult parsePlanFromJson(String json, String planKey, String defaultLevel) {
+        // Find the plan object in JSON
+        Pattern planPattern = Pattern.compile("\"" + planKey + "\"\\s*:\\s*\\{([^}]+(?:\\{[^}]*\\}[^}]*)*)\\}", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+        Matcher planMatcher = planPattern.matcher(json);
+        
+        String planJson = planMatcher.find() ? planMatcher.group(1) : json;
+        
+        String level = extractJsonString(planJson, "level");
+        String activityTitle = extractJsonString(planJson, "activityTitle");
+        String activityDescription = extractJsonString(planJson, "activityDescription");
+        int focusMinutes = extractJsonInt(planJson, "focusMinutes", defaultLevel.equals("Beginner") ? 25 : 50);
+        int breakMinutes = extractJsonInt(planJson, "breakMinutes", defaultLevel.equals("Beginner") ? 5 : 10);
+        String tipNote = extractJsonString(planJson, "tipNote");
+        List<String> todos = extractJsonArray(planJson, "todos");
+        
+        if (activityTitle == null || activityTitle.isBlank()) {
+            throw new RuntimeException("Missing activityTitle in " + planKey);
+        }
+        
+        return DualBlueprintResult.BlueprintPlanResult.builder()
+                .level(level != null ? level : defaultLevel)
+                .activityTitle(activityTitle)
+                .activityDescription(activityDescription != null ? activityDescription : "")
+                .focusMinutes(focusMinutes)
+                .breakMinutes(breakMinutes)
+                .todos(todos != null && !todos.isEmpty() ? todos : List.of("Get started", "Practice basics", "Review progress"))
+                .tipNote(tipNote != null ? tipNote : "Take your time and stay focused!")
+                .build();
+    }
+
+    private List<String> extractJsonArray(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + key + "\"\\s*:\\s*\\[([^\\]]+)\\]", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            String arrayContent = matcher.group(1);
+            // Extract individual strings from the array
+            Pattern itemPattern = Pattern.compile("\"([^\"]+)\"");
+            Matcher itemMatcher = itemPattern.matcher(arrayContent);
+            List<String> items = new java.util.ArrayList<>();
+            while (itemMatcher.find()) {
+                items.add(itemMatcher.group(1).replace("\\n", "\n"));
+            }
+            return items;
+        }
+        return List.of();
+    }
+
+    private DualBlueprintResult createFallbackDualBlueprints(String topic) {
+        return DualBlueprintResult.builder()
+                .beginnerPlan(DualBlueprintResult.BlueprintPlanResult.builder()
+                        .level("Beginner")
+                        .activityTitle(topic + " - Getting Started")
+                        .activityDescription("Start your journey with " + topic + " basics")
+                        .focusMinutes(25)
+                        .breakMinutes(5)
+                        .todos(List.of(
+                                "Research basic concepts of " + topic,
+                                "Set up your learning environment",
+                                "Complete a simple introductory exercise"
+                        ))
+                        .tipNote("Start small and build momentum. Consistency beats intensity!")
+                        .build())
+                .intermediatePlan(DualBlueprintResult.BlueprintPlanResult.builder()
+                        .level("Intermediate")
+                        .activityTitle(topic + " - Deep Dive")
+                        .activityDescription("Take your " + topic + " skills to the next level")
+                        .focusMinutes(50)
+                        .breakMinutes(10)
+                        .todos(List.of(
+                                "Review and strengthen foundational knowledge",
+                                "Work on a practical project or challenge",
+                                "Document learnings and identify gaps"
+                        ))
+                        .tipNote("Challenge yourself but don't rush. Deep understanding takes time.")
+                        .build())
+                .isFallback(true)
+                .build();
     }
 
     private String buildPrompt(String activityTitle, List<String> pastNotes, List<String> currentTodos) {
