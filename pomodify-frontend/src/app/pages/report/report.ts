@@ -558,19 +558,25 @@ export class Report implements OnInit {
     const period = this.periodInfo();
     
     if (range === ReportRange.MONTH && period) {
-      // For monthly view, combine the day number with the month/year from period
+      // For monthly view, show month and day without year
       const dayNumber = parseInt(point.label);
       if (!isNaN(dayNumber)) {
         const startDate = new Date(period.startDate);
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                            'July', 'August', 'September', 'October', 'November', 'December'];
         const monthName = monthNames[startDate.getMonth()];
-        const year = startDate.getFullYear();
-        return `${monthName} ${dayNumber}, ${year}`.toUpperCase();
+        return `${monthName} ${dayNumber}`.toUpperCase();
       }
     }
     
-    // For weekly and yearly views, just use the label directly
+    if (range === ReportRange.YEAR && period) {
+      // For yearly view, show month and year
+      const startDate = new Date(period.startDate);
+      const year = startDate.getFullYear();
+      return `${point.label} ${year}`.toUpperCase();
+    }
+    
+    // For weekly view, just use the label directly
     return point.label.toUpperCase();
   }
 
