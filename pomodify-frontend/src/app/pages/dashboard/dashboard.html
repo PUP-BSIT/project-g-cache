@@ -102,9 +102,9 @@
         </div>
     }
     @if (profile() && profile()?.isEmailVerified && !profile()?.backupEmail) {
-        <div class="backup-email-banner" style="background: #d1ecf1; color: #0c5460; padding: 10px; text-align: center; border-bottom: 1px solid #bee5eb; display: flex; justify-content: center; align-items: center; gap: 10px;">
+        <div class="backup-email-banner">
             <span>Add a backup email address to help recover your account if needed.</span>
-            <button (click)="openProfileModal()" style="background: none; border: 1px solid #0c5460; color: #0c5460; padding: 2px 8px; cursor: pointer; border-radius: 4px;">
+            <button (click)="openProfileModal()">
                 Add Backup Email
             </button>
         </div>

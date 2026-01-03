@@ -70,16 +70,20 @@
             </div>
           </div>
 
-          @if (session.note) {
-            <div class="session-note">
+          <!-- Notes Preview Section -->
+          <div class="session-notes-preview">
+            <div class="notes-header">
               <i class="fa-solid fa-note-sticky"></i>
-              {{ getNoteText(session.note) }}
+              <span class="notes-label">Notes</span>
             </div>
-          }
-          
-          @if (session.status === 'COMPLETED') {
-             <button class="btn-view-notes" (click)="viewNotes(session, $event)" style="margin-top: 10px; width: 100%; padding: 8px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">View Notes</button>
-          }
+            <div class="notes-content">
+              @if (getNoteText(session.note)) {
+                <p class="note-text">{{ getNoteText(session.note) }}</p>
+              } @else {
+                <p class="note-empty">No notes for this session</p>
+              }
+            </div>
+          </div>
 
           <div class="session-footer">
             <span class="created-at">
