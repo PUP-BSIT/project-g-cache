@@ -1520,6 +1520,41 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     min-width: 600px;
   }
 
+  .chart-y-axis {
+    display: none;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .chart-bars {
+    padding: 0 0 0 3px;
+    justify-content: flex-start;
+    min-width: 600px;
+    box-sizing: border-box;
+  }
+
+  .chart-labels {
+    margin-left: 0;
+    padding: 0 0 0 3px;
+    width: 100%;
+    min-width: 600px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .bar-wrapper {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .bar-label {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
   .bar {
     width: 16px;
   }
@@ -1555,8 +1590,39 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     min-width: 600px;
   }
 
+  .chart-y-axis {
+    display: none;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .chart-bars {
+    padding: 0 0 0 3px;
+    justify-content: flex-start;
+    min-width: 600px;
+    box-sizing: border-box;
+  }
+
   .chart-labels {
     margin-left: 0;
+    padding: 0 0 0 3px;
+    width: 100%;
+    min-width: 600px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .bar-wrapper {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .bar-label {
+    flex: 1 1 0%;
+    min-width: 0;
   }
 }
 
@@ -1573,6 +1639,41 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   .chart-container {
     min-width: 550px;
+  }
+
+  .chart-y-axis {
+    display: none;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .chart-bars {
+    padding: 0 0 0 3px;
+    justify-content: flex-start;
+    min-width: 550px;
+    box-sizing: border-box;
+  }
+
+  .chart-labels {
+    margin-left: 0;
+    padding: 0 0 0 3px;
+    width: 100%;
+    min-width: 550px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .bar-wrapper {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .bar-label {
+    flex: 1 1 0%;
+    min-width: 0;
   }
 }
 
@@ -1622,10 +1723,33 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   .chart-grid {
     grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .chart-bars {
+    padding: 0 0 0 3px;
+    justify-content: flex-start;
+    min-width: 600px;
+    box-sizing: border-box;
   }
 
   .chart-labels {
     margin-left: 0;
+    padding: 0 0 0 3px;
+    width: 100%;
+    min-width: 600px;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .bar-wrapper {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .bar-label {
+    flex: 1 1 0%;
+    min-width: 0;
   }
 }
 
