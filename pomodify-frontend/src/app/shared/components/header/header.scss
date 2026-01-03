@@ -29,12 +29,18 @@ header.site-header .login-link {
   gap: 10px;
   text-decoration: none;
   color: inherit;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
 }
 
 .logo {
   height: 36px;
   width: auto;
   object-fit: contain;
+  background: none;
+  border: none;
 }
 
 .brand-text {
@@ -54,17 +60,20 @@ header.site-header .login-link {
   margin: 0;
 }
 
+a.nav-link,
 .nav-link {
   text-decoration: none;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500;
+  color: #ffffff !important;
 }
 
+a.login-link,
 .login-link {
   /* plain text link on the right (not a button) — slightly emphasized */
   display: inline-block;
   padding: 6px 10px;
-  color: #ffffff;
+  color: #ffffff !important;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -73,9 +82,10 @@ header.site-header .login-link {
   text-decoration: none;
   transition: color 140ms ease, background 140ms ease, transform 120ms ease;
 }
+a.login-link:hover,
 .login-link:hover { 
-  color: #24505d; 
-  background: rgba(255,255,255,0.95); 
+  color: #ffffff !important; 
+  background: transparent; 
   transform: translateY(-1px);
 }
 
@@ -95,22 +105,37 @@ header.site-header .login-link {
   position: relative;
   cursor: pointer;
   outline: none;
+  color: #ffffff !important;
 }
 
-.caret { margin-left: 6px; font-size: 12px; }
+.dropdown span {
+  color: #ffffff !important;
+}
+
+.caret { 
+  margin-left: 6px; 
+  font-size: 25px; 
+  position: relative;
+  top: 3px;
+}
 
 .menu {
   display: none;
   position: absolute;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   top: calc(100% + 10px);
-  background: #ffffff;
-  color: #123;
+  background: #4DA1A9;
+  color: #ffffff !important;
   min-width: 180px;
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   padding: 8px;
   z-index: 10;
+}
+
+.menu * {
+  color: #ffffff !important;
 }
 
 .dropdown:focus .menu,
@@ -120,7 +145,7 @@ header.site-header .login-link {
   display: block;
   padding: 10px 12px;
   text-decoration: none;
-  color: inherit;
+  color: #ffffff !important;
   border-radius: 6px;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   cursor: pointer;
@@ -128,7 +153,8 @@ header.site-header .login-link {
 }
 
 .menu-item:hover { 
-  background: #f2f6f7; 
+  background: rgba(0, 0, 0, 0.15);
+  color: #ffffff !important;
 }
 
 /* Hamburger Menu Button */
@@ -156,6 +182,14 @@ header.site-header .login-link {
   .site-header {
     position: relative;
     z-index: 1000;
+  }
+
+  .site-brand {
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
   }
 
   .hamburger {
@@ -204,7 +238,7 @@ header.site-header .login-link {
   .menu {
     position: static;
     display: none;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.15);
     margin-top: 8px;
     box-shadow: none;
     min-width: auto;
