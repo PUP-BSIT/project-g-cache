@@ -33,6 +33,10 @@ public class Activity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "color", length = 7)
+    @Builder.Default
+    private String color = "#4da1a9";
+
     // ──────────────── Relationships ────────────────
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -61,7 +65,7 @@ public class Activity {
     private LocalDateTime updatedAt;
 
     // ──────────────── Factory ────────────────
-    protected static Activity create(String title, String description, User user, Category category) {
+    protected static Activity create(String title, String description, User user, Category category, String color) {
         if (title == null || title.trim().isEmpty())
             throw new IllegalArgumentException("Activity createActivityTitle cannot be null or empty");
         if (user == null)
@@ -72,11 +76,12 @@ public class Activity {
                 .description(description != null ? description.trim() : null)
                 .user(user)
                 .category(category)
+                .color(color != null ? color : "#4da1a9")
                 .build();
     }
 
     // ──────────────── Domain Behavior ────────────────
-    protected void updateDetails(String newTitle, String newDescription, Category newCategoryId) {
+    protected void updateDetails(String newTitle, String newDescription, Category newCategoryId, String newColor) {
         ensureActive();
         if (newTitle != null && !newTitle.isBlank())
             updateTitle(newTitle);
@@ -86,6 +91,9 @@ public class Activity {
 
         if (newCategoryId != null)
             updateCategory(newCategoryId);
+
+        if (newColor != null)
+            updateColor(newColor);
     }
 
     protected void updateTitle(String newTitle) {
@@ -98,6 +106,10 @@ public class Activity {
 
     private void updateCategory(Category newCategory) {
         this.category = newCategory;
+    }
+
+    private void updateColor(String newColor) {
+        this.color = newColor;
     }
 
     // ──────────────── Pomodoro Session Operations ────────────────

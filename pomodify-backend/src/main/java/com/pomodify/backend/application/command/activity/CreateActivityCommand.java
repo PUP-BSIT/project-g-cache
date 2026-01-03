@@ -14,6 +14,8 @@ public record CreateActivityCommand(
         @NotBlank(message = "Title is required")
         String createActivityTitle,
 
-        String createDescription
+        String createDescription,
+
+        String color
 ) {
 }

@@ -46,7 +46,8 @@ public class ActivityService {
                 user.createActivity(
                         command.createActivityTitle(),
                         command.createDescription(),
-                        category)
+                        category,
+                        command.color())
         );
 
         log.info("Activity created with ID: {}", saved.getId());
@@ -110,7 +111,8 @@ public class ActivityService {
                         activity,
                         command.changeActivityTitleTo(),
                         command.changeActivityDescriptionTo(),
-                        changeCategory
+                        changeCategory,
+                        command.changeColorTo()
                 )
         );
 
@@ -149,6 +151,7 @@ public class ActivityService {
                 .categoryName(activity.getCategory() != null ? activity.getCategory().getName() : null)
                 .activityTitle(activity.getTitle())
                 .activityDescription(activity.getDescription())
+                .color(activity.getColor())
                 .createdAt(activity.getCreatedAt())
                 .updatedAt(activity.getUpdatedAt())
                 .build();
