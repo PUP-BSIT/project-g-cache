@@ -29,7 +29,6 @@ public class JwtService {
     private long refreshTokenExpiration;
 
     private SecretKey getSigningKey() {
-        System.out.println("[DEBUG] JwtService signing secret: " + secret);
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
