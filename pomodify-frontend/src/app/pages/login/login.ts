@@ -71,7 +71,7 @@ export class Login implements OnInit {
       .then((result: LoginResponse) => {
         this.notificationService.showSuccess('Login Successful', 'You have logged in successfully.');
         if (result.needsVerification) {
-          this.auth.showVerifyEmailModal('login');
+          this.auth.showVerifyEmailModal('login', email);
         }
       })
       .catch((error: Error & { message?: string }) => {
