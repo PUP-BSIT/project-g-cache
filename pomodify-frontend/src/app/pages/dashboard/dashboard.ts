@@ -115,7 +115,8 @@ export class Dashboard implements OnInit {
         console.log('[Dashboard] Metrics loaded successfully:', {
           sessions: data.totalSessions,
           focusTime: data.focusHoursAllTime,
-          recentSessionsCount: data.recentSessions?.length || 0
+          recentSessionsCount: data.recentSessions?.length || 0,
+          recentSessions: data.recentSessions
         });
         this.dashboardMetrics.set(data);
         this.isLoadingDashboard.set(false);
