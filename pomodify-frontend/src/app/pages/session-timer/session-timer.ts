@@ -10,7 +10,7 @@ import {
   numberAttribute,
   PLATFORM_ID
 } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { timer, Subscription, of } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
@@ -58,6 +58,10 @@ export class SessionTimerComponent implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private notificationService = inject(NotificationService);
   private settingsService = inject(SettingsService);
+  private document = inject(DOCUMENT);
+  
+  // Store original title to restore on destroy
+  private originalTitle = 'Pomodify';
 
   // Auto-start functionality
   protected showAutoStartCountdown = signal(false);
@@ -256,10 +260,36 @@ export class SessionTimerComponent implements OnDestroy {
       (window as any).testAutoStart = () => this.testAutoStart();
       console.log('🧪 Auto-start test method available: window.testAutoStart()');
     }
+    
+    // Effect to update browser tab title with timer
+    effect(() => {
+      if (isPlatformBrowser(this.platformId)) {
+        const timerDisplay = this.timerDisplay();
+        const phase = this.currentPhase();
+        const isRunning = this.isRunning();
+        const isPaused = this.isPaused();
+        const sess = this.session();
+        
+        if (sess && (isRunning || isPaused)) {
+          // Show timer in tab: "16:11 Focus | Pomodify" or "⏸ 16:11 | Pomodify"
+          const phaseLabel = phase === 'FOCUS' ? '🎯' : '☕';
+          const pauseIcon = isPaused ? '⏸ ' : '';
+          this.document.title = `${pauseIcon}${timerDisplay} ${phaseLabel} Pomodify`;
+        } else {
+          // Restore original title when not running
+          this.document.title = this.originalTitle;
+        }
+      }
+    });
   }
 
   ngOnDestroy() {
     this.timerSyncService.cleanup();
+    
+    // Restore original browser tab title
+    if (isPlatformBrowser(this.platformId)) {
+      this.document.title = this.originalTitle;
+    }
     
     // Clean up auto-start timeout
     if (this.autoStartTimeoutId) {
