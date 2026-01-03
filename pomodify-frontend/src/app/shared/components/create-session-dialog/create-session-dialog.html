@@ -1,70 +1,235 @@
-<div class="modal-container">
-  <div class="modal-header">
-    <h2>Create New Session</h2>
-    <button class="close-btn" (click)="onCancel()">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-  </div>
-  
-  <div class="modal-form">
-    <!-- Session Type -->
-    <div class="form-group">
-      <label for="sessionType">Session Type <span class="required">*</span></label>
-      <select 
-        id="sessionType"
-        class="form-input" 
-        [(ngModel)]="formData.sessionType">
-        <option value="CLASSIC">Classic</option>
-        <option value="FREESTYLE">Freestyle</option>
-      </select>
-    </div>
-
-    <!-- Focus Time -->
-    <div class="form-group">
-      <label for="focusTime">Focus Time (minutes) <span class="required">*</span></label>
-      <input 
-        id="focusTime"
-        class="form-input"
-        type="number" 
-        [(ngModel)]="formData.focusTimeInMinutes"
-        min="1"
-        max="120"
-        placeholder="25">
-    </div>
-
-    <!-- Break Time -->
-    <div class="form-group">
-      <label for="breakTime">Break Time (minutes) <span class="required">*</span></label>
-      <input 
-        id="breakTime"
-        class="form-input"
-        type="number" 
-        [(ngModel)]="formData.breakTimeInMinutes"
-        min="1"
-        max="60"
-        placeholder="5">
-    </div>
-
-    <!-- Cycles (hidden for FREESTYLE) -->
-    @if (formData.sessionType === 'CLASSIC') {
-      <div class="form-group">
-        <label for="cycles">Cycles <span class="required">*</span></label>
-        <input 
-          id="cycles"
-          class="form-input"
-          type="number" 
-          [(ngModel)]="formData.cycles"
-          min="1"
-          max="12"
-          placeholder="4">
-      </div>
-    }
-  </div>
-
-  <div class="modal-actions">
-    <button class="btn btn-cancel" (click)="onCancel()">Cancel</button>
-    <button class="btn btn-primary" (click)="onConfirm()">
-      Create Session
-    </button>
-  </div>
+<!-- Session Type Selector -->
+<div class="session-type-tabs">
+  <button 
+    class="type-tab" 
+    [class.active]="sessionType === 'CLASSIC'"
+    (click)="selectSessionType('CLASSIC')">
+    <i class="fa-solid fa-stopwatch"></i>
+    Classic
+  </button>
+  <button 
+    class="type-tab" 
+    [class.active]="sessionType === 'FREESTYLE'"
+    (click)="selectSessionType('FREESTYLE')">
+    <i class="fa-solid fa-infinity"></i>
+    Freestyle
+  </button>
 </div>
+
+<mat-dialog-content [formGroup]="form" class="custom-dialog-content">
+  
+  <!-- ==================== CLASSIC MODE ==================== -->
+  @if (sessionType === 'CLASSIC') {
+    <div class="mode-container classic-mode">
+      <div class="mode-header">
+        <h2>Configure Classic Session</h2>
+        <p class="mode-description">
+          The proven Pomodoro technique with optimized intervals for maximum productivity.
+        </p>
+      </div>
+
+      <!-- Fixed Timing Rules -->
+      <div class="timing-rules-card">
+        <div class="card-header">
+          <i class="fa-solid fa-lock"></i>
+          <span>Timing Rules</span>
+          <span class="badge-fixed">Fixed</span>
+        </div>
+        <div class="timing-grid">
+          <div class="timing-item">
+            <span class="timing-label">Focus</span>
+            <span class="timing-value">25 min</span>
+          </div>
+          <div class="timing-item">
+            <span class="timing-label">Short Break</span>
+            <span class="timing-value">5 min</span>
+          </div>
+          <div class="timing-item">
+            <span class="timing-label">Long Break</span>
+            <span class="timing-value">15 min</span>
+            <span class="timing-note">Every 5th break</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editable Goal Section -->
+      <div class="goal-card">
+        <div class="card-header">
+          <i class="fa-solid fa-bullseye"></i>
+          <span>Your Goal</span>
+          <span class="badge-editable">Editable</span>
+        </div>
+        <div class="goal-content">
+          <mat-form-field appearance="outline" class="cycles-field">
+            <mat-label>Target Cycles</mat-label>
+            <input matInput type="number" formControlName="cycles" min="1" max="20">
+            <mat-hint>How many focus cycles do you want to complete?</mat-hint>
+            @if (form.get('cycles')?.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+            @if (form.get('cycles')?.hasError('min')) {
+              <mat-error>Minimum 1 cycle</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Session Summary -->
+      <div class="session-summary">
+        <div class="summary-row">
+          <span class="summary-label">Total Session Time</span>
+          <span class="summary-value">{{ formatDuration(totalDurationMinutes) }}</span>
+        </div>
+        @if (hasLongBreakInSession) {
+          <div class="summary-info">
+            <i class="fa-solid fa-info-circle"></i>
+            <span>Your session includes {{ longBreakCount }} long break(s) for optimal recovery.</span>
+          </div>
+        }
+      </div>
+
+      <!-- Helper Text -->
+      <div class="helper-text">
+        <i class="fa-solid fa-lightbulb"></i>
+        <p>
+          In Classic mode, durations follow the standard Pomodoro technique.
+          If your session extends beyond 4 cycles, we'll automatically swap every 5th break 
+          for a 15-minute Long Break to help you recharge.
+        </p>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== FREESTYLE MODE ==================== -->
+  @if (sessionType === 'FREESTYLE') {
+    <div class="mode-container freestyle-mode">
+      <div class="mode-header">
+        <h2>Customize Your Freestyle Loop</h2>
+        <p class="mode-description">
+          Freestyle mode runs in an infinite loop until you stop. 
+          Build your perfect rhythm by adjusting the duration limits below.
+        </p>
+      </div>
+
+      <!-- Focus Time -->
+      <div class="config-card">
+        <div class="config-header">
+          <i class="fa-solid fa-brain"></i>
+          <span>Focus Duration</span>
+        </div>
+        <div class="config-content">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Minutes</mat-label>
+            <input matInput type="number" formControlName="focusTimeInMinutes" min="5" max="90">
+            <mat-hint>Choose between 5 – 90 minutes</mat-hint>
+            @if (form.get('focusTimeInMinutes')?.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+            @if (form.get('focusTimeInMinutes')?.hasError('min')) {
+              <mat-error>Minimum 5 minutes</mat-error>
+            }
+            @if (form.get('focusTimeInMinutes')?.hasError('max')) {
+              <mat-error>Maximum 90 minutes</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Short Break -->
+      <div class="config-card">
+        <div class="config-header">
+          <i class="fa-solid fa-mug-hot"></i>
+          <span>Short Break</span>
+        </div>
+        <div class="config-content">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Minutes</mat-label>
+            <input matInput type="number" formControlName="breakTimeInMinutes" [min]="MIN_SHORT_BREAK" [max]="MAX_SHORT_BREAK">
+            <mat-hint>Set a quick rest of {{ MIN_SHORT_BREAK }} – {{ MAX_SHORT_BREAK }} minutes</mat-hint>
+            @if (form.get('breakTimeInMinutes')?.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+            @if (form.get('breakTimeInMinutes')?.hasError('min')) {
+              <mat-error>Minimum {{ MIN_SHORT_BREAK }} minutes</mat-error>
+            }
+            @if (form.get('breakTimeInMinutes')?.hasError('max')) {
+              <mat-error>Maximum {{ MAX_SHORT_BREAK }} minutes</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Long Break Section -->
+      <div class="config-card">
+        <div class="config-header">
+          <i class="fa-solid fa-bed"></i>
+          <span>Long Break</span>
+        </div>
+        <div class="config-content">
+          <div class="row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Duration</mat-label>
+              <input matInput type="number" formControlName="longBreakTimeInMinutes" [min]="MIN_LONG_BREAK" [max]="MAX_LONG_BREAK">
+              <mat-hint>{{ MIN_LONG_BREAK }} – {{ MAX_LONG_BREAK }} min</mat-hint>
+              @if (form.get('longBreakTimeInMinutes')?.hasError('min')) {
+                <mat-error>Min {{ MIN_LONG_BREAK }} min</mat-error>
+              }
+              @if (form.get('longBreakTimeInMinutes')?.hasError('max')) {
+                <mat-error>Max {{ MAX_LONG_BREAK }} min</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Frequency</mat-label>
+              <mat-select formControlName="longBreakIntervalCycles">
+                @for (option of FREESTYLE_CYCLE_OPTIONS; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+              <mat-hint>Cycles before long break</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loop Preview -->
+      <div class="loop-preview">
+        <div class="preview-header">
+          <i class="fa-solid fa-repeat"></i>
+          <span>Your Loop Pattern</span>
+        </div>
+        <div class="loop-visual">
+          @for (i of getLoopPreview(); track i; let idx = $index; let last = $last) {
+            <span class="loop-item" [class.focus]="i === 'F'" [class.break]="i === 'B'" [class.long-break]="i === 'L'">
+              @if (i === 'F') { {{ focusTime }}m }
+              @if (i === 'B') { {{ breakTime }}m }
+              @if (i === 'L') { {{ longBreakTime }}m }
+            </span>
+            @if (!last) {
+              <i class="fa-solid fa-arrow-right loop-arrow"></i>
+            }
+          }
+          <i class="fa-solid fa-rotate-right loop-repeat"></i>
+        </div>
+        <p class="loop-hint">This pattern repeats until you stop the session.</p>
+      </div>
+
+      <!-- Global Error: Focus > Break -->
+      @if (form.hasError('focusNotLonger') && form.touched) {
+        <div class="error-message">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <span>Focus time must be longer than break time.</span>
+        </div>
+      }
+    </div>
+  }
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button class="btn-cancel" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" class="btn-start" (click)="onConfirm()" [disabled]="form.invalid">
+    <i class="fa-solid fa-play"></i>
+    Start Session
+  </button>
+</mat-dialog-actions>
