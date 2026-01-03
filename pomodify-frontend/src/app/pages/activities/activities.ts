@@ -210,7 +210,7 @@ export class ActivitiesPage implements OnInit {
         // Apply stored color tags to activities
         const activitiesWithColors = (response.activities || []).map(activity => ({
           ...activity,
-          colorTag: this.activityColorService.getColorTag(activity.activityId) || activity.colorTag || 'teal'
+          colorTag: this.activityColorService.getColorTag(activity.activityId) || activity.color || 'teal'
         }));
         this.activities.set(activitiesWithColors);
         this.totalPages.set(response.totalPages || 1);
@@ -341,7 +341,7 @@ export class ActivitiesPage implements OnInit {
     const modalData: CreateActivityModalData = {
       name: activity.activityTitle,
       category: activity.categoryName || '',
-      colorTag: activity.colorTag || 'teal',
+      colorTag: activity.color || 'teal',
       estimatedHoursPerWeek: 0,
     };
     console.log('[ActivitiesPage] Modal data being passed:', modalData);

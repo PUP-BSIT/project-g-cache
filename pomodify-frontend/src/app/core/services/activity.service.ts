@@ -11,7 +11,7 @@ export interface ActivityData {
   activityTitle: string;
   activityDescription: string;
   categoryName?: string;
-  colorTag?: string;
+  color?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -25,15 +25,17 @@ export interface ActivityResponse {
 }
 
 export interface CreateActivityRequest {
-  activityTitle: string;
-  activityDescription: string;
+  title: string;
+  description: string;
   categoryId?: number;
+  color?: string;
 }
 
 export interface UpdateActivityRequest {
-  newActivityTitle: string;
-  newActivityDescription: string;
+  newActivityTitle?: string;
+  newActivityDescription?: string;
   newCategoryId?: number;
+  newColor?: string;
 }
 
 @Injectable({
