@@ -11,8 +11,7 @@ describe('EditActivityModal', () => {
   const mockData = {
     name: 'Test Activity',
     category: 'Work',
-    colorTag: 'blue',
-    estimatedHoursPerWeek: 10
+    colorTag: 'blue'
   };
 
   beforeEach(async () => {

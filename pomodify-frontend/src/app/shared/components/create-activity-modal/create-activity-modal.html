@@ -14,10 +14,19 @@
         formControlName="name"
         class="form-input"
         placeholder="Enter activity name"
+        maxlength="40"
       />
+      <div class="char-counter" [class.warning]="activityForm.get('name')?.value?.length >= 35">
+        {{ activityForm.get('name')?.value?.length || 0 }} / 40 characters
+      </div>
       @if (activityForm.get('name')?.invalid && activityForm.get('name')?.touched) {
         <div class="error-message">
-          Activity name is required
+          @if (activityForm.get('name')?.errors?.['required']) {
+            Activity name is required
+          }
+          @if (activityForm.get('name')?.errors?.['maxlength']) {
+            Activity name cannot exceed 40 characters
+          }
         </div>
       }
     </div>
@@ -25,13 +34,27 @@
     <!-- Category/Tag -->
     <div class="form-group">
       <label for="category">Category/Tag (Optional)</label>
-      <input
+      <select
         id="category"
-        type="text"
         formControlName="category"
         class="form-input"
-        placeholder="e.g., Work, Study, Personal"
+      >
+        <option value="">Select or enter new category</option>
+        @for (category of categories; track category) {
+          <option [value]="category">{{ category }}</option>
+        }
+      </select>
+      <input
+        type="text"
+        formControlName="customCategory"
+        class="form-input custom-category-input"
+        placeholder="Or type a new category"
+        style="margin-top: 8px;"
+        maxlength="40"
       />
+      <div class="char-counter" [class.warning]="activityForm.get('customCategory')?.value?.length >= 35">
+        {{ activityForm.get('customCategory')?.value?.length || 0 }} / 40 characters
+      </div>
     </div>
 
     <!-- Color Tag -->
@@ -53,21 +76,6 @@
       </div>
     </div>
 
-    <!-- Estimated Focus Hours per Week -->
-    <div class="form-group">
-      <label for="estimatedHours">Estimated Focus Hours / Week (Optional)</label>
-      <div class="hours-input-wrapper">
-        <input
-          id="estimatedHours"
-          type="number"
-          formControlName="estimatedHoursPerWeek"
-          class="form-input hours-input"
-          min="0"
-          max="168"
-        />
-        <span class="hours-label">hrs</span>
-      </div>
-    </div>
   </form>
 
   <div class="modal-actions">

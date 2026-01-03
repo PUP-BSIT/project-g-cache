@@ -83,7 +83,7 @@ export class ActivitiesPage implements OnInit {
 
   // Pagination
   protected currentPage = signal(1);
-  protected readonly itemsPerPage = 8; // 2 rows x 4 columns
+  protected readonly itemsPerPage = 6; // 2 rows x 3 columns
   protected totalPages = signal(1);
   protected totalItems = signal(0);
 
@@ -204,7 +204,7 @@ export class ActivitiesPage implements OnInit {
 
     console.log('[ActivitiesPage] Loading activities:', { page, categoryId });
 
-    this.activityService.getAllActivities(page, this.itemsPerPage, 'desc', 'title', categoryId).subscribe({
+    this.activityService.getAllActivities(page, this.itemsPerPage, 'desc', 'createdAt', categoryId).subscribe({
       next: (response: ActivityResponse) => {
         console.log('[ActivitiesPage] Activities loaded:', response);
         // Apply stored color tags to activities
@@ -247,7 +247,9 @@ export class ActivitiesPage implements OnInit {
   protected openCreateActivityModal(): void {
     console.log('[ActivitiesPage] Opening create activity modal');
     this.dialog
-      .open(CreateActivityModal)
+      .open(CreateActivityModal, { 
+        data: { categories: this.categories() } 
+      })
       .afterClosed()
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
@@ -342,12 +344,16 @@ export class ActivitiesPage implements OnInit {
       name: activity.activityTitle,
       category: activity.categoryName || '',
       colorTag: activity.color || 'teal',
-      estimatedHoursPerWeek: 0,
     };
     console.log('[ActivitiesPage] Modal data being passed:', modalData);
 
     this.dialog
-      .open(EditActivityModal, { data: modalData })
+      .open(EditActivityModal, { 
+        data: { 
+          ...modalData,
+          categories: this.categories() 
+        } 
+      })
       .afterClosed()
       .subscribe((updated: CreateActivityModalData) => {
         if (updated) {
@@ -542,12 +548,12 @@ export class ActivitiesPage implements OnInit {
     this.sessionService.getSessions(activityId, 'COMPLETED').subscribe({
       next: (sessions: any[]) => {
         // Calculate completion percentage
-        // Assuming 5 hours per week as target (can be adjusted)
-        const estimatedHoursPerWeek = 5;
+        // Using a default target of 5 hours per week
+        const targetHoursPerWeek = 5;
         const totalFocusHours = sessions.reduce((sum: number, session: any) => {
           return sum + (session.focusTimeInMinutes || 0) / 60;
         }, 0);
-        const percentage = Math.min((totalFocusHours / estimatedHoursPerWeek) * 100, 100);
+        const percentage = Math.min((totalFocusHours / targetHoursPerWeek) * 100, 100);
         
         const currentCompletions = new Map(this.activityCompletions());
         currentCompletions.set(activityId, Math.round(percentage));
