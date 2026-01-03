@@ -4,12 +4,15 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  width: 100vw;
+  max-width: 100%;
   padding: 0;
   overflow-x: hidden;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
   filter: blur(0px);
   position: relative;
+  box-sizing: border-box;
 
   &::before {
     content: '';
@@ -27,6 +30,7 @@
 
 .signup-header {
   width: 100%;
+  max-width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -81,13 +85,15 @@
 
 .signup-panel {
   display: flex;
-  width: min(500px, 100%);
+  width: 100%;
+  max-width: 500px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(3px);
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin-bottom: 20px;
+  margin: 0 auto 20px;
+  box-sizing: border-box;
 }
 
 .signup-card {
@@ -97,12 +103,13 @@
   padding: 48px 40px 40px;
   background: #FFFFFF;
   color: #2C3E50;
+  box-sizing: border-box;
 }
 
 .back-btn {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 9px;
+  left: 8px;
   background: none;
   border: none;
   color: #24505d;
@@ -368,6 +375,8 @@
 @media (max-width: 960px) {
   .signup-header {
     padding: 16px 24px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .brand-logo-icon {
@@ -376,6 +385,7 @@
 
   .header-nav {
     gap: 16px;
+    margin-right: 0;
   }
 
   .nav-link {
@@ -383,13 +393,49 @@
   }
 
   .signup-panel {
-    width: min(90%, 100%);
+    width: calc(100% - 32px);
+    max-width: 500px;
+    margin: 0 16px 20px;
   }
 }
 
 @media (max-width: 500px) {
+  .signup-container {
+    padding: 0;
+    width: 100%;
+  }
+
+  .signup-header {
+    padding: 16px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .header-brand {
+    margin-left: 0;
+  }
+
   .signup-card {
-    padding: 40px 24px 32px;
+    padding: 40px 20px 32px;
+  }
+
+  .header-nav {
+    gap: 12px;
+    margin-right: 0;
+  }
+
+  .nav-link {
+    font-size: 14px;
+  }
+
+  .signup-panel {
+    width: calc(100% - 32px);
+    margin: 0 16px 20px;
+    border-radius: 16px;
+  }
+
+  .page-title {
+    font-size: 28px;
   }
 
   .brand-name {
