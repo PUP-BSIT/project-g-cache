@@ -126,10 +126,12 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
-    @Async
     public void sendContactEmail(String senderName, String senderEmail, String reason, String messageContent) {
         String toEmail = "contact@pomodify.site";
         String subject = String.format("[Pomodify Contact] %s - %s", reason, senderName);
+        
+        log.info("Preparing contact email - From: {}, To: {}, Subject: {}", senderEmail, toEmail, subject);
+        log.info("Using SMTP from address: {}", fromAddress);
         
         String htmlContent = generateContactHtmlContent(senderName, senderEmail, reason, messageContent);
         
@@ -141,11 +143,15 @@ public class EmailService {
             helper.setReplyTo(senderEmail);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
+            log.info("Sending contact email via SMTP...");
             mailSender.send(message);
             log.info("Contact email sent successfully from {} to {}", senderEmail, toEmail);
         } catch (MessagingException e) {
-            log.error("Failed to send contact email from {}: {}", senderEmail, e.getMessage());
-            throw new RuntimeException("Failed to send contact email", e);
+            log.error("MessagingException sending contact email from {}: {} - Full stack:", senderEmail, e.getMessage(), e);
+            throw new RuntimeException("Failed to send contact email: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error sending contact email from {}: {} - Full stack:", senderEmail, e.getMessage(), e);
+            throw new RuntimeException("Failed to send contact email: " + e.getMessage(), e);
         }
     }
 
