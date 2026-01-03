@@ -15,7 +15,8 @@ public class AuthMapper {
             result.firstName(),
             result.lastName(),
             result.email(),
-            result.isEmailVerified()
+            result.isEmailVerified(),
+            null // backupEmail not available in auth context
         );
 
         return new AuthResponse(
