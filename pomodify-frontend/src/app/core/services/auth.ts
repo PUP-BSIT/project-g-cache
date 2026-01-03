@@ -31,7 +31,7 @@ type SignupResponse = {
 })
 export class Auth {
   private tokenExpirationTime: number = 0;
-  private readonly TOKEN_LIFETIME = 60000; // 60 seconds
+  private readonly TOKEN_LIFETIME = 900000; // 15 minutes
   private refreshPromise: Promise<void> | null = null;
 
   constructor(
@@ -106,36 +106,17 @@ export class Auth {
   /**
    * Checks if the token is about to expire and refreshes it if necessary.
    * Returns a promise that resolves when the token is valid.
+   * Only refreshes proactively when token is about to expire (within 30 seconds).
    */
   ensureTokenValidity(): Promise<void> {
-    // If user has logged in before but tokenExpirationTime is 0, 
-    // it means page was reloaded - try to refresh the token
-    const hasLoggedInBefore = localStorage.getItem('has_logged_in_before') === 'true';
-    
+    // If token expiration is not set, don't proactively refresh
+    // Let the interceptor handle 401s and refresh on-demand
     if (this.tokenExpirationTime === 0) {
-      if (hasLoggedInBefore) {
-        // User might still have valid cookies - try to refresh proactively
-        if (this.refreshPromise) {
-          return this.refreshPromise;
-        }
-        
-        console.log('[Auth] Page reloaded with existing session - refreshing token...');
-        this.refreshPromise = this.refreshToken()
-          .catch((err) => {
-            // If refresh fails, the user's session has expired - this is ok
-            console.log('[Auth] Token refresh failed after page reload - session may have expired:', err);
-          })
-          .finally(() => {
-            this.refreshPromise = null;
-          });
-        return this.refreshPromise;
-      }
-      // No previous login - let request proceed and handle 401 in interceptor
       return Promise.resolve();
     }
 
-    // Check if token expires in less than 10 seconds
-    if (Date.now() > this.tokenExpirationTime - 10000) {
+    // Check if token expires in less than 30 seconds
+    if (Date.now() > this.tokenExpirationTime - 30000) {
       if (this.refreshPromise) {
         return this.refreshPromise;
       }
@@ -245,9 +226,25 @@ export class Auth {
     console.log('[Auth] Attempting signup for:', email);
     
     return lastValueFrom(this.http.post<SignupResponse>(url, { firstName, lastName, email, password }))
-      .then((response) => {
+      .then(async (response) => {
         console.log('[Auth] Signup successful for:', response.email);
-        return Promise.resolve();
+        
+        // Auto-login after successful signup
+        console.log('[Auth] Auto-logging in user after signup...');
+        return lastValueFrom(this.http.post<LoginResponse>(API.AUTH.LOGIN, { email, password }, { withCredentials: true }))
+          .then(() => {
+            // Set the permanent flag and login state for FCM/PWA
+            localStorage.setItem('has_logged_in_before', 'true');
+            localStorage.setItem('isLoggedIn', 'true');
+            // Sync with service worker for background notifications
+            this.syncLoginStateWithServiceWorker(true);
+            this.updateTokenExpiration();
+            // Initialize FCM after successful login
+            this.initializeFCMAfterLogin();
+            // Fetch user profile after login
+            this.fetchAndStoreUserProfile();
+            console.log('[Auth] Auto-login after signup successful');
+          });
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
         // Extract error message from backend response
@@ -305,7 +302,12 @@ export class Auth {
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {
       if (result === 'goToLogin') {
-        this.router.navigate(['/login']);
+        // After signup, user is already logged in, so go to dashboard
+        if (source === 'signup') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/login']);
+        }
       }
     });
   }
