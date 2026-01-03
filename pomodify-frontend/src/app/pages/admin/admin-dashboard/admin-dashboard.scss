@@ -281,6 +281,14 @@
   &.unverified {
     color: #f59e0b;
   }
+
+  &.active {
+    color: #10b981;
+  }
+
+  &.inactive {
+    color: #ef4444;
+  }
 }
 
 .btn-delete {

@@ -72,6 +72,10 @@
                     <i class="fa-solid" [ngClass]="user.isEmailVerified ? 'fa-check-circle' : 'fa-clock'"></i>
                     {{ user.isEmailVerified ? 'Verified' : 'Unverified' }}
                   </span>
+                  <span class="meta-item" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                    <i class="fa-solid" [ngClass]="user.isActive ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+                    {{ user.isActive ? 'Active' : 'Inactive' }}
+                  </span>
                 </div>
               </div>
               <button class="btn-delete" (click)="onDeleteUser(user)">
