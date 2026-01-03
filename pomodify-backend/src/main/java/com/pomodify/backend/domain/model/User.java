@@ -71,6 +71,9 @@ public class User {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(name = "backup_email")
+    private String backupEmail;
+
     // ──────────────── Relationships ────────────────
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
@@ -218,5 +221,9 @@ public class User {
 
     public void setEmailVerified(boolean isEmailVerified) {
         this.isEmailVerified = isEmailVerified;
+    }
+
+    public void setBackupEmail(String backupEmail) {
+        this.backupEmail = backupEmail;
     }
 }
