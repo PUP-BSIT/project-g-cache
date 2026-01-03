@@ -1,6 +1,7 @@
 package com.pomodify.backend.domain.model;
 
 import com.pomodify.backend.domain.enums.CyclePhase;
+import com.pomodify.backend.domain.enums.SessionStatus;
 import com.pomodify.backend.domain.enums.SessionType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -108,6 +109,7 @@ public class Activity {
                                          Duration longBreakInterval,
                                          String note) {
         ensureActive();
+        ensureNoActiveSession();
         PomodoroSession session = PomodoroSession.create(this, sessionType, focusDuration, breakDuration, totalCycles, note);
         if (longBreakDuration != null || longBreakInterval != null) {
             session.validateBreaks(breakDuration, longBreakDuration, longBreakInterval);
@@ -143,6 +145,13 @@ public class Activity {
         ensureActive();
         PomodoroSession session = findSessionOrThrow(sessionId);
         session.stopSession();
+        return session;
+    }
+
+    public PomodoroSession completeEarly(Long sessionId) {
+        ensureActive();
+        PomodoroSession session = findSessionOrThrow(sessionId);
+        session.completeEarly();
         return session;
     }
 
@@ -191,6 +200,18 @@ public class Activity {
     }
 
     // ──────────────── Guards ────────────────
+    private void ensureNoActiveSession() {
+        boolean hasActive = this.sessions.stream()
+            .anyMatch(s -> !s.isDeleted() && (
+                s.getStatus() == SessionStatus.NOT_STARTED ||
+                s.getStatus() == SessionStatus.IN_PROGRESS ||
+                s.getStatus() == SessionStatus.PAUSED
+            ));
+        if (hasActive) {
+            throw new IllegalStateException("Cannot create a new session while another session is active.");
+        }
+    }
+
     private void ensureActive() {
         if (isDeleted)
             throw new IllegalStateException("Activity is deleted and cannot be modified");
