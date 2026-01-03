@@ -4,6 +4,7 @@ import com.pomodify.backend.application.command.ConfirmBlueprintCommand;
 import com.pomodify.backend.application.command.GenerateBlueprintCommand;
 import com.pomodify.backend.application.command.GenerateNextStepCommand;
 import com.pomodify.backend.application.command.QuickFocusCommand;
+import com.pomodify.backend.application.result.DualBlueprintResult;
 import com.pomodify.backend.application.service.AiService;
 import com.pomodify.backend.presentation.dto.item.BlueprintItem;
 import com.pomodify.backend.presentation.dto.item.ConfirmBlueprintItem;
@@ -11,9 +12,11 @@ import com.pomodify.backend.presentation.dto.item.QuickFocusItem;
 import com.pomodify.backend.presentation.dto.request.AiSuggestionRequest;
 import com.pomodify.backend.presentation.dto.request.ConfirmBlueprintRequest;
 import com.pomodify.backend.presentation.dto.request.GenerateBlueprintRequest;
+import com.pomodify.backend.presentation.dto.request.GenerateDualBlueprintRequest;
 import com.pomodify.backend.presentation.dto.response.AiSuggestionResponse;
 import com.pomodify.backend.presentation.dto.response.BlueprintResponse;
 import com.pomodify.backend.presentation.dto.response.ConfirmBlueprintResponse;
+import com.pomodify.backend.presentation.dto.response.DualBlueprintResponse;
 import com.pomodify.backend.presentation.dto.response.QuickFocusResponse;
 import com.pomodify.backend.presentation.mapper.AiMapper;
 
@@ -173,6 +176,8 @@ public class AiController {
                 .breakMinutes(request.breakMinutes())
                 .firstSessionNote(request.firstSessionNote())
                 .categoryId(request.categoryId())
+                .todos(request.todos())
+                .tipNote(request.tipNote())
                 .build();
 
         var result = aiService.confirmBlueprint(command);
@@ -180,6 +185,45 @@ public class AiController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AiMapper.toConfirmBlueprintResponse(item, "Activity created successfully"));
+    }
+
+    /* ==================================================================================
+     * SMART-ACTION: DUAL BLUEPRINT (Beginner + Intermediate)
+     * ================================================================================== */
+
+    @PostMapping("/generate-dual-preview-async")
+    @Operation(summary = "Start async AI dual blueprint generation (beginner + intermediate plans)")
+    public ResponseEntity<Map<String, String>> generateDualPreviewAsync(
+            @RequestBody @Valid GenerateDualBlueprintRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        Long userId = getUserId(jwt);
+        log.info("[Async Dual] Starting job for topic='{}', userId={}, previousSuggestions={}", 
+                request.topic(), userId, request.previousSuggestions() != null ? request.previousSuggestions().size() : 0);
+
+        String requestId = aiService.generateDualBlueprintsAsync(
+                request.topic(), 
+                request.previousSuggestions()
+        );
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(Collections.singletonMap("requestId", requestId));
+    }
+
+    @GetMapping("/generate-dual-preview-async/{requestId}")
+    @Operation(summary = "Poll for async AI dual blueprint result by requestId")
+    public ResponseEntity<DualBlueprintResponse> getDualPreviewAsyncResult(@PathVariable String requestId) {
+        DualBlueprintResult result = aiService.getDualBlueprintResult(requestId);
+
+        if (result == null) {
+            return ResponseEntity.status(HttpStatus.ACCEPTED).build();
+        }
+
+        String message = result.isFallback()
+                ? "Dual blueprints generated (fallback template)"
+                : "Dual blueprints generated successfully";
+        
+        return ResponseEntity.ok(AiMapper.toDualBlueprintResponse(result, message));
     }
 
     /* ==================================================================================
