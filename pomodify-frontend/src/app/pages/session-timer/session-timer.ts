@@ -582,13 +582,21 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   /**
-   * Start session with confirmation modal
+   * Start session with confirmation modal (only for FREESTYLE sessions)
+   * CLASSIC sessions start directly without confirmation since they are uneditable
    */
   protected confirmAndStartSession(): void {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // Classic sessions start directly without confirmation (they're uneditable anyway)
+    if (sess.sessionType === 'CLASSIC') {
+      this.startSession();
+      return;
+    }
+
+    // Freestyle sessions show confirmation modal
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Start Session?',
@@ -756,6 +764,9 @@ export class SessionTimerComponent implements OnDestroy {
     console.log('🎬 Starting session...', { sessionId: sess?.id, activityId: actId, status: sess?.status });
     if (!sess || !actId) return;
 
+    // Clear the reset flag when starting
+    this.sessionHasBeenReset.set(false);
+
     // If paused normally (user pressed pause), resume via API
     if (sess.status === 'PAUSED') {
       this.resumeSession();
@@ -842,6 +853,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     console.log('[Session Timer] Starting new phase:', sess.currentPhase);
     
+    // Clear the reset flag when starting a phase
+    this.sessionHasBeenReset.set(false);
+    
     // Mark that we're no longer at phase start
     this.isAtPhaseStart.set(false);
 
@@ -873,6 +887,9 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) return;
+
+    // Clear the reset flag when resuming (for classic mode button pairing)
+    this.sessionHasBeenReset.set(false);
 
     this.sessionService.resumeSession(actId, sess.id).subscribe({
       next: (updated) => {

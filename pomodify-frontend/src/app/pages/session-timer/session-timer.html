@@ -106,34 +106,52 @@
 
 
 
+
             <!-- Timer Controls - Different layouts based on state -->
             <div class="timer-controls">
-              <!-- PENDING State: Start + Skip (Freestyle only) -->
+              <!-- PENDING State -->
               @if (isPending()) {
+                <!-- Classic: Start + Stop -->
+                <!-- Freestyle: Start + Skip -->
                 <button 
+                  type="button"
                   class="btn-timer-control btn-start"
                   (click)="confirmAndStartSession()">
                   START
                 </button>
                 @if (isFreestyle()) {
                   <button 
+                    type="button"
                     class="btn-skip"
                     (click)="skipPhase()"
                     title="Skip to next phase">
                     <i class="fa-solid fa-forward-step"></i>
                     SKIP
                   </button>
+                } @else {
+                  <!-- Classic sessions: Stop button in pending state -->
+                  <button 
+                    type="button"
+                    class="btn-stop"
+                    (click)="abandonSession()"
+                    title="Abandon session">
+                    STOP
+                  </button>
                 }
               }
 
-              <!-- IN_PROGRESS State: Pause + Stop + Skip (Freestyle) + Complete (Freestyle) -->
+              <!-- IN_PROGRESS State -->
               @if (isRunning()) {
+                <!-- Classic: Pause + Stop -->
+                <!-- Freestyle: Pause + Stop + Skip -->
                 <button 
+                  type="button"
                   class="btn-timer-control btn-pause"
                   (click)="pauseSession()">
                   PAUSE
                 </button>
                 <button 
+                  type="button"
                   class="btn-stop"
                   (click)="abandonSession()"
                   title="Abandon session">
@@ -141,6 +159,7 @@
                 </button>
                 @if (isFreestyle()) {
                   <button 
+                    type="button"
                     class="btn-skip"
                     (click)="skipPhase()"
                     title="Skip to next phase">
@@ -150,47 +169,66 @@
                 }
               }
 
-              <!-- PAUSED State: Start/Resume + Reset/Stop + Skip (Freestyle) + Complete (Freestyle) -->
+              <!-- PAUSED State -->
               @if (isPaused()) {
-                <!-- Show START if at beginning of new phase, RESUME if mid-phase pause -->
-                @if (showStartButton()) {
-                  <button 
-                    class="btn-timer-control btn-start"
-                    (click)="startPhase()">
-                    START
-                  </button>
-                } @else {
-                  <button 
-                    class="btn-timer-control btn-resume"
-                    (click)="resumeSessionAction()">
-                    RESUME
-                  </button>
-                }
-                <!-- Reset button (only shows after pause, resets to NOT_STARTED) -->
-                @if (!hasBeenReset()) {
-                  <button 
-                    class="btn-reset"
-                    (click)="resetSession()"
-                    title="Reset session to beginning">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    RESET
-                  </button>
-                } @else {
-                  <!-- After reset, show Stop button (marks as ABANDONED) -->
-                  <button 
-                    class="btn-stop"
-                    (click)="abandonSession()"
-                    title="Abandon session">
-                    STOP
-                  </button>
-                }
                 @if (isFreestyle()) {
+                  <!-- Freestyle: Start/Resume + Reset/Stop + Skip -->
+                  @if (showStartButton()) {
+                    <button 
+                      type="button"
+                      class="btn-timer-control btn-start"
+                      (click)="startPhase()">
+                      START
+                    </button>
+                  } @else {
+                    <button 
+                      type="button"
+                      class="btn-timer-control btn-resume"
+                      (click)="resumeSessionAction()">
+                      RESUME
+                    </button>
+                  }
+                  @if (!hasBeenReset()) {
+                    <button 
+                      type="button"
+                      class="btn-reset"
+                      (click)="resetSession()"
+                      title="Reset session to beginning">
+                      <i class="fa-solid fa-rotate-left"></i>
+                      RESET
+                    </button>
+                  } @else {
+                    <button 
+                      type="button"
+                      class="btn-stop"
+                      (click)="abandonSession()"
+                      title="Abandon session">
+                      STOP
+                    </button>
+                  }
                   <button 
+                    type="button"
                     class="btn-skip"
                     (click)="skipPhase()"
                     title="Skip to next phase">
                     <i class="fa-solid fa-forward-step"></i>
                     SKIP
+                  </button>
+                } @else {
+                  <!-- Classic: Resume + Reset (pairing always Resume + Reset after pause) -->
+                  <button 
+                    type="button"
+                    class="btn-timer-control btn-resume"
+                    (click)="resumeSessionAction()">
+                    RESUME
+                  </button>
+                  <button 
+                    type="button"
+                    class="btn-reset"
+                    (click)="resetSession()"
+                    title="Reset session to beginning">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    RESET
                   </button>
                 }
               }
@@ -200,6 +238,7 @@
             @if (isFreestyle() && (isRunning() || isPaused())) {
               <div class="complete-session-section">
                 <button 
+                  type="button"
                   class="btn-complete-session"
                   (click)="completeSession()"
                   title="Complete session">
