@@ -1,41 +1,135 @@
 @if (open) {
   <div class="wizard-modal">
-    <div class="wizard-content">
-      <button class="close-btn" (click)="close()">×</button>
+    <div class="wizard-content" [class.wide]="state() === 'preview'">
+      <button type="button" class="close-btn" (click)="close()">×</button>
+      
       @switch (state()) {
         @case ('idle') {
           <form (ngSubmit)="startGeneration()">
             <h2>What do you want to focus on?</h2>
-            <input type="text" [(ngModel)]="topic" name="topic" maxlength="50" placeholder="e.g. Coding, Writing..." required />
-            <button type="submit" [disabled]="!topic().trim()">Generate Plan ✨</button>
+            <input 
+              type="text" 
+              [(ngModel)]="topic" 
+              name="topic" 
+              maxlength="50" 
+              placeholder="e.g. Coding, Writing, Learning..." 
+              required 
+            />
+            <button type="submit" [disabled]="!topic().trim()">Generate Plans ✨</button>
           </form>
         }
+        
         @case ('generating') {
-          <div>
-            <div class="loading-spinner"></div>
-            <p>Architecting plan...</p>
+          <div class="generating-state">
+            <div class="magic-loader">
+              <div class="sparkle sparkle-1">✦</div>
+              <div class="sparkle sparkle-2">✧</div>
+              <div class="sparkle sparkle-3">✦</div>
+              <div class="loading-spinner"></div>
+            </div>
+            <p class="generating-text">Crafting personalized plans...</p>
           </div>
         }
+        
         @case ('preview') {
-          <div>
-            <h3>{{ preview()?.activityTitle }}</h3>
-            <p>{{ preview()?.activityDescription }}</p>
-            <div class="plan-details">
-              <span>Focus: {{ preview()?.focusMinutes }}m</span>
-              <span>Break: {{ preview()?.breakMinutes }}m</span>
+          <div class="preview-container">
+            <h2 class="preview-title">Choose Your Path</h2>
+            <p class="preview-subtitle">Select the plan that matches your current skill level</p>
+            
+            <div class="plans-grid">
+              <!-- Beginner Plan Card -->
+              <div class="plan-card beginner-card">
+                <div class="plan-level-badge">🌱 Beginner</div>
+                <h3 class="plan-title">{{ dualBlueprint()?.beginnerPlan?.activityTitle }}</h3>
+                <p class="plan-description">{{ dualBlueprint()?.beginnerPlan?.activityDescription }}</p>
+                
+                <div class="plan-timing">
+                  <span class="timing-item">
+                    <span class="timing-icon">⏱️</span>
+                    {{ dualBlueprint()?.beginnerPlan?.focusMinutes }}m focus
+                  </span>
+                  <span class="timing-item">
+                    <span class="timing-icon">☕</span>
+                    {{ dualBlueprint()?.beginnerPlan?.breakMinutes }}m break
+                  </span>
+                </div>
+                
+                <div class="plan-todos">
+                  <h4>To-Do List</h4>
+                  <ul>
+                    @for (todo of dualBlueprint()?.beginnerPlan?.todos; track todo) {
+                      <li>{{ todo }}</li>
+                    }
+                  </ul>
+                </div>
+                
+                <div class="plan-tip">
+                  <span class="tip-icon">💡</span>
+                  <span class="tip-text">{{ dualBlueprint()?.beginnerPlan?.tipNote }}</span>
+                </div>
+                
+                <button type="button" class="btn-accept" (click)="acceptPlan('beginner')">
+                  Accept & Start
+                </button>
+              </div>
+              
+              <!-- Intermediate Plan Card -->
+              <div class="plan-card intermediate-card">
+                <div class="plan-level-badge">🚀 Intermediate</div>
+                <h3 class="plan-title">{{ dualBlueprint()?.intermediatePlan?.activityTitle }}</h3>
+                <p class="plan-description">{{ dualBlueprint()?.intermediatePlan?.activityDescription }}</p>
+                
+                <div class="plan-timing">
+                  <span class="timing-item">
+                    <span class="timing-icon">⏱️</span>
+                    {{ dualBlueprint()?.intermediatePlan?.focusMinutes }}m focus
+                  </span>
+                  <span class="timing-item">
+                    <span class="timing-icon">☕</span>
+                    {{ dualBlueprint()?.intermediatePlan?.breakMinutes }}m break
+                  </span>
+                </div>
+                
+                <div class="plan-todos">
+                  <h4>To-Do List</h4>
+                  <ul>
+                    @for (todo of dualBlueprint()?.intermediatePlan?.todos; track todo) {
+                      <li>{{ todo }}</li>
+                    }
+                  </ul>
+                </div>
+                
+                <div class="plan-tip">
+                  <span class="tip-icon">💡</span>
+                  <span class="tip-text">{{ dualBlueprint()?.intermediatePlan?.tipNote }}</span>
+                </div>
+                
+                <button type="button" class="btn-accept" (click)="acceptPlan('intermediate')">
+                  Accept & Start
+                </button>
+              </div>
             </div>
-            <div class="first-step">{{ preview()?.firstSessionNote }}</div>
+            
             <div class="wizard-actions">
-              <button (click)="acceptAndStart()">Accept & Start</button>
-              <button (click)="generateAgain()">Generate Again</button>
-              <button (click)="close()">Cancel</button>
+              <button type="button" class="btn-magic" (click)="generateAgain()">
+                <span class="magic-icon">✨</span> Generate Again
+              </button>
+              <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
             </div>
           </div>
         }
+        
+        @case ('confirming') {
+          <div class="generating-state">
+            <div class="loading-spinner"></div>
+            <p class="generating-text">Setting up your activity...</p>
+          </div>
+        }
+        
         @case ('error') {
-          <div>
+          <div class="error-state">
             <p class="error">{{ error() }}</p>
-            <button (click)="close()">Close</button>
+            <button type="button" class="btn-secondary" (click)="close()">Close</button>
           </div>
         }
       }
