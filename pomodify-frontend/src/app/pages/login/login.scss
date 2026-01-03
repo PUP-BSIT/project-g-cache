@@ -331,6 +331,8 @@ button.btn-login,
 
   &:disabled {
     color: #ffffff !important;
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 
   &:not(:disabled) {
