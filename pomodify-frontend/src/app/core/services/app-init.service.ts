@@ -26,14 +26,10 @@ export class AppInitService {
    */
   async initializeNotifications(): Promise<void> {
     try {
-      const jwt = this.authService.getAccessToken();
-      if (jwt) {
-        console.log('Initializing FCM for authenticated user...');
-        await this.fcmService.initializeFCM(jwt);
-        console.log('FCM initialization completed');
-      } else {
-        console.log('No JWT token available, skipping FCM initialization');
-      }
+      // JWT is no longer needed, auth is handled by cookies
+      console.log('Initializing FCM for authenticated user...');
+      await this.fcmService.initializeFCM();
+      console.log('FCM initialization completed');
     } catch (error) {
       console.error('Failed to initialize FCM:', error);
     }
@@ -44,12 +40,10 @@ export class AppInitService {
    */
   async cleanupNotifications(): Promise<void> {
     try {
-      const jwt = this.authService.getAccessToken();
-      if (jwt) {
-        console.log('Cleaning up FCM registration...');
-        await firstValueFrom(this.fcmService.unregisterToken(jwt));
-        console.log('FCM cleanup completed');
-      }
+      // JWT is no longer needed, auth is handled by cookies
+      console.log('Cleaning up FCM registration...');
+      await firstValueFrom(this.fcmService.unregisterToken());
+      console.log('FCM cleanup completed');
     } catch (error) {
       console.error('Failed to cleanup FCM:', error);
     }

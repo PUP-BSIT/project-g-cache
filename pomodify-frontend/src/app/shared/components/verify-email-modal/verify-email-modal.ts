@@ -16,8 +16,7 @@ export interface VerifyEmailModalData {
   styleUrls: ['./verify-email-modal.scss']
 })
 export class VerifyEmailModal {
-  @Output() openEmail = new EventEmitter<void>();
-  @Output() backToSignUp = new EventEmitter<void>();
+  @Output() goToLogin = new EventEmitter<void>();
   
   private dialogRef = inject(MatDialogRef<VerifyEmailModal>);
   private router = inject(Router);
@@ -34,14 +33,9 @@ export class VerifyEmailModal {
     return this.source === 'signup' ? 'Continue to Login' : 'Back to Login';
   }
 
-  onOpenEmail(): void {
-    this.openEmail.emit();
-    window.location.href = 'mailto:';
-  }
-
-  onAction(): void {
-    this.backToSignUp.emit();
-    this.dialogRef.close();
+  onGoToLogin(): void {
+    this.goToLogin.emit();
+    this.dialogRef.close('goToLogin');
     this.router.navigate(['/login']);
   }
 }

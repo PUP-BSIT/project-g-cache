@@ -33,15 +33,19 @@ export class NotificationService {
 
   constructor() {
     this.initializeVisibilityTracking();
+    
+    // Subscribe to FCM messages to handle foreground notifications
+    this.fcmService.messages$.subscribe(payload => {
+      console.log('🔔 Received foreground FCM message in NotificationService:', payload);
+      this.handleFcmMessage(payload);
+    });
   }
 
   private initializeVisibilityTracking(): void {
-    console.log('🔍 Initializing tab visibility tracking...');
     
     // Track tab visibility changes
     document.addEventListener('visibilitychange', () => {
       const isVisible = !document.hidden;
-      console.log('Tab visibility changed:', isVisible ? 'VISIBLE' : 'HIDDEN');
       this.isTabVisible$.next(isVisible);
       
       if (isVisible) {
@@ -51,17 +55,13 @@ export class NotificationService {
 
     // Track window focus/blur
     window.addEventListener('focus', () => {
-      console.log('Window focused');
       this.isTabVisible$.next(true);
       this.handleTabBecameVisible();
     });
 
     window.addEventListener('blur', () => {
-      console.log('Window blurred');
       this.isTabVisible$.next(false);
     });
-    
-    console.log('Tab visibility tracking initialized');
     
     // Add global debug functions for troubleshooting
     this.addGlobalDebugFunctions();
@@ -119,14 +119,10 @@ export class NotificationService {
     
     (window as any).testFCMRegistration = async () => {
       console.log('Testing FCM registration...');
-      const jwt = this.authService.getAccessToken();
-      if (!jwt) {
-        console.log('No JWT token available. Please login first.');
-        return;
-      }
+      // JWT is no longer needed, auth is handled by cookies
       
       try {
-        await this.fcmService.initializeFCM(jwt);
+        await this.fcmService.initializeFCM();
         console.log('FCM registration test completed successfully!');
       } catch (error) {
         console.log('FCM registration test failed:', error);
@@ -143,13 +139,6 @@ export class NotificationService {
         nextAction: 'Great job! Take a break.'
       });
     };
-    
-    console.log('Added global debug functions:');
-    console.log('  - checkNotificationSettings() - Check current settings');
-    console.log('  - forceTestNotification() - Force test notification');
-    console.log('  - enableNotifications() - Enable notifications in app');
-    console.log('  - testFCMRegistration() - Test FCM registration');
-    console.log('  - testMobileModal() - Test mobile notification modal');
   }
 
   private handleTabBecameVisible(): void {
@@ -194,6 +183,28 @@ export class NotificationService {
     this.pendingNotifications.forEach(context => {
       this.showNotificationModal(context);
     });
+  }
+
+  /**
+   * Handle incoming FCM message
+   */
+  private handleFcmMessage(payload: any): void {
+    const notification = payload.notification;
+    const data = payload.data;
+    
+    if (!notification) return;
+
+    const context: NotificationContext = {
+      title: notification.title,
+      body: notification.body,
+      sessionId: data?.sessionId ? parseInt(data.sessionId) : undefined,
+      activityId: data?.activityId ? parseInt(data.activityId) : undefined,
+      type: 'session-complete', // Default to session complete if not specified
+      nextAction: 'View Session'
+    };
+
+    // We treat FCM messages as "foreground" if the app is open
+    this.handleNotification(context);
   }
 
   /**
@@ -475,11 +486,10 @@ export class NotificationService {
         }
         
         // Also try FCM registration in background (for future use)
-        if (jwt) {
-          this.fcmService.initializeFCM(jwt).catch(error => {
-            console.log('FCM registration failed (not critical):', error);
-          });
-        }
+        // JWT is no longer needed, auth is handled by cookies
+        this.fcmService.initializeFCM().catch(error => {
+          console.log('FCM registration failed (not critical):', error);
+        });
         
       } else if (permission === 'denied') {
         console.log('Notification permission denied by user');

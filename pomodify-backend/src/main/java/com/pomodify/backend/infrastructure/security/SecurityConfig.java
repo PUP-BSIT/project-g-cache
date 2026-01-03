@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/actuator/**")
+                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/actuator/**")
                         .permitAll()
                         .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
@@ -108,6 +108,9 @@ public class SecurityConfig {
                                         "/api/v2/auth/login",
                                         "/api/v2/auth/refresh",
                                         "/api/v2/auth/verify",
+                                        "/api/v2/auth/resend-verification",
+                                        "/api/v2/auth/forgot-password",
+                                        "/api/v2/auth/reset-password",
                                         "/actuator/health",
                                         "/actuator/info",
                                         "/v3/api-docs/**",
@@ -128,7 +131,8 @@ public class SecurityConfig {
                                         .userService(customOAuth2UserService)
                                 )
                                 .successHandler(oAuth2AuthenticationSuccessHandler)
-                        );
+                        )
+                        .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint));
 
                 http.logout(AbstractHttpConfigurer::disable);
 

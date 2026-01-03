@@ -1,9 +1,8 @@
 import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
-import { HttpClient } from '@angular/common/http';
-import { API } from '../config/api.config';
+import { Observable, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
+import { Auth } from '../services/auth';
 
 /**
  * Attaches Authorization bearer token from localStorage to API requests.
@@ -13,7 +12,8 @@ export const authTokenInterceptor: HttpInterceptorFn = (
   request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ): Observable<HttpEvent<unknown>> => {
-  const http = inject(HttpClient);
+  const authService = inject(Auth);
+  
   // Only apply to API routes
   const isApiRequest = request.url.includes('/api/v2/');
   
@@ -21,27 +21,20 @@ export const authTokenInterceptor: HttpInterceptorFn = (
     return next(request);
   }
 
-  // Don't add token to login and register endpoints
-  const isLoginEndpoint = request.url.includes('/api/v2/auth/login');
-  const isRegisterEndpoint = request.url.includes('/api/v2/auth/register');
+  // Don't check refresh for auth endpoints (login, register, refresh, etc.)
+  // This prevents circular dependencies and unnecessary checks
+  const isAuthEndpoint = request.url.includes('/api/v2/auth/');
   
-  if (isLoginEndpoint || isRegisterEndpoint) {
+  if (isAuthEndpoint) {
     return next(request);
   }
 
-  // All tokens are managed by cookies. Just forward the request with credentials.
-  return next(request.clone({ withCredentials: true }));
-  return next(request);
+  // Check if token needs refresh before proceeding
+  return from(authService.ensureTokenValidity()).pipe(
+    switchMap(() => {
+      // All tokens are managed by cookies. Just forward the request with credentials.
+      return next(request.clone({ withCredentials: true }));
+    })
+  );
 };
 
-function getJwtExpiry(token: string): number | null {
-  try {
-    const [, payloadB64] = token.split('.');
-    if (!payloadB64) return null;
-    const payloadJson = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
-    const exp = payloadJson?.exp;
-    return typeof exp === 'number' ? exp : null;
-  } catch {
-    return null;
-  }
-}

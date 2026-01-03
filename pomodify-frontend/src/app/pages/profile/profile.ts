@@ -40,11 +40,12 @@ export class Profile implements OnInit {
   protected verificationTimer = signal(60);
   protected verificationCode = signal('');
   protected isVerificationValid = signal(false);
+  protected isLoadingProfile = signal(true);
   
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
-  protected userName = signal('John Doe');
-  protected userEmail = signal('johndoe@gmail.com');
+  protected userName = signal('');
+  protected userEmail = signal('');
   protected backupEmail = signal<string | null>(null);
   protected badges = signal<Badge[]>([]);
   protected badgesLoading = signal(false);
@@ -113,6 +114,7 @@ export class Profile implements OnInit {
    * Fetch user profile from backend and update UI (cookie-based auth)
    */
   private fetchUserProfile(): void {
+    this.isLoadingProfile.set(true);
     this.http.get(API.USER.PROFILE, { withCredentials: true }).subscribe({
       next: (user: any) => {
         if (user.firstName && user.lastName) {
@@ -125,11 +127,13 @@ export class Profile implements OnInit {
         if (user.email) {
           this.userEmail.set(user.email);
         }
+        this.isLoadingProfile.set(false);
       },
       error: () => {
         // Optionally clear UI or show error
         this.userName.set('');
         this.userEmail.set('');
+        this.isLoadingProfile.set(false);
       }
     });
   }

@@ -1,9 +1,11 @@
-import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn } from '@angular/common/http';
+import { HttpInterceptorFn, HttpErrorResponse, HttpRequest, HttpHandlerFn, HttpContextToken } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError, Observable, BehaviorSubject, filter, take, timer } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { API } from '../config/api.config';
+
+export const SKIP_REDIRECT = new HttpContextToken<boolean>(() => false);
 
 let isRefreshing = false;
 let refreshTokenSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
@@ -22,13 +24,17 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       // Handle 401 Unauthorized errors
       if (error.status === 401) {
-        console.log('[AuthErrorInterceptor] 401 received for URL:', request.url);
         
         // Don't try to refresh if this is already a refresh request or auth request
         if (request.url.includes('/auth/refresh') || 
             request.url.includes('/auth/login') || 
             request.url.includes('/auth/register')) {
-          console.log('[AuthErrorInterceptor] Auth request failed, redirecting to login');
+          
+          // If SKIP_REDIRECT is set, don't redirect even for auth failures
+          if (request.context.get(SKIP_REDIRECT)) {
+             return throwError(() => error);
+          }
+
           clearAuthData();
           router.navigate(['/login']);
           return throwError(() => error);
@@ -37,7 +43,12 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
         // Check if we recently tried to refresh - don't spam refresh attempts
         const now = Date.now();
         if (now - lastRefreshAttempt < REFRESH_COOLDOWN && !isRefreshing) {
-          console.log('[AuthErrorInterceptor] Recent refresh attempt, skipping retry');
+          // If we are in cooldown but not actively refreshing, it means the last refresh failed or we are in a loop.
+          // However, if we just refreshed successfully, we might want to retry the request instead of erroring.
+          // For now, let's allow the retry logic to handle it via the subject if it was a parallel request.
+          if (refreshTokenSubject.value === true) {
+               return next(request.clone({ withCredentials: true }));
+          }
           return throwError(() => error);
         }
 
@@ -66,29 +77,31 @@ function handleTokenRefresh(
     lastRefreshAttempt = Date.now();
     refreshTokenSubject.next(false);
 
-    console.log('[AuthErrorInterceptor] Attempting token refresh...');
-
-    return http.post(API.AUTH.REFRESH, {}, { withCredentials: true }).pipe(
+    // Pass SKIP_REDIRECT context to refresh request if present in original request
+    const context = request.context;
+    
+    return http.post(API.AUTH.REFRESH, {}, { withCredentials: true, context }).pipe(
       switchMap((response: any) => {
-        console.log('[AuthErrorInterceptor] Token refresh successful');
         isRefreshing = false;
         refreshTokenSubject.next(true);
         
         // Wait a bit for cookies to be set, then retry
-        return timer(150).pipe(
+        // Increased delay to 500ms to ensure cookie propagation
+        return timer(500).pipe(
           switchMap(() => {
-            console.log('[AuthErrorInterceptor] Retrying request:', request.url);
+            // Ensure we are using the latest cookies by cloning withCredentials again
             return next(request.clone({ withCredentials: true })).pipe(
               catchError((retryError: HttpErrorResponse) => {
                 if (retryError.status === 401) {
-                  console.log('[AuthErrorInterceptor] Retry still failed with 401');
                   // For session-related requests, don't redirect - let the app handle it gracefully
-                  if (request.url.includes('/sessions/')) {
-                    console.log('[AuthErrorInterceptor] Session request failed, continuing without redirect');
+                  if (request.url.includes('/sessions/') || request.context.get(SKIP_REDIRECT)) {
                     return throwError(() => retryError);
                   }
                   clearAuthData();
-                  router.navigate(['/login']);
+                  // Only redirect if not already on public pages to avoid loops
+                  if (!router.url.includes('/login') && !router.url.includes('/signup')) {
+                    router.navigate(['/login']);
+                  }
                 }
                 return throwError(() => retryError);
               })
@@ -97,31 +110,32 @@ function handleTokenRefresh(
         );
       }),
       catchError((refreshError) => {
-        console.log('[AuthErrorInterceptor] Token refresh failed:', refreshError);
         isRefreshing = false;
         refreshTokenSubject.next(false);
         
+        const skipRedirect = request.context.get(SKIP_REDIRECT);
+
         // For session-related requests, don't redirect immediately
-        if (request.url.includes('/sessions/')) {
-          console.log('[AuthErrorInterceptor] Session request, not redirecting');
+        if (request.url.includes('/sessions/') || skipRedirect) {
           return throwError(() => originalError);
         }
         
         clearAuthData();
-        router.navigate(['/login']);
+        // Only redirect if not already on public pages to avoid loops
+        if (!router.url.includes('/login') && !router.url.includes('/signup')) {
+          router.navigate(['/login']);
+        }
         return throwError(() => originalError);
       })
     );
   } else {
     // If already refreshing, wait for the refresh to complete
-    console.log('[AuthErrorInterceptor] Already refreshing, waiting...');
     return refreshTokenSubject.pipe(
       filter(refreshed => refreshed === true),
       take(1),
       switchMap(() => {
         return timer(150).pipe(
           switchMap(() => {
-            console.log('[AuthErrorInterceptor] Refresh completed, retrying queued request:', request.url);
             return next(request.clone({ withCredentials: true }));
           })
         );
@@ -132,7 +146,7 @@ function handleTokenRefresh(
 
 function clearAuthData(): void {
   try {
-    console.log('[AuthErrorInterceptor] Auth data cleared');
+    // console.log('[AuthErrorInterceptor] Auth data cleared');
   } catch (e) {
     console.warn('[AuthErrorInterceptor] Unable to clear auth data', e);
   }
