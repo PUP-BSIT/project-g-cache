@@ -10,12 +10,14 @@ import com.pomodify.backend.application.port.out.AiGenerationPort;
 import com.pomodify.backend.application.result.AiSuggestionResult;
 import com.pomodify.backend.application.result.BlueprintResult;
 import com.pomodify.backend.application.result.ConfirmBlueprintResult;
+import com.pomodify.backend.application.result.DualBlueprintResult;
 import com.pomodify.backend.application.result.QuickFocusResult;
 import com.pomodify.backend.domain.enums.SessionType;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.Category;
 import com.pomodify.backend.domain.model.PomodoroSession;
 import com.pomodify.backend.domain.model.SessionNote;
+import com.pomodify.backend.domain.model.SessionTodoItem;
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.model.ai.AiActivityBlueprint;
 import com.pomodify.backend.domain.repository.ActivityRepository;
@@ -49,6 +51,7 @@ public class AiService {
 
     // In-memory store for async results (for demo; use Redis or DB for production)
     private static final ConcurrentHashMap<String, BlueprintResult> blueprintResults = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, DualBlueprintResult> dualBlueprintResults = new ConcurrentHashMap<>();
 
     /**
      * Initiates async AI blueprint generation and returns a requestId immediately.
@@ -72,6 +75,29 @@ public class AiService {
      */
     public BlueprintResult getBlueprintResult(String requestId) {
         return blueprintResults.get(requestId);
+    }
+
+    /**
+     * Initiates async AI dual blueprint generation and returns a requestId immediately.
+     */
+    public String generateDualBlueprintsAsync(String topic, List<String> previousSuggestions) {
+        String requestId = UUID.randomUUID().toString();
+        generateDualBlueprintsAsyncInternal(topic, previousSuggestions, requestId);
+        return requestId;
+    }
+
+    @Async
+    public Future<Void> generateDualBlueprintsAsyncInternal(String topic, List<String> previousSuggestions, String requestId) {
+        DualBlueprintResult result = aiGenerationPort.generateDualBlueprints(sanitizeTopic(topic), previousSuggestions);
+        dualBlueprintResults.put(requestId, result);
+        return AsyncResult.forValue(null);
+    }
+
+    /**
+     * Poll for dual blueprint result by requestId.
+     */
+    public DualBlueprintResult getDualBlueprintResult(String requestId) {
+        return dualBlueprintResults.get(requestId);
     }
 
     private final PomodoroSessionRepository sessionRepository;
@@ -172,15 +198,38 @@ public class AiService {
         PomodoroSession savedSession = sessionRepository.save(session);
         logger.info("[AiService] Session created with ID: {}", savedSession.getId());
 
-        if (command.firstSessionNote() != null && !command.firstSessionNote().isBlank()) {
-            SessionNote note = SessionNote.builder()
-                    .session(savedSession)
-                    .content(command.firstSessionNote().trim())
-                    .build();
-            savedSession.setNote(note);
-            sessionRepository.save(savedSession);
-            logger.info("[AiService] Session note added");
+        // Build the note content: tipNote first if provided
+        String noteContent = "";
+        if (command.tipNote() != null && !command.tipNote().isBlank()) {
+            noteContent = "💡 Tip: " + command.tipNote().trim();
         }
+
+        // Create session note with todos
+        SessionNote note = SessionNote.builder()
+                .session(savedSession)
+                .content(noteContent)
+                .build();
+        
+        // Add todos to the note if provided
+        if (command.todos() != null && !command.todos().isEmpty()) {
+            for (int i = 0; i < command.todos().size(); i++) {
+                String todoText = command.todos().get(i);
+                if (todoText != null && !todoText.isBlank()) {
+                    SessionTodoItem todoItem = SessionTodoItem.builder()
+                            .note(note)
+                            .text(todoText.trim())
+                            .done(false)
+                            .orderIndex(i)
+                            .build();
+                    note.getItems().add(todoItem);
+                }
+            }
+            logger.info("[AiService] Added {} todo items to session", note.getItems().size());
+        }
+
+        savedSession.setNote(note);
+        sessionRepository.save(savedSession);
+        logger.info("[AiService] Session note with todos added");
 
         return ConfirmBlueprintResult.builder()
                 .activityId(savedActivity.getId())
