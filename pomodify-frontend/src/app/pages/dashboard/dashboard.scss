@@ -15,6 +15,41 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 @use "sass:color";
 
+// Backup Email Banner - supports light and dark mode
+.backup-email-banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(95, 169, 164, 0.3);
+  background: linear-gradient(135deg, rgba(95, 169, 164, 0.15) 0%, rgba(95, 169, 164, 0.25) 100%);
+  color: var(--text);
+  
+  span {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  
+  button {
+    background: transparent;
+    border: 1px solid $primary-teal;
+    color: $primary-teal;
+    padding: 4px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: $primary-teal;
+      color: white;
+    }
+  }
+}
+
 .dashboard {
   display: flex;
   min-height: 100vh;
