@@ -353,4 +353,47 @@ public class AuthService {
             .backupEmail(user.getBackupEmail())
             .build();
     }
+
+    // Change password for authenticated user
+    @Transactional
+    public void changePassword(String userEmail, String currentPassword, String newPassword) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // Verify current password
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        // Validate new password is different
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("New password must be different from current password");
+        }
+
+        // Update password
+        user.updatePassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password changed successfully for user: {}", userEmail);
+    }
+
+    // Update user profile (name)
+    @Transactional
+    public UserResult updateProfile(String userEmail, String firstName, String lastName) {
+        Email emailVO = Email.of(userEmail);
+        User user = userRepository.findByEmail(emailVO)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.updateName(firstName, lastName);
+        User savedUser = userRepository.save(user);
+        log.info("Profile updated successfully for user: {}", userEmail);
+
+        return UserResult.builder()
+            .firstName(savedUser.getFirstName())
+            .lastName(savedUser.getLastName())
+            .email(savedUser.getEmail().getValue())
+            .isEmailVerified(savedUser.isEmailVerified())
+            .backupEmail(savedUser.getBackupEmail())
+            .build();
+    }
 }
