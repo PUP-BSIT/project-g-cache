@@ -1,0 +1,54 @@
+.floating-timer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--primary-color, #5FA9A4);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  z-index: 1000;
+  cursor: grab;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.expanded {
+    transform: scale(1.1);
+    padding: 15px 20px;
+    border-radius: 15px;
+  }
+
+  .timer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .time {
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .btn-view {
+    background: white;
+    color: var(--primary-color, #5FA9A4);
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: bold;
+    
+    &:hover {
+      background: #f0f0f0;
+    }
+  }
+}

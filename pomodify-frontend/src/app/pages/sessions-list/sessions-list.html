@@ -5,10 +5,15 @@
       Back
     </button>
     <h1>{{ activityTitle() }}</h1>
-    <button class="create-session-btn" (click)="createNewSession()">
-      <i class="fa-solid fa-plus"></i>
-      New Session
-    </button>
+    <div class="header-actions" style="display: flex; gap: 10px;">
+      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer;">
+        {{ showAbandoned() ? 'Hide Abandoned' : 'Show Abandoned' }}
+      </button>
+      <button class="create-session-btn" (click)="createNewSession()" [disabled]="hasActiveSession()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
+        <i class="fa-solid fa-plus"></i>
+        New Session
+      </button>
+    </div>
   </header>
 
   @if (loading()) {
@@ -34,8 +39,8 @@
     </div>
   } @else {
     <div class="sessions-grid">
-      @for (session of sessions(); track session.id) {
-        <div class="session-card" (click)="openSession(session)">
+      @for (session of filteredSessions(); track session.id) {
+        <div class="session-card" (click)="openSession(session)" [style.cursor]="(session.status === 'ABANDONED' || session.status === 'COMPLETED') ? 'default' : 'pointer'">
           <div class="session-header">
             <div class="session-type">
               <i class="fa-solid fa-stopwatch"></i>
@@ -70,6 +75,10 @@
               <i class="fa-solid fa-note-sticky"></i>
               {{ getNoteText(session.note) }}
             </div>
+          }
+          
+          @if (session.status === 'COMPLETED') {
+             <button class="btn-view-notes" (click)="viewNotes(session, $event)" style="margin-top: 10px; width: 100%; padding: 8px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">View Notes</button>
           }
 
           <div class="session-footer">

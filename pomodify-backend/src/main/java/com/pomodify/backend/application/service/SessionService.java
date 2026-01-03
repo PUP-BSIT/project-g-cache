@@ -145,6 +145,15 @@ public class SessionService {
     }
 
     @Transactional
+    public SessionResult completeEarly(CompleteEarlyCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        activity.completeEarly(command.sessionId());
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
     public SessionResult completePhase(CompletePhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
@@ -175,6 +184,15 @@ public class SessionService {
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         session.skipPhase();
         PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult resetSession(ResetSessionCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        session.resetSession();
+        PomodoroSession saved = sessionRepository.save(session);
+        log.info("Reset session {} to NOT_STARTED", saved.getId());
         return toResult(saved);
     }
 

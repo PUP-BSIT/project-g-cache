@@ -1,6 +1,6 @@
 ﻿import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DigitalClockPickerComponent } from '../digital-clock-picker/digital-clock-picker';
 
 export interface TimePickerData {
@@ -16,7 +16,7 @@ export interface TimePickerData {
     <div class="time-picker-modal">
       <h2 mat-dialog-title>Set Timer Duration</h2>
       <div class="instruction-text">
-        <p>Scroll to select minutes and seconds</p>
+        <p>Scroll or click to edit minutes and seconds</p>
       </div>
       <mat-dialog-content>
         <app-digital-clock-picker [(time)]="time" [isEditable]="true" />
@@ -56,7 +56,9 @@ export interface TimePickerData {
 })
 export class TimePickerModalComponent {
   private dialogRef = inject(MatDialogRef<TimePickerModalComponent>);
-  time = signal<TimePickerData>({ minutes: 25, seconds: 0 });
+  private data = inject<TimePickerData>(MAT_DIALOG_DATA);
+  
+  time = signal<TimePickerData>(this.data || { minutes: 25, seconds: 0 });
 
   onCancel(): void {
     this.dialogRef.close();

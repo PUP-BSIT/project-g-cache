@@ -26,6 +26,8 @@ export class TimerSyncService {
   private _isConnected = signal(true);
   private _lastSyncTime = signal(0);
   private _drift = signal(0);
+  private _currentSessionId = signal<number | null>(null);
+  private _currentActivityId = signal<number | null>(null);
 
   remainingSeconds = this._remainingSeconds.asReadonly();
   isRunning = this._isRunning.asReadonly();
@@ -33,6 +35,8 @@ export class TimerSyncService {
   isConnected = this._isConnected.asReadonly();
   lastSyncTime = this._lastSyncTime.asReadonly();
   drift = this._drift.asReadonly();
+  currentSessionId = this._currentSessionId.asReadonly();
+  currentActivityId = this._currentActivityId.asReadonly();
 
   private currentSession: PomodoroSession | null = null;
   private activityId: number | null = null;
@@ -53,6 +57,8 @@ export class TimerSyncService {
     
     this.currentSession = session;
     this.activityId = activityId;
+    this._currentSessionId.set(session.id);
+    this._currentActivityId.set(activityId);
 
     const persistedState = this.loadPersistedState();
 

@@ -31,7 +31,7 @@ type SignupResponse = {
 })
 export class Auth {
   private tokenExpirationTime: number = 0;
-  private readonly TOKEN_LIFETIME = 60000; // 60 seconds
+  private readonly TOKEN_LIFETIME = 900000; // 15 minutes
   private refreshPromise: Promise<void> | null = null;
 
   constructor(
@@ -42,6 +42,19 @@ export class Auth {
     private fcmService: FcmService
   ) {}
   // Removed duplicate inject(HttpClient); using constructor injection only
+  
+  /**
+   * Sync login state with the service worker for background notifications
+   */
+  private syncLoginStateWithServiceWorker(isLoggedIn: boolean): void {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SET_LOGIN_STATE',
+        isLoggedIn
+      });
+      console.log('[Auth] Synced login state with service worker:', isLoggedIn);
+    }
+  }
   
   resendVerification(email: string): Promise<void> {
     return lastValueFrom(
@@ -71,6 +84,10 @@ export class Auth {
 
   private clearAuthData(): void {
     this.tokenExpirationTime = 0;
+    // Clear login state for FCM/PWA notifications
+    localStorage.setItem('isLoggedIn', 'false');
+    // Sync with service worker
+    this.syncLoginStateWithServiceWorker(false);
     // Only clear in-memory state and history; tokens are managed by cookies
     try {
       this.historyService.clearHistory();
@@ -89,15 +106,17 @@ export class Auth {
   /**
    * Checks if the token is about to expire and refreshes it if necessary.
    * Returns a promise that resolves when the token is valid.
+   * Only refreshes proactively when token is about to expire (within 30 seconds).
    */
   ensureTokenValidity(): Promise<void> {
-    // If no expiration time is set (e.g. not logged in), assume valid or let it fail
+    // If token expiration is not set, don't proactively refresh
+    // Let the interceptor handle 401s and refresh on-demand
     if (this.tokenExpirationTime === 0) {
       return Promise.resolve();
     }
 
-    // Check if token expires in less than 10 seconds
-    if (Date.now() > this.tokenExpirationTime - 10000) {
+    // Check if token expires in less than 30 seconds
+    if (Date.now() > this.tokenExpirationTime - 30000) {
       if (this.refreshPromise) {
         return this.refreshPromise;
       }
@@ -168,8 +187,11 @@ export class Auth {
         // No need to store tokens in localStorage; backend sets cookies
         // Optionally, update in-memory user state here
         
-        // Set the permanent flag
+        // Set the permanent flag and login state for FCM/PWA
         localStorage.setItem('has_logged_in_before', 'true');
+        localStorage.setItem('isLoggedIn', 'true');
+        // Sync with service worker for background notifications
+        this.syncLoginStateWithServiceWorker(true);
 
         this.updateTokenExpiration();
 
@@ -204,9 +226,25 @@ export class Auth {
     console.log('[Auth] Attempting signup for:', email);
     
     return lastValueFrom(this.http.post<SignupResponse>(url, { firstName, lastName, email, password }))
-      .then((response) => {
+      .then(async (response) => {
         console.log('[Auth] Signup successful for:', response.email);
-        return Promise.resolve();
+        
+        // Auto-login after successful signup
+        console.log('[Auth] Auto-logging in user after signup...');
+        return lastValueFrom(this.http.post<LoginResponse>(API.AUTH.LOGIN, { email, password }, { withCredentials: true }))
+          .then(() => {
+            // Set the permanent flag and login state for FCM/PWA
+            localStorage.setItem('has_logged_in_before', 'true');
+            localStorage.setItem('isLoggedIn', 'true');
+            // Sync with service worker for background notifications
+            this.syncLoginStateWithServiceWorker(true);
+            this.updateTokenExpiration();
+            // Initialize FCM after successful login
+            this.initializeFCMAfterLogin();
+            // Fetch user profile after login
+            this.fetchAndStoreUserProfile();
+            console.log('[Auth] Auto-login after signup successful');
+          });
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
         // Extract error message from backend response
@@ -223,6 +261,15 @@ export class Auth {
    */
   // getAccessToken is deprecated; tokens are managed by cookies
   getAccessToken(): null { return null; }
+
+  /**
+   * Check if user is currently logged in (has active session)
+   * Uses the isLoggedIn flag in localStorage which is only cleared on explicit logout
+   */
+  isLoggedIn(): boolean {
+    // Check the explicit isLoggedIn flag - only set to false on logout
+    return localStorage.getItem('isLoggedIn') === 'true';
+  }
 
   /**
    * Initialize FCM after successful login with proper error handling
@@ -255,7 +302,12 @@ export class Auth {
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {
       if (result === 'goToLogin') {
-        this.router.navigate(['/login']);
+        // After signup, user is already logged in, so go to dashboard
+        if (source === 'signup') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/login']);
+        }
       }
     });
   }

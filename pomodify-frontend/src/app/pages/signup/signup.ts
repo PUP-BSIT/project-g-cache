@@ -82,7 +82,7 @@ export class Signup implements OnInit {
 
     this.auth.signup(firstName, lastName, email, password)
       .then(() => {
-        this.notificationService.showSuccess('Account Created Successfully', 'You can now login.');
+        this.notificationService.showSuccess('Account Created Successfully', 'Welcome to Pomodify!');
         this.auth.showVerifyEmailModal();
       })
       .catch((error: Error & { message?: string }) => {
