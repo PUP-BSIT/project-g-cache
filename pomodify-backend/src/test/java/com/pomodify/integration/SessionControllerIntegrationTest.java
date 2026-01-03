@@ -307,7 +307,7 @@ class SessionControllerIntegrationTest {
                 .header("Authorization", "Bearer " + accessToken)
                 .param("note", "Stopping for now"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Session stopped successfully"));
+                .andExpect(jsonPath("$.message").value("Session abandoned successfully"));
     }
 
     @Test

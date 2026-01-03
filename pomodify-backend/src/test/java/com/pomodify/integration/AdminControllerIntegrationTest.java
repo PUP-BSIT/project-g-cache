@@ -71,7 +71,7 @@ class AdminControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("POST /api/v2/admin/login")
+    @DisplayName("POST /admin/login")
     class AdminLoginTests {
 
         @Test
@@ -82,7 +82,7 @@ class AdminControllerIntegrationTest {
                     "password", TEST_ADMIN_PASSWORD
             );
 
-            mockMvc.perform(post("/api/v2/admin/login")
+            mockMvc.perform(post("/admin/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(credentials)))
                     .andExpect(status().isOk())
@@ -98,7 +98,7 @@ class AdminControllerIntegrationTest {
                     "password", TEST_ADMIN_PASSWORD
             );
 
-            mockMvc.perform(post("/api/v2/admin/login")
+            mockMvc.perform(post("/admin/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(credentials)))
                     .andExpect(status().isUnauthorized())
@@ -114,7 +114,7 @@ class AdminControllerIntegrationTest {
                     "password", "wrongpassword"
             );
 
-            mockMvc.perform(post("/api/v2/admin/login")
+            mockMvc.perform(post("/admin/login")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(credentials)))
                     .andExpect(status().isUnauthorized())
@@ -123,7 +123,7 @@ class AdminControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("GET /api/v2/admin/users")
+    @DisplayName("GET /admin/users")
     class GetAllUsersTests {
 
         @Test
@@ -133,7 +133,7 @@ class AdminControllerIntegrationTest {
             createTestUser("John", "Doe", "john.doe" + uniqueSuffix + "@test.com");
             createTestUser("Jane", "Smith", "jane.smith" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(get("/api/v2/admin/users"))
+            mockMvc.perform(get("/admin/users"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));
         }
@@ -141,14 +141,14 @@ class AdminControllerIntegrationTest {
         @Test
         @DisplayName("Should return list (possibly empty) when called")
         void shouldReturnListWhenCalled() throws Exception {
-            mockMvc.perform(get("/api/v2/admin/users"))
+            mockMvc.perform(get("/admin/users"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray());
         }
     }
 
     @Nested
-    @DisplayName("GET /api/v2/admin/users/search")
+    @DisplayName("GET /admin/users/search")
     class SearchUsersTests {
 
         @Test
@@ -157,7 +157,7 @@ class AdminControllerIntegrationTest {
             String uniqueSuffix = String.valueOf(System.currentTimeMillis());
             createTestUser("UniqueAlice" + uniqueSuffix, "Wonder", "alice" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "UniqueAlice" + uniqueSuffix))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
@@ -170,7 +170,7 @@ class AdminControllerIntegrationTest {
             String uniqueSuffix = String.valueOf(System.currentTimeMillis());
             createTestUser("David", "Test", "david.unique" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "david.unique" + uniqueSuffix))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
@@ -180,7 +180,7 @@ class AdminControllerIntegrationTest {
         @Test
         @DisplayName("Should return empty list for non-matching query")
         void shouldReturnEmptyForNonMatchingQuery() throws Exception {
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "nonexistentuser12345xyz"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
@@ -192,7 +192,7 @@ class AdminControllerIntegrationTest {
             String uniqueSuffix = String.valueOf(System.currentTimeMillis());
             createTestUser("CaseFrank" + uniqueSuffix, "Miller", "frank" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "casefrank" + uniqueSuffix))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)));
@@ -200,7 +200,7 @@ class AdminControllerIntegrationTest {
     }
 
     @Nested
-    @DisplayName("DELETE /api/v2/admin/users/{userId}")
+    @DisplayName("DELETE /admin/users/{userId}")
     class DeleteUserTests {
 
         @Test
@@ -209,13 +209,13 @@ class AdminControllerIntegrationTest {
             String uniqueSuffix = String.valueOf(System.currentTimeMillis());
             User user = createTestUser("ToDelete" + uniqueSuffix, "User", "todelete" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(delete("/api/v2/admin/users/" + user.getId()))
+            mockMvc.perform(delete("/admin/users/" + user.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("User deleted successfully"));
 
             // Verify user is soft-deleted (not in active users list)
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "todelete" + uniqueSuffix + "@test.com"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(0)));
@@ -224,7 +224,7 @@ class AdminControllerIntegrationTest {
         @Test
         @DisplayName("Should return 404 for non-existent user")
         void shouldReturn404ForNonExistentUser() throws Exception {
-            mockMvc.perform(delete("/api/v2/admin/users/999999"))
+            mockMvc.perform(delete("/admin/users/999999"))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message", containsString("not found")));
@@ -241,7 +241,7 @@ class AdminControllerIntegrationTest {
             String uniqueSuffix = String.valueOf(System.currentTimeMillis());
             createTestUser("TestFormat" + uniqueSuffix, "User", "testformat" + uniqueSuffix + "@test.com");
 
-            mockMvc.perform(get("/api/v2/admin/users/search")
+            mockMvc.perform(get("/admin/users/search")
                             .param("query", "testformat" + uniqueSuffix + "@test.com"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].id").isNumber())
