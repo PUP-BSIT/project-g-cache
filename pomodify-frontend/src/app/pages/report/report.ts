@@ -202,7 +202,7 @@ export class Report implements OnInit {
         // If it's an authentication error, the interceptor will handle redirect
         // For other errors, clear the data
         if (error.status !== 401) {
-          // Clear all data when there's an error
+          // Clear all data when there's an error 
           this.totalFocusHours.set(0);
           this.totalBreakHours.set(0);
           this.averageSessionLengthMinutes.set(0);
@@ -270,6 +270,30 @@ export class Report implements OnInit {
       this.completionRate.set(overview.completionRate ?? 0);
       this.sessionsCount.set(overview.sessionsCount ?? 0);
       this.averageSessionLengthMinutes.set(overview.averageSessionLengthMinutes ?? 0);
+      
+      if (overview.dailyAverageFocusHours !== undefined) {
+        this.dailyAverageFocusHours.set(overview.dailyAverageFocusHours);
+      } else {
+        // Fallback calculation if backend doesn't provide it
+        const labelCount = labels.length || 1;
+        this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
+      }
+      
+      if (overview.streakDays !== undefined) {
+        this.streakDays.set(overview.streakDays);
+      } else {
+        // Fallback calculation if backend doesn't provide it
+        let streak = 0;
+        for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
+          const v = paddedFocusHours[i] ?? 0;
+          if (v > 0) {
+            streak += 1;
+          } else if (streak > 0) {
+            break;
+          }
+        }
+        this.streakDays.set(streak);
+      }
     } else {
       // Reset to defaults if overview is undefined
       this.totalFocusHours.set(0);
@@ -277,25 +301,12 @@ export class Report implements OnInit {
       this.completionRate.set(0);
       this.sessionsCount.set(0);
       this.averageSessionLengthMinutes.set(0);
+      this.dailyAverageFocusHours.set(0);
+      this.streakDays.set(0);
     }
 
     // Set last month abandoned sessions
     this.lastMonthAbandonedSessions.set(summary.lastMonthAbandonedSessions ?? 0);
-
-    const labelCount = labels.length || 1;
-    this.dailyAverageFocusHours.set(labelCount ? totalHours / labelCount : 0);
-
-    // Calculate streak: consecutive days with focus at the end of the period
-    let streak = 0;
-    for (let i = paddedFocusHours.length - 1; i >= 0; i--) {
-      const v = paddedFocusHours[i] ?? 0;
-      if (v > 0) {
-        streak += 1;
-      } else if (streak > 0) {
-        break;
-      }
-    }
-    this.streakDays.set(streak);
 
     // Build activity breakdown for each label based on recentSessions
     const points: FocusPoint[] = labels.map((label: string, index: number) => {

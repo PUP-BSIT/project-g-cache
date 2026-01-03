@@ -22,6 +22,8 @@ type Overview = {
   completionRate: number;
   sessionsCount: number;
   averageSessionLengthMinutes: number;
+  dailyAverageFocusHours?: number; 
+  streakDays?: number; 
 };
 
 type SummaryItemChartData = {
