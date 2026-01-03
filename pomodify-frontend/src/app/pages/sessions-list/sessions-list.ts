@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
@@ -13,15 +14,19 @@ import { SessionNoteDialogComponent } from '../../shared/components/session-note
 @Component({
   selector: 'app-sessions-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sessions-list.html',
   styleUrls: ['./sessions-list.scss']
 })
 export class SessionsListComponent implements OnInit {
 
     getNoteText(note: any): string {
+      if (!note) return '';
       if (typeof note === 'string') return note;
-      if (note && typeof note === 'object' && 'text' in note && typeof note.text === 'string') return note.text;
+      // Handle object with 'text' property
+      if (typeof note === 'object' && 'text' in note && typeof note.text === 'string') return note.text;
+      // Handle object with 'content' property (from session-timer save format)
+      if (typeof note === 'object' && 'content' in note && typeof note.content === 'string') return note.content;
       return '';
     }
   protected router = inject(Router);
@@ -38,6 +43,11 @@ export class SessionsListComponent implements OnInit {
   activityId = signal<number | null>(null);
   
   showAbandoned = signal(false);
+  
+  // Note editing state
+  editingNoteForSession = signal<number | null>(null);
+  noteDraft = signal<string>('');
+  savingNote = signal(false);
   
   filteredSessions = computed(() => {
     const all = this.sessions();
@@ -109,6 +119,7 @@ export class SessionsListComponent implements OnInit {
         return of([]);
       })
     ).subscribe(sessions => {
+      console.log('[Sessions List] Loaded sessions with notes:', sessions.map(s => ({ id: s.id, note: s.note })));
       this.sessions.set(sessions);
       this.loading.set(false);
     });
@@ -173,6 +184,69 @@ export class SessionsListComponent implements OnInit {
         console.log('[Sessions List] Session created successfully:', newSession);
         // Navigate to the session timer page
         this.router.navigate(['/activities', this.activityTitle(), 'sessions', newSession.id]);
+      }
+    });
+  }
+
+  /**
+   * Check if notes can be edited for a session based on status
+   * Editable: IN_PROGRESS, PAUSED, PENDING (stopped), ABANDONED
+   */
+  protected canEditNote(status: string): boolean {
+    const editableStatuses = ['IN_PROGRESS', 'PAUSED', 'PENDING', 'ABANDONED'];
+    return editableStatuses.includes(status?.toUpperCase());
+  }
+
+  /**
+   * Check if notes are view-only (completed sessions)
+   */
+  protected isNoteViewOnly(status: string): boolean {
+    return status?.toUpperCase() === 'COMPLETED';
+  }
+
+  /**
+   * Start editing a note for a session
+   */
+  protected startEditNote(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    this.editingNoteForSession.set(session.id);
+    this.noteDraft.set(this.getNoteText(session.note));
+  }
+
+  /**
+   * Cancel note editing
+   */
+  protected cancelEditNote(event: Event): void {
+    event.stopPropagation();
+    this.editingNoteForSession.set(null);
+    this.noteDraft.set('');
+  }
+
+  /**
+   * Save the note for a session
+   */
+  protected saveNote(session: PomodoroSession, event: Event): void {
+    event.stopPropagation();
+    const actId = this.activityId();
+    if (!actId) return;
+
+    this.savingNote.set(true);
+    const noteText = this.noteDraft();
+
+    this.sessionService.updateNote(actId, session.id, noteText).subscribe({
+      next: () => {
+        // Update local state
+        const updated = this.sessions().map(s => 
+          s.id === session.id ? { ...s, note: noteText } : s
+        );
+        this.sessions.set(updated);
+        this.editingNoteForSession.set(null);
+        this.noteDraft.set('');
+        this.savingNote.set(false);
+      },
+      error: (err) => {
+        console.error('Failed to save note:', err);
+        this.savingNote.set(false);
       }
     });
   }
