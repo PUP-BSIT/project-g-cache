@@ -181,7 +181,8 @@ public class AiService {
         Activity activity = user.createActivity(
                 command.activityTitle().trim(),
                 command.activityDescription() != null ? command.activityDescription().trim() : null,
-                category
+                category,
+                null
         );
         Activity savedActivity = activityRepository.save(activity);
         logger.info("[AiService] Activity created with ID: {}", savedActivity.getId());
@@ -292,7 +293,7 @@ public class AiService {
             }
         }
 
-        Activity newActivity = user.createActivity(QUICK_FOCUS_TITLE, QUICK_FOCUS_DESCRIPTION, null);
+        Activity newActivity = user.createActivity(QUICK_FOCUS_TITLE, QUICK_FOCUS_DESCRIPTION, null, null);
         Activity savedActivity = activityRepository.save(newActivity);
         logger.info("[AiService] Created new Quick Focus activity: {}", savedActivity.getId());
 

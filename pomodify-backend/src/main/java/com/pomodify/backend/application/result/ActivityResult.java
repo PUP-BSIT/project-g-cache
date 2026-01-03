@@ -9,6 +9,7 @@ public record ActivityResult(
         String categoryName,
         String activityTitle,
         String activityDescription,
+        String color,
         java.time.LocalDateTime createdAt,
         java.time.LocalDateTime updatedAt
 ) {

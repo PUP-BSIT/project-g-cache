@@ -156,19 +156,19 @@ public class User {
     }
 
     // ──────────────── Activity Operations ────────────────
-    public Activity createActivity(String title, String description, Category category) {
+    public Activity createActivity(String title, String description, Category category, String color) {
         ensureActive();
-        Activity activity = Activity.create(title, description, this, category);
+        Activity activity = Activity.create(title, description, this, category, color);
         this.activities.add(activity);
         return activity;
     }
 
-    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory) {
+    public Activity updateActivity(Activity activityToUpdate, String newTitle, String newDescription, Category newCategory, String newColor) {
         ensureActive();
         if (activityToUpdate == null)
             throw new IllegalArgumentException("Activity cannot be null");
 
-        activityToUpdate.updateDetails(newTitle, newDescription, newCategory);
+        activityToUpdate.updateDetails(newTitle, newDescription, newCategory, newColor);
         return activityToUpdate;
     }
 
