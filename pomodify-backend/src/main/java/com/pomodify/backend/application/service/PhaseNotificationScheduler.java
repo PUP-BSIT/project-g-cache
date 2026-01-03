@@ -59,17 +59,20 @@ public class PhaseNotificationScheduler {
     private void sendPhaseNotification(PomodoroSession session) {
         Long userId = session.getActivity().getUser().getId();
         CyclePhase phase = session.getCurrentPhase();
-        String activityTitle = session.getActivity().getTitle();
+        int focusMinutes = (int) session.getFocusDuration().toMinutes();
+        int breakMinutes = (int) session.getBreakDuration().toMinutes();
         
         String title;
         String body;
         
         if (phase == CyclePhase.FOCUS) {
-            title = "🍅 Focus Complete!";
-            body = String.format("Great work on '%s'! Time for a break.", activityTitle);
+            // Focus phase just ended → transitioning to break
+            title = "☕ It's Break Time!";
+            body = String.format("%d minutes of focus completed", focusMinutes);
         } else {
-            title = "⏰ Break Over!";
-            body = String.format("Ready to focus on '%s' again?", activityTitle);
+            // Break phase just ended → transitioning to focus
+            title = "🔥 Focus Now!";
+            body = "Break is done. Time to get back to work!";
         }
         
         try {

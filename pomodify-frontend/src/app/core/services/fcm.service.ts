@@ -71,6 +71,19 @@ async initializeFCM(): Promise<void> {
         const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
         console.log('✅ Service worker registered');
         
+        // Wait for service worker to be ready and active
+        await navigator.serviceWorker.ready;
+        console.log('✅ Service worker is ready');
+        
+        // Send login state to service worker
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SET_LOGIN_STATE',
+            isLoggedIn: true
+          });
+          console.log('📡 Sent login state to service worker');
+        }
+        
         // Initialize Firebase app
         const app = this.initializeFirebaseApp();
         if (!app) {

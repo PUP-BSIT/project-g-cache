@@ -1,13 +1,30 @@
-import { Component, EventEmitter, Input, Output, effect, signal, DestroyRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, DestroyRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { API } from '../../core/config/api.config';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { timer, of } from 'rxjs';
-import { switchMap, catchError } from 'rxjs/operators';
+import { timer, of, Subscription } from 'rxjs';
+import { switchMap, catchError, takeWhile } from 'rxjs/operators';
 
-export type WizardState = 'idle' | 'generating' | 'preview' | 'error';
+export type WizardState = 'idle' | 'generating' | 'preview' | 'confirming' | 'error';
+
+export interface BlueprintPlan {
+  level: string;
+  activityTitle: string;
+  activityDescription: string;
+  focusMinutes: number;
+  breakMinutes: number;
+  todos: string[];
+  tipNote: string;
+}
+
+export interface DualBlueprintResponse {
+  message: string;
+  beginnerPlan: BlueprintPlan;
+  intermediatePlan: BlueprintPlan;
+  isFallback: boolean;
+}
 
 type ConfirmBlueprintResponse = {
   message: string;
@@ -29,29 +46,33 @@ export class SmartActionWizardComponent {
 
   state = signal<WizardState>('idle');
   topic = signal('');
-  preview = signal<any>(null);
+  dualBlueprint = signal<DualBlueprintResponse | null>(null);
   error = signal<string | null>(null);
+  
+  // Track previous suggestions for regeneration
+  previousSuggestions = signal<string[]>([]);
+  
   private pollingIntervalMs = 1000;
+  private pollingSubscription: Subscription | null = null;
 
   constructor(private http: HttpClient, private destroyRef: DestroyRef) {}
 
   startGeneration() {
     this.state.set('generating');
     this.error.set(null);
-    this.preview.set(null);
-    this.http.post(API.AI.GENERATE_PREVIEW_ASYNC, { topic: this.topic().trim() }, { responseType: 'text' })
+    this.dualBlueprint.set(null);
+    
+    const requestBody = {
+      topic: this.topic().trim(),
+      previousSuggestions: this.previousSuggestions()
+    };
+
+    this.http.post<{ requestId: string }>(API.AI.GENERATE_DUAL_PREVIEW_ASYNC, requestBody)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (requestId: string) => {
-          // If requestId is a JSON string, parse it; otherwise, use as is
-          let id = requestId;
-          try {
-            const parsed = JSON.parse(requestId);
-            if (parsed && typeof parsed.requestId === 'string') {
-              id = parsed.requestId;
-            }
-          } catch {}
-          this.pollForPreview(id);
+        next: (response) => {
+          const requestId = response.requestId;
+          this.pollForDualPreview(requestId);
         },
         error: () => {
           this.error.set('Failed to start plan generation.');
@@ -60,35 +81,61 @@ export class SmartActionWizardComponent {
       });
   }
 
-  private pollForPreview(requestId: string) {
-    timer(0, this.pollingIntervalMs)
+  private pollForDualPreview(requestId: string) {
+    // Cancel any existing polling
+    this.pollingSubscription?.unsubscribe();
+    
+    let isComplete = false;
+    
+    this.pollingSubscription = timer(0, this.pollingIntervalMs)
       .pipe(
-        switchMap(() => this.http.get(API.AI.GET_PREVIEW_ASYNC_RESULT(requestId))),
+        takeWhile(() => !isComplete),
+        switchMap(() => this.http.get<DualBlueprintResponse>(API.AI.GET_DUAL_PREVIEW_ASYNC_RESULT(requestId), { observe: 'response' })),
         catchError(() => of(null)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe((res: any) => {
-        if (!res) return;
-        // If still processing, backend returns 202 (no body)
-        if (res && res.activityTitle) {
-          this.preview.set(res);
+      .subscribe((response) => {
+        if (!response) return;
+        
+        // 202 ACCEPTED means still processing
+        if (response.status === 202) return;
+        
+        // 200 OK means we have results
+        if (response.status === 200 && response.body) {
+          isComplete = true;
+          const result = response.body;
+          this.dualBlueprint.set(result);
+          
+          // Track the generated suggestions for "Generate Again"
+          const newSuggestions = [
+            ...this.previousSuggestions(),
+            result.beginnerPlan.activityTitle,
+            result.intermediatePlan.activityTitle
+          ];
+          this.previousSuggestions.set(newSuggestions);
+          
           this.state.set('preview');
         }
       });
   }
 
-  acceptAndStart() {
-    const preview = this.preview();
-    if (!preview) return;
-    this.state.set('generating');
+  acceptPlan(level: 'beginner' | 'intermediate') {
+    const blueprint = this.dualBlueprint();
+    if (!blueprint) return;
+    
+    const plan = level === 'beginner' ? blueprint.beginnerPlan : blueprint.intermediatePlan;
+    
+    this.state.set('confirming');
     this.http
       .post<ConfirmBlueprintResponse>(API.AI.CONFIRM_PLAN, {
-        activityTitle: preview.activityTitle,
-        activityDescription: preview.activityDescription,
-        focusMinutes: preview.focusMinutes,
-        breakMinutes: preview.breakMinutes,
-        firstSessionNote: preview.firstSessionNote,
+        activityTitle: plan.activityTitle,
+        activityDescription: plan.activityDescription,
+        focusMinutes: plan.focusMinutes,
+        breakMinutes: plan.breakMinutes,
+        firstSessionNote: null,
         categoryId: null,
+        todos: plan.todos,
+        tipNote: plan.tipNote,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -108,10 +155,13 @@ export class SmartActionWizardComponent {
   }
 
   close() {
+    this.pollingSubscription?.unsubscribe();
+    this.pollingSubscription = null;
     this.closed.emit();
     this.state.set('idle');
     this.topic.set('');
-    this.preview.set(null);
+    this.dualBlueprint.set(null);
     this.error.set(null);
+    this.previousSuggestions.set([]);
   }
 }

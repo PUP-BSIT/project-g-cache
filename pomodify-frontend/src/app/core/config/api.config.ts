@@ -145,6 +145,8 @@ export const API = {
     GENERATE_PREVIEW: `${ROOT}/ai/generate-preview`,
     GENERATE_PREVIEW_ASYNC: `${ROOT}/ai/generate-preview-async`,
     GET_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-preview-async/${requestId}`,
+    GENERATE_DUAL_PREVIEW_ASYNC: `${ROOT}/ai/generate-dual-preview-async`,
+    GET_DUAL_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-dual-preview-async/${requestId}`,
     CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
     QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
   },
