@@ -47,7 +47,7 @@ export class Header implements OnInit {
   private scrollToElement(featureId: string): void {
     const element = document.getElementById(featureId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       // Add highlight effect
       element.classList.add('highlight');
       setTimeout(() => element.classList.remove('highlight'), 2000);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ensurePublicPageLightTheme } from '../../../shared/theme';
+import { AdminService } from '../../../core/services/admin.service';
 
 @Component({
   standalone: true,
@@ -14,6 +15,7 @@ import { ensurePublicPageLightTheme } from '../../../shared/theme';
 export class AdminLogin implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly adminService = inject(AdminService);
 
   readonly loginForm: FormGroup = this.fb.group({
     username: ['', { validators: [Validators.required] }],
@@ -26,8 +28,7 @@ export class AdminLogin implements OnInit {
 
   ngOnInit(): void {
     ensurePublicPageLightTheme();
-    // Check if already logged in
-    if (sessionStorage.getItem('adminAuth') === 'true') {
+    if (this.adminService.isLoggedIn()) {
       this.router.navigate(['/admin/dashboard']);
     }
   }
@@ -50,16 +51,21 @@ export class AdminLogin implements OnInit {
     const { username, password } = this.loginForm.getRawValue();
     this.isLoading = true;
 
-    // Simple hardcoded admin auth (frontend-only for now)
-    setTimeout(() => {
-      if (username === 'admin' && password === 'admin123') {
-        sessionStorage.setItem('adminAuth', 'true');
-        this.router.navigate(['/admin/dashboard']);
-      } else {
-        this.loginError = 'Invalid admin credentials';
+    this.adminService.login(username, password).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.adminService.setLoggedIn(true);
+          this.router.navigate(['/admin/dashboard']);
+        } else {
+          this.loginError = response.message || 'Invalid admin credentials';
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.loginError = err.error?.message || 'Invalid admin credentials';
+        this.isLoading = false;
       }
-      this.isLoading = false;
-    }, 500);
+    });
   }
 
   onBack(): void {

@@ -29,18 +29,12 @@ header.site-header .login-link {
   gap: 10px;
   text-decoration: none;
   color: inherit;
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
 }
 
 .logo {
   height: 36px;
   width: auto;
   object-fit: contain;
-  background: none;
-  border: none;
 }
 
 .brand-text {
@@ -60,20 +54,17 @@ header.site-header .login-link {
   margin: 0;
 }
 
-a.nav-link,
 .nav-link {
   text-decoration: none;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500;
-  color: #ffffff !important;
 }
 
-a.login-link,
 .login-link {
   /* plain text link on the right (not a button) — slightly emphasized */
   display: inline-block;
   padding: 6px 10px;
-  color: #ffffff !important;
+  color: #ffffff;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -82,12 +73,7 @@ a.login-link,
   text-decoration: none;
   transition: color 140ms ease, background 140ms ease, transform 120ms ease;
 }
-a.login-link:hover,
-.login-link:hover { 
-  color: #ffffff !important; 
-  background: transparent; 
-  transform: translateY(-1px);
-}
+.login-link:hover { color: #f1ffff; background: rgba(255,255,255,0.03); transform: translateY(-1px); }
 
 .spacer { flex: 1 1 auto; }
 
@@ -105,37 +91,22 @@ a.login-link:hover,
   position: relative;
   cursor: pointer;
   outline: none;
-  color: #ffffff !important;
 }
 
-.dropdown span {
-  color: #ffffff !important;
-}
-
-.caret { 
-  margin-left: 6px; 
-  font-size: 25px; 
-  position: relative;
-  top: 3px;
-}
+.caret { margin-left: 6px; font-size: 12px; }
 
 .menu {
   display: none;
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
   top: calc(100% + 10px);
-  background: #4DA1A9;
-  color: #ffffff !important;
+  background: #ffffff;
+  color: #123;
   min-width: 180px;
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   padding: 8px;
   z-index: 10;
-}
-
-.menu * {
-  color: #ffffff !important;
 }
 
 .dropdown:focus .menu,
@@ -145,7 +116,7 @@ a.login-link:hover,
   display: block;
   padding: 10px 12px;
   text-decoration: none;
-  color: #ffffff !important;
+  color: inherit;
   border-radius: 6px;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   cursor: pointer;
@@ -153,8 +124,7 @@ a.login-link:hover,
 }
 
 .menu-item:hover { 
-  background: rgba(0, 0, 0, 0.15);
-  color: #ffffff !important;
+  background: #f2f6f7; 
 }
 
 /* Hamburger Menu Button */
@@ -182,14 +152,6 @@ a.login-link:hover,
   .site-header {
     position: relative;
     z-index: 1000;
-  }
-
-  .site-brand {
-    background: none !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
   }
 
   .hamburger {
@@ -238,7 +200,7 @@ a.login-link:hover,
   .menu {
     position: static;
     display: none;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: rgba(0, 0, 0, 0.1);
     margin-top: 8px;
     box-shadow: none;
     min-width: auto;

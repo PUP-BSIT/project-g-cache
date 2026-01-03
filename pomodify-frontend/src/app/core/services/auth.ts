@@ -245,12 +245,12 @@ export class Auth {
     }
   }
 
-  showVerifyEmailModal(source: 'signup' | 'login' = 'signup', email: string = ''): void {
+  showVerifyEmailModal(source: 'signup' | 'login' = 'signup'): void {
     const dialogRef = this.dialog.open(VerifyEmailModal, {
       width: '400px',
       disableClose: true,
       panelClass: 'verify-email-dialog',
-      data: { source, email }
+      data: { source }
     });
 
     dialogRef.afterClosed().subscribe((result: string | undefined) => {

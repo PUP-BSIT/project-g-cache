@@ -4,15 +4,12 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  width: 100vw;
-  max-width: 100%;
   padding: 0;
   overflow-x: hidden;
   background: url('/assets/images/login-background.png') center/cover no-repeat;
   background-attachment: fixed;
   filter: blur(0px);
   position: relative;
-  box-sizing: border-box;
 
   &::before {
     content: '';
@@ -30,7 +27,6 @@
 
 .login-header {
   width: 100%;
-  max-width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -85,15 +81,13 @@
 
 .login-panel {
   display: flex;
-  width: 100%;
-  max-width: 500px;
+  width: min(500px, 100%);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   box-shadow: 0 32px 70px rgba(18, 28, 55, 0.3);
   overflow: hidden;
-  margin: 0 auto 20px;
-  box-sizing: border-box;
+  margin-bottom: 20px;
 }
 
 .login-card {
@@ -103,13 +97,12 @@
   padding: 48px 40px 40px;
   background: #FFFFFF;
   color: #2C3E50;
-  box-sizing: border-box;
 }
 
 .back-btn {
   position: absolute;
-  top: 9px;
-  left: 8px;
+  top: 20px;
+  left: 20px;
   background: none;
   border: none;
   color: #24505d;
@@ -301,7 +294,6 @@
   font-size: 14px;
 }
 
-button.btn-login,
 .btn-login {
   margin-top: 12px;
   width: 100%;
@@ -330,10 +322,6 @@ button.btn-login,
   }
 
   &:disabled {
-    color: #ffffff !important;
-  }
-
-  &:not(:disabled) {
     color: #ffffff !important;
   }
 }
@@ -383,8 +371,6 @@ button.btn-login,
 @media (max-width: 960px) {
   .login-header {
     padding: 16px 24px;
-    width: 100%;
-    max-width: 100%;
   }
 
   .brand-logo-icon {
@@ -393,7 +379,6 @@ button.btn-login,
 
   .header-nav {
     gap: 16px;
-    margin-right: 0;
   }
 
   .nav-link {
@@ -401,35 +386,17 @@ button.btn-login,
   }
 
   .login-panel {
-    width: calc(100% - 32px);
-    max-width: 500px;
-    margin: 0 16px 20px;
+    width: min(90%, 100%);
   }
 }
 
 @media (max-width: 500px) {
-  .login-container {
-    padding: 0;
-    width: 100%;
-  }
-
-  .login-header {
-    padding: 16px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .header-brand {
-    margin-left: 0;
-  }
-
   .login-card {
-    padding: 40px 20px 32px;
+    padding: 40px 24px 32px;
   }
 
   .header-nav {
-    gap: 12px;
-    margin-right: 0;
+    gap: 16px;
   }
 
   .nav-link {
@@ -437,13 +404,7 @@ button.btn-login,
   }
 
   .login-panel {
-    width: calc(100% - 32px);
-    margin: 0 16px 20px;
-    border-radius: 16px;
-  }
-
-  .page-title {
-    font-size: 28px;
+    width: min(90%, 100%);
   }
 }
 

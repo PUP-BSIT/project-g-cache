@@ -83,5 +83,10 @@ gradle-app.setting
 !gradle-wrapper.properties
 .gradletasknamecache
 
+### Docker build artifacts ###
+docker-app.jar
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
 4
 /request/http/

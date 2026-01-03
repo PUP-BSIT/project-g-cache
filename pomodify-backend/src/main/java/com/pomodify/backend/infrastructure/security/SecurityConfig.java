@@ -53,7 +53,15 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", "/auth/forgot-password", "/auth/reset-password", "/actuator/**")
+                        .requestMatchers(
+                                "/auth/register", "/auth/login", "/auth/refresh", "/auth/verify", 
+                                "/auth/forgot-password", "/auth/reset-password",
+                                "/api/v2/auth/register", "/api/v2/auth/login", "/api/v2/auth/refresh", 
+                                "/api/v2/auth/verify", "/api/v2/auth/resend-verification",
+                                "/api/v2/auth/forgot-password", "/api/v2/auth/reset-password",
+                                "/api/v2/admin/**",
+                                "/actuator/**"
+                        )
                         .permitAll()
                         .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
@@ -111,6 +119,8 @@ public class SecurityConfig {
                                         "/api/v2/auth/resend-verification",
                                         "/api/v2/auth/forgot-password",
                                         "/api/v2/auth/reset-password",
+                                        "/admin/**",
+                                        "/api/v2/admin/**",
                                         "/actuator/health",
                                         "/actuator/info",
                                         "/v3/api-docs/**",
