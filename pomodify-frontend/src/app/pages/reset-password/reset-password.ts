@@ -2,10 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Auth } from '../../core/services/auth';
 
@@ -16,10 +12,6 @@ import { Auth } from '../../core/services/auth';
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    MatInputModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatCardModule,
     MatSnackBarModule
   ],
   templateUrl: './reset-password.html',
@@ -35,6 +27,11 @@ export class ResetPasswordPage implements OnInit {
   form: FormGroup;
   token: string | null = null;
   isLoading = false;
+  isValidating = true;
+  isValidToken = false;
+  isSuccess = false;
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor() {
     this.form = this.fb.group({
@@ -45,15 +42,33 @@ export class ResetPasswordPage implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token');
-    if (!this.token) {
-      this.snackBar.open('Invalid reset link.', 'Close', { duration: 5000 });
-      this.router.navigate(['/login']);
-    }
+    
+    // Simulate token validation (in real app, you'd validate with backend)
+    setTimeout(() => {
+      this.isValidating = false;
+      if (this.token) {
+        this.isValidToken = true;
+      } else {
+        this.isValidToken = false;
+      }
+    }, 500);
   }
 
   passwordMatchValidator(g: FormGroup) {
     return g.get('password')?.value === g.get('confirmPassword')?.value
       ? null : { mismatch: true };
+  }
+
+  togglePasswordVisibility(field: 'password' | 'confirm') {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+    } else {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
+  }
+
+  goToLogin() {
+    this.router.navigate(['/login']);
   }
 
   async onSubmit() {
@@ -64,11 +79,13 @@ export class ResetPasswordPage implements OnInit {
 
     try {
       await this.auth.resetPassword(this.token, password);
-      this.snackBar.open('Password reset successful! Please login.', 'Close', { duration: 5000 });
-      this.router.navigate(['/login']);
+      this.isSuccess = true;
     } catch (error) {
       console.error('Reset password error:', error);
-      this.snackBar.open('Failed to reset password. The link may have expired.', 'Close', { duration: 5000 });
+      this.snackBar.open('Failed to reset password. The link may have expired.', 'Close', { 
+        duration: 5000,
+        panelClass: ['error-snackbar']
+      });
     } finally {
       this.isLoading = false;
     }

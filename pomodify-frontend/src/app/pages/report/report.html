@@ -87,109 +87,90 @@
     <!-- Report Content -->
     <div class="report-content">
       <section class="report-main-grid">
-        <!-- TOP ROW: Activity Summary (Left) and Trends (Right) -->
-        <div class="report-top-row">
-          <!-- LEFT: Activity summary -->
+          <!-- ACTIVITY SUMMARY: Full Width -->
           <div class="report-activity-panel">
             <section class="activity-summary-section">
               <h2 class="section-heading">Activity Summary</h2>
 
             <div class="summary-cards">
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Total Hours Focused</div>
-                  <div class="summary-value">
-                    {{ formatHours(totalFocusHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-regular fa-clock"></i>
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Total Hours Focused</div>
+                <div class="summary-value">
+                  {{ formatHours(totalFocusHours()) }}
                 </div>
               </div>
-
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Daily Avg Focus</div>
-                  <div class="summary-value">
-                    {{ formatHours(dailyAverageFocusHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-regular fa-hourglass"></i>
-                </div>
-              </div>
-
-              <div class="summary-card fade-in-up">
-                <div class="summary-main">
-                  <div class="summary-label">Day Streak</div>
-                  <div class="summary-value">
-                    {{ streakDays() }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-fire"></i>
-                </div>
-              </div>
-
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Total Break Hours</div>
-                  <div class="summary-value">
-                    {{ formatHours(totalBreakHours()) }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-pause"></i>
-                </div>
-              </div>
-
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Completion Rate</div>
-                  <div class="summary-value">
-                    {{ completionRate() }}%
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-check-circle"></i>
-                </div>
-              </div>
-
-              <div class="summary-card">
-                <div class="summary-main">
-                  <div class="summary-label">Total Sessions</div>
-                  <div class="summary-value">
-                    {{ sessionsCount() }}
-                  </div>
-                </div>
-                <div class="summary-icon">
-                  <i class="fa-solid fa-list-check"></i>
-                </div>
+              <div class="summary-icon">
+                <i class="fa-regular fa-clock"></i>
               </div>
             </div>
-          </section>
 
-          <!-- Period Info Section -->
-          @if (periodInfo()) {
-            <section class="period-info-section">
-              <h2 class="section-heading">Report Period</h2>
-              <div class="period-card">
-                <div class="period-row">
-                  <span class="period-label">Start Date:</span>
-                  <span class="period-value">{{ periodInfo()!.startDate }}</span>
-                </div>
-                <div class="period-row">
-                  <span class="period-label">End Date:</span>
-                  <span class="period-value">{{ periodInfo()!.endDate }}</span>
-                </div>
-                <div class="period-row">
-                  <span class="period-label">Range:</span>
-                  <span class="period-value">{{ periodInfo()!.range | titlecase }}</span>
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Daily Avg Focus</div>
+                <div class="summary-value">
+                  {{ formatHours(dailyAverageFocusHours()) }}
                 </div>
               </div>
-            </section>
-          }
+              <div class="summary-icon">
+                <i class="fa-regular fa-hourglass"></i>
+              </div>
+            </div>
 
+            <div class="summary-card fade-in-up">
+              <div class="summary-main">
+                <div class="summary-label">Day Streak</div>
+                <div class="summary-value">
+                  {{ streakDays() }}
+                </div>
+              </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-fire"></i>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-main">
+                <div class="summary-label">Total Break Hours</div>
+                <div class="summary-value">
+                  {{ formatHours(totalBreakHours()) }}
+                </div>
+              </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-pause"></i>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-main">
+                <div class="summary-label">Total Sessions</div>
+                <div class="summary-value">
+                  {{ sessionsCount() }}
+                </div>
+              </div>
+              <div class="summary-icon">
+                <i class="fa-solid fa-list-check"></i>
+              </div>
+            </div>
+
+            <div class="summary-card abandoned-card">
+              <div class="summary-main">
+                <div class="summary-label">Abandoned Sessions</div>
+                <div class="summary-sublabel">Last Month</div>
+                <div class="summary-value abandoned-value">
+                  {{ lastMonthAbandonedSessions() }}
+                </div>
+              </div>
+              <div class="summary-icon abandoned-icon">
+                <i class="fa-solid fa-circle-xmark"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+        </div>
+
+        <!-- MIDDLE ROW: Insights (Left) and Trends (Right) -->
+        <div class="report-middle-row">
           <!-- Insights Section -->
           @if (insights().length > 0) {
             <section class="insights-section">
@@ -209,9 +190,8 @@
               </div>
             </section>
           }
-          </div>
 
-          <!-- RIGHT: Trends Section (Top Right) -->
+          <!-- Trends Section -->
           <section class="trends-section fade-in-up">
             @if (trends().length > 0) {
               <h2 class="section-heading">Trends</h2>
@@ -288,29 +268,36 @@
               </div>
             </div>
             <div class="total-meta">
-              <div class="meta-checkboxes">
-                <label class="meta-checkbox">
-                  <input
-                    type="checkbox"
-                    [checked]="expiredSessionFocusChecked()"
-                    (change)="onExpiredSessionFocusToggle($event)"
-                  />
-                  <span>Expired Sessions</span>
-                </label>
-              </div>
               <span class="meta-label">This {{ selectedRangeLabel() }}:</span>
               <span class="meta-value">
-                @if (expiredSessionFocusChecked()) {
-                  {{ expiredSessionsCount() }} expired
-                } @else {
-                  {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
-                }
+                {{ currentRangeTotalHours() | number: '1.0-1' }} hrs
               </span>
             </div>
+            @if (lastMonthAbandonedSessions() > 0) {
+              <div class="total-meta abandoned-sessions">
+                <span class="meta-label">Last Month Abandoned:</span>
+                <span class="meta-value">{{ lastMonthAbandonedSessions() }} sessions</span>
+              </div>
+            }
           </div>
 
           <div class="focus-chart">
-            @if (tooltipData()) {
+            @if (!hasData()) {
+              <div class="no-data-container">
+                <div class="no-data-content">
+                  <div class="no-data-icon">
+                    <i class="fa-solid fa-inbox"></i>
+                  </div>
+                  <h2>No Data Yet</h2>
+                  <p>Start your first Pomodoro session to see your focus hours chart.</p>
+                  <a routerLink="/dashboard" class="start-button">
+                    <i class="fa-solid fa-play"></i>
+                    Start a Session
+                  </a>
+                </div>
+              </div>
+            } @else {
+              @if (tooltipData()) {
               <div 
                       class="chart-tooltip"
                       [style.--tooltip-left.px]="tooltipPosition().x"
@@ -365,6 +352,7 @@
                 }
               </div>
             </div>
+            }
           </div>
 
           <!-- Projects summary under the graph -->

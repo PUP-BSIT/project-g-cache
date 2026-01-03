@@ -1,0 +1,98 @@
+<div class="admin-dashboard">
+  <header class="admin-header">
+    <div class="header-brand">
+      <img src="assets/images/logo-with-name.png" alt="Pomodify" class="brand-logo" />
+      <span class="admin-badge">Admin</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-mails" (click)="onOpenMails()">
+        <i class="fa-solid fa-envelope"></i>
+        Mails
+      </button>
+      <button class="btn-logout" (click)="onLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="admin-content">
+    <div class="content-card">
+      <h1 class="page-title">User Management</h1>
+      <p class="page-subtitle">Search and manage user accounts</p>
+
+      <div class="search-section">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()"
+            placeholder="Search by name or email..."
+            class="search-input"
+          />
+          @if (searchQuery) {
+            <button class="clear-btn" (click)="clearSearch()">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      @if (isLoading) {
+        <div class="loading-state">
+          <span class="spinner"></span>
+          <p>Searching users...</p>
+        </div>
+      }
+
+      @if (!isLoading && searchQuery && filteredUsers.length === 0) {
+        <div class="empty-state">
+          <i class="fa-solid fa-user-slash"></i>
+          <p>No users found matching "{{ searchQuery }}"</p>
+        </div>
+      }
+
+      @if (!isLoading && filteredUsers.length > 0) {
+        <div class="users-list">
+          @for (user of filteredUsers; track user.id) {
+            <div class="user-card">
+              <div class="user-avatar">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="user-info">
+                <h3 class="user-name">{{ user.firstName }} {{ user.lastName }}</h3>
+                <p class="user-email">{{ user.email }}</p>
+                <div class="user-meta">
+                  <span class="meta-item">
+                    <i class="fa-solid fa-calendar"></i>
+                    Joined {{ user.createdAt | date:'mediumDate' }}
+                  </span>
+                  <span class="meta-item" [class.verified]="user.isEmailVerified" [class.unverified]="!user.isEmailVerified">
+                    <i class="fa-solid" [ngClass]="user.isEmailVerified ? 'fa-check-circle' : 'fa-clock'"></i>
+                    {{ user.isEmailVerified ? 'Verified' : 'Unverified' }}
+                  </span>
+                  <span class="meta-item" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                    <i class="fa-solid" [ngClass]="user.isActive ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+                    {{ user.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+              </div>
+              <button class="btn-delete" (click)="onDeleteUser(user)">
+                <i class="fa-solid fa-trash"></i>
+                Delete
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (!searchQuery && !isLoading) {
+        <div class="empty-state initial">
+          <i class="fa-solid fa-users"></i>
+          <p>Enter a name or email to search for users</p>
+        </div>
+      }
+    </div>
+  </main>
+</div>

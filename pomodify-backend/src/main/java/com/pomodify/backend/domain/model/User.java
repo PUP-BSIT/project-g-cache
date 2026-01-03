@@ -71,6 +71,9 @@ public class User {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(name = "backup_email")
+    private String backupEmail;
+
     // ──────────────── Relationships ────────────────
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
@@ -103,6 +106,18 @@ public class User {
              throw new IllegalArgumentException("Password cannot be empty");
         }
         this.passwordHash = newPasswordHash;
+    }
+
+    public void updateName(String firstName, String lastName) {
+        ensureActive();
+        if (firstName == null || firstName.isBlank()) {
+            throw new IllegalArgumentException("First name cannot be empty");
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new IllegalArgumentException("Last name cannot be empty");
+        }
+        this.firstName = firstName.trim();
+        this.lastName = lastName.trim();
     }
 
     public void setPasswordHash(String passwordHash) {
@@ -218,5 +233,9 @@ public class User {
 
     public void setEmailVerified(boolean isEmailVerified) {
         this.isEmailVerified = isEmailVerified;
+    }
+
+    public void setBackupEmail(String backupEmail) {
+        this.backupEmail = backupEmail;
     }
 }

@@ -83,9 +83,9 @@
           type="button"
           class="btn-save-inline"
           (click)="updateName()"
-          [disabled]="profileForm.invalid || profileForm.pristine"
+          [disabled]="profileForm.invalid || profileForm.pristine || isSavingName()"
         >
-          Save
+          {{ isSavingName() ? 'Saving...' : 'Save' }}
         </button>
       </form>
     </div>
@@ -122,9 +122,9 @@
             type="button"
             class="btn-save-inline"
             (click)="updateBackupEmail()"
-            [disabled]="backupEmailForm.invalid || backupEmailForm.pristine"
+            [disabled]="backupEmailForm.invalid || backupEmailForm.pristine || isSavingBackupEmail()"
           >
-            Update
+            {{ isSavingBackupEmail() ? 'Saving...' : 'Update' }}
           </button>
         </form>
       }
@@ -150,6 +150,7 @@
               type="button"
               class="btn-secondary-small"
               (click)="toggleBackupEmailForm()"
+              [disabled]="isSavingBackupEmail()"
             >
               Cancel
             </button>
@@ -157,9 +158,9 @@
               type="button"
               class="btn-primary-small"
               (click)="saveBackupEmail()"
-              [disabled]="backupEmailForm.invalid"
+              [disabled]="backupEmailForm.invalid || isSavingBackupEmail()"
             >
-              Save
+              {{ isSavingBackupEmail() ? 'Saving...' : 'Save' }}
             </button>
           </div>
         </form>
@@ -191,132 +192,81 @@
         </div>
       }
 
-      <!-- Password Verification Flow -->
+      <!-- Password Change Form -->
       @if (showPasswordVerification()) {
-        <div class="verification-container">
-          <!-- Step 1: Verification Code -->
-          @if (!isVerificationValid()) {
-            <div class="verification-step">
-              <div class="verification-info">
-                <i class="fa-solid fa-circle-info"></i>
-                <p>We've sent a verification code to <strong>{{ userEmail() }}</strong></p>
-              </div>
-              
-              <form [formGroup]="verificationForm" class="verification-form">
-                <div class="code-input-group">
-                  <input 
-                    type="text" 
-                    formControlName="code" 
-                    class="form-input code-input"
-                    placeholder="000000"
-                    maxlength="6"
-                    autocomplete="off"
-                  />
-                  <div class="timer-badge">
-                    {{ verificationTimer() }}s
-                  </div>
-                </div>
-                
-                <div class="form-actions">
-                  <button 
-                    type="button"
-                    class="btn-secondary"
-                    (click)="cancelPasswordChange()"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="button"
-                    class="btn-primary"
-                    (click)="verifyCode()"
-                    [disabled]="verificationForm.invalid"
-                  >
-                    Verify Code
-                  </button>
-                </div>
-              </form>
-              
-              <p class="demo-note">
-                <strong>Demo:</strong> Use code <code>123456</code> to verify
-              </p>
+        <div class="password-change-container">
+          <!-- Success Message -->
+          @if (passwordChangeSuccess()) {
+            <div class="success-message">
+              <i class="fa-solid fa-check-circle"></i>
+              <span>Password updated successfully!</span>
             </div>
           }
-
-          <!-- Step 2: Change Password Form -->
-          @if (isVerificationValid()) {
-            <div class="password-change-step">
-              <div class="success-badge">
-                <i class="fa-solid fa-check"></i>
-                <span>Verified</span>
-              </div>
-              
-              <form [formGroup]="passwordForm" class="password-form">
-                <div class="form-group">
-                  <label>Current Password</label>
-                  <input 
-                    type="password" 
-                    formControlName="currentPassword" 
-                    class="form-input"
-                    placeholder="Current password"
-                    autocomplete="current-password"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>New Password</label>
-                  <input 
-                    type="password" 
-                    formControlName="newPassword" 
-                    class="form-input"
-                    placeholder="New password (min 8 chars)"
-                    autocomplete="new-password"
-                  />
-                </div>
-                
-                <div class="form-group">
-                  <label>Confirm New Password</label>
-                  <input 
-                    type="password" 
-                    formControlName="confirmPassword" 
-                    class="form-input"
-                    placeholder="Re-enter new password"
-                    autocomplete="new-password"
-                  />
-                </div>
-                
-                <div class="form-actions">
-                  <button 
-                    type="button"
-                    class="btn-secondary"
-                    (click)="cancelPasswordChange()"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="button"
-                    class="btn-primary"
-                    (click)="submitPasswordChange()"
-                    [disabled]="passwordForm.invalid"
-                  >
-                    Update Password
-                  </button>
-                </div>
-              </form>
+          
+          <!-- Error Message -->
+          @if (passwordChangeError()) {
+            <div class="error-message">
+              <i class="fa-solid fa-exclamation-circle"></i>
+              <span>{{ passwordChangeError() }}</span>
             </div>
           }
+          
+          <form [formGroup]="passwordForm" class="password-form">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input 
+                type="password" 
+                formControlName="currentPassword" 
+                class="form-input"
+                placeholder="Enter current password"
+                autocomplete="current-password"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label>New Password</label>
+              <input 
+                type="password" 
+                formControlName="newPassword" 
+                class="form-input"
+                placeholder="Min 8 characters"
+                autocomplete="new-password"
+              />
+            </div>
+            
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input 
+                type="password" 
+                formControlName="confirmPassword" 
+                class="form-input"
+                placeholder="Re-enter new password"
+                autocomplete="new-password"
+              />
+            </div>
+            
+            <div class="form-actions">
+              <button 
+                type="button"
+                class="btn-secondary"
+                (click)="cancelPasswordChange()"
+                [disabled]="isChangingPassword()"
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                class="btn-primary"
+                (click)="submitPasswordChange()"
+                [disabled]="passwordForm.invalid || isChangingPassword()"
+              >
+                {{ isChangingPassword() ? 'Updating...' : 'Update Password' }}
+              </button>
+            </div>
+          </form>
         </div>
       }
     </div>
     }
-  </div>
-
-  <!-- Footer Actions -->
-  <div class="modal-footer">
-    <button class="btn-cancel-modal" (click)="onClose()">
-      Cancel
-    </button>
-    <button class="btn-save-modal" (click)="onSaveChanges()">
-      Save Changes
-    </button>
   </div>
 </div>
