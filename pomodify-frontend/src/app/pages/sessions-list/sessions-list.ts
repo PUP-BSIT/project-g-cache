@@ -7,7 +7,9 @@ import { ActivityService } from '../../core/services/activity.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
-import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component'; // Need to create this or use existing?
+import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component';
+import { AlertDialogComponent, AlertDialogData } from '../../shared/components/alert-dialog/alert-dialog';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Use PomodoroSession from SessionService for type safety
 
@@ -163,7 +165,11 @@ export class SessionsListComponent implements OnInit {
 
   protected createNewSession(): void {
     if (this.hasActiveSession()) {
-      alert('You have an active session. Please complete or abandon it before creating a new one.');
+      this.showAlertDialog(
+        'Active Session Exists',
+        'You have an active session. Please complete or abandon it before creating a new one.',
+        'warning'
+      );
       return;
     }
 
@@ -186,9 +192,15 @@ export class SessionsListComponent implements OnInit {
         console.log('[Sessions List] Creating session:', formData);
         return this.sessionService.createSession(actId, formData);
       }),
-      catchError(error => {
+      catchError((error: HttpErrorResponse) => {
         console.error('[Sessions List] Failed to create session:', error);
-        this.error.set('Failed to create session. Please try again.');
+        // Handle 409 Conflict - active session exists
+        if (error.status === 409) {
+          const message = error.error?.message || 'An active session already exists. Please complete or abandon it before creating a new one.';
+          this.showAlertDialog('Active Session Exists', message, 'warning');
+        } else {
+          this.showAlertDialog('Error', 'Failed to create session. Please try again.', 'error');
+        }
         return of(null);
       })
     ).subscribe(newSession => {
@@ -260,6 +272,18 @@ export class SessionsListComponent implements OnInit {
         console.error('Failed to save note:', err);
         this.savingNote.set(false);
       }
+    });
+  }
+
+  private showAlertDialog(title: string, message: string, type: 'info' | 'warning' | 'error' = 'info'): void {
+    this.dialog.open(AlertDialogComponent, {
+      width: '400px',
+      data: {
+        title,
+        message,
+        type,
+        buttonText: 'OK'
+      } as AlertDialogData
     });
   }
 
