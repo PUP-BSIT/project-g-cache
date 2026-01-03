@@ -21,12 +21,24 @@ import { SessionNoteDialogComponent } from '../../shared/components/session-note
 export class SessionsListComponent implements OnInit {
 
     getNoteText(note: any): string {
+      // Handle null/undefined
       if (!note) return '';
+      
+      // Handle plain string
       if (typeof note === 'string') return note;
-      // Handle object with 'text' property
-      if (typeof note === 'object' && 'text' in note && typeof note.text === 'string') return note.text;
-      // Handle object with 'content' property (from session-timer save format)
-      if (typeof note === 'object' && 'content' in note && typeof note.content === 'string') return note.content;
+      
+      // Handle object formats
+      if (typeof note === 'object') {
+        // Backend SessionNoteDto format: { id, content, items }
+        if ('content' in note && note.content) {
+          return String(note.content);
+        }
+        // Alternative format with 'text' property
+        if ('text' in note && note.text) {
+          return String(note.text);
+        }
+      }
+      
       return '';
     }
   protected router = inject(Router);

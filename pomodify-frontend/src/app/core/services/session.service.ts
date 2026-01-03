@@ -8,6 +8,13 @@ export type SessionType = 'CLASSIC' | 'FREESTYLE';
 export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
 export type SessionPhase = 'FOCUS' | 'BREAK';
 
+// Note structure from backend
+export interface SessionNoteDto {
+  id: number | null;
+  content: string | null;
+  items: Array<{ id: number; text: string; done: boolean }>;
+}
+
 export interface PomodoroSession {
   id: number;
   activityId: number;
@@ -18,7 +25,7 @@ export interface PomodoroSession {
   cycles: number | null;
   currentPhase: SessionPhase | null;
   cyclesCompleted: number;
-  note: string | null;
+  note: SessionNoteDto | string | null;
   totalElapsedSeconds?: number; 
   remainingPhaseSeconds?: number; 
   phaseNotified?: boolean; 
