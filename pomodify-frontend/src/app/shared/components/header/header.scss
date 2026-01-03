@@ -81,6 +81,8 @@ a.login-link,
   letter-spacing: 0.2px;
   text-decoration: none;
   transition: color 140ms ease, background 140ms ease, transform 120ms ease;
+  position: relative;
+  top: 2px;
 }
 a.login-link:hover,
 .login-link:hover { 
@@ -127,7 +129,7 @@ a.login-link:hover,
   top: calc(100% + 10px);
   background: #4DA1A9;
   color: #ffffff !important;
-  min-width: 180px;
+  min-width: 220px;
   border-radius: 8px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   padding: 8px;
@@ -150,6 +152,7 @@ a.login-link:hover,
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   cursor: pointer;
   transition: background 0.2s ease;
+  text-align: center;
 }
 
 .menu-item:hover { 
@@ -207,22 +210,27 @@ a.login-link:hover,
     padding: 0;
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease;
+    transition: max-height 0.4s ease, padding 0.4s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-sizing: border-box;
   }
 
   .right-actions { display: none; }
   .mobile-login { display: block; }
 
   .nav.active {
-    max-height: 500px;
+    max-height: calc(100vh - 64px);
     padding: 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .nav-link {
     padding: 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: block;
+    box-sizing: border-box;
+    text-align: center;
   }
 
   .login-link { border-bottom: none; padding: 10px 12px; }
@@ -232,7 +240,10 @@ a.login-link:hover,
   }
 
   .dropdown {
-    position: static;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
   }
 
   .menu {
@@ -240,8 +251,13 @@ a.login-link:hover,
     display: none;
     background-color: rgba(0, 0, 0, 0.15);
     margin-top: 8px;
+    margin-bottom: 8px;
     box-shadow: none;
     min-width: auto;
+    width: 100%;
+    transform: none;
+    left: auto;
+    box-sizing: border-box;
   }
 
   .dropdown:focus .menu,
@@ -276,9 +292,12 @@ a.login-link:hover,
   .nav {
     top: 56px;
     padding: 0;
+    max-height: 0;
   }
 
   .nav.active {
     padding: 12px;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
   }
 }
