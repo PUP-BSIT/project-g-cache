@@ -6,8 +6,8 @@
  */
 
 // 1. BASE URL
-// const BASE_URL = "https://api.pomodify.site";
-const BASE_URL = "http://localhost:8081";
+const BASE_URL = "https://api.pomodify.site";
+// const BASE_URL = "http://localhost:8081";
 
 export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
 
@@ -145,6 +145,8 @@ export const API = {
     GENERATE_PREVIEW: `${ROOT}/ai/generate-preview`,
     GENERATE_PREVIEW_ASYNC: `${ROOT}/ai/generate-preview-async`,
     GET_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-preview-async/${requestId}`,
+    GENERATE_DUAL_PREVIEW_ASYNC: `${ROOT}/ai/generate-dual-preview-async`,
+    GET_DUAL_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-dual-preview-async/${requestId}`,
     CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
     QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
   },
