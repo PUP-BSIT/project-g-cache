@@ -17,9 +17,80 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// IndexedDB helper to check login state (since service workers can't access localStorage)
+const DB_NAME = 'pomodify-sw-db';
+const STORE_NAME = 'auth';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+}
+
+async function getLoginState() {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get('isLoggedIn');
+      
+      request.onerror = () => resolve(true); // Default to true if error
+      request.onsuccess = () => resolve(request.result !== false);
+    });
+  } catch (error) {
+    console.log('Error checking login state, defaulting to true:', error);
+    return true; // Default to showing notifications if we can't check
+  }
+}
+
+// Sync login state from main app (called via postMessage)
+async function setLoginState(isLoggedIn) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put(isLoggedIn, 'isLoggedIn');
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  } catch (error) {
+    console.error('Error setting login state:', error);
+  }
+}
+
+// Listen for messages from the main app to sync login state
+self.addEventListener('message', (event) => {
+  console.log('Service worker received message:', event.data);
+  
+  if (event.data && event.data.type === 'SET_LOGIN_STATE') {
+    setLoginState(event.data.isLoggedIn);
+    console.log('Login state updated to:', event.data.isLoggedIn);
+  }
+});
+
 // Handle background messages
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   console.log('Background message received:', payload);
+  
+  // Check if user is logged in before showing notification
+  const isLoggedIn = await getLoginState();
+  if (!isLoggedIn) {
+    console.log('User not logged in - suppressing background notification');
+    return;
+  }
   
   const notificationTitle = payload.notification?.title || 'Pomodify';
   const notificationOptions = {
@@ -28,6 +99,9 @@ messaging.onBackgroundMessage((payload) => {
     badge: '/assets/images/logo.png',
     tag: 'pomodify-session',
     requireInteraction: true,
+    renotify: true,
+    silent: false,
+    vibrate: [200, 100, 200],
     actions: [
       {
         action: 'view',
@@ -41,7 +115,8 @@ messaging.onBackgroundMessage((payload) => {
     data: {
       url: '/',
       sessionId: payload.data?.sessionId,
-      activityId: payload.data?.activityId
+      activityId: payload.data?.activityId,
+      sound: payload.data?.sound || 'default'
     }
   };
 
