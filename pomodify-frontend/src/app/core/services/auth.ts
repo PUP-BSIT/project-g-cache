@@ -371,4 +371,23 @@ export class Auth {
     const url = API.USER.UPDATE_PROFILE;
     return lastValueFrom(this.http.put<any>(url, { firstName, lastName }, { withCredentials: true }));
   }
+
+  /**
+   * Uploads a profile picture for the authenticated user.
+   * @param file - The image file to upload
+   */
+  uploadProfilePicture(file: File): Promise<any> {
+    const url = API.USER.UPLOAD_PROFILE_PICTURE;
+    const formData = new FormData();
+    formData.append('file', file);
+    return lastValueFrom(this.http.post<any>(url, formData, { withCredentials: true }));
+  }
+
+  /**
+   * Deletes the profile picture for the authenticated user.
+   */
+  deleteProfilePicture(): Promise<any> {
+    const url = API.USER.DELETE_PROFILE_PICTURE;
+    return lastValueFrom(this.http.delete<any>(url, { withCredentials: true }));
+  }
 }

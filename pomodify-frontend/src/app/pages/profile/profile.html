@@ -25,14 +25,19 @@
     <div class="profile-picture-section">
       <div class="avatar-container">
         <img [src]="profileImage()" alt="Profile picture" class="avatar" />
-        <button class="edit-avatar-btn" (click)="triggerImageUpload()" aria-label="Change profile picture">
+        @if (isUploadingImage()) {
+          <div class="avatar-loading-overlay">
+            <div class="spinner-small"></div>
+          </div>
+        }
+        <button class="edit-avatar-btn" (click)="triggerImageUpload()" [disabled]="isUploadingImage()" aria-label="Change profile picture">
           <i class="fa-solid fa-pen"></i>
         </button>
         <input 
           #profileImageInput
           type="file" 
           id="profile-image-input" 
-          accept="image/*" 
+          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
           (change)="onImageUpload($event)"
           style="display: none;"
         />
@@ -40,6 +45,14 @@
       <div class="profile-info-header">
         <h3>{{ userName() }}</h3>
         <p class="email-text">{{ userEmail() }}</p>
+        @if (hasCustomProfilePicture()) {
+          <button class="btn-remove-picture" (click)="deleteProfilePicture()" [disabled]="isUploadingImage()">
+            <i class="fa-solid fa-trash"></i> Remove picture
+          </button>
+        }
+        @if (imageUploadError()) {
+          <p class="error-text">{{ imageUploadError() }}</p>
+        }
       </div>
     </div>
 

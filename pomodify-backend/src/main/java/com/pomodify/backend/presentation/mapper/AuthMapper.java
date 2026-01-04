@@ -16,7 +16,8 @@ public class AuthMapper {
             result.lastName(),
             result.email(),
             result.isEmailVerified(),
-            null // backupEmail not available in auth context
+            null, // backupEmail not available in auth context
+            null  // profilePictureUrl not available in auth context
         );
 
         return new AuthResponse(

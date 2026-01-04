@@ -48,6 +48,9 @@ export class Profile implements OnInit {
   protected isChangingPassword = signal(false);
   protected passwordChangeError = signal<string | null>(null);
   protected passwordChangeSuccess = signal(false);
+  protected isUploadingImage = signal(false);
+  protected imageUploadError = signal<string | null>(null);
+  protected hasCustomProfilePicture = signal(false);
   
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
@@ -140,6 +143,15 @@ export class Profile implements OnInit {
             this.backupEmailForm.patchValue({ backupEmail: user.backupEmail });
           }
         }
+        if (user.profilePictureUrl) {
+          // Construct full URL for profile picture
+          const baseUrl = API.ROOT.replace('/api/v2', '');
+          this.profileImage.set(baseUrl + user.profilePictureUrl);
+          this.hasCustomProfilePicture.set(true);
+        } else {
+          this.profileImage.set('assets/images/default-avatar.svg');
+          this.hasCustomProfilePicture.set(false);
+        }
         this.isLoadingProfile.set(false);
       },
       error: () => {
@@ -173,18 +185,55 @@ export class Profile implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        if (e.target?.result) {
-          this.profileImage.set(e.target.result as string);
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        this.imageUploadError.set('File size exceeds 5MB limit');
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.imageUploadError.set('Invalid file type. Allowed: JPG, PNG, GIF, WebP');
+        return;
+      }
+      
+      this.isUploadingImage.set(true);
+      this.imageUploadError.set(null);
+      
+      this.auth.uploadProfilePicture(file).then((response: any) => {
+        if (response.profilePictureUrl) {
+          const baseUrl = API.ROOT.replace('/api/v2', '');
+          this.profileImage.set(baseUrl + response.profilePictureUrl);
+          this.hasCustomProfilePicture.set(true);
         }
-      };
-      reader.readAsDataURL(file);
+        this.isUploadingImage.set(false);
+      }).catch((error) => {
+        console.error('Failed to upload profile picture:', error);
+        this.imageUploadError.set('Failed to upload image. Please try again.');
+        this.isUploadingImage.set(false);
+      });
     }
   }
   
   protected triggerImageUpload(): void {
     this.profileImageInput?.nativeElement.click();
+  }
+  
+  protected deleteProfilePicture(): void {
+    if (!this.hasCustomProfilePicture()) return;
+    
+    this.isUploadingImage.set(true);
+    this.auth.deleteProfilePicture().then(() => {
+      this.profileImage.set('assets/images/default-avatar.svg');
+      this.hasCustomProfilePicture.set(false);
+      this.isUploadingImage.set(false);
+    }).catch((error) => {
+      console.error('Failed to delete profile picture:', error);
+      this.imageUploadError.set('Failed to delete image. Please try again.');
+      this.isUploadingImage.set(false);
+    });
   }
   
   // Name update
