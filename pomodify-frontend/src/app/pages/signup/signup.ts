@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -27,6 +27,7 @@ export class Signup implements OnInit {
   private readonly auth = inject(Auth);
   private readonly fb = inject(FormBuilder);
   private readonly notificationService = inject(SuccessNotificationService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly signupForm: FormGroup = this.fb.group({
     firstName: ['', { validators: [Validators.required, Validators.minLength(2)] }],
@@ -91,6 +92,7 @@ export class Signup implements OnInit {
       })
       .finally(() => {
         this.isLoading = false;
+        this.cdr.markForCheck();
       });
   }
 
