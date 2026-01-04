@@ -65,6 +65,9 @@ export class Dashboard implements OnInit {
   protected isLoadingDashboard = signal(false);
   protected dashboardError = signal<string | null>(null);
   protected isResendingEmail = signal(false);
+  
+  // Categories for create activity modal
+  protected categories = signal<string[]>([]);
 
   smartActionWizardOpen = false;
   smartActionMode: SmartActionMode = null;
@@ -83,9 +86,30 @@ export class Dashboard implements OnInit {
       this.sidebarExpanded.set(false);
     }
     this.loadDashboardMetrics();
+    this.loadCategories();
     this.auth.fetchAndStoreUserProfile().then(user => {
         this.profile.set(user);
     }).catch(err => console.error('Failed to fetch profile', err));
+  }
+
+  private loadCategories(): void {
+    this.http.get<any>(API.CATEGORIES.GET_ALL).subscribe({
+      next: (response) => {
+        let categoryList: any[] = [];
+        if (Array.isArray(response)) {
+          categoryList = response;
+        } else if (response?.categories) {
+          categoryList = response.categories;
+        } else if (response?.content) {
+          categoryList = response.content;
+        }
+        const categoryNames = categoryList.map(c => c.categoryName).filter(Boolean);
+        this.categories.set(categoryNames);
+      },
+      error: (err) => {
+        console.error('[Dashboard] Error loading categories:', err);
+      }
+    });
   }
 
   protected onResendVerification(): void {
@@ -169,7 +193,9 @@ export class Dashboard implements OnInit {
   protected openCreateActivityModal(): void {
     console.log('[Dashboard] Quick start - creating new activity and session');
     this.dialog
-      .open(CreateActivityModal)
+      .open(CreateActivityModal, {
+        data: { categories: this.categories() }
+      })
       .afterClosed()
       .pipe(
         filter((result: CreateActivityModalData) => !!result),

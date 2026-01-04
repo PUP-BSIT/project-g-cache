@@ -1512,3 +1512,62 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
   font-size: 13px !important;
   box-sizing: border-box !important;
 }
+
+
+/* ========================================================================
+   MATERIAL AUTOCOMPLETE PANEL Z-INDEX FIX
+   Ensures autocomplete dropdown appears above modal content
+   ======================================================================== */
+
+.cdk-overlay-container {
+  z-index: 10000 !important;
+}
+
+.mat-mdc-autocomplete-panel {
+  z-index: 10001 !important;
+  background: var(--card, #FFFFFF) !important;
+  border: 1px solid var(--border, #DEE2E6) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  max-height: 200px !important;
+}
+
+.mat-mdc-option {
+  background: var(--card, #FFFFFF) !important;
+  color: var(--text, #2C3E50) !important;
+  font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-size: 14px !important;
+  padding: 10px 16px !important;
+  min-height: 44px !important;
+}
+
+.mat-mdc-option:hover,
+.mat-mdc-option.mat-mdc-option-active {
+  background: rgba(95, 169, 164, 0.1) !important;
+}
+
+.mat-mdc-option.mdc-list-item--selected {
+  background: rgba(95, 169, 164, 0.15) !important;
+  color: #4b9fa8 !important;
+}
+
+/* Dark theme support for autocomplete */
+html.theme-dark .mat-mdc-autocomplete-panel {
+  background: var(--card, #111827) !important;
+  border-color: var(--border, #1F2937) !important;
+}
+
+html.theme-dark .mat-mdc-option {
+  background: var(--card, #111827) !important;
+  color: var(--text, #E5E7EB) !important;
+}
+
+html.theme-dark .mat-mdc-option:hover,
+html.theme-dark .mat-mdc-option.mat-mdc-option-active {
+  background: rgba(95, 169, 164, 0.2) !important;
+}
+
+html.theme-dark .mat-mdc-option.mdc-list-item--selected {
+  background: rgba(95, 169, 164, 0.25) !important;
+  color: #7BC4BF !important;
+}
