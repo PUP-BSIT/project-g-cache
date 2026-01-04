@@ -1,4 +1,4 @@
-package com.pomodify.backend.infrastructure.repository.spring;
+    package com.pomodify.backend.infrastructure.repository.spring;
 
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.valueobject.Email;

@@ -350,7 +350,9 @@ export class Dashboard implements OnInit {
   startQuickFocus() {
     this.http.post<any>(API.AI.QUICK_FOCUS, {}).subscribe({
       next: (res) => {
-        this.router.navigate(['/activities', res.activityId, 'sessions', res.sessionId]);
+        // Use activityTitle for navigation (route expects title, not ID)
+        const activityTitle = res.activityTitle || 'Quick Focus';
+        this.router.navigate(['/activities', activityTitle, 'sessions', res.sessionId]);
       },
       error: (err) => {
         alert('Failed to start Quick Focus.');

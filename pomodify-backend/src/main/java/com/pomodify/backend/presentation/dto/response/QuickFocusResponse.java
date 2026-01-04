@@ -9,6 +9,7 @@ import lombok.Builder;
 public record QuickFocusResponse(
         String message,
         Long activityId,
-        Long sessionId
+        Long sessionId,
+        String activityTitle
 ) {
 }
