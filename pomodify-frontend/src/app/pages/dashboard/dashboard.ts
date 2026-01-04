@@ -311,8 +311,10 @@ export class Dashboard implements OnInit {
   }
 
   protected navigateToSession(session: RecentSession): void {
-    // Navigate to: /activities/:activityName/sessions/:sessionId
-    this.router.navigate(['/activities', session.activityName, 'sessions', session.id]);
+    // For completed sessions shown in dashboard, navigate to the sessions list for that activity
+    // This is more appropriate since these are historical/completed sessions
+    // The session timer page is meant for active sessions
+    this.router.navigate(['/activities', session.activityName, 'sessions']);
   }
 
   onSmartActionSelected(mode: SmartActionMode) {

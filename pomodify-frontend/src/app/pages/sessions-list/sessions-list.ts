@@ -119,7 +119,7 @@ export class SessionsListComponent implements OnInit {
         );
         
         if (!activity) {
-          throw new Error(`Activity "${this.activityTitle()}" not found`);
+          throw new Error(`Activity "${this.activityTitle()}" not found. It may have been deleted.`);
         }
         
         this.activityId.set(activity.activityId);
@@ -128,7 +128,8 @@ export class SessionsListComponent implements OnInit {
         return this.sessionService.getSessions(activity.activityId);
       }),
       catchError(error => {
-        this.error.set(error.message || 'Failed to load sessions');
+        const errorMsg = error.message || 'Failed to load sessions';
+        this.error.set(errorMsg);
         this.loading.set(false);
         return of([]);
       })
