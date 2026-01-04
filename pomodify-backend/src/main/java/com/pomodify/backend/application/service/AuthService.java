@@ -85,6 +85,7 @@ public class AuthService {
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
             .backupEmail(savedUser.getBackupEmail())
+            .profilePictureUrl(savedUser.getProfilePictureUrl())
             .build();
 
     }
@@ -359,6 +360,7 @@ public class AuthService {
             .email(user.getEmail().getValue())
             .isEmailVerified(user.isEmailVerified())
             .backupEmail(user.getBackupEmail())
+            .profilePictureUrl(user.getProfilePictureUrl())
             .build();
     }
 
@@ -402,6 +404,7 @@ public class AuthService {
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
             .backupEmail(savedUser.getBackupEmail())
+            .profilePictureUrl(savedUser.getProfilePictureUrl())
             .build();
     }
 }

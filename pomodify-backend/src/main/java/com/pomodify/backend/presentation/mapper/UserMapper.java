@@ -14,7 +14,8 @@ public class UserMapper {
                 result.lastName(),
                 result.email(),
                 result.isEmailVerified(),
-                result.backupEmail()
+                result.backupEmail(),
+                result.profilePictureUrl()
         );
     }
 }

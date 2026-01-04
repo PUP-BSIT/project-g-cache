@@ -173,6 +173,11 @@ jobs:
             done
             echo "✅ Database is ready"
 
+            # Ensure upload directory exists on host for profile pictures persistence
+            echo "Setting up persistent upload directory..."
+            sudo mkdir -p /data/pomodify/uploads/profile-pictures
+            sudo chown -R 1000:1000 /data/pomodify/uploads
+
             # Start backend container - Flyway will handle migrations automatically
             echo "Starting backend container with Flyway migrations..."
             sudo docker run -d \
@@ -180,6 +185,7 @@ jobs:
               --network pomodify-net \
               --restart unless-stopped \
               -p 8081:8081 \
+              -v /data/pomodify/uploads:/app/uploads \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
