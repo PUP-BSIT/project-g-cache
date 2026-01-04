@@ -184,8 +184,10 @@ jobs:
               --name pomodify-backend \
               --network pomodify-net \
               --restart unless-stopped \
+              --memory="650m" \
               -p 8081:8081 \
               -v /data/pomodify/uploads:/app/uploads \
+              -e JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC" \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL=jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}?sslmode=require \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
