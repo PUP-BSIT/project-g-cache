@@ -239,6 +239,11 @@
         background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
         color: #FFFFFF;
       }
+
+      &.status-abandoned {
+        background: linear-gradient(135deg, #95A5A6 0%, #BDC3C7 100%);
+        color: #2C3E50;
+      }
     }
   }
 
