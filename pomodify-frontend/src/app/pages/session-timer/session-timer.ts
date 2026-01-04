@@ -77,12 +77,32 @@ export class SessionTimerComponent implements OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  // Activity color from color tag
+  // Activity color - stored from backend when activity is loaded
+  private activityColorFromBackend = signal<string | null>(null);
+  
+  // Activity color from color tag (localStorage) or backend
   activityColor = computed(() => {
     const actId = this.activityId();
     if (!actId) return this.getColorHex('teal');
+    
+    // First check localStorage
     const colorTag = this.activityColorService.getColorTag(actId);
-    return this.getColorHex(colorTag || 'teal');
+    if (colorTag) {
+      return this.getColorHex(colorTag);
+    }
+    
+    // Then check backend color
+    const backendColor = this.activityColorFromBackend();
+    if (backendColor) {
+      // Backend stores hex color directly (e.g., #EF4444)
+      if (backendColor.startsWith('#')) {
+        return backendColor;
+      }
+      // Or it might be a color name
+      return this.getColorHex(backendColor);
+    }
+    
+    return this.getColorHex('teal');
   });
 
   // Color mapping helper
@@ -319,6 +339,11 @@ export class SessionTimerComponent implements OnDestroy {
         }
         
         this.activityId.set(activity.activityId);
+        
+        // Store the activity's color from backend
+        if (activity.color) {
+          this.activityColorFromBackend.set(activity.color);
+        }
         
         // Now fetch the session
         return this.sessionService.getSession(activity.activityId, id);

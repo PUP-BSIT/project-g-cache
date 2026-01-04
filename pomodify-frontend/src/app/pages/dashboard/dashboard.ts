@@ -175,9 +175,12 @@ export class Dashboard implements OnInit {
         filter((result: CreateActivityModalData) => !!result),
         switchMap((result: CreateActivityModalData) => {
           console.log('[Dashboard] Creating new activity:', result.name);
+          // Convert color name to hex for backend
+          const colorHex = this.colorNameToHex(result.colorTag);
           const req: any = {
             title: result.name,
             description: result.category || '',
+            color: colorHex,
           };
           console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
           
@@ -359,6 +362,11 @@ export class Dashboard implements OnInit {
       }
     });
   }
+
+  // Convert color name to hex format for backend
+  private colorNameToHex(colorName: string): string {
+    return COLOR_NAME_TO_HEX[colorName?.toLowerCase()] || COLOR_NAME_TO_HEX['teal'];
+  }
 }
 
 function cryptoRandomId(): string {
@@ -371,4 +379,15 @@ function cryptoRandomId(): string {
     return String(Date.now());
   }
 }
+
+// Color name to hex mapping (matches create-activity-modal colors)
+const COLOR_NAME_TO_HEX: Record<string, string> = {
+  red: '#EF4444',
+  orange: '#F97316',
+  yellow: '#FBBF24',
+  green: '#10B981',
+  blue: '#3B82F6',
+  purple: '#8B5CF6',
+  teal: '#4da1a9',
+};
 

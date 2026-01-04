@@ -32,10 +32,11 @@ export class EditActivityModal implements OnInit {
   private data = inject(MAT_DIALOG_DATA) as (ActivityData & { categories?: string[] }) | undefined;
 
   activityForm!: FormGroup;
-  selectedColor: string = 'red';
+  selectedColor: string = 'teal';
   categories: string[] = [];
 
   colors = [
+    { name: 'teal', hex: '#5FA9A4' },
     { name: 'red', hex: '#EF4444' },
     { name: 'orange', hex: '#F97316' },
     { name: 'yellow', hex: '#FBBF24' },
@@ -45,7 +46,11 @@ export class EditActivityModal implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.selectedColor = this.data?.colorTag ?? this.selectedColor;
+    // Convert hex color to color name if needed
+    const colorTag = this.data?.colorTag;
+    if (colorTag) {
+      this.selectedColor = this.hexToColorName(colorTag);
+    }
     // Get categories from data if provided
     this.categories = this.data?.categories || [];
 
@@ -100,5 +105,27 @@ export class EditActivityModal implements OnInit {
       };
       this.dialogRef.close(updated);
     }
+  }
+
+  // Convert hex color to color name
+  private hexToColorName(colorOrHex: string): string {
+    // If it's already a color name, return it
+    const colorNames = this.colors.map(c => c.name);
+    if (colorNames.includes(colorOrHex.toLowerCase())) {
+      return colorOrHex.toLowerCase();
+    }
+    
+    // Convert hex to color name
+    const hexMap: Record<string, string> = {
+      '#ef4444': 'red',
+      '#f97316': 'orange',
+      '#fbbf24': 'yellow',
+      '#10b981': 'green',
+      '#3b82f6': 'blue',
+      '#8b5cf6': 'purple',
+      '#5fa9a4': 'teal',
+      '#4da1a9': 'teal',
+    };
+    return hexMap[colorOrHex.toLowerCase()] || 'teal';
   }
 }

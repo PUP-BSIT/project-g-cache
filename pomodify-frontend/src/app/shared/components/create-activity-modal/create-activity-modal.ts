@@ -37,10 +37,11 @@ export class CreateActivityModal implements OnInit {
   private data = inject(MAT_DIALOG_DATA, { optional: true }) as { categories?: string[] } | null;
 
   activityForm!: FormGroup;
-  selectedColor: string = 'red';
+  selectedColor: string = 'teal';
   categories: string[] = [];
   
   colors = [
+    { name: 'teal', hex: '#5FA9A4' },
     { name: 'red', hex: '#EF4444' },
     { name: 'orange', hex: '#F97316' },
     { name: 'yellow', hex: '#FBBF24' },
