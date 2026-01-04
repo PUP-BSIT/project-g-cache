@@ -89,6 +89,12 @@ export class SessionsListComponent implements OnInit {
    * Get the effective status for a session, checking local storage for running timers
    */
   protected getEffectiveStatus(session: PomodoroSession): SessionStatus {
+    // Terminal states (ABANDONED, COMPLETED) should always use the backend status
+    // Don't let stale localStorage override these
+    if (session.status === 'ABANDONED' || session.status === 'COMPLETED') {
+      return session.status;
+    }
+    
     try {
       const key = `pomodify_timer_${session.id}`;
       const stored = localStorage.getItem(key);
@@ -119,7 +125,7 @@ export class SessionsListComponent implements OnInit {
         );
         
         if (!activity) {
-          throw new Error(`Activity "${this.activityTitle()}" not found`);
+          throw new Error(`Activity "${this.activityTitle()}" not found. It may have been deleted.`);
         }
         
         this.activityId.set(activity.activityId);
@@ -128,7 +134,8 @@ export class SessionsListComponent implements OnInit {
         return this.sessionService.getSessions(activity.activityId);
       }),
       catchError(error => {
-        this.error.set(error.message || 'Failed to load sessions');
+        const errorMsg = error.message || 'Failed to load sessions';
+        this.error.set(errorMsg);
         this.loading.set(false);
         return of([]);
       })
@@ -292,7 +299,8 @@ export class SessionsListComponent implements OnInit {
       'PENDING': 'status-pending',
       'IN_PROGRESS': 'status-in-progress',
       'PAUSED': 'status-paused',
-      'COMPLETED': 'status-completed'
+      'COMPLETED': 'status-completed',
+      'ABANDONED': 'status-abandoned'
     };
     return statusMap[status] || '';
   }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { VerifyEmailModal, VerifyEmailModalData } from '../../shared/components/verify-email-modal/verify-email-modal';
+import { VerifyEmailModal } from '../../shared/components/verify-email-modal/verify-email-modal';
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { API } from '../config/api.config';
@@ -295,21 +295,13 @@ export class Auth {
   showVerifyEmailModal(source: 'signup' | 'login' = 'signup'): void {
     const dialogRef = this.dialog.open(VerifyEmailModal, {
       width: '400px',
-      disableClose: true,
+      disableClose: false,
       panelClass: 'verify-email-dialog',
       data: { source }
     });
 
-    dialogRef.afterClosed().subscribe((result: string | undefined) => {
-      if (result === 'goToLogin') {
-        // After signup, user is already logged in, so go to dashboard
-        if (source === 'signup') {
-          this.router.navigate(['/dashboard']);
-        } else {
-          this.router.navigate(['/login']);
-        }
-      }
-    });
+    // Navigation is handled in the modal component itself
+    // No need to subscribe to afterClosed here
   }
 
   /**

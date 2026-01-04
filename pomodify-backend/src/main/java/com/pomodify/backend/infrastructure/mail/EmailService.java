@@ -96,6 +96,7 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Async
     public void sendPasswordResetEmail(String toEmail, String token, String overrideBaseUrl) {
         String urlBase = (overrideBaseUrl != null && !overrideBaseUrl.isBlank()) ? overrideBaseUrl : baseUrl;
         // Ensure we don't double slash if baseUrl ends with /
@@ -111,7 +112,23 @@ public class EmailService {
         String footerMessage = "This link will expire in 15 minutes. If you did not request this, please ignore this email.";
 
         String htmlContent = generateHtmlContent(title, message, buttonText, resetUrl, footerMessage);
-        sendHtmlEmail(toEmail, subject, htmlContent);
+        
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            mailSender.send(mimeMessage);
+            log.info("Password reset email sent successfully to: {}", toEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            // Fallback to simple email if HTML fails
+            sendSimpleEmail(toEmail, subject, htmlContent.replaceAll("<[^>]*>", ""));
+        } catch (Exception e) {
+            log.error("Unexpected error sending password reset email to {}: {}", toEmail, e.getMessage());
+        }
     }
 
     public void sendPasswordResetEmail(String toEmail) {

@@ -4,12 +4,14 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { AsyncPipe } from '@angular/common';
+import { Observable, startWith, map } from 'rxjs';
 import { ActivityData } from '../create-activity-modal/create-activity-modal';
 
 type ActivityFormValue = {
   name: string;
   category: string;
-  customCategory: string;
   colorTag: string;
 };
 
@@ -21,7 +23,9 @@ type ActivityFormValue = {
     MatDialogModule,
     MatButtonModule,
     MatInputModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatAutocompleteModule,
+    AsyncPipe
   ],
   templateUrl: './edit-activity-modal.html',
   styleUrls: ['./edit-activity-modal.scss']
@@ -32,10 +36,12 @@ export class EditActivityModal implements OnInit {
   private data = inject(MAT_DIALOG_DATA) as (ActivityData & { categories?: string[] }) | undefined;
 
   activityForm!: FormGroup;
-  selectedColor: string = 'red';
+  selectedColor: string = 'teal';
   categories: string[] = [];
+  filteredCategories$!: Observable<string[]>;
 
   colors = [
+    { name: 'teal', hex: '#5FA9A4' },
     { name: 'red', hex: '#EF4444' },
     { name: 'orange', hex: '#F97316' },
     { name: 'yellow', hex: '#FBBF24' },
@@ -45,7 +51,11 @@ export class EditActivityModal implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.selectedColor = this.data?.colorTag ?? this.selectedColor;
+    // Convert hex color to color name if needed
+    const colorTag = this.data?.colorTag;
+    if (colorTag) {
+      this.selectedColor = this.hexToColorName(colorTag);
+    }
     // Get categories from data if provided
     this.categories = this.data?.categories || [];
 
@@ -59,12 +69,6 @@ export class EditActivityModal implements OnInit {
       category: [
         this.data?.category ?? '',
         {
-          validators: [],
-        },
-      ],
-      customCategory: [
-        '',
-        {
           validators: [Validators.maxLength(40)],
         },
       ],
@@ -75,6 +79,19 @@ export class EditActivityModal implements OnInit {
         },
       ],
     });
+
+    // Set up autocomplete filtering
+    this.filteredCategories$ = this.activityForm.get('category')!.valueChanges.pipe(
+      startWith(this.data?.category ?? ''),
+      map(value => this._filterCategories(value || ''))
+    );
+  }
+
+  private _filterCategories(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.categories.filter(category => 
+      category.toLowerCase().includes(filterValue)
+    );
   }
 
   selectColor(colorName: string): void {
@@ -88,17 +105,36 @@ export class EditActivityModal implements OnInit {
 
   onSaveChanges(): void {
     if (this.activityForm.valid) {
-      const { name, category, customCategory } = this.activityForm.getRawValue() as ActivityFormValue;
-      
-      // Use custom category if provided, otherwise use dropdown selection
-      const finalCategory = customCategory?.trim() || category || undefined;
+      const { name, category } = this.activityForm.getRawValue() as ActivityFormValue;
       
       const updated: ActivityData = {
         name,
-        category: finalCategory,
+        category: category?.trim() || undefined,
         colorTag: this.selectedColor,
       };
       this.dialogRef.close(updated);
     }
+  }
+
+  // Convert hex color to color name
+  private hexToColorName(colorOrHex: string): string {
+    // If it's already a color name, return it
+    const colorNames = this.colors.map(c => c.name);
+    if (colorNames.includes(colorOrHex.toLowerCase())) {
+      return colorOrHex.toLowerCase();
+    }
+    
+    // Convert hex to color name
+    const hexMap: Record<string, string> = {
+      '#ef4444': 'red',
+      '#f97316': 'orange',
+      '#fbbf24': 'yellow',
+      '#10b981': 'green',
+      '#3b82f6': 'blue',
+      '#8b5cf6': 'purple',
+      '#5fa9a4': 'teal',
+      '#4da1a9': 'teal',
+    };
+    return hexMap[colorOrHex.toLowerCase()] || 'teal';
   }
 }

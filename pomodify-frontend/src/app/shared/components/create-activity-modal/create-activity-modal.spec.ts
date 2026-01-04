@@ -31,12 +31,12 @@ describe('CreateActivityModal', () => {
     expect(component.activityForm).toBeTruthy();
   });
 
-  it('should have default color as red', () => {
-    expect(component.selectedColor).toBe('red');
+  it('should have default color as teal', () => {
+    expect(component.selectedColor).toBe('teal');
   });
 
   it('should have color options', () => {
-    expect(component.colors.length).toBe(6);
+    expect(component.colors.length).toBe(7);
   });
 
   it('should select color', () => {

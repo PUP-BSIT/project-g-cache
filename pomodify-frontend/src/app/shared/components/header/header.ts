@@ -53,12 +53,18 @@ export class Header implements OnInit, OnDestroy {
     }
   }
 
+  navigateHome(): void {
+    this.closeMobileMenu();
+    // Use skipRedirect to bypass the "permanent flag" logic that redirects to login
+    this.router.navigate(['/'], { state: { skipRedirect: true } });
+  }
+
   scrollToFeature(featureId: string): void {
     this.mobileMenuOpen = false; // Close menu after selection
     this.updateBodyClass();
     // Navigate to landing page first if not already there
     if (this.router.url !== '/' && this.router.url !== '/landing') {
-      this.router.navigate(['/']).then(() => {
+      this.router.navigate(['/'], { state: { skipRedirect: true } }).then(() => {
         setTimeout(() => this.scrollToElement(featureId), 100);
       });
     } else {

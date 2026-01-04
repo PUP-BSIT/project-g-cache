@@ -34,26 +34,25 @@
     <!-- Category/Tag -->
     <div class="form-group">
       <label for="category">Category/Tag (Optional)</label>
-      <select
+      <input
         id="category"
+        type="text"
         formControlName="category"
         class="form-input"
-      >
-        <option value="">Select or enter new category</option>
-        @for (category of categories; track category) {
-          <option [value]="category">{{ category }}</option>
-        }
-      </select>
-      <input
-        type="text"
-        formControlName="customCategory"
-        class="form-input custom-category-input"
-        placeholder="Or type a new category"
-        style="margin-top: 8px;"
+        placeholder="Select or type a category"
         maxlength="40"
+        [matAutocomplete]="auto"
+        #categoryInput="matAutocompleteTrigger"
+        (focus)="categoryInput.openPanel()"
+        aria-label="Category"
       />
-      <div class="char-counter" [class.warning]="activityForm.get('customCategory')?.value?.length >= 35">
-        {{ activityForm.get('customCategory')?.value?.length || 0 }} / 40 characters
+      <mat-autocomplete #auto="matAutocomplete">
+        @for (category of filteredCategories$ | async; track category) {
+          <mat-option [value]="category">{{ category }}</mat-option>
+        }
+      </mat-autocomplete>
+      <div class="char-counter" [class.warning]="activityForm.get('category')?.value?.length >= 35">
+        {{ activityForm.get('category')?.value?.length || 0 }} / 40 characters
       </div>
     </div>
 

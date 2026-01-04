@@ -9,7 +9,7 @@
 
     <nav class="nav" [class.active]="mobileMenuOpen">
         <!-- Show Home link when on contact page, Features dropdown otherwise -->
-        <a *ngIf="isContactPage" routerLink="/" class="nav-link" (click)="closeMobileMenu()">Home</a>
+        <a *ngIf="isContactPage" class="nav-link" (click)="navigateHome()">Home</a>
         
         <div *ngIf="!isContactPage" class="nav-link dropdown" tabindex="0">
         <span>Features</span>
