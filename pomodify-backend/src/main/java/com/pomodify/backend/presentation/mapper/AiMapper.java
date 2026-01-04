@@ -64,6 +64,7 @@ public class AiMapper {
         return QuickFocusItem.builder()
                 .activityId(result.activityId())
                 .sessionId(result.sessionId())
+                .activityTitle(result.activityTitle())
                 .build();
     }
 
@@ -72,6 +73,7 @@ public class AiMapper {
                 .message(message)
                 .activityId(item.activityId())
                 .sessionId(item.sessionId())
+                .activityTitle(item.activityTitle())
                 .build();
     }
 

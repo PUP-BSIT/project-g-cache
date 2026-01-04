@@ -4,6 +4,9 @@ import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/materia
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { AsyncPipe } from '@angular/common';
+import { Observable, startWith, map } from 'rxjs';
 
 export type ActivityData = {
   name: string;
@@ -14,7 +17,6 @@ export type ActivityData = {
 type ActivityFormValue = {
   name: string;
   category: string;
-  customCategory: string;
   colorTag: string;
 };
 
@@ -26,7 +28,9 @@ type ActivityFormValue = {
     MatDialogModule,
     MatButtonModule,
     MatInputModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatAutocompleteModule,
+    AsyncPipe
   ],
   templateUrl: './create-activity-modal.html',
   styleUrls: ['./create-activity-modal.scss']
@@ -37,10 +41,12 @@ export class CreateActivityModal implements OnInit {
   private data = inject(MAT_DIALOG_DATA, { optional: true }) as { categories?: string[] } | null;
 
   activityForm!: FormGroup;
-  selectedColor: string = 'red';
+  selectedColor: string = 'teal';
   categories: string[] = [];
+  filteredCategories$!: Observable<string[]>;
   
   colors = [
+    { name: 'teal', hex: '#5FA9A4' },
     { name: 'red', hex: '#EF4444' },
     { name: 'orange', hex: '#F97316' },
     { name: 'yellow', hex: '#FBBF24' },
@@ -63,12 +69,6 @@ export class CreateActivityModal implements OnInit {
       category: [
         '',
         {
-          validators: [],
-        },
-      ],
-      customCategory: [
-        '',
-        {
           validators: [Validators.maxLength(40)],
         },
       ],
@@ -79,6 +79,19 @@ export class CreateActivityModal implements OnInit {
         },
       ],
     });
+
+    // Set up autocomplete filtering
+    this.filteredCategories$ = this.activityForm.get('category')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterCategories(value || ''))
+    );
+  }
+
+  private _filterCategories(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.categories.filter(category => 
+      category.toLowerCase().includes(filterValue)
+    );
   }
 
   selectColor(colorName: string): void {
@@ -92,7 +105,7 @@ export class CreateActivityModal implements OnInit {
 
   onCreateActivity(): void {
     if (this.activityForm.valid) {
-      const { name, category, customCategory } = this.activityForm.getRawValue() as ActivityFormValue;
+      const { name, category } = this.activityForm.getRawValue() as ActivityFormValue;
       
       if (!name || name.trim() === '') {
         console.error('[CreateActivityModal] Activity name is required');
@@ -100,12 +113,9 @@ export class CreateActivityModal implements OnInit {
         return;
       }
       
-      // Use custom category if provided, otherwise use dropdown selection
-      const finalCategory = customCategory?.trim() || category || undefined;
-      
       const activityData: ActivityData = {
         name: name.trim(),
-        category: finalCategory,
+        category: category?.trim() || undefined,
         colorTag: this.selectedColor,
       };
       console.log('[CreateActivityModal] Closing with data:', activityData);

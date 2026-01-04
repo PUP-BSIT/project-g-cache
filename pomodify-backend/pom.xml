@@ -273,6 +273,7 @@
                         <include>**/*IntegrationTest.java</include>
                         <include>**/*IntegrationTests.java</include>
                     </includes>
+
                 </configuration>
                 <executions>
                     <execution>

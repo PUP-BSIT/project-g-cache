@@ -8,6 +8,7 @@ public record UserResult(
         String lastName,
         String email,
         boolean isEmailVerified,
-        String backupEmail
+        String backupEmail,
+        String profilePictureUrl
 ) {
 }

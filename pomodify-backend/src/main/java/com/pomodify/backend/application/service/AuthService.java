@@ -85,6 +85,7 @@ public class AuthService {
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
             .backupEmail(savedUser.getBackupEmail())
+            .profilePictureUrl(savedUser.getProfilePictureUrl())
             .build();
 
     }
@@ -150,19 +151,23 @@ public class AuthService {
         User user = userRepository.findByEmail(emailVO)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Delete existing token if any
-        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+        // Delete existing token if any and flush to avoid constraint violations
+        passwordResetTokenRepository.findByUser(user).ifPresent(existingToken -> {
+            passwordResetTokenRepository.delete(existingToken);
+            passwordResetTokenRepository.flush();
+        });
 
         // Create new token
         PasswordResetToken token = new PasswordResetToken(user);
         passwordResetTokenRepository.save(token);
 
-        // Send email
+        // Send email asynchronously - don't throw on failure since email is queued
         try {
             emailService.sendPasswordResetEmail(user.getEmail().getValue(), token.getToken(), baseUrl);
+            log.info("Password reset email queued for: {}", email);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to {}: {}", email, e.getMessage(), e);
-            throw new RuntimeException("Failed to send password reset email", e);
+            log.error("Failed to queue password reset email to {}: {}", email, e.getMessage(), e);
+            // Don't throw - the token is saved, user can retry or email may still be sent
         }
     }
 
@@ -178,19 +183,23 @@ public class AuthService {
             throw new IllegalArgumentException("Backup email does not match");
         }
 
-        // Delete existing token if any
-        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+        // Delete existing token if any and flush to avoid constraint violations
+        passwordResetTokenRepository.findByUser(user).ifPresent(existingToken -> {
+            passwordResetTokenRepository.delete(existingToken);
+            passwordResetTokenRepository.flush();
+        });
 
         // Create new token
         PasswordResetToken token = new PasswordResetToken(user);
         passwordResetTokenRepository.save(token);
 
-        // Send email to backup email
+        // Send email to backup email asynchronously
         try {
             emailService.sendPasswordResetEmail(user.getBackupEmail(), token.getToken(), baseUrl);
+            log.info("Password reset email queued for backup email: {}", backupEmail);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to backup email {}: {}", backupEmail, e.getMessage(), e);
-            throw new RuntimeException("Failed to send password reset email", e);
+            log.error("Failed to queue password reset email to backup email {}: {}", backupEmail, e.getMessage(), e);
+            // Don't throw - the token is saved, user can retry or email may still be sent
         }
     }
 
@@ -351,6 +360,7 @@ public class AuthService {
             .email(user.getEmail().getValue())
             .isEmailVerified(user.isEmailVerified())
             .backupEmail(user.getBackupEmail())
+            .profilePictureUrl(user.getProfilePictureUrl())
             .build();
     }
 
@@ -394,6 +404,7 @@ public class AuthService {
             .email(savedUser.getEmail().getValue())
             .isEmailVerified(savedUser.isEmailVerified())
             .backupEmail(savedUser.getBackupEmail())
+            .profilePictureUrl(savedUser.getProfilePictureUrl())
             .build();
     }
 }

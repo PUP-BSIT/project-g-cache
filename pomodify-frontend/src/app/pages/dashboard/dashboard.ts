@@ -65,6 +65,9 @@ export class Dashboard implements OnInit {
   protected isLoadingDashboard = signal(false);
   protected dashboardError = signal<string | null>(null);
   protected isResendingEmail = signal(false);
+  
+  // Categories for create activity modal
+  protected categories = signal<string[]>([]);
 
   smartActionWizardOpen = false;
   smartActionMode: SmartActionMode = null;
@@ -83,9 +86,30 @@ export class Dashboard implements OnInit {
       this.sidebarExpanded.set(false);
     }
     this.loadDashboardMetrics();
+    this.loadCategories();
     this.auth.fetchAndStoreUserProfile().then(user => {
         this.profile.set(user);
     }).catch(err => console.error('Failed to fetch profile', err));
+  }
+
+  private loadCategories(): void {
+    this.http.get<any>(API.CATEGORIES.GET_ALL).subscribe({
+      next: (response) => {
+        let categoryList: any[] = [];
+        if (Array.isArray(response)) {
+          categoryList = response;
+        } else if (response?.categories) {
+          categoryList = response.categories;
+        } else if (response?.content) {
+          categoryList = response.content;
+        }
+        const categoryNames = categoryList.map(c => c.categoryName).filter(Boolean);
+        this.categories.set(categoryNames);
+      },
+      error: (err) => {
+        console.error('[Dashboard] Error loading categories:', err);
+      }
+    });
   }
 
   protected onResendVerification(): void {
@@ -169,15 +193,20 @@ export class Dashboard implements OnInit {
   protected openCreateActivityModal(): void {
     console.log('[Dashboard] Quick start - creating new activity and session');
     this.dialog
-      .open(CreateActivityModal)
+      .open(CreateActivityModal, {
+        data: { categories: this.categories() }
+      })
       .afterClosed()
       .pipe(
         filter((result: CreateActivityModalData) => !!result),
         switchMap((result: CreateActivityModalData) => {
           console.log('[Dashboard] Creating new activity:', result.name);
+          // Convert color name to hex for backend
+          const colorHex = this.colorNameToHex(result.colorTag);
           const req: any = {
             title: result.name,
             description: result.category || '',
+            color: colorHex,
           };
           console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
           
@@ -308,8 +337,10 @@ export class Dashboard implements OnInit {
   }
 
   protected navigateToSession(session: RecentSession): void {
-    // Navigate to: /activities/:activityName/sessions/:sessionId
-    this.router.navigate(['/activities', session.activityName, 'sessions', session.id]);
+    // For completed sessions shown in dashboard, navigate to the sessions list for that activity
+    // This is more appropriate since these are historical/completed sessions
+    // The session timer page is meant for active sessions
+    this.router.navigate(['/activities', session.activityName, 'sessions']);
   }
 
   onSmartActionSelected(mode: SmartActionMode) {
@@ -350,12 +381,19 @@ export class Dashboard implements OnInit {
   startQuickFocus() {
     this.http.post<any>(API.AI.QUICK_FOCUS, {}).subscribe({
       next: (res) => {
-        this.router.navigate(['/activities', res.activityId, 'sessions', res.sessionId]);
+        // Use activityTitle for navigation (route expects title, not ID)
+        const activityTitle = res.activityTitle || 'Quick Focus';
+        this.router.navigate(['/activities', activityTitle, 'sessions', res.sessionId]);
       },
       error: (err) => {
         alert('Failed to start Quick Focus.');
       }
     });
+  }
+
+  // Convert color name to hex format for backend
+  private colorNameToHex(colorName: string): string {
+    return COLOR_NAME_TO_HEX[colorName?.toLowerCase()] || COLOR_NAME_TO_HEX['teal'];
   }
 }
 
@@ -369,4 +407,15 @@ function cryptoRandomId(): string {
     return String(Date.now());
   }
 }
+
+// Color name to hex mapping (matches create-activity-modal colors)
+const COLOR_NAME_TO_HEX: Record<string, string> = {
+  red: '#EF4444',
+  orange: '#F97316',
+  yellow: '#FBBF24',
+  green: '#10B981',
+  blue: '#3B82F6',
+  purple: '#8B5CF6',
+  teal: '#4da1a9',
+};
 

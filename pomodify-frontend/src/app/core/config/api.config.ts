@@ -38,7 +38,7 @@ export const API = {
     OAUTH2_GOOGLE: `${ROOT}/auth/oauth2/google`,
     RESEND_VERIFICATION: `${ROOT}/auth/resend-verification`,
     FORGOT_PASSWORD: `${ROOT}/auth/forgot-password`,
-    FORGOT_PASSWORD_BACKUP: `${ROOT}/auth/forgot-password-backup`,
+    FORGOT_PASSWORD_BACKUP: `${ROOT}/auth/forgot-password/backup`,
     CHECK_BACKUP_EMAIL: `${ROOT}/auth/check-backup-email`,
     RESET_PASSWORD: `${ROOT}/auth/reset-password`,
   },
@@ -50,6 +50,8 @@ export const API = {
     VERIFY_EMAIL: `${ROOT}/auth/verify`,
     UPDATE_BACKUP_EMAIL: `${ROOT}/auth/users/me/backup-email`,
     CHANGE_PASSWORD: `${ROOT}/auth/users/me/password`,
+    UPLOAD_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
+    DELETE_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
   },
 
   // Activities Resource

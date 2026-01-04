@@ -74,6 +74,9 @@ public class User {
     @Column(name = "backup_email")
     private String backupEmail;
 
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
     // ──────────────── Relationships ────────────────
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
@@ -237,5 +240,9 @@ public class User {
 
     public void setBackupEmail(String backupEmail) {
         this.backupEmail = backupEmail;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 }

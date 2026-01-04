@@ -264,6 +264,7 @@ public class AiService {
         return QuickFocusResult.builder()
                 .activityId(activity.getId())
                 .sessionId(savedSession.getId())
+                .activityTitle(activity.getTitle())
                 .build();
     }
 

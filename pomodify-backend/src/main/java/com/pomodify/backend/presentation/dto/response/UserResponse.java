@@ -5,5 +5,6 @@ public record UserResponse(
         String lastName,
         String email,
         boolean isEmailVerified,
-        String backupEmail
+        String backupEmail,
+        String profilePictureUrl
 ) {}

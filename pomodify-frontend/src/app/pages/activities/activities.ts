@@ -300,10 +300,13 @@ export class ActivitiesPage implements OnInit {
   }
 
   private createActivityWithCategory(result: CreateActivityModalData, categoryId?: number): void {
+    // Convert color name to hex for backend
+    const colorHex = this.colorNameToHex(result.colorTag);
     const request: any = {
       title: result.name,
       description: '',
-      categoryId: categoryId
+      categoryId: categoryId,
+      color: colorHex
     };
     console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
 
@@ -401,10 +404,13 @@ export class ActivitiesPage implements OnInit {
   }
 
   private updateActivityRequest(activityId: number, updated: CreateActivityModalData, categoryId?: number): void {
+    // Convert color name to hex for backend
+    const colorHex = this.colorNameToHex(updated.colorTag);
     const request: any = {
       newActivityTitle: updated.name,
       newActivityDescription: '',
       newCategoryId: categoryId,
+      newColor: colorHex,
     };
     console.log('[ActivitiesPage] Update request payload:', JSON.stringify(request, null, 2));
 
@@ -605,5 +611,19 @@ export class ActivitiesPage implements OnInit {
           console.log('[ActivitiesPage] Profile updated:', result);
         }
       });
+  }
+
+  // Convert color name to hex format for backend
+  private colorNameToHex(colorName: string): string {
+    const colorMap: Record<string, string> = {
+      red: '#EF4444',
+      orange: '#F97316',
+      yellow: '#FBBF24',
+      green: '#10B981',
+      blue: '#3B82F6',
+      purple: '#8B5CF6',
+      teal: '#4da1a9',
+    };
+    return colorMap[colorName?.toLowerCase()] || colorMap['teal'];
   }
 }

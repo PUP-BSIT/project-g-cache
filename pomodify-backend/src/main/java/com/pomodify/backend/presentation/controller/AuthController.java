@@ -22,6 +22,7 @@ import com.pomodify.backend.presentation.dto.response.UserResponse;
 import com.pomodify.backend.presentation.dto.response.CheckBackupEmailResponse;
 import com.pomodify.backend.presentation.mapper.AuthMapper;
 import com.pomodify.backend.presentation.mapper.UserMapper;
+import com.pomodify.backend.application.service.ProfilePictureService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
@@ -34,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Auth", description = "User registration, login and token management")
@@ -62,10 +64,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtService jwtService;
+    private final ProfilePictureService profilePictureService;
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService, JwtService jwtService, ProfilePictureService profilePictureService) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.profilePictureService = profilePictureService;
     }
 
     @PostMapping("/register")
@@ -375,6 +379,72 @@ public class AuthController {
         public VerificationResponse(boolean success, String message) {
             this.success = success;
             this.message = message;
+        }
+    }
+
+    // ──────────────── Profile Picture ────────────────
+    @PostMapping(value = "/users/me/profile-picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload profile picture")
+    public ResponseEntity<UserResponse> uploadProfilePicture(
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest httpRequest) {
+        String token = extractToken(httpRequest);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            log.info("Profile picture upload request for user: {}", email);
+            UserResponse response = UserMapper.toUserResponse(profilePictureService.uploadProfilePicture(email, file));
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.warn("Profile picture upload failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (IOException e) {
+            log.error("Profile picture upload failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/users/me/profile-picture")
+    @Operation(summary = "Delete profile picture")
+    public ResponseEntity<UserResponse> deleteProfilePicture(HttpServletRequest httpRequest) {
+        String token = extractToken(httpRequest);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Profile picture delete request for user: {}", email);
+        UserResponse response = UserMapper.toUserResponse(profilePictureService.deleteProfilePicture(email));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users/me/profile-picture/{fileName}")
+    @Operation(summary = "Get profile picture by filename")
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable String fileName) {
+        try {
+            byte[] imageData = profilePictureService.getProfilePicture(fileName);
+            String contentType = profilePictureService.getContentType(fileName);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(imageData);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            log.error("Failed to retrieve profile picture: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

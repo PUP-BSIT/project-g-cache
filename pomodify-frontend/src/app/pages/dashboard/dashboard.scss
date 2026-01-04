@@ -1504,6 +1504,31 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   box-shadow: none;
   position: relative;
 
+  // Clickable session cards
+  &.clickable {
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(95, 169, 164, 0.2);
+      background: linear-gradient(135deg, #f8fffe 0%, #f0faf9 100%);
+      
+      .session-icon {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(82, 201, 124, 0.3);
+      }
+    }
+    
+    &:active {
+      transform: translateY(-2px);
+    }
+    
+    &:focus {
+      outline: 2px solid $primary-teal;
+      outline-offset: 2px;
+    }
+  }
+
   .session-header {
     display: flex;
     align-items: flex-start;

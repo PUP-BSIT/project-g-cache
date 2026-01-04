@@ -8,6 +8,7 @@ import lombok.Builder;
 @Builder
 public record QuickFocusItem(
         Long activityId,
-        Long sessionId
+        Long sessionId,
+        String activityTitle
 ) {
 }

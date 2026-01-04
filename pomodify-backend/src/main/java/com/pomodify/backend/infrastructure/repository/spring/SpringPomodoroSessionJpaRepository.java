@@ -30,13 +30,13 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
     @Query("select case when count(s)>0 then true else false end from PomodoroSession s where s.id=:id and s.activity.user.id=:userId")
     boolean existsByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status and s.completedAt between :start and :end")
+    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status and s.activity.isDeleted = false and s.completedAt between :start and :end")
     List<PomodoroSession> findCompletedByUserIdBetween(@Param("userId") Long userId, @Param("status") SessionStatus status, @Param("start") java.time.LocalDateTime start, @Param("end") java.time.LocalDateTime end);
 
-    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status")
+    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status and s.activity.isDeleted = false")
     List<PomodoroSession> findCompletedByUserId(@Param("userId") Long userId, @Param("status") SessionStatus status);
 
-    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status order by s.completedAt desc")
+    @Query("select s from PomodoroSession s JOIN FETCH s.activity where s.activity.user.id=:userId and s.status = :status and s.activity.isDeleted = false order by s.completedAt desc")
     List<PomodoroSession> findRecentCompletedByUserId(@Param("userId") Long userId, @Param("status") SessionStatus status, Pageable pageable);
 
     @Query("SELECT n.content FROM PomodoroSession s JOIN s.note n WHERE s.activity.id = :activityId AND n.content IS NOT NULL ORDER BY s.completedAt DESC")
