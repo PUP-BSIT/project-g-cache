@@ -17,6 +17,7 @@ import { DeleteActivityModal } from '../../shared/components/delete-activity-mod
 import { AddSessionModal, SessionData } from '../../shared/components/add-session-modal/add-session-modal';
 import { Profile, ProfileData } from '../profile/profile';
 import { IconMapper } from '../../core/services/icon-mapper';
+import { UserProfileService } from '../../core/services/user-profile.service';
 
 @Component({
   selector: 'app-activities-page',
@@ -68,6 +69,10 @@ export class ActivitiesPage implements OnInit {
   private sessionService = inject(SessionService);
   private activityColorService = inject(ActivityColorService);
   private iconMapper = inject(IconMapper);
+  private userProfileService = inject(UserProfileService);
+
+  // Profile picture from shared service - updates when profile changes
+  protected profilePictureUrl = this.userProfileService.profilePictureUrl;
 
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -152,6 +157,19 @@ export class ActivitiesPage implements OnInit {
     console.log('[ActivitiesPage] Initializing...');
     this.loadCategories();
     this.loadActivities();
+    // Fetch user profile and sync with shared service
+    this.auth.fetchAndStoreUserProfile().then(user => {
+      if (user) {
+        this.userProfileService.updateUserProfile({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          profilePictureUrl: user.profilePictureUrl || null,
+          backupEmail: user.backupEmail || null,
+          isEmailVerified: user.isEmailVerified || false
+        });
+      }
+    }).catch(err => console.error('[ActivitiesPage] Failed to fetch profile', err));
   }
 
   // Load all categories from backend

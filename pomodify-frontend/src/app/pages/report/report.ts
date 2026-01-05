@@ -6,6 +6,7 @@ import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { Auth } from '../../core/services/auth';
 import { ReportRange, ReportService, SummaryItem, SummaryItem as SummaryItemType } from '../../core/services/report.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
 
 type ActivityBreakdown = {
   activityName: string;
@@ -60,6 +61,10 @@ export class Report implements OnInit {
   private dialog = inject(MatDialog);
   private auth = inject(Auth);
   private reportService = inject(ReportService);
+  private userProfileService = inject(UserProfileService);
+
+  // Profile picture from shared service - updates when profile changes
+  protected profilePictureUrl = this.userProfileService.profilePictureUrl;
 
   // Constants
   private readonly HOURS_TO_MINUTES = 60;
@@ -121,6 +126,20 @@ export class Report implements OnInit {
     
     // Load data from backend based on selected range
     this.loadSummary(this.selectedRange());
+    
+    // Fetch user profile and sync with shared service
+    this.auth.fetchAndStoreUserProfile().then(user => {
+      if (user) {
+        this.userProfileService.updateUserProfile({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          profilePictureUrl: user.profilePictureUrl || null,
+          backupEmail: user.backupEmail || null,
+          isEmailVerified: user.isEmailVerified || false
+        });
+      }
+    }).catch(err => console.error('[Report] Failed to fetch profile', err));
   }
 
   // Toggle sidebar

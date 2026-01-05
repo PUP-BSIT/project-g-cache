@@ -17,6 +17,9 @@ import { SmartActionComponent, SmartActionMode } from '../../shared/components/s
 import { SmartActionWizardComponent } from './smart-action-wizard';
 import { ActivityService } from '../../core/services/activity.service';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
+import { BadgeNotificationService } from '../../core/services/badge-notification.service';
 
 export type Session = {
   id: string;
@@ -44,6 +47,7 @@ type Activity = {
     RouterModule,
     SmartActionComponent,
     SmartActionWizardComponent,
+    NotificationBellComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -56,10 +60,15 @@ export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private activityService = inject(ActivityService);
   private notificationService = inject(SuccessNotificationService);
+  private userProfileService = inject(UserProfileService);
+  private badgeNotificationService = inject(BadgeNotificationService);
 
   protected sidebarExpanded = signal(true);
   protected isLoggingOut = signal(false);
   protected profile = signal<any>(null);
+  
+  // Profile picture from shared service - updates when profile changes
+  protected profilePictureUrl = this.userProfileService.profilePictureUrl;
 
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
@@ -87,8 +96,23 @@ export class Dashboard implements OnInit {
     }
     this.loadDashboardMetrics();
     this.loadCategories();
+    // Check for new badge achievements
+    this.badgeNotificationService.checkForNewBadges();
     this.auth.fetchAndStoreUserProfile().then(user => {
+        console.log('[Dashboard] User profile fetched:', user);
+        console.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);
         this.profile.set(user);
+        // Sync profile with shared service
+        if (user) {
+          this.userProfileService.updateUserProfile({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            profilePictureUrl: user.profilePictureUrl || null,
+            backupEmail: user.backupEmail || null,
+            isEmailVerified: user.isEmailVerified || false
+          });
+        }
     }).catch(err => console.error('Failed to fetch profile', err));
   }
 

@@ -63,10 +63,54 @@ export class SessionsListComponent implements OnInit {
   noteDraft = signal<string>('');
   savingNote = signal(false);
   
+  // Pagination state
+  readonly PAGE_SIZE = 6;
+  completedPage = signal(1);
+  abandonedPage = signal(1);
+  
   filteredSessions = computed(() => {
     const all = this.sessions();
     const show = this.showAbandoned();
     return all.filter(s => show || s.status !== 'ABANDONED');
+  });
+
+  // Active sessions (PENDING, IN_PROGRESS, PAUSED) - no pagination
+  activeSessions = computed(() => {
+    return this.sessions().filter(s => 
+      s.status === 'PENDING' || s.status === 'IN_PROGRESS' || s.status === 'PAUSED'
+    );
+  });
+
+  // Completed sessions with pagination
+  allCompletedSessions = computed(() => {
+    return this.sessions().filter(s => s.status === 'COMPLETED');
+  });
+
+  completedSessions = computed(() => {
+    const all = this.allCompletedSessions();
+    const page = this.completedPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return all.slice(start, start + this.PAGE_SIZE);
+  });
+
+  completedTotalPages = computed(() => {
+    return Math.ceil(this.allCompletedSessions().length / this.PAGE_SIZE);
+  });
+
+  // Abandoned sessions with pagination
+  allAbandonedSessions = computed(() => {
+    return this.sessions().filter(s => s.status === 'ABANDONED');
+  });
+
+  abandonedSessions = computed(() => {
+    const all = this.allAbandonedSessions();
+    const page = this.abandonedPage();
+    const start = (page - 1) * this.PAGE_SIZE;
+    return all.slice(start, start + this.PAGE_SIZE);
+  });
+
+  abandonedTotalPages = computed(() => {
+    return Math.ceil(this.allAbandonedSessions().length / this.PAGE_SIZE);
   });
 
   hasActiveSession = computed(() => {
@@ -79,6 +123,20 @@ export class SessionsListComponent implements OnInit {
 
   toggleAbandoned() {
     this.showAbandoned.update(v => !v);
+    this.abandonedPage.set(1); // Reset to first page when toggling
+  }
+
+  // Pagination methods
+  goToCompletedPage(page: number): void {
+    if (page >= 1 && page <= this.completedTotalPages()) {
+      this.completedPage.set(page);
+    }
+  }
+
+  goToAbandonedPage(page: number): void {
+    if (page >= 1 && page <= this.abandonedTotalPages()) {
+      this.abandonedPage.set(page);
+    }
   }
 
   ngOnInit(): void {

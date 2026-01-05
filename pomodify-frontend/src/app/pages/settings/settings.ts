@@ -7,6 +7,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
 
 @Component({
   selector: 'app-settings',
@@ -19,6 +20,10 @@ export class Settings implements OnInit, AfterViewInit {
   @ViewChild('soundSelect') soundSelect!: ElementRef<HTMLSelectElement>;
   private settingsService = inject(SettingsService);
   private notificationService = inject(NotificationService);
+  private userProfileService = inject(UserProfileService);
+  
+  // Profile picture from shared service - updates when profile changes
+  protected profilePictureUrl = this.userProfileService.profilePictureUrl;
   
   // Sidebar state
   protected sidebarExpanded = signal(true);
@@ -60,6 +65,20 @@ export class Settings implements OnInit, AfterViewInit {
     
     // Update theme state when component initializes
     this.updateThemeState();
+    
+    // Fetch user profile and sync with shared service
+    this.auth.fetchAndStoreUserProfile().then(user => {
+      if (user) {
+        this.userProfileService.updateUserProfile({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          profilePictureUrl: user.profilePictureUrl || null,
+          backupEmail: user.backupEmail || null,
+          isEmailVerified: user.isEmailVerified || false
+        });
+      }
+    }).catch(err => console.error('[Settings] Failed to fetch profile', err));
   }
   
   // Computed signals that react to settings changes
