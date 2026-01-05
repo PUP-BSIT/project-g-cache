@@ -186,6 +186,8 @@ export class NotificationService {
 
   /**
    * Handle incoming FCM message
+   * NOTE: This is for FCM messages received when app is in foreground
+   * We only play sound here since browser notification is already shown by sendPushNotification
    */
   private handleFcmMessage(payload: any): void {
     const notification = payload.notification;
@@ -193,17 +195,14 @@ export class NotificationService {
     
     if (!notification) return;
 
-    const context: NotificationContext = {
-      title: notification.title,
-      body: notification.body,
-      sessionId: data?.sessionId ? parseInt(data.sessionId) : undefined,
-      activityId: data?.activityId ? parseInt(data.activityId) : undefined,
-      type: 'session-complete', // Default to session complete if not specified
-      nextAction: 'View Session'
-    };
-
-    // We treat FCM messages as "foreground" if the app is open
-    this.handleNotification(context);
+    console.log('🔔 FCM message received - playing sound only (notification already shown)');
+    
+    // Only play sound for FCM messages, don't create another notification
+    // The browser notification was already created by sendPushNotification
+    const settings = this.settingsService.getSettings();
+    if (settings.sound.enabled) {
+      this.settingsService.playSound(settings.sound.type);
+    }
   }
 
   /**
@@ -362,12 +361,13 @@ export class NotificationService {
     console.log('Desktop foreground notification - same as background behavior');
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound');
-      await this.sendPushNotification(context, jwt);
+      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      // Play sound and send notification simultaneously (no await) for better sync
       this.settingsService.playSound(settings.sound.type);
+      this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
       console.log('Only notifications enabled - sending push notification (no sound)');
-      await this.sendPushNotification(context, jwt);
+      this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
       console.log('Only sound enabled - playing sound (no push notification)');
       this.settingsService.playSound(settings.sound.type);
@@ -388,12 +388,13 @@ export class NotificationService {
     console.log('Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound');
-      await this.sendPushNotification(context, jwt);
+      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      // Play sound and send notification simultaneously for better sync
       this.playBackgroundSound();
+      this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
       console.log('Only notifications enabled - sending push notification (no sound)');
-      await this.sendPushNotification(context, jwt);
+      this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
       console.log('Only sound enabled - playing sound (no push notification)');
       this.playBackgroundSound();
@@ -437,8 +438,9 @@ export class NotificationService {
 
   /**
    * Send push notification (desktop notification)
+   * Only sends a single browser notification - no FCM to avoid duplicates
    */
-  private async sendPushNotification(context: NotificationContext, jwt: string | null): Promise<void> {
+  private async sendPushNotification(context: NotificationContext, _jwt: string | null): Promise<void> {
     try {
       console.log('Sending desktop push notification:', context.title);
       
@@ -458,7 +460,7 @@ export class NotificationService {
           const notification = new Notification(context.title, {
             body: context.body,
             icon: '/assets/images/logo.png',
-            tag: 'pomodify-session'
+            tag: 'pomodify-session' // Same tag prevents duplicate notifications
           });
           
           // Add click handler to focus the app
@@ -467,8 +469,6 @@ export class NotificationService {
             window.focus();
             notification.close();
           };
-          
-          // No auto-close - let user decide when to dismiss
           
           console.log('🎉 Desktop notification sent successfully!');
           
@@ -484,11 +484,8 @@ export class NotificationService {
           }
         }
         
-        // Also try FCM registration in background (for future use)
-        // JWT is no longer needed, auth is handled by cookies
-        this.fcmService.initializeFCM().catch(error => {
-          console.log('FCM registration failed (not critical):', error);
-        });
+        // NOTE: Removed FCM initialization here to prevent duplicate notifications
+        // FCM should only be initialized once during app startup, not on every notification
         
       } else if (permission === 'denied') {
         console.log('Notification permission denied by user');

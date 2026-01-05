@@ -63,6 +63,9 @@ export class SessionTimerComponent implements OnDestroy {
   // Store original title to restore on destroy
   private originalTitle = 'Pomodify';
 
+  // Guard to prevent duplicate notifications
+  private notificationSentForCurrentPhase = false;
+
   // Auto-start functionality
   protected showAutoStartCountdown = signal(false);
   protected autoStartCountdown = signal(0);
@@ -270,7 +273,8 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Monitor timer completion
     effect(() => {
-      if (this.timerSyncService.isTimerComplete()) {
+      if (this.timerSyncService.isTimerComplete() && !this.notificationSentForCurrentPhase) {
+        this.notificationSentForCurrentPhase = true;
         this.handleTimerComplete();
       }
     });
@@ -1055,6 +1059,13 @@ export class SessionTimerComponent implements OnDestroy {
     // Mark that we're at the start of a new phase (button should show "Start" not "Resume")
     this.isAtPhaseStart.set(true);
     
+    // Trigger notification BEFORE optimistic update so it shows the correct completed phase
+    this.triggerPhaseCompletionNotification(currentPhase);
+    
+    // Reset the notification guard for the new phase AFTER notification is sent
+    // This allows the next phase completion to trigger a notification
+    this.notificationSentForCurrentPhase = false;
+    
     // Optimistic update: immediately update the UI to show new phase
     // Use IN_PROGRESS status but timer is not running (controlled by frontend)
     const optimisticSession: PomodoroSession = {
@@ -1071,9 +1082,6 @@ export class SessionTimerComponent implements OnDestroy {
       : (sess.breakTimeInMinutes || 5) * 60;
     this.timerSyncService.setRemainingSeconds(newPhaseDuration);
     this.timerSyncService.pauseTimer(); // Ensure timer is paused
-    
-    // Trigger notification immediately
-    this.triggerPhaseCompletionNotification();
 
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
@@ -1444,18 +1452,17 @@ export class SessionTimerComponent implements OnDestroy {
     await this.notificationService.handleSessionCompletion(context);
   }
 
-  private async triggerPhaseCompletionNotification(): Promise<void> {
-    console.log('🎯 Phase completion notification triggered');
+  private async triggerPhaseCompletionNotification(completedPhase: 'FOCUS' | 'BREAK'): Promise<void> {
+    console.log('🎯 Phase completion notification triggered for:', completedPhase);
     
     const sess = this.session();
     if (!sess) return;
     
     const activityTitle = this.activityTitle();
-    const currentPhase = sess.currentPhase || 'FOCUS';
-    const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    const nextPhase = completedPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
     
     const context = {
-      title: `${currentPhase} Phase Complete!`,
+      title: `${completedPhase} Phase Complete!`,
       body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
       sessionId: sess.id,
       activityId: sess.activityId,
@@ -1465,8 +1472,7 @@ export class SessionTimerComponent implements OnDestroy {
     
     await this.notificationService.handlePhaseCompletion(context);
     
-    // Check if auto-start is enabled for the next phase
-    await this.checkAndHandleAutoStart(sess, currentPhase);
+    // Note: Auto-start is handled by handlePhaseComplete after backend call completes
   }
 
   protected async testTimerNotification(): Promise<void> {
@@ -1504,12 +1510,15 @@ export class SessionTimerComponent implements OnDestroy {
   protected async forceTimerZero(): Promise<void> {
     console.log('🚨 FORCING TIMER TO ZERO FOR TESTING...');
     
+    const sess = this.session();
+    const currentPhase = sess?.currentPhase || 'FOCUS';
+    
     // Set timer to zero
     this.timerSyncService.setRemainingSeconds(0);
     
     // Manually trigger the phase completion notification
     console.log('⏰ Timer reached zero! Triggering phase completion notification...');
-    await this.triggerPhaseCompletionNotification();
+    await this.triggerPhaseCompletionNotification(currentPhase as 'FOCUS' | 'BREAK');
     
     console.log('✅ Forced timer completion test complete!');
   }

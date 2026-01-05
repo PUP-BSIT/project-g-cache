@@ -1,8 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { timer, Subscription, BehaviorSubject, interval } from 'rxjs';
-import { switchMap, catchError, filter, tap } from 'rxjs/operators';
+import { timer, Subscription, interval } from 'rxjs';
+import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from './session.service';
-import { NotificationService } from './notification.service';
 
 export interface TimerState {
   remainingSeconds: number;
@@ -18,7 +17,6 @@ export interface TimerState {
 })
 export class TimerSyncService {
   private sessionService = inject(SessionService);
-  private notificationService = inject(NotificationService);
 
   private _remainingSeconds = signal(0);
   private _isRunning = signal(false);
@@ -296,25 +294,9 @@ export class TimerSyncService {
     
     this.stopTimers();
     this._remainingSeconds.set(0);
-
-    this.triggerPhaseCompleteNotification();
-  }
-
-  private async triggerPhaseCompleteNotification(): Promise<void> {
-    if (!this.currentSession) return;
     
-    const currentPhase = this.currentSession.currentPhase || 'FOCUS';
-    const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
-    
-    const context = {
-      title: `${currentPhase} Phase Complete!`,
-      body: `Time for a ${nextPhase.toLowerCase()}!`,
-      sessionId: this.currentSession.id,
-      activityId: this.currentSession.activityId,
-      type: 'phase-complete' as const
-    };
-    
-    await this.notificationService.handlePhaseCompletion(context);
+    // Note: Notification is handled by session-timer.ts via isTimerComplete() signal
+    // to avoid duplicate notifications and provide better context (activity title, etc.)
   }
 
   private stopTimers(): void {
