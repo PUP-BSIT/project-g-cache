@@ -17,6 +17,7 @@ import { SmartActionComponent, SmartActionMode } from '../../shared/components/s
 import { SmartActionWizardComponent } from './smart-action-wizard';
 import { ActivityService } from '../../core/services/activity.service';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
 
 export type Session = {
   id: string;
@@ -56,10 +57,14 @@ export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
   private activityService = inject(ActivityService);
   private notificationService = inject(SuccessNotificationService);
+  private userProfileService = inject(UserProfileService);
 
   protected sidebarExpanded = signal(true);
   protected isLoggingOut = signal(false);
   protected profile = signal<any>(null);
+  
+  // Profile picture from shared service - updates when profile changes
+  protected profilePictureUrl = this.userProfileService.profilePictureUrl;
 
   protected dashboardMetrics = signal<DashboardMetrics | null>(null);
   protected isLoadingDashboard = signal(false);
@@ -88,7 +93,20 @@ export class Dashboard implements OnInit {
     this.loadDashboardMetrics();
     this.loadCategories();
     this.auth.fetchAndStoreUserProfile().then(user => {
+        console.log('[Dashboard] User profile fetched:', user);
+        console.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);
         this.profile.set(user);
+        // Sync profile with shared service
+        if (user) {
+          this.userProfileService.updateUserProfile({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            profilePictureUrl: user.profilePictureUrl || null,
+            backupEmail: user.backupEmail || null,
+            isEmailVerified: user.isEmailVerified || false
+          });
+        }
     }).catch(err => console.error('Failed to fetch profile', err));
   }
 
