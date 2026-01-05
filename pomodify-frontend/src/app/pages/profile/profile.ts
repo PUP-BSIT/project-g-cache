@@ -6,6 +6,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { MatDialogRef } from '@angular/material/dialog';
 import { BadgeService, Badge } from '../../core/services/badge.service';
 import { Auth } from '../../core/services/auth';
+import { UserProfileService } from '../../core/services/user-profile.service';
+import { SuccessNotificationService } from '../../core/services/success-notification.service';
 
 export type ProfileData = {
   name: string;
@@ -26,6 +28,8 @@ export class Profile implements OnInit {
   private fb = inject(FormBuilder);
   private badgeService = inject(BadgeService);
   private auth = inject(Auth);
+  private userProfileService = inject(UserProfileService);
+  private notificationService = inject(SuccessNotificationService);
 
   @ViewChild('profileImageInput') private profileImageInput?: ElementRef<HTMLInputElement>;
   
@@ -152,6 +156,17 @@ export class Profile implements OnInit {
           this.profileImage.set('assets/images/default-avatar.svg');
           this.hasCustomProfilePicture.set(false);
         }
+        
+        // Sync with shared UserProfileService so header icons update across all pages
+        this.userProfileService.updateUserProfile({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          profilePictureUrl: user.profilePictureUrl || null,
+          backupEmail: user.backupEmail || null,
+          isEmailVerified: user.isEmailVerified || false
+        });
+        
         this.isLoadingProfile.set(false);
       },
       error: () => {
@@ -205,8 +220,12 @@ export class Profile implements OnInit {
       this.auth.uploadProfilePicture(file).then((response: any) => {
         if (response.profilePictureUrl) {
           const baseUrl = API.ROOT.replace('/api/v2', '');
-          this.profileImage.set(baseUrl + response.profilePictureUrl);
+          const fullUrl = baseUrl + response.profilePictureUrl;
+          this.profileImage.set(fullUrl);
           this.hasCustomProfilePicture.set(true);
+          // Update shared profile service so all components reflect the change
+          this.userProfileService.updateProfilePicture(response.profilePictureUrl);
+          this.notificationService.showSuccess('Profile Updated', 'Your profile picture has been updated successfully.');
         }
         this.isUploadingImage.set(false);
       }).catch((error) => {
@@ -229,6 +248,9 @@ export class Profile implements OnInit {
       this.profileImage.set('assets/images/default-avatar.svg');
       this.hasCustomProfilePicture.set(false);
       this.isUploadingImage.set(false);
+      // Update shared profile service so all components reflect the change
+      this.userProfileService.resetProfilePicture();
+      this.notificationService.showSuccess('Profile Updated', 'Your profile picture has been removed.');
     }).catch((error) => {
       console.error('Failed to delete profile picture:', error);
       this.imageUploadError.set('Failed to delete image. Please try again.');
@@ -249,9 +271,12 @@ export class Profile implements OnInit {
       this.auth.updateProfile(firstName, lastName).then(() => {
         this.userName.set(fullName);
         this.isSavingName.set(false);
+        // Update shared profile service so all components reflect the change
+        this.userProfileService.updateUserName(firstName, lastName);
+        this.notificationService.showSuccess('Profile Updated', 'Your name has been updated successfully.');
       }).catch((error) => {
         console.error('Failed to update name:', error);
-        alert('Failed to update name. Please try again.');
+        this.notificationService.showError('Error', 'Failed to update name. Please try again.');
         this.isSavingName.set(false);
       });
     }

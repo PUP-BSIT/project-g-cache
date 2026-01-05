@@ -118,9 +118,10 @@
         <h1 class="page-title">Dashboard</h1>
       </div>
       <div class="header-right">
+        <app-notification-bell [class.hide-on-mobile-sidebar]="sidebarExpanded()"></app-notification-bell>
         <div class="user-profile">
           <button class="profile-btn" (click)="openProfileModal()" aria-label="Open profile">
-            <i class="fa-solid fa-user"></i>
+            <img [src]="profilePictureUrl()" alt="Profile" class="profile-avatar" />
           </button>
         </div>
       </div>

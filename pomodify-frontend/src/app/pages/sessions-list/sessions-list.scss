@@ -159,6 +159,96 @@
   margin-bottom: 2rem;
 }
 
+/* Section Styles */
+.sessions-section {
+  margin-bottom: 3rem;
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(95, 169, 164, 0.3);
+
+    i {
+      color: #5FA9A4;
+      font-size: 1.3rem;
+    }
+
+    .section-count {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-left: 0.25rem;
+    }
+  }
+
+  &.abandoned-section {
+    .section-title {
+      border-bottom-color: rgba(149, 165, 166, 0.3);
+
+      i {
+        color: #95A5A6;
+      }
+    }
+  }
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.75rem;
+    border: 2px solid rgba(95, 169, 164, 0.3);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 0.85rem;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+      color: white;
+      border-color: #5FA9A4;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+      color: white;
+      border-color: #5FA9A4;
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.3);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
 .session-card {
   background: linear-gradient(135deg, #5FA9A4 0%, #6BB5B0 100%);
   border-radius: 20px;
@@ -426,122 +516,148 @@
       order: -1;
     }
 
+    .header-actions {
+      flex-direction: column;
+      gap: 0.75rem !important;
+    }
+
     .back-btn,
-    .create-session-btn {
+    .create-session-btn,
+    .toggle-abandoned-btn {
       justify-content: center;
       padding: 0.65rem 1.25rem;
       font-size: 0.9rem;
+      width: 100%;
+    }
+  }
+
+  .sessions-section {
+    margin-bottom: 2rem;
+
+    .section-title {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+
+      i {
+        font-size: 1rem;
+      }
+
+      .section-count {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .pagination {
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+    flex-wrap: wrap;
+
+    .pagination-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 0.5rem;
+      font-size: 0.85rem;
+      border-radius: 8px;
+
+      i {
+        font-size: 0.75rem;
+      }
     }
   }
 
   .sessions-grid {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .session-card {
-    padding: 1.25rem;
-    border-radius: 16px;
+    padding: 1rem;
+    border-radius: 14px;
 
     .session-header {
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
       flex-wrap: wrap;
-      gap: 0.75rem;
+      gap: 0.5rem;
 
       .session-type {
-        font-size: 1.1rem;
-        gap: 0.5rem;
+        font-size: 1rem;
+        gap: 0.4rem;
 
         i {
-          font-size: 1.2rem;
-          padding: 0.4rem;
+          font-size: 1rem;
+          padding: 0.35rem;
+          border-radius: 6px;
         }
       }
 
       .session-status {
-        padding: 0.5rem 1rem;
-        font-size: 0.65rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.6rem;
       }
     }
 
     .session-details {
-      gap: 0.75rem;
-      padding: 1rem;
-      border-radius: 12px;
-      margin-bottom: 1rem;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      margin-bottom: 0.75rem;
 
       .detail-item {
+        gap: 0.25rem;
+
         .label {
-          font-size: 0.7rem;
+          font-size: 0.65rem;
         }
 
         .value {
-          font-size: 1rem;
+          font-size: 0.9rem;
         }
       }
     }
 
-    .session-note {
-      padding: 0.85rem 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.85rem;
-      border-radius: 10px;
-
-      i {
-        font-size: 1rem;
-      }
-    }
-
-    .session-notes-section {
-      padding: 0.85rem 1rem;
-      margin-bottom: 1rem;
-      border-radius: 12px;
+    .session-notes-preview {
+      padding: 0.6rem 0.75rem;
+      margin-bottom: 0.75rem;
+      border-radius: 8px;
+      min-height: 40px;
 
       .notes-header {
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.4rem;
+        margin-bottom: 0.35rem;
+
+        i {
+          font-size: 0.75rem;
+        }
 
         .notes-label {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
         }
       }
 
       .notes-content {
         .note-text {
-          font-size: 0.85rem;
+          font-size: 0.8rem;
+          -webkit-line-clamp: 2;
         }
 
         .note-empty {
-          font-size: 0.8rem;
-        }
-      }
-
-      .notes-edit-area {
-        .notes-textarea {
-          padding: 0.7rem;
-          font-size: 0.85rem;
-          min-height: 70px;
-        }
-
-        .notes-actions {
-          button {
-            padding: 0.4rem 0.8rem;
-            font-size: 0.8rem;
-          }
+          font-size: 0.75rem;
         }
       }
     }
 
     .session-footer {
-      padding-top: 1rem;
-      font-size: 0.8rem;
+      padding-top: 0.75rem;
+      font-size: 0.75rem;
       flex-wrap: wrap;
       gap: 0.5rem;
 
       .completed-at {
-        padding: 0.35rem 0.7rem;
-        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
       }
     }
   }
@@ -581,67 +697,158 @@
     }
 
     .back-btn,
-    .create-session-btn {
+    .create-session-btn,
+    .toggle-abandoned-btn {
       padding: 0.6rem 1rem;
       font-size: 0.85rem;
       border-radius: 10px;
     }
   }
 
+  .sessions-section {
+    margin-bottom: 1.5rem;
+
+    .section-title {
+      font-size: 1rem;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+
+      i {
+        font-size: 0.9rem;
+      }
+
+      .section-count {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .pagination {
+    gap: 0.25rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
+
+    .pagination-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 0.4rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border-width: 1px;
+
+      i {
+        font-size: 0.7rem;
+      }
+    }
+  }
+
   .sessions-grid {
-    gap: 1rem;
+    gap: 0.75rem;
   }
 
   .session-card {
-    padding: 1rem;
-    border-radius: 14px;
+    padding: 0.85rem;
+    border-radius: 12px;
+    border-width: 1px;
+
+    &::before {
+      display: none;
+    }
+
+    &:hover {
+      transform: none;
+    }
 
     .session-header {
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.6rem;
+      border-bottom-width: 1px;
+
       .session-type {
-        font-size: 1rem;
+        font-size: 0.9rem;
 
         i {
-          font-size: 1.1rem;
-          padding: 0.35rem;
-          border-radius: 8px;
+          font-size: 0.9rem;
+          padding: 0.3rem;
+          border-radius: 5px;
         }
       }
 
       .session-status {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.6rem;
+        padding: 0.35rem 0.65rem;
+        font-size: 0.55rem;
+        letter-spacing: 0.5px;
       }
     }
 
     .session-details {
-      padding: 0.85rem;
-      gap: 0.6rem;
+      padding: 0.6rem;
+      gap: 0.4rem;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
 
       .detail-item {
+        gap: 0.2rem;
+
         .label {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
         }
 
         .value {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
         }
       }
     }
 
-    .session-note {
-      padding: 0.75rem;
-      font-size: 0.8rem;
-    }
+    .session-notes-preview {
+      padding: 0.5rem 0.6rem;
+      margin-bottom: 0.6rem;
+      border-radius: 6px;
+      border-left-width: 2px;
+      min-height: 35px;
 
-    .session-footer {
-      font-size: 0.75rem;
-
-      span {
+      .notes-header {
+        margin-bottom: 0.25rem;
         gap: 0.35rem;
 
         i {
-          font-size: 0.8rem;
+          font-size: 0.7rem;
         }
+
+        .notes-label {
+          font-size: 0.65rem;
+        }
+      }
+
+      .notes-content {
+        .note-text {
+          font-size: 0.75rem;
+          line-height: 1.4;
+        }
+
+        .note-empty {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .session-footer {
+      padding-top: 0.6rem;
+      font-size: 0.7rem;
+      border-top-width: 1px;
+
+      span {
+        gap: 0.3rem;
+
+        i {
+          font-size: 0.7rem;
+        }
+      }
+
+      .completed-at {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.65rem;
+        border-radius: 12px;
       }
     }
   }
@@ -649,7 +856,7 @@
   .loading-state,
   .error-state,
   .empty-state {
-    padding: 2.5rem 1rem;
+    padding: 2rem 1rem;
 
     i {
       font-size: 2.5rem;
@@ -692,6 +899,37 @@
       color: var(--text) !important;
       border: 2px solid var(--border) !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+  }
+
+  .sessions-section {
+    .section-title {
+      color: var(--text) !important;
+      border-bottom-color: rgba(95, 169, 164, 0.2) !important;
+
+      .section-count {
+        color: var(--muted) !important;
+      }
+    }
+  }
+
+  .pagination {
+    .pagination-btn {
+      background: var(--card) !important;
+      color: var(--text) !important;
+      border-color: var(--border) !important;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+        color: white !important;
+        border-color: #5FA9A4 !important;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+        color: white !important;
+        border-color: #5FA9A4 !important;
+      }
     }
   }
   
