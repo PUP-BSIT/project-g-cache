@@ -373,6 +373,8 @@ $toggle-bg-inactive: #D0D0D0;
   color: var(--text);
   transition: all 0.3s ease;
   font-size: 18px;
+  padding: 0;
+  overflow: hidden;
   
   &:hover {
     background: var(--muted);
@@ -381,6 +383,13 @@ $toggle-bg-inactive: #D0D0D0;
   
   &:active {
     transform: scale(0.98);
+  }
+
+  .profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 }
 
