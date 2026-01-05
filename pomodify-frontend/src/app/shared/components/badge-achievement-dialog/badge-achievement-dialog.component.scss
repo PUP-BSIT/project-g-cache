@@ -1,0 +1,542 @@
+$primary: #5FA9A4;
+$primary-light: #7BC4BF;
+$gold: #FFD700;
+$gold-dark: #F4A900;
+$purple: #8B5CF6;
+$pink: #EC4899;
+$text-dark: #1E293B;
+$text-muted: #64748B;
+
+.badge-dialog-wrapper {
+  position: relative;
+  padding: 0;
+  width: 400px;
+  max-width: 95vw;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #FEFEFE 0%, #F8FAFC 100%);
+  overflow: hidden;
+  animation: dialogEntry 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+@keyframes dialogEntry {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(40px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+// Background particles
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $gold, $gold-dark);
+  animation: particleFall 4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.15s);
+  left: calc(var(--i) * 3.3%);
+  top: -20px;
+  opacity: 0;
+
+  &:nth-child(odd) {
+    background: linear-gradient(135deg, $primary, $primary-light);
+    width: 6px;
+    height: 6px;
+  }
+
+  &:nth-child(3n) {
+    background: linear-gradient(135deg, $purple, #A78BFA);
+    width: 10px;
+    height: 10px;
+  }
+
+  &:nth-child(5n) {
+    background: linear-gradient(135deg, $pink, #F472B6);
+  }
+}
+
+@keyframes particleFall {
+  0% {
+    opacity: 0;
+    transform: translateY(0) rotate(0deg) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(500px) rotate(720deg) scale(0.5);
+  }
+}
+
+// Floating stars
+.floating-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.star {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  color: $gold;
+  font-size: 14px;
+  animation: starTwinkle 2s ease-in-out infinite;
+  animation-delay: var(--delay);
+  filter: drop-shadow(0 0 6px rgba($gold, 0.6));
+
+  &:nth-child(odd) {
+    color: $primary-light;
+    filter: drop-shadow(0 0 6px rgba($primary, 0.6));
+  }
+
+  &:nth-child(3n) {
+    font-size: 10px;
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+// Close button
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-muted;
+  font-size: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: $text-dark;
+    transform: rotate(90deg) scale(1.1);
+  }
+}
+
+// Mascot hero section at top
+.mascot-hero {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px 10px;
+  background: linear-gradient(180deg, rgba($gold, 0.15) 0%, transparent 100%);
+}
+
+.mascot-glow {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba($gold, 0.4) 0%, rgba($primary, 0.2) 50%, transparent 70%);
+  border-radius: 50%;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.mascot-image {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  animation: mascotEntry 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+  z-index: 2;
+}
+
+@keyframes mascotEntry {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(30px) rotate(-15deg);
+  }
+  60% {
+    transform: scale(1.1) translateY(-5px) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+.mascot-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  .sparkle-1 {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    color: $gold;
+    font-size: 20px;
+    animation: sparkleFloat 2s ease-in-out infinite;
+  }
+
+  .sparkle-2 {
+    position: absolute;
+    top: 40px;
+    left: 80px;
+    color: $primary;
+    font-size: 16px;
+    animation: sparkleFloat 2s ease-in-out 0.5s infinite;
+  }
+
+  .sparkle-3 {
+    position: absolute;
+    bottom: 30px;
+    right: 90px;
+    color: $pink;
+    font-size: 14px;
+    animation: sparkleFloat 2s ease-in-out 1s infinite;
+  }
+}
+
+@keyframes sparkleFloat {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+.ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: -10px auto 0;
+  padding: 10px 24px;
+  background: linear-gradient(135deg, $primary 0%, $primary-light 100%);
+  border-radius: 25px;
+  box-shadow: 0 6px 20px rgba($primary, 0.4);
+  animation: ribbonSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  position: relative;
+  z-index: 3;
+
+  .ribbon-badge-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 2px;
+  }
+}
+
+@keyframes ribbonSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Content section
+.content-section {
+  padding: 24px 28px;
+  text-align: center;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 0 16px 0;
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 50%, $primary 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: titleReveal 0.6s ease-out 0.3s both;
+
+  i {
+    -webkit-text-fill-color: $gold;
+    font-size: 24px;
+  }
+}
+
+@keyframes titleReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bounce {
+  animation: iconBounce 1s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(-10deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(10deg);
+  }
+}
+
+.badge-name-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba($gold, 0.15) 0%, rgba($gold-dark, 0.1) 100%);
+  border: 2px solid rgba($gold, 0.3);
+  border-radius: 30px;
+  margin-bottom: 20px;
+  animation: tagPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+
+  .badge-tag-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  span {
+    font-size: 15px;
+    font-weight: 700;
+    color: $text-dark;
+  }
+}
+
+@keyframes tagPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Speech box (standalone, no mascot beside it)
+.speech-box {
+  background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  animation: speechEntry 0.5s ease-out 0.6s both;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-dark;
+    line-height: 1.6;
+    text-align: center;
+  }
+}
+
+@keyframes speechEntry {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.date-earned {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba($primary, 0.08);
+  border-radius: 20px;
+  animation: fadeIn 0.5s ease-out 0.8s both;
+
+  i {
+    color: $primary;
+    font-size: 14px;
+  }
+
+  span {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-muted;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// Action button
+.action-btn {
+  width: 100%;
+  padding: 18px 32px;
+  background: linear-gradient(135deg, $primary 0%, $primary-light 100%);
+  color: white;
+  border: none;
+  border-radius: 0 0 28px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba($primary, 0.4);
+
+    &::before {
+      left: 100%;
+    }
+
+    i {
+      transform: translateX(3px) rotate(-15deg);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  i {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+  }
+}
+
+// Dark mode support
+:host-context(.theme-dark) {
+  .badge-dialog-wrapper {
+    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #94A3B8;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #F1F5F9;
+    }
+  }
+
+  .mascot-hero {
+    background: linear-gradient(180deg, rgba($gold, 0.1) 0%, transparent 100%);
+  }
+
+  .badge-name-tag {
+    background: linear-gradient(135deg, rgba($gold, 0.1) 0%, rgba($gold-dark, 0.05) 100%);
+    border-color: rgba($gold, 0.2);
+
+    span {
+      color: #F1F5F9;
+    }
+  }
+
+  .speech-box {
+    background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
+
+    p {
+      color: #E2E8F0;
+    }
+  }
+
+  .title {
+    background: linear-gradient(135deg, $gold 0%, $gold-dark 50%, $primary-light 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .date-earned {
+    background: rgba($primary, 0.15);
+
+    span {
+      color: #94A3B8;
+    }
+  }
+}

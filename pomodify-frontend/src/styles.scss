@@ -1571,3 +1571,27 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
   background: rgba(95, 169, 164, 0.25) !important;
   color: #7BC4BF !important;
 }
+
+
+/* Badge Achievement Dialog Styles */
+.badge-achievement-dialog {
+  .mat-mdc-dialog-surface {
+    border-radius: 24px !important;
+    padding: 0;
+    overflow: visible;
+    background: transparent !important;
+  }
+}
+
+.cdk-overlay-pane.badge-achievement-dialog {
+  .mat-mdc-dialog-surface {
+    border-radius: 24px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Notification Bell Dropdown z-index fix */
+.notification-bell-container {
+  z-index: 1000;
+}

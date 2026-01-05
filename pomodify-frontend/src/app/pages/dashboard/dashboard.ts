@@ -18,6 +18,8 @@ import { SmartActionWizardComponent } from './smart-action-wizard';
 import { ActivityService } from '../../core/services/activity.service';
 import { SuccessNotificationService } from '../../core/services/success-notification.service';
 import { UserProfileService } from '../../core/services/user-profile.service';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
+import { BadgeNotificationService } from '../../core/services/badge-notification.service';
 
 export type Session = {
   id: string;
@@ -45,6 +47,7 @@ type Activity = {
     RouterModule,
     SmartActionComponent,
     SmartActionWizardComponent,
+    NotificationBellComponent,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -58,6 +61,7 @@ export class Dashboard implements OnInit {
   private activityService = inject(ActivityService);
   private notificationService = inject(SuccessNotificationService);
   private userProfileService = inject(UserProfileService);
+  private badgeNotificationService = inject(BadgeNotificationService);
 
   protected sidebarExpanded = signal(true);
   protected isLoggingOut = signal(false);
@@ -92,6 +96,8 @@ export class Dashboard implements OnInit {
     }
     this.loadDashboardMetrics();
     this.loadCategories();
+    // Check for new badge achievements
+    this.badgeNotificationService.checkForNewBadges();
     this.auth.fetchAndStoreUserProfile().then(user => {
         console.log('[Dashboard] User profile fetched:', user);
         console.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);
