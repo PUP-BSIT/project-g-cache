@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { VerifyEmailModal } from '../../shared/components/verify-email-modal/verify-email-modal';
@@ -8,6 +8,7 @@ import { API } from '../config/api.config';
 import { HistoryService } from './history.service';
 import { FcmService } from './fcm.service';
 import { SKIP_REDIRECT } from '../interceptors/auth-error.interceptor';
+import { UserProfileService } from './user-profile.service';
 
 type LoginResponse = {
   user?: {
@@ -39,7 +40,8 @@ export class Auth {
     private dialog: MatDialog,
     private http: HttpClient,
     private historyService: HistoryService,
-    private fcmService: FcmService
+    private fcmService: FcmService,
+    private userProfileService: UserProfileService
   ) {}
   // Removed duplicate inject(HttpClient); using constructor injection only
   
@@ -88,6 +90,8 @@ export class Auth {
     localStorage.setItem('isLoggedIn', 'false');
     // Sync with service worker
     this.syncLoginStateWithServiceWorker(false);
+    // Clear user profile from shared service
+    this.userProfileService.clearUserProfile();
     // Only clear in-memory state and history; tokens are managed by cookies
     try {
       this.historyService.clearHistory();
