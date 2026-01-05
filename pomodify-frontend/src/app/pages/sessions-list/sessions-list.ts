@@ -74,10 +74,10 @@ export class SessionsListComponent implements OnInit {
     return all.filter(s => show || s.status !== 'ABANDONED');
   });
 
-  // Active sessions (PENDING, IN_PROGRESS, PAUSED) - no pagination
+  // Active sessions (NOT_STARTED, IN_PROGRESS, PAUSED) - no pagination
   activeSessions = computed(() => {
     return this.sessions().filter(s => 
-      s.status === 'PENDING' || s.status === 'IN_PROGRESS' || s.status === 'PAUSED'
+      s.status === 'NOT_STARTED' || s.status === 'IN_PROGRESS' || s.status === 'PAUSED'
     );
   });
 
@@ -115,7 +115,7 @@ export class SessionsListComponent implements OnInit {
 
   hasActiveSession = computed(() => {
     return this.sessions().some(s => 
-      s.status === 'PENDING' || 
+      s.status === 'NOT_STARTED' || 
       s.status === 'IN_PROGRESS' || 
       s.status === 'PAUSED'
     );
@@ -279,10 +279,10 @@ export class SessionsListComponent implements OnInit {
 
   /**
    * Check if notes can be edited for a session based on status
-   * Editable: IN_PROGRESS, PAUSED, PENDING (stopped), ABANDONED
+   * Editable: IN_PROGRESS, PAUSED, NOT_STARTED (stopped), ABANDONED
    */
   protected canEditNote(status: string): boolean {
-    const editableStatuses = ['IN_PROGRESS', 'PAUSED', 'PENDING', 'ABANDONED'];
+    const editableStatuses = ['IN_PROGRESS', 'PAUSED', 'NOT_STARTED', 'PENDING', 'ABANDONED'];
     return editableStatuses.includes(status?.toUpperCase());
   }
 
@@ -354,6 +354,7 @@ export class SessionsListComponent implements OnInit {
 
   protected getStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
+      'NOT_STARTED': 'status-not-started',
       'PENDING': 'status-pending',
       'IN_PROGRESS': 'status-in-progress',
       'PAUSED': 'status-paused',

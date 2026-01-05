@@ -373,11 +373,8 @@ public class PomodoroSession {
     }
 
     private void checkCompletion() {
-        // FREESTYLE sessions have unlimited cycles - only complete when user manually completes
-        if (this.sessionType == SessionType.FREESTYLE) {
-            return;
-        }
-        
+        // Check if session has reached its cycle limit
+        // Both CLASSIC and FREESTYLE sessions can have a cycle limit
         if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
             this.status = SessionStatus.COMPLETED;
             this.completedAt = LocalDateTime.now();

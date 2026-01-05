@@ -319,6 +319,11 @@
       position: relative;
       z-index: 1;
 
+      &.status-not-started {
+        background: linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%);
+        color: #2C3E50;
+      }
+
       &.status-pending {
         background: linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%);
         color: #2C3E50;

@@ -88,8 +88,8 @@ export class TimerSyncService {
         remainingSeconds: this._remainingSeconds(),
         phase: session.currentPhase
       });
-    } else if (session.status === 'PENDING' && persistedState && persistedState.remainingSeconds > 0) {
-      console.log('Using persisted state for PENDING session:', {
+    } else if (session.status === 'NOT_STARTED' && persistedState && persistedState.remainingSeconds > 0) {
+      console.log('Using persisted state for NOT_STARTED session:', {
         persistedRemaining: persistedState.remainingSeconds,
         serverRemaining: session.remainingPhaseSeconds
       });

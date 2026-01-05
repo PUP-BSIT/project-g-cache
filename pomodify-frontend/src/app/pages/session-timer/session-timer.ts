@@ -130,12 +130,12 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     if (!sess) return false;
     // Session is "paused" if timer is not running and session is not in terminal state
-    const isTerminalState = sess.status === 'PENDING' || sess.status === 'COMPLETED' || sess.status === 'ABANDONED';
+    const isTerminalState = sess.status === 'NOT_STARTED' || sess.status === 'COMPLETED' || sess.status === 'ABANDONED';
     const isTimerStopped = !this.timerSyncService.isRunning();
     return isTimerStopped && !isTerminalState;
   });
   isRunning = computed(() => this.timerSyncService.isRunning());
-  isPending = computed(() => this.session()?.status === 'PENDING');
+  isNotStarted = computed(() => this.session()?.status === 'NOT_STARTED');
   isCompleted = computed(() => this.session()?.status === 'COMPLETED');
   isAbandoned = computed(() => this.session()?.status === 'ABANDONED');
 
@@ -762,7 +762,7 @@ export class SessionTimerComponent implements OnDestroy {
         
         const resetSession: PomodoroSession = {
           ...sess,
-          status: 'PENDING',
+          status: 'NOT_STARTED',
           currentPhase: 'FOCUS',
           cyclesCompleted: 0,
           remainingPhaseSeconds: (sess.focusTimeInMinutes || 25) * 60
@@ -1053,8 +1053,13 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Calculate the next phase immediately for optimistic UI update
     const currentPhase = sess.currentPhase || 'FOCUS';
+    // After any break (BREAK or LONG_BREAK), go to FOCUS. After FOCUS, go to BREAK (backend determines if it's LONG_BREAK)
+    // Note: Optimistic update uses BREAK, backend response will have the correct phase (BREAK or LONG_BREAK)
     const nextPhase: 'FOCUS' | 'BREAK' = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
-    const newCyclesCompleted = currentPhase === 'BREAK' ? (sess.cyclesCompleted || 0) + 1 : sess.cyclesCompleted || 0;
+    // Increment cycles when completing any break phase (BREAK or LONG_BREAK)
+    const newCyclesCompleted = (currentPhase === 'BREAK' || currentPhase === 'LONG_BREAK') 
+      ? (sess.cyclesCompleted || 0) + 1 
+      : sess.cyclesCompleted || 0;
     
     // Mark that we're at the start of a new phase (button should show "Start" not "Resume")
     this.isAtPhaseStart.set(true);
@@ -1077,6 +1082,8 @@ export class SessionTimerComponent implements OnDestroy {
     this.session.set(optimisticSession);
     
     // Update timer to show the new phase duration (not running yet)
+    // Note: For optimistic update, we use breakTimeInMinutes for BREAK. 
+    // Backend will return the correct phase (BREAK or LONG_BREAK) with proper duration.
     const newPhaseDuration = nextPhase === 'FOCUS' 
       ? (sess.focusTimeInMinutes || 25) * 60 
       : (sess.breakTimeInMinutes || 5) * 60;
@@ -1085,14 +1092,19 @@ export class SessionTimerComponent implements OnDestroy {
 
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
-        // Sync with backend response
+        // Sync with backend response - backend determines the actual next phase (BREAK vs LONG_BREAK)
         const syncedSession: PomodoroSession = {
           ...updated,
           status: 'IN_PROGRESS' // Keep IN_PROGRESS, frontend controls timer
         };
         this.session.set(syncedSession);
         
-        // If session is now completed (Classic sessions only), show completion message
+        // Update timer with correct duration from backend (handles LONG_BREAK properly)
+        if (updated.remainingPhaseSeconds !== undefined) {
+          this.timerSyncService.setRemainingSeconds(updated.remainingPhaseSeconds);
+        }
+        
+        // If session is now completed, show completion message
         if (updated.status === 'COMPLETED') {
           console.log('🎉 Session completed - triggering session completion notification');
           this.session.set(updated);
@@ -1102,7 +1114,9 @@ export class SessionTimerComponent implements OnDestroy {
         }
         
         // Check auto-start settings and start next phase if enabled
-        this.checkAndAutoStartNextPhase(nextPhase);
+        // Use the actual phase from backend response
+        const actualNextPhase = updated.currentPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK';
+        this.checkAndAutoStartNextPhase(actualNextPhase);
       },
       error: (err) => {
         console.log('[Session Timer] Complete phase failed, optimistic update already applied:', err);
@@ -1121,9 +1135,11 @@ export class SessionTimerComponent implements OnDestroy {
   /**
    * Check auto-start settings and automatically start the next phase if enabled
    */
-  private checkAndAutoStartNextPhase(nextPhase: 'FOCUS' | 'BREAK'): void {
+  private checkAndAutoStartNextPhase(nextPhase: 'FOCUS' | 'BREAK' | 'LONG_BREAK'): void {
     const settings = this.settingsService.getSettings();
-    const shouldAutoStart = nextPhase === 'BREAK' 
+    // Treat LONG_BREAK the same as BREAK for auto-start purposes
+    const isBreakPhase = nextPhase === 'BREAK' || nextPhase === 'LONG_BREAK';
+    const shouldAutoStart = isBreakPhase 
       ? settings.autoStart.autoStartBreaks 
       : settings.autoStart.autoStartPomodoros;
     
@@ -1394,8 +1410,8 @@ export class SessionTimerComponent implements OnDestroy {
   /* -------------------- PHASE SWITCHING -------------------- */
 
   protected switchToPhase(phase: 'FOCUS' | 'BREAK'): void {
-    // Allow switching phases when session is PENDING or PAUSED
-    if (!this.isPending() && !this.isPaused()) {
+    // Allow switching phases when session is NOT_STARTED or PAUSED
+    if (!this.isNotStarted() && !this.isPaused()) {
       return;
     }
 
@@ -1452,17 +1468,21 @@ export class SessionTimerComponent implements OnDestroy {
     await this.notificationService.handleSessionCompletion(context);
   }
 
-  private async triggerPhaseCompletionNotification(completedPhase: 'FOCUS' | 'BREAK'): Promise<void> {
+  private async triggerPhaseCompletionNotification(completedPhase: 'FOCUS' | 'BREAK' | 'LONG_BREAK'): Promise<void> {
     console.log('🎯 Phase completion notification triggered for:', completedPhase);
     
     const sess = this.session();
     if (!sess) return;
     
     const activityTitle = this.activityTitle();
+    // After any break (BREAK or LONG_BREAK), next is FOCUS. After FOCUS, next is BREAK.
     const nextPhase = completedPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
     
+    // Format the completed phase name for display
+    const completedPhaseName = completedPhase === 'LONG_BREAK' ? 'Long Break' : completedPhase;
+    
     const context = {
-      title: `${completedPhase} Phase Complete!`,
+      title: `${completedPhaseName} Phase Complete!`,
       body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
       sessionId: sess.id,
       activityId: sess.activityId,
