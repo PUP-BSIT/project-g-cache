@@ -36,25 +36,32 @@ body {
 }
 
 :root {
-  --bg: #F8F9FA;
+  --bg: #F0F4F8;
+  --bg-gradient: linear-gradient(135deg, #E8F4F3 0%, #F0F7FA 25%, #FDF8F3 50%, #F5F0FA 75%, #E8F4F3 100%);
   --card: #FFFFFF;
   --text: #2C3E50;
   --muted: #6C757D;
   --border: #DEE2E6;
+  --accent: #5FA9A4;
+  --accent-light: rgba(95, 169, 164, 0.1);
 }
 
 :root.theme-dark {
   --bg: #0F172A;
+  --bg-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
   --card: #111827;
   --text: #E5E7EB;
   --muted: #9CA3AF;
   --border: #1F2937;
+  --accent: #7BC4BF;
+  --accent-light: rgba(123, 196, 191, 0.1);
 }
 
 :root.theme-dark .landing-page,
 :root.theme-dark .login-page,
 :root.theme-dark .signup-page {
   --bg: #F8F9FA !important;
+  --bg-gradient: linear-gradient(135deg, #E8F4F3 0%, #F0F7FA 50%, #E8F4F3 100%) !important;
   --card: #FFFFFF !important;
   --text: #2C3E50 !important;
   --muted: #6C757D !important;
@@ -65,14 +72,146 @@ body {
 .input-surface { background: var(--card); border: 1px solid var(--border); color: var(--text); }
 .divider-surface { background: var(--border); }
 
-.activities-page,
-.dashboard,
-.settings-page,
-.sessions-page,
-.profile-page,
-.report-page {
-  background: var(--bg) !important;
-  color: var(--text) !important;
+// Enhanced animated background for all main pages - LIGHT MODE
+html:not(.theme-dark) {
+  .activities-page,
+  .dashboard,
+  .settings-page,
+  .sessions-page,
+  .sessions-list-container,
+  .profile-page,
+  .report-page {
+    background: var(--bg-gradient) !important;
+    background-size: 400% 400% !important;
+    animation: gradientShift 15s ease infinite !important;
+    color: var(--text) !important;
+    position: relative;
+    min-height: 100vh;
+    
+    // Floating decorative shapes
+    &::before {
+      content: '';
+      position: fixed;
+      top: 10%;
+      right: 5%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(95, 169, 164, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBubble 20s ease-in-out infinite;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      bottom: 15%;
+      left: 3%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(123, 196, 191, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBubble 25s ease-in-out infinite reverse;
+    }
+    
+    // Third floating shape for more visual interest
+    > *:first-child::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255, 182, 193, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatBubble 30s ease-in-out infinite;
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+// Dark mode - simpler gradient without floating shapes
+html.theme-dark {
+  .activities-page,
+  .dashboard,
+  .settings-page,
+  .sessions-page,
+  .sessions-list-container,
+  .profile-page,
+  .report-page {
+    background: var(--bg-gradient) !important;
+    background-size: 400% 400% !important;
+    animation: gradientShift 20s ease infinite !important;
+    color: var(--text) !important;
+    position: relative;
+    min-height: 100vh;
+    
+    &::before,
+    &::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    &::before {
+      top: 10%;
+      right: 5%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(95, 169, 164, 0.05) 0%, transparent 70%);
+      animation: floatBubble 20s ease-in-out infinite;
+    }
+    
+    &::after {
+      bottom: 15%;
+      left: 3%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(123, 196, 191, 0.04) 0%, transparent 70%);
+      animation: floatBubble 25s ease-in-out infinite reverse;
+    }
+  }
+}
+
+// Gradient animation
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Floating bubble animation
+@keyframes floatBubble {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1.1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-10px, -50px) scale(0.95);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(30px, -20px) scale(1.05);
+    opacity: 0.7;
+  }
+}
+
+// Subtle pattern overlay for texture
+.main-content,
+.page-content {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-page,
@@ -83,15 +222,7 @@ body {
 }
 
 :root:not(.theme-dark) {
-  .activities-page,
-  .dashboard,
-  .settings-page,
-  .sessions-page,
-  .profile-page,
-  .report-page {
-    background: var(--bg) !important;
-    color: var(--text) !important;
-  }
+  /* Animated gradient background is applied via html:not(.theme-dark) selector above */
 
   .landing-page,
   .login-page,
@@ -298,15 +429,42 @@ body {
   }
 
   .settings-section,
-  .activity-card,
   .focus-card,
   .status-card,
-  .session-card,
+  .dashboard .session-card,
+  .recent-sessions-list .session-card,
   .content-section,
   .stat-card {
     background: var(--card) !important;
     border-color: var(--border) !important;
     color: var(--text) !important;
+  }
+  
+  /* Sessions list page session cards use activity colors - don't override */
+  
+  /* Activity cards use custom colors from getActivityCardGradient() */
+  .activity-card {
+    background: white;
+  }
+  
+  .activity-card .card-body {
+    background: white;
+  }
+  
+  .activity-card .activity-name {
+    color: white !important;
+  }
+  
+  .activity-card .last-accessed {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  
+  .activity-card .progress-label {
+    color: #7F8C8D !important;
+  }
+  
+  .activity-card .progress-value {
+    color: #2C3E50 !important;
   }
 
   .landing-page .feature-box,
@@ -358,16 +516,7 @@ body {
 }
 
 :root.theme-dark {
-  /* Authenticated page backgrounds only */
-  .activities-page,
-  .dashboard,
-  .settings-page,
-  .sessions-page,
-  .profile-page,
-  .report-page {
-    background: var(--bg) !important;
-    color: var(--text) !important;
-  }
+  /* Animated gradient background is applied via html.theme-dark selector above */
   
   /* Public pages never get dark theme */
   .landing-page,
@@ -389,12 +538,12 @@ body {
     border-bottom-color: var(--border) !important;
   }
 
-  /* All card components */
+  /* All card components - except activity-card and sessions-list session cards which use custom colors */
   .settings-section,
-  .activity-card,
   .focus-card,
   .status-card,
-  .session-card,
+  .dashboard .session-card,
+  .recent-sessions-list .session-card,
   .content-section,
   .stat-card,
   .recent-sessions-section,
@@ -547,8 +696,7 @@ body {
     background: linear-gradient(135deg, #FFD700, #FFA500) !important;
   }
 
-  /* Override any remaining hardcoded backgrounds */
-  .activities-list .activity-card,
+  /* Override any remaining hardcoded backgrounds - but NOT activity cards which use custom colors */
   .recent-sessions-list .session-card,
   .settings-grid .settings-section {
     background: var(--card) !important;
@@ -556,12 +704,6 @@ body {
   }
   
   /* Metric cards should keep their original colored styling */
-
-  /* Fix any gradient backgrounds in light mode */
-  .activities-page,
-  .dashboard {
-    background: var(--bg) !important;
-  }
 
   /* FORCE ALL TEXT TO BE DARK IN LIGHT MODE */
   .section-title,
@@ -817,18 +959,66 @@ html:not(.theme-dark) {
     color: #2C3E50 !important;
   }
 
-  .activities-page .activity-name,
   .activities-page .section-title,
   .activities-page .activity-info {
     color: #2C3E50 !important;
   }
 
-  .activity-card, .session-card, .status-card {
+  /* Session and status cards need dark text - but not sessions-list page cards which have white text on colored background */
+  .dashboard .session-card, .recent-sessions-list .session-card, .status-card {
     color: #2C3E50 !important;
   }
 
-  .activity-card *, .session-card *, .status-card * {
+  .dashboard .session-card *, .recent-sessions-list .session-card *, .status-card * {
     color: inherit !important;
+  }
+  
+  /* Sessions list page session cards - header has white text, body has dark text */
+  .sessions-list-container .session-card .card-header,
+  .sessions-list-container .session-card .card-header * {
+    color: #FFFFFF !important;
+  }
+  
+  /* Status badges need specific colors based on their state */
+  .sessions-list-container .session-card .card-header .session-status.status-not-started,
+  .sessions-list-container .session-card .card-header .session-status.status-not-started *,
+  .sessions-list-container .session-card .card-header .session-status.status-pending,
+  .sessions-list-container .session-card .card-header .session-status.status-pending * {
+    color: #2C3E50 !important;
+  }
+  
+  .sessions-list-container .session-card .card-header .session-status.status-abandoned,
+  .sessions-list-container .session-card .card-header .session-status.status-abandoned * {
+    color: #7F8C8D !important;
+  }
+  
+  .sessions-list-container .session-card .card-body {
+    color: #2C3E50 !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-content .stat-label {
+    color: #7F8C8D !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-content .stat-value {
+    color: #2C3E50 !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .notes-section .notes-header span {
+    color: #2C3E50 !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .notes-section .notes-text {
+    color: #5D6D7E !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-item > i,
+  .sessions-list-container .session-card .card-body .btn-continue {
+    color: #FFFFFF !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .completed-info span {
+    color: #27AE60 !important;
   }
   
   .recent-sessions-section *,
@@ -886,12 +1076,14 @@ html.theme-dark .activities-section,
 html.theme-dark .focus-section,
 html.theme-dark .content-section,
 html.theme-dark .settings-section,
-html.theme-dark .activity-card,
-html.theme-dark .session-card,
+html.theme-dark .dashboard .session-card,
+html.theme-dark .recent-sessions-list .session-card,
 html.theme-dark .status-card {
   background: #111827 !important;
   border: 1px solid #1F2937 !important;
 }
+
+/* Sessions list page session cards use activity colors - don't override */
 
 html.theme-dark .section-title,
 html.theme-dark .page-title,
@@ -989,9 +1181,81 @@ html.theme-dark {
     color: #EF4444 !important;
   }
 
-  .activity-card *, .session-card *, .status-card *,
+  /* Activity cards in dark mode */
+  .activity-card {
+    background: #1F2937;
+  }
+  
+  .activity-card .card-body {
+    background: #1F2937;
+  }
+  
+  .activity-card .progress-label {
+    color: #9CA3AF !important;
+  }
+  
+  .activity-card .progress-value {
+    color: #E5E7EB !important;
+  }
+  
+  .activity-card .progress-bar {
+    background: #374151 !important;
+  }
+  
+  .activity-card .action-btn.edit-btn {
+    background: rgba(74, 144, 164, 0.2) !important;
+    color: #7BC4BF !important;
+    
+    &:hover {
+      background: #4A90A4 !important;
+      color: white !important;
+    }
+  }
+  
+  .activity-card .action-btn.delete-btn {
+    background: rgba(220, 53, 69, 0.2) !important;
+    color: #EF4444 !important;
+    
+    &:hover {
+      background: #DC3545 !important;
+      color: white !important;
+    }
+  }
+  
+  .dashboard .session-card *, .recent-sessions-list .session-card *, .status-card *,
   .recent-sessions-section *, .activities-section *, .focus-section *, .status-section * {
     color: #E5E7EB !important;
+  }
+  
+  /* Sessions list page session cards - header has white text, body uses dark theme colors */
+  .sessions-list-container .session-card .card-header,
+  .sessions-list-container .session-card .card-header * {
+    color: #FFFFFF !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-content .stat-label {
+    color: #9CA3AF !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-content .stat-value {
+    color: #E5E7EB !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .notes-section .notes-header span {
+    color: #E5E7EB !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .notes-section .notes-text {
+    color: #9CA3AF !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .stat-item > i,
+  .sessions-list-container .session-card .card-body .btn-continue {
+    color: #FFFFFF !important;
+  }
+  
+  .sessions-list-container .session-card .card-body .completed-info span {
+    color: #27AE60 !important;
   }
   
   .nav-icon.active *,
@@ -1206,9 +1470,7 @@ html.theme-dark .signup-card {
   color: #2C3E50 !important;
   border-color: #DEE2E6 !important;
 }
-.settings-page {
-  background: var(--bg);
-}
+/* settings-page background is handled by global animated gradient styles */
 
 .settings-page .settings-container {
   max-width: 1200px;
@@ -1594,4 +1856,58 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
 /* Notification Bell Dropdown z-index fix */
 .notification-bell-container {
   z-index: 1000;
+}
+
+
+/* Mobile-friendly Dialog Panel */
+.mobile-fullscreen-dialog {
+  @media (max-width: 600px) {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    
+    .mat-mdc-dialog-surface {
+      border-radius: 0 !important;
+      max-height: 100vh !important;
+      height: 100vh !important;
+    }
+  }
+}
+
+/* Create Activity Modal - Mobile Responsive */
+.create-activity-dialog-panel {
+  .mat-mdc-dialog-surface {
+    border-radius: 16px !important;
+    padding: 0 !important;
+    overflow: hidden;
+    background: transparent !important;
+  }
+
+  .mat-mdc-dialog-container {
+    padding: 0 !important;
+  }
+  
+  @media (max-width: 600px) {
+    max-width: 75% !important;
+    width: 75% !important;
+    margin: 0 auto !important;
+    
+    .mat-mdc-dialog-surface {
+      border-radius: 16px !important;
+      padding: 0 !important;
+      background: transparent !important;
+    }
+
+    .mat-mdc-dialog-container {
+      padding: 0 !important;
+    }
+  }
+}
+
+/* Force dialog to have side margins on mobile */
+@media (max-width: 600px) {
+  .cdk-overlay-pane.create-activity-dialog-panel {
+    max-width: 75% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
 }

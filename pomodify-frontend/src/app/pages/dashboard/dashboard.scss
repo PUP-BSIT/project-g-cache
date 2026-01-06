@@ -53,7 +53,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg);
+  /* Background is handled by global styles.scss with animated gradient */
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
   position: relative;
@@ -1502,146 +1502,247 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .session-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
-  border: none;
+  background: #ffffff;
   border-radius: 16px;
-  padding: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   position: relative;
+  overflow: hidden;
+  animation: cardFadeIn 0.4s ease-out backwards;
 
-  // Clickable session cards
+  // Left accent bar
+  .card-accent {
+    width: 4px;
+    align-self: stretch;
+    background: linear-gradient(180deg, #5FA9A4 0%, #7BC4BF 100%);
+    border-radius: 4px 0 0 4px;
+    transition: width 0.3s ease;
+  }
+
+  // Main content
+  .card-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    gap: 16px;
+  }
+
+  // Activity section (left)
+  .activity-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+
+    .activity-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
+      transition: all 0.3s ease;
+
+      .avatar-letter {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        text-transform: uppercase;
+      }
+    }
+
+    .activity-details {
+      min-width: 0;
+
+      .activity-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: $text-dark;
+        margin: 0 0 4px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color 0.3s ease;
+      }
+
+      .activity-time {
+        font-size: 13px;
+        color: $text-light;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Stats section (right)
+  .stats-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(95, 169, 164, 0.08);
+      border-radius: 24px;
+      transition: all 0.3s ease;
+
+      i {
+        font-size: 13px;
+        color: $primary-teal;
+      }
+
+      .stat-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: $text-dark;
+      }
+
+      &.highlight {
+        background: linear-gradient(135deg, rgba(243, 156, 18, 0.12) 0%, rgba(241, 196, 15, 0.08) 100%);
+
+        i {
+          color: #F39C12;
+        }
+      }
+    }
+  }
+
+  // Arrow indicator
+  .card-arrow {
+    position: absolute;
+    right: 16px;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 14px;
+      color: $primary-teal;
+    }
+  }
+
+  // Clickable hover states
   &.clickable {
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(95, 169, 164, 0.2);
-      background: linear-gradient(135deg, #f8fffe 0%, #f0faf9 100%);
-      
-      .session-icon {
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(95, 169, 164, 0.12);
+
+      .card-accent {
+        width: 6px;
+      }
+
+      .activity-avatar {
         transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(82, 201, 124, 0.3);
+        box-shadow: 0 6px 16px rgba(95, 169, 164, 0.3);
+      }
+
+      .activity-name {
+        color: $primary-teal;
+      }
+
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.12);
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
+        }
+      }
+
+      .card-arrow {
+        opacity: 1;
+        transform: translateX(0);
       }
     }
     
     &:active {
-      transform: translateY(-2px);
+      transform: translateX(2px);
     }
     
     &:focus {
-      outline: 2px solid $primary-teal;
-      outline-offset: 2px;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.2), 0 8px 24px rgba(95, 169, 164, 0.12);
     }
   }
+}
 
-  .session-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
   }
-
-  .session-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #52C97C 0%, #42A95E 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    i {
-      font-size: 24px;
-      color: #fff;
-    }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
+}
 
-  .session-info {
-    flex: 1;
-    min-width: 0;
-
-    .session-activity {
-      font-size: 17px;
-      font-weight: 700;
-      color: $text-dark;
-      margin: 0 0 6px 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.3;
+// Responsive styles for session cards
+@media (max-width: 600px) {
+  .session-card {
+    .card-main {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
     }
 
-    .session-time {
-      font-size: 13px;
-      color: $text-light;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: rgba(95, 169, 164, 0.1);
-      border-radius: 6px;
+    .activity-section {
+      width: 100%;
 
-      i {
-        font-size: 11px;
-        color: $primary-teal;
+      .activity-avatar {
+        width: 42px;
+        height: 42px;
+
+        .avatar-letter {
+          font-size: 18px;
+        }
+      }
+
+      .activity-details {
+        .activity-name {
+          font-size: 15px;
+        }
+
+        .activity-time {
+          font-size: 12px;
+        }
       }
     }
-  }
 
-  .session-meta {
-    display: flex;
-    gap: 20px;
-    padding-top: 12px;
+    .stats-section {
+      width: 100%;
+      justify-content: flex-start;
+      padding-left: 56px;
 
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: $text-dark;
-      font-weight: 600;
-
-      .meta-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: rgba(95, 169, 164, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .stat-pill {
+        padding: 6px 12px;
 
         i {
-          font-size: 14px;
-          color: $primary-teal;
+          font-size: 12px;
+        }
+
+        .stat-num {
+          font-size: 13px;
         }
       }
+    }
 
-      .meta-value {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
-        span:first-child {
-          font-size: 15px;
-          font-weight: 700;
-          color: $text-dark;
-          line-height: 1;
-        }
-
-        span:last-child {
-          font-size: 11px;
-          font-weight: 500;
-          color: $text-light;
-          line-height: 1;
-        }
-      }
+    .card-arrow {
+      top: 16px;
+      right: 12px;
     }
   }
 }
@@ -2262,6 +2363,74 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     
     &:hover {
       background-color: #4B5563;
+    }
+  }
+
+  // Session card dark mode styles
+  .session-card {
+    background: #1f2021;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+
+    .card-accent {
+      background: linear-gradient(180deg, #5FA9A4 0%, #7BC4BF 100%);
+    }
+
+    .activity-section {
+      .activity-avatar {
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+      }
+
+      .activity-details {
+        .activity-name {
+          color: #E5E7EB;
+        }
+
+        .activity-time {
+          color: #9CA3AF;
+        }
+      }
+    }
+
+    .stats-section {
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.12);
+
+        i {
+          color: #7BC4BF;
+        }
+
+        .stat-num {
+          color: #E5E7EB;
+        }
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
+
+          i {
+            color: #F8B739;
+          }
+        }
+      }
+    }
+
+    .card-arrow i {
+      color: #7BC4BF;
+    }
+
+    &.clickable:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+      .activity-name {
+        color: #7BC4BF;
+      }
+
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.18);
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.24) 0%, rgba(241, 196, 15, 0.16) 100%);
+        }
+      }
     }
   }
 }  

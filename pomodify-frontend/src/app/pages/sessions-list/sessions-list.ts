@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
+import { ActivityColorService } from '../../core/services/activity-color.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
@@ -46,6 +47,7 @@ export class SessionsListComponent implements OnInit {
   protected router = inject(Router);
   private sessionService = inject(SessionService);
   private activityService = inject(ActivityService);
+  private activityColorService = inject(ActivityColorService);
   private dialog = inject(MatDialog);
   
   // Route parameter
@@ -55,6 +57,7 @@ export class SessionsListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   activityId = signal<number | null>(null);
+  activityColor = signal<string | null>(null);  // Store the activity's color
   
   showAbandoned = signal(false);
   
@@ -188,6 +191,11 @@ export class SessionsListComponent implements OnInit {
         
         this.activityId.set(activity.activityId);
         
+        // Get the activity color from localStorage or backend
+        const storedColor = this.activityColorService.getColorTag(activity.activityId);
+        const color = storedColor || activity.color || '#5FA9A4';
+        this.activityColor.set(color);
+        
         // Now fetch sessions for this activity
         return this.sessionService.getSessions(activity.activityId);
       }),
@@ -202,6 +210,92 @@ export class SessionsListComponent implements OnInit {
       this.sessions.set(sessions);
       this.loading.set(false);
     });
+  }
+
+  /**
+   * Get the session card gradient style based on activity color
+   */
+  protected getSessionCardStyle(): { [key: string]: string } {
+    const color = this.activityColor() || '#5FA9A4';
+    console.log('[Sessions List] Activity color:', color);
+    const hexColor = this.colorNameToHex(color);
+    const lighterColor = this.lightenColor(hexColor, 15);
+    
+    return {
+      'background': `linear-gradient(135deg, ${hexColor} 0%, ${lighterColor} 100%)`
+    };
+  }
+
+  /**
+   * Convert color name or hue value to hex
+   */
+  private colorNameToHex(color: string): string {
+    // If already hex, return as-is
+    if (color.startsWith('#')) {
+      return color;
+    }
+    
+    // Check if it's a numeric hue value (from the slider)
+    const hueNum = parseFloat(color);
+    if (!isNaN(hueNum) && hueNum >= 0 && hueNum <= 360) {
+      return this.hueToHex(hueNum);
+    }
+    
+    // Common color name mappings
+    const colorMap: { [key: string]: string } = {
+      'red': '#E74C3C',
+      'orange': '#F39C12',
+      'yellow': '#F1C40F',
+      'green': '#27AE60',
+      'teal': '#5FA9A4',
+      'blue': '#3498DB',
+      'purple': '#9B59B6',
+      'pink': '#E91E63',
+      'indigo': '#5C6BC0',
+      'cyan': '#00BCD4'
+    };
+    
+    return colorMap[color.toLowerCase()] || '#5FA9A4';
+  }
+
+  /**
+   * Convert hue (0-360) to hex color
+   */
+  private hueToHex(hue: number): string {
+    const s = 0.7; // Saturation
+    const l = 0.5; // Lightness
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (hue < 60) { r = c; g = x; b = 0; }
+    else if (hue < 120) { r = x; g = c; b = 0; }
+    else if (hue < 180) { r = 0; g = c; b = x; }
+    else if (hue < 240) { r = 0; g = x; b = c; }
+    else if (hue < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    
+    const toHex = (n: number) => {
+      const hex = Math.round((n + m) * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  /**
+   * Lighten a hex color by a percentage
+   */
+  private lightenColor(hex: string, percent: number): string {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+    const B = Math.min(255, (num & 0x0000FF) + amt);
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   }
 
   protected openSession(session: PomodoroSession): void {

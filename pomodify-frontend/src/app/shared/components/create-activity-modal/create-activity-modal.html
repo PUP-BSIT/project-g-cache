@@ -60,18 +60,27 @@
     <div class="form-group">
       <label>Color Tag</label>
       <p class="helper-text">This color will be applied to all sessions created under this activity.</p>
-      <div class="color-picker">
-        @for (color of colors; track color.name) {
-          <button
-            type="button"
-            [attr.data-color]="color.name"
-            [class.selected]="selectedColor === color.name"
-            [style.background-color]="color.hex"
-            (click)="selectColor(color.name)"
-            class="color-option"
-            [attr.aria-label]="'Select ' + color.name + ' color'"
-          ></button>
-        }
+      <div class="color-picker-card">
+        <div class="color-preview-large" [style.background-color]="selectedColorHex">
+          <span class="preview-hex-overlay">{{ selectedColorHex }}</span>
+        </div>
+        <div class="slider-section">
+          <div 
+            class="color-slider-track" 
+            #colorTrack 
+            (click)="onSliderClick($event)"
+            (touchmove)="onSliderTouchMove($event)"
+          >
+            <div 
+              class="color-slider-thumb" 
+              [style.left.%]="sliderPosition"
+              [style.background-color]="selectedColorHex"
+              (mousedown)="onThumbMouseDown($event)"
+              (touchstart)="onThumbTouchStart($event)"
+            ></div>
+          </div>
+          <div class="slider-label">Slide to pick your color</div>
+        </div>
       </div>
     </div>
 
