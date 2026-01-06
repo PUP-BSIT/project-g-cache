@@ -132,9 +132,10 @@ jobs:
 
             # Setup Firebase credentials - use existing file on server or decode from secret
             echo "Setting up Firebase credentials..."
-            if [ -f ~/pomodify/firebase-key.json ]; then
-              echo "Using existing Firebase key from ~/pomodify/firebase-key.json"
-              FIREBASE_MOUNT="-v ~/pomodify/firebase-key.json:/app/firebase-key.json:ro"
+            FIREBASE_KEY_PATH="$HOME/pomodify/firebase-key.json"
+            if [ -f "$FIREBASE_KEY_PATH" ]; then
+              echo "Using existing Firebase key from $FIREBASE_KEY_PATH"
+              FIREBASE_MOUNT="-v $FIREBASE_KEY_PATH:/app/firebase-key.json:ro"
               FIREBASE_ENV="-e FCM_SERVICE_ACCOUNT=/app/firebase-key.json"
             elif [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
               echo "Decoding Firebase credentials from secret..."
