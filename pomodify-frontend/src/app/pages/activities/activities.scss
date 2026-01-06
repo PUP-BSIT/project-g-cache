@@ -141,6 +141,7 @@ $card-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
     flex-shrink: 0;
     min-width: 36px;
     margin-left: 6px;
+    object-fit: contain;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
