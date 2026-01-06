@@ -265,6 +265,9 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   constructor() {
+    // Tell notification service we're on the timer page
+    this.notificationService.setOnTimerPage(true);
+    
     // Load session data when component initializes
     effect(() => {
       const id = this.sessionId();
@@ -308,7 +311,17 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.timerSyncService.cleanup();
+    // Tell notification service we're leaving the timer page
+    this.notificationService.setOnTimerPage(false);
+    
+    // DON'T cleanup the timer sync service if timer is still running
+    // This allows the timer to continue in the background when navigating away
+    // The timer will continue and trigger notifications even on other pages
+    if (!this.timerSyncService.isRunning()) {
+      this.timerSyncService.cleanup();
+    } else {
+      console.log('[Session Timer] Timer still running - keeping timer sync service active for background notifications');
+    }
     
     // Restore original browser tab title
     if (isPlatformBrowser(this.platformId)) {
@@ -404,7 +417,7 @@ export class SessionTimerComponent implements OnDestroy {
         if (isPlatformBrowser(this.platformId)) {
           const actId = this.activityId();
           if (actId) {
-            this.timerSyncService.initializeTimer(sess, actId);
+            this.timerSyncService.initializeTimer(sess, actId, this.activityTitle());
           }
           
           // Check for missed notification (backend sent FCM but user wasn't in app)
@@ -416,35 +429,57 @@ export class SessionTimerComponent implements OnDestroy {
 
   /**
    * Check if backend sent a notification while user was away (browser closed)
-   * If phaseNotified is true and remainingPhaseSeconds is 0, show modal + sound
+   * 
+   * The backend scheduler now pauses the session after sending a notification,
+   * so when the user returns, the session will be in PAUSED state with the
+   * next phase already set. We just need to update the UI to reflect this.
+   * 
+   * Cases handled:
+   * 1. Session is PAUSED with timer at full phase duration - scheduler processed it
+   * 2. Session is IN_PROGRESS with timer at 0 - timer just completed, needs transition
    */
   private checkForMissedNotification(sess: PomodoroSession): void {
-    if (sess.phaseNotified && sess.remainingPhaseSeconds !== undefined && sess.remainingPhaseSeconds <= 0) {
-      console.log('📱 Detected missed notification - showing modal with sound');
+    const sessionNotCompleted = sess.status !== 'COMPLETED' && sess.status !== 'ABANDONED';
+    
+    if (!sessionNotCompleted) {
+      return;
+    }
+    
+    // Case 1: Backend scheduler already processed the phase completion
+    // Session is PAUSED and waiting for user to start the next phase
+    if (sess.status === 'PAUSED') {
+      console.log('📱 Session is PAUSED - backend scheduler already processed phase completion');
+      console.log('📱 Current phase:', sess.currentPhase, 'Remaining seconds:', sess.remainingPhaseSeconds);
       
-      const activityTitle = this.activityTitle() || 'Activity';
-      const isBreakPhase = sess.currentPhase === 'BREAK';
+      // Mark that we're at the start of a new phase (button should show "Start")
+      this.isAtPhaseStart.set(true);
       
-      const context = {
-        title: isBreakPhase ? '⏰ Break Over!' : '🍅 Focus Complete!',
-        body: isBreakPhase 
-          ? `Ready to focus on '${activityTitle}' again?`
-          : `Great work on '${activityTitle}'! Time for a break.`,
-        activityTitle,
-        type: 'phase-complete' as const,
-        nextAction: isBreakPhase 
-          ? 'Break time is over. Ready to focus again?'
-          : 'Time for a break! Step away from your work.'
-      };
+      // The notification was already sent by the scheduler, so skip sending another
+      this.notificationSentForCurrentPhase = true;
       
-      // Play sound
-      const settings = this.settingsService.getSettings();
-      if (settings.sound.enabled) {
-        this.settingsService.playSound(settings.sound.type);
-      }
+      // Check auto-start settings for the current phase
+      const currentPhase = sess.currentPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK';
+      this.checkAndAutoStartNextPhase(currentPhase);
+      return;
+    }
+    
+    // Case 2: Timer reached 0 but phase wasn't transitioned yet (rare edge case)
+    const timerAtZero = sess.remainingPhaseSeconds !== undefined && sess.remainingPhaseSeconds <= 0;
+    const sessionInProgress = sess.status === 'IN_PROGRESS';
+    
+    if (timerAtZero && sessionInProgress) {
+      console.log('📱 Detected timer at 0 - triggering phase completion (skipping notification - already sent)');
       
-      // Show notification (will show modal on mobile, browser notification on desktop)
-      this.notificationService.handlePhaseCompletion(context);
+      // Skip notification/sound here - the user already received it when the timer completed
+      // (either via FCM push notification or browser notification when timer hit 0)
+      // We only need to trigger the phase transition to move to the next phase
+      
+      // Set the notification guard to prevent handlePhaseComplete from sending another notification
+      this.notificationSentForCurrentPhase = true;
+      
+      // Trigger phase completion to transition to next phase
+      // This ensures the timer moves to the next phase (FOCUS -> BREAK or BREAK -> FOCUS)
+      this.handlePhaseComplete();
     }
   }
 
@@ -1051,8 +1086,43 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    // Calculate the next phase immediately for optimistic UI update
-    const currentPhase = sess.currentPhase || 'FOCUS';
+    // First, fetch the latest session state from backend to check if phase was already transitioned
+    // This prevents duplicate notifications when backend scheduler already processed the phase
+    this.sessionService.getSession(actId, sess.id).subscribe({
+      next: (latestSession) => {
+        // Check if backend already transitioned to a different phase
+        const backendPhase = latestSession.currentPhase;
+        const localPhase = sess.currentPhase || 'FOCUS';
+        
+        if (backendPhase !== localPhase) {
+          // Backend already processed the phase transition - just sync UI, no notification
+          console.log(`[Session Timer] Backend already transitioned from ${localPhase} to ${backendPhase} - syncing UI only`);
+          this.session.set(latestSession);
+          this.timerSyncService.updateFromSession(latestSession);
+          this.isAtPhaseStart.set(true);
+          this.notificationSentForCurrentPhase = false;
+          
+          // Check auto-start for the new phase
+          this.checkAndAutoStartNextPhase(backendPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK');
+          return;
+        }
+        
+        // Backend hasn't processed yet - proceed with normal phase completion
+        this.processPhaseCompletion(sess, actId, localPhase);
+      },
+      error: (err) => {
+        // If we can't fetch latest state, proceed with local phase completion
+        console.log('[Session Timer] Could not fetch latest session state, proceeding locally:', err);
+        const localPhase = sess.currentPhase || 'FOCUS';
+        this.processPhaseCompletion(sess, actId, localPhase);
+      }
+    });
+  }
+
+  /**
+   * Process phase completion after confirming backend hasn't already done it
+   */
+  private processPhaseCompletion(sess: PomodoroSession, actId: number, currentPhase: string): void {
     // After any break (BREAK or LONG_BREAK), go to FOCUS. After FOCUS, go to BREAK (backend determines if it's LONG_BREAK)
     // Note: Optimistic update uses BREAK, backend response will have the correct phase (BREAK or LONG_BREAK)
     const nextPhase: 'FOCUS' | 'BREAK' = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
@@ -1064,8 +1134,12 @@ export class SessionTimerComponent implements OnDestroy {
     // Mark that we're at the start of a new phase (button should show "Start" not "Resume")
     this.isAtPhaseStart.set(true);
     
-    // Trigger notification BEFORE optimistic update so it shows the correct completed phase
-    this.triggerPhaseCompletionNotification(currentPhase);
+    // Only trigger notification if we haven't already sent one for this phase
+    // (prevents duplicate notifications when returning to page after timer completed in background)
+    if (!this.notificationSentForCurrentPhase) {
+      // Trigger notification BEFORE optimistic update so it shows the correct completed phase
+      this.triggerPhaseCompletionNotification(currentPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK');
+    }
     
     // Reset the notification guard for the new phase AFTER notification is sent
     // This allows the next phase completion to trigger a notification

@@ -97,6 +97,67 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// CRITICAL: Take full control of push events to prevent duplicate notifications
+// 
+// Problem: Backend sends FCM message with BOTH:
+// 1. .setNotification() - base notification payload
+// 2. .setWebpushConfig().setNotification() - webpush-specific notification
+//
+// This can cause the browser to show multiple notifications.
+// 
+// Solution: Intercept the push event, show exactly ONE notification ourselves,
+// and prevent the default browser behavior.
+self.addEventListener('push', (event) => {
+  console.log('Push event received');
+  
+  // We MUST call event.waitUntil with a showNotification promise
+  // Otherwise the browser will show its default notification
+  event.waitUntil((async () => {
+    try {
+      let title = 'Pomodify';
+      let body = 'Session update';
+      let data = {};
+      
+      if (event.data) {
+        try {
+          const payload = event.data.json();
+          console.log('Push payload:', JSON.stringify(payload));
+          
+          // Extract notification info from various possible locations
+          title = payload.notification?.title || payload.data?.title || title;
+          body = payload.notification?.body || payload.data?.body || body;
+          data = payload.data || {};
+        } catch (e) {
+          console.log('Could not parse push data as JSON:', e);
+          // Try as text
+          const text = event.data.text();
+          console.log('Push data as text:', text);
+        }
+      }
+      
+      // Dedup check - prevent showing same notification twice
+      if (!shouldShowNotification(title, body)) {
+        console.log('Duplicate notification prevented');
+        return;
+      }
+      
+      // Check login state
+      const isLoggedIn = await getLoginState();
+      if (!isLoggedIn) {
+        console.log('User not logged in - suppressing notification');
+        return;
+      }
+      
+      // Show exactly ONE notification
+      console.log('Showing single notification:', title);
+      await showNotification(title, body, data);
+      
+    } catch (error) {
+      console.error('Error handling push event:', error);
+    }
+  })());
+});
+
 // Helper function to display notification
 async function showNotification(title, body, data = {}) {
   const notificationOptions = {
@@ -133,59 +194,44 @@ async function showNotification(title, body, data = {}) {
   }
 }
 
-// Handle push events DIRECTLY (this is the key for mobile background notifications)
-self.addEventListener('push', async (event) => {
-  console.log('Push event received:', event);
+// Track recently shown notifications to prevent duplicates
+// Key: notification content hash, Value: timestamp
+const recentNotifications = new Map();
+const NOTIFICATION_DEDUP_WINDOW_MS = 5000; // 5 second window to dedupe
+
+function getNotificationHash(title, body) {
+  return `${title}::${body}`;
+}
+
+function shouldShowNotification(title, body) {
+  const hash = getNotificationHash(title, body);
+  const now = Date.now();
   
-  // Prevent the browser from handling this automatically
-  event.waitUntil((async () => {
-    // Check if user is logged in before showing notification
-    const isLoggedIn = await getLoginState();
-    if (!isLoggedIn) {
-      console.log('User not logged in - suppressing notification');
-      return;
+  // Clean up old entries
+  for (const [key, timestamp] of recentNotifications.entries()) {
+    if (now - timestamp > NOTIFICATION_DEDUP_WINDOW_MS) {
+      recentNotifications.delete(key);
     }
-
-    let title = 'Pomodify';
-    let body = 'You have a notification';
-    let data = {};
-
-    if (event.data) {
-      try {
-        const payload = event.data.json();
-        console.log('Push payload:', payload);
-        
-        // FCM can send data in different formats
-        title = payload.notification?.title || payload.data?.title || title;
-        body = payload.notification?.body || payload.data?.body || body;
-        data = payload.data || {};
-      } catch (e) {
-        // If not JSON, try text
-        const text = event.data.text();
-        console.log('Push text:', text);
-        body = text || body;
-      }
-    }
-
-    await showNotification(title, body, data);
-  })());
-});
-
-// Handle background messages from Firebase (backup handler)
-messaging.onBackgroundMessage(async (payload) => {
-  console.log('onBackgroundMessage received:', payload);
-  
-  // Check if user is logged in before showing notification
-  const isLoggedIn = await getLoginState();
-  if (!isLoggedIn) {
-    console.log('User not logged in - suppressing background notification');
-    return;
   }
   
-  const title = payload.notification?.title || 'Pomodify';
-  const body = payload.notification?.body || 'Session update';
+  // Check if we've shown this notification recently
+  if (recentNotifications.has(hash)) {
+    console.log('Duplicate notification suppressed:', title);
+    return false;
+  }
   
-  await showNotification(title, body, payload.data);
+  // Mark as shown
+  recentNotifications.set(hash, now);
+  return true;
+}
+
+// Handle background messages from Firebase
+// NOTE: We handle all notifications in the 'push' event listener above.
+// This handler is kept for logging/debugging purposes only.
+// It should NOT show any notifications to avoid duplicates.
+messaging.onBackgroundMessage(async (payload) => {
+  console.log('onBackgroundMessage received (notification already handled by push event):', payload);
+  // Do NOT show notification here - it's already handled by the push event listener
 });
 
 // Handle notification clicks

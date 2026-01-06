@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { timer, Subscription, interval } from 'rxjs';
+import { timer, Subscription, interval, Subject } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from './session.service';
 
@@ -10,6 +10,13 @@ export interface TimerState {
   lastSyncTime: number;
   serverTime?: number;
   drift?: number;
+}
+
+export interface TimerCompletionEvent {
+  sessionId: number;
+  activityId: number;
+  phase: 'FOCUS' | 'BREAK' | 'LONG_BREAK';
+  activityTitle?: string;
 }
 
 @Injectable({
@@ -38,54 +45,78 @@ export class TimerSyncService {
 
   private currentSession: PomodoroSession | null = null;
   private activityId: number | null = null;
+  private activityTitle: string | null = null;
   private timerSub?: Subscription;
   private syncSub?: Subscription;
   private localStartTime: number = 0;
   private serverRemainingAtSync: number = 0;
   private syncInterval = 15000; 
   private maxDrift = 3; 
-  private hasCustomTime = false; 
+  private hasCustomTime = false;
+  
+  // Event emitter for timer completion (used for background notifications)
+  private _timerComplete$ = new Subject<TimerCompletionEvent>();
+  timerComplete$ = this._timerComplete$.asObservable(); 
 
   private getStorageKey(sessionId: number): string {
     return `pomodify_timer_${sessionId}`;
   }
 
-  initializeTimer(session: PomodoroSession, activityId: number): void {
+  initializeTimer(session: PomodoroSession, activityId: number, activityTitle?: string): void {
     console.log('Initializing timer sync service for session:', session.id);
     
     this.currentSession = session;
     this.activityId = activityId;
+    this.activityTitle = activityTitle || null;
     this._currentSessionId.set(session.id);
     this._currentActivityId.set(activityId);
 
     const persistedState = this.loadPersistedState();
 
     if (persistedState && persistedState.isRunning) {
-      const age = Date.now() - persistedState.lastSyncTime;
-      const elapsedSinceLastPersist = Math.floor(age / 1000);
-      const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
-      
-      console.log('Resuming running timer (persisted state):', {
-        persistedRemaining: persistedState.remainingSeconds,
-        elapsedSinceLastPersist,
-        adjustedRemaining,
-        serverStatus: session.status
-      });
-      
-      this._remainingSeconds.set(adjustedRemaining);
-      this.serverRemainingAtSync = adjustedRemaining;
-      this.localStartTime = Date.now();
+      // Check if backend has already transitioned the session to PAUSED
+      // This happens when the scheduler processed phase completion while user was away
+      if (session.status === 'PAUSED') {
+        console.log('Persisted state shows running, but backend is PAUSED - using server state');
+        const serverRemaining = session.remainingPhaseSeconds || 0;
+        this._remainingSeconds.set(serverRemaining);
+        this._isRunning.set(false);
+        this._isPaused.set(true);
+        // Clear stale persisted state
+        this.clearPersistedState();
+      } else {
+        const age = Date.now() - persistedState.lastSyncTime;
+        const elapsedSinceLastPersist = Math.floor(age / 1000);
+        const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
+        
+        console.log('Resuming running timer (persisted state):', {
+          persistedRemaining: persistedState.remainingSeconds,
+          elapsedSinceLastPersist,
+          adjustedRemaining,
+          serverStatus: session.status
+        });
+        
+        this._remainingSeconds.set(adjustedRemaining);
+        this.serverRemainingAtSync = adjustedRemaining;
+        this.localStartTime = Date.now();
 
-      this.startTimer();
+        this.startTimer();
+      }
     } else if (session.status === 'IN_PROGRESS') {
       this.updateFromSession(session);
       this.startTimer();
-    } else if (session.status === 'PAUSED' && persistedState && persistedState.isPaused) {
+    } else if (session.status === 'PAUSED') {
+      // For PAUSED sessions, always use server's remainingPhaseSeconds
+      // This handles the case where backend scheduler processed phase completion
+      // and set remainingSecondsAtPause to the full duration of the next phase
+      const serverRemaining = session.remainingPhaseSeconds || 0;
+      this._remainingSeconds.set(serverRemaining);
       this._isRunning.set(false);
       this._isPaused.set(true);
-      console.log('Using persisted state for paused session:', {
+      console.log('Using server state for paused session:', {
         status: session.status,
-        remainingSeconds: this._remainingSeconds(),
+        serverRemaining: serverRemaining,
+        persistedRemaining: persistedState?.remainingSeconds,
         phase: session.currentPhase
       });
     } else if (session.status === 'NOT_STARTED' && persistedState && persistedState.remainingSeconds > 0) {
@@ -295,8 +326,20 @@ export class TimerSyncService {
     this.stopTimers();
     this._remainingSeconds.set(0);
     
-    // Note: Notification is handled by session-timer.ts via isTimerComplete() signal
-    // to avoid duplicate notifications and provide better context (activity title, etc.)
+    // Emit timer completion event for background notification handling
+    if (this.currentSession && this.activityId) {
+      const event: TimerCompletionEvent = {
+        sessionId: this.currentSession.id,
+        activityId: this.activityId,
+        phase: (this.currentSession.currentPhase || 'FOCUS') as 'FOCUS' | 'BREAK' | 'LONG_BREAK',
+        activityTitle: this.activityTitle || undefined
+      };
+      console.log('🔔 Emitting timer completion event:', event);
+      this._timerComplete$.next(event);
+    }
+    
+    // Note: Notification is handled by subscribers to timerComplete$
+    // session-timer.ts subscribes when on the page, app.component or notification service handles background
   }
 
   private stopTimers(): void {

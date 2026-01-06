@@ -33,6 +33,8 @@ public class PushNotificationService {
     private static final String ANDROID_CHANNEL_ID = "pomodoro_urgent_channel";
 
     public void sendNotificationToUser(Long userId, String title, String body) {
+        log.info("Attempting to send notification to user {}: title='{}', body='{}'", userId, title, body);
+        
         // Global settings guard: respect notificationsEnabled
         settingsRepository.findById(userId).ifPresent(settings -> {
             if (!settings.isNotificationsEnabled()) {
@@ -42,7 +44,7 @@ public class PushNotificationService {
         });
         Optional<UserPushToken> opt = tokenRepository.findByUserId(userId);
         if (opt.isEmpty()) {
-            log.debug("No push token for user {} — skipping push", userId);
+            log.warn("No push token for user {} — skipping push. User needs to enable notifications in browser.", userId);
             return;
         }
         UserPushToken upt = opt.get();
@@ -52,9 +54,16 @@ public class PushNotificationService {
         }
         String token = upt.getToken();
         if (token == null || token.isBlank()) {
-            log.debug("Empty push token for user {} — skipping push", userId);
+            log.warn("Empty push token for user {} — skipping push", userId);
             return;
         }
+        
+        // Check if this is a fallback token (not a real FCM token)
+        if (token.startsWith("browser-fallback-")) {
+            log.warn("User {} has a fallback token (not a real FCM token) — FCM push will fail. Token: {}", userId, token);
+        }
+        
+        log.info("Sending FCM notification to user {} with token: {}...", userId, token.substring(0, Math.min(20, token.length())));
         
         Message message = Message.builder()
                 .setToken(token)
@@ -115,9 +124,9 @@ public class PushNotificationService {
                 
         try {
             String response = FirebaseMessaging.getInstance().send(message);
-            log.info("FCM push sent to user {}: {}", userId, response);
+            log.info("✅ FCM push sent to user {}: {}", userId, response);
         } catch (FirebaseMessagingException e) {
-            log.warn("FCM push failed for user {}: {}", userId, e.getMessage());
+            log.warn("❌ FCM push failed for user {}: {}", userId, e.getMessage());
             // Remove invalid/unregistered tokens
             if (e.getMessagingErrorCode() != null) {
                 MessagingErrorCode code = e.getMessagingErrorCode();
@@ -132,6 +141,10 @@ public class PushNotificationService {
                         break;
                 }
             }
+        } catch (IllegalStateException e) {
+            log.error("❌ Firebase not initialized - cannot send push notification to user {}: {}", userId, e.getMessage());
+        } catch (Exception e) {
+            log.error("❌ Unexpected error sending push notification to user {}: {}", userId, e.getMessage(), e);
         }
     }
 }

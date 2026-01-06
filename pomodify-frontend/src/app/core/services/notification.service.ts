@@ -6,6 +6,7 @@ import { FcmService } from './fcm.service';
 import { Auth } from './auth';
 import { MobileDetectionService } from './mobile-detection.service';
 import { NotificationModalComponent, NotificationModalData } from '../../shared/components/notification-modal/notification-modal.component';
+import { TimerSyncService, TimerCompletionEvent } from './timer-sync.service';
 
 export interface NotificationContext {
   title: string;
@@ -27,9 +28,13 @@ export class NotificationService {
   private authService = inject(Auth);
   private mobileDetection = inject(MobileDetectionService);
   private dialog = inject(MatDialog);
+  private timerSyncService = inject(TimerSyncService);
   
   private isTabVisible$ = new BehaviorSubject<boolean>(true);
   private pendingNotifications: NotificationContext[] = [];
+  
+  // Track if we're on the timer page (to avoid duplicate notifications)
+  private isOnTimerPage = false;
 
   constructor() {
     this.initializeVisibilityTracking();
@@ -39,6 +44,49 @@ export class NotificationService {
       console.log('🔔 Received foreground FCM message in NotificationService:', payload);
       this.handleFcmMessage(payload);
     });
+    
+    // Subscribe to timer completion events for background notifications
+    // This handles notifications when user navigates away from timer page
+    this.timerSyncService.timerComplete$.subscribe(event => {
+      console.log('🔔 Timer completion event received in NotificationService:', event);
+      // Only handle if NOT on timer page (timer page handles its own notifications)
+      if (!this.isOnTimerPage) {
+        this.handleBackgroundTimerCompletion(event);
+      } else {
+        console.log('🔔 On timer page - letting session-timer handle notification');
+      }
+    });
+  }
+  
+  /**
+   * Set whether we're currently on the timer page
+   * Called by session-timer component to prevent duplicate notifications
+   */
+  setOnTimerPage(isOnPage: boolean): void {
+    this.isOnTimerPage = isOnPage;
+    console.log('🔔 Timer page status:', isOnPage ? 'ON timer page' : 'NOT on timer page');
+  }
+  
+  /**
+   * Handle timer completion when user is NOT on the timer page
+   */
+  private async handleBackgroundTimerCompletion(event: TimerCompletionEvent): Promise<void> {
+    console.log('🔔 Handling background timer completion:', event);
+    
+    const activityTitle = event.activityTitle || 'Activity';
+    const nextPhase = event.phase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    const phaseName = event.phase === 'LONG_BREAK' ? 'Long Break' : event.phase;
+    
+    const context: NotificationContext = {
+      title: `${phaseName} Phase Complete!`,
+      body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
+      sessionId: event.sessionId,
+      activityId: event.activityId,
+      activityTitle: activityTitle,
+      type: 'phase-complete'
+    };
+    
+    await this.handlePhaseCompletion(context);
   }
 
   private initializeVisibilityTracking(): void {
