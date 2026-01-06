@@ -344,6 +344,51 @@ public class PomodoroSession {
         return this;
     }
 
+    /**
+     * Complete the current phase and automatically start the next phase.
+     * Used by the backend scheduler for background notifications when user has closed the browser.
+     * Unlike completeCyclePhase(), this keeps the session IN_PROGRESS and sets up the next phase timer.
+     * 
+     * @return this session for chaining
+     */
+    public PomodoroSession completeCyclePhaseAndContinue() {
+        ensureActiveAndNotCompleted();
+
+        // Reset elapsed time for new phase
+        this.elapsedTime = Duration.ZERO;
+        this.totalPausedDurationSeconds = 0L;
+        this.remainingSecondsAtPause = null;
+
+        // Advance to next phase
+        if (this.currentPhase == CyclePhase.FOCUS) {
+            if (shouldTriggerLongBreak()) {
+                this.currentPhase = CyclePhase.LONG_BREAK;
+            } else {
+                this.currentPhase = CyclePhase.BREAK;
+            }
+        } else {
+            this.currentPhase = CyclePhase.FOCUS;
+            this.cyclesCompleted += 1;
+        }
+
+        // Check if session is now complete
+        if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
+            this.status = SessionStatus.COMPLETED;
+            this.completedAt = LocalDateTime.now();
+            this.phaseStartedAt = null;
+            this.phaseEndTime = null;
+            this.phaseNotified = false;
+        } else {
+            // Keep session running - set up the next phase timer
+            this.status = SessionStatus.IN_PROGRESS;
+            this.phaseStartedAt = LocalDateTime.now();
+            this.phaseEndTime = this.phaseStartedAt.plusSeconds(getCurrentPhaseDuration().getSeconds());
+            this.phaseNotified = false;
+        }
+
+        return this;
+    }
+
     public void validateBreaks(Duration shortBreak, Duration longBreak, Duration interval) {
         long shortMin = shortBreak.toMinutes();
         if (shortMin < 2 || shortMin > 10) {
@@ -373,11 +418,8 @@ public class PomodoroSession {
     }
 
     private void checkCompletion() {
-        // FREESTYLE sessions have unlimited cycles - only complete when user manually completes
-        if (this.sessionType == SessionType.FREESTYLE) {
-            return;
-        }
-        
+        // Check if session has reached its cycle limit
+        // Both CLASSIC and FREESTYLE sessions can have a cycle limit
         if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
             this.status = SessionStatus.COMPLETED;
             this.completedAt = LocalDateTime.now();

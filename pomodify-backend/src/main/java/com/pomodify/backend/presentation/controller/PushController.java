@@ -1,5 +1,6 @@
 package com.pomodify.backend.presentation.controller;
 
+import com.pomodify.backend.application.service.PushNotificationService;
 import com.pomodify.backend.domain.model.UserPushToken;
 import com.pomodify.backend.domain.repository.UserPushTokenRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class PushController {
 
     private final UserPushTokenRepository tokenRepo;
+    private final PushNotificationService pushNotificationService;
 
     @PostMapping("/register-token")
     @Operation(summary = "Register or update push token")
@@ -41,6 +43,11 @@ public class PushController {
         String token = payload.get("token");
         if (token == null || token.isBlank()) {
             return ResponseEntity.badRequest().body("Missing token");
+        }
+        
+        // Reject fallback tokens - they cannot receive FCM messages
+        if (token.startsWith("browser-fallback-")) {
+            return ResponseEntity.badRequest().body("Invalid token: fallback tokens cannot receive push notifications. Please use a browser that supports FCM.");
         }
 
         Long finalUserId = userId;
@@ -135,5 +142,64 @@ public class PushController {
             try { userId = Long.parseLong(s); } catch (Exception ignored) {}
         }
         return userId;
+    }
+    
+    @GetMapping("/debug")
+    @Operation(summary = "Debug push notification status for current user")
+    public ResponseEntity<?> debug(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) return ResponseEntity.status(401).body("Unauthorized");
+        Long userId = extractUserId(jwt);
+        if (userId == null) return ResponseEntity.status(401).body("Invalid user claim");
+        
+        var tokenOpt = tokenRepo.findByUserId(userId);
+        if (tokenOpt.isEmpty()) {
+            return ResponseEntity.ok(Map.of(
+                "hasToken", false,
+                "message", "No FCM token registered. Background notifications will NOT work. Please enable notifications in your browser."
+            ));
+        }
+        
+        var token = tokenOpt.get();
+        boolean isFallback = token.getToken() != null && token.getToken().startsWith("browser-fallback-");
+        
+        return ResponseEntity.ok(Map.of(
+            "hasToken", true,
+            "enabled", token.isEnabled(),
+            "isFallbackToken", isFallback,
+            "tokenPrefix", token.getToken() != null ? token.getToken().substring(0, Math.min(20, token.getToken().length())) + "..." : "null",
+            "message", isFallback 
+                ? "WARNING: You have a fallback token. Background notifications will NOT work. Please use a browser that supports FCM (Chrome, Firefox, Edge)."
+                : (token.isEnabled() ? "FCM token registered and enabled. Background notifications should work." : "FCM token registered but disabled.")
+        ));
+    }
+    
+    @PostMapping("/test")
+    @Operation(summary = "Send a test push notification to current user")
+    public ResponseEntity<?> testPush(@AuthenticationPrincipal Jwt jwt,
+                                      @RequestBody(required = false) Map<String, String> payload) {
+        if (jwt == null) return ResponseEntity.status(401).body("Unauthorized");
+        Long userId = extractUserId(jwt);
+        if (userId == null) return ResponseEntity.status(401).body("Invalid user claim");
+        
+        String title = payload != null && payload.get("title") != null ? payload.get("title") : "🧪 Test Notification";
+        String body = payload != null && payload.get("body") != null ? payload.get("body") : "This is a test push notification from Pomodify backend.";
+        
+        try {
+            pushNotificationService.sendNotificationToUser(userId, title, body);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Test notification sent successfully! Check your browser/device."
+            ));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "message", "Notifications are disabled in your settings."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of(
+                "success", false,
+                "message", "Failed to send notification: " + e.getMessage()
+            ));
+        }
     }
 }

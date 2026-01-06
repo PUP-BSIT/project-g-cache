@@ -12,7 +12,7 @@ describe('SessionService', () => {
     id: 1,
     activityId: 1,
     sessionType: 'CLASSIC',
-    status: 'PENDING',
+    status: 'NOT_STARTED',
     focusTimeInMinutes: 25,
     breakTimeInMinutes: 5,
     cycles: 4,
@@ -69,7 +69,7 @@ describe('SessionService', () => {
   it('should get sessions', () => {
     service.getSessions(1).subscribe(sessions => {
       expect(sessions.length).toBe(1);
-      expect(sessions[0].status).toBe('PENDING');
+      expect(sessions[0].status).toBe('NOT_STARTED');
     });
 
     const req = httpMock.expectOne(API.ACTIVITIES.SESSIONS.GET_ALL(1));

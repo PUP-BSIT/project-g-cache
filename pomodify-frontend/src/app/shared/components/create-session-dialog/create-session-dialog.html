@@ -160,37 +160,61 @@
       </div>
 
       <!-- Long Break Section -->
-      <div class="config-card">
-        <div class="config-header">
-          <i class="fa-solid fa-bed"></i>
-          <span>Long Break</span>
-        </div>
-        <div class="config-content">
-          <div class="row">
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Duration</mat-label>
-              <input matInput type="number" formControlName="longBreakTimeInMinutes" [min]="MIN_LONG_BREAK" [max]="MAX_LONG_BREAK">
-              <mat-hint>{{ MIN_LONG_BREAK }} – {{ MAX_LONG_BREAK }} min</mat-hint>
-              @if (form.get('longBreakTimeInMinutes')?.hasError('min')) {
-                <mat-error>Min {{ MIN_LONG_BREAK }} min</mat-error>
-              }
-              @if (form.get('longBreakTimeInMinutes')?.hasError('max')) {
-                <mat-error>Max {{ MAX_LONG_BREAK }} min</mat-error>
-              }
-            </mat-form-field>
+      @if (isLongBreakEligible) {
+        <div class="config-card">
+          <div class="config-header">
+            <i class="fa-solid fa-bed"></i>
+            <span>Long Break</span>
+          </div>
+          <div class="config-content">
+            <div class="row">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Duration</mat-label>
+                <input matInput type="number" formControlName="longBreakTimeInMinutes" [min]="MIN_LONG_BREAK" [max]="MAX_LONG_BREAK">
+                <mat-hint>{{ MIN_LONG_BREAK }} – {{ MAX_LONG_BREAK }} min</mat-hint>
+                @if (form.get('longBreakTimeInMinutes')?.hasError('min')) {
+                  <mat-error>Min {{ MIN_LONG_BREAK }} min</mat-error>
+                }
+                @if (form.get('longBreakTimeInMinutes')?.hasError('max')) {
+                  <mat-error>Max {{ MAX_LONG_BREAK }} min</mat-error>
+                }
+              </mat-form-field>
 
-            <mat-form-field appearance="outline" class="half-width">
-              <mat-label>Frequency</mat-label>
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Frequency</mat-label>
+                <mat-select formControlName="longBreakIntervalCycles">
+                  @for (option of FREESTYLE_CYCLE_OPTIONS; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+                <mat-hint>Total cycles before session ends</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="config-card info-card">
+          <div class="config-header">
+            <i class="fa-solid fa-info-circle"></i>
+            <span>No Long Break</span>
+          </div>
+          <div class="config-content">
+            <p class="info-text">
+              Long breaks are available for sessions longer than 3 hours. 
+              Your current session is too short for long breaks.
+            </p>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Total Cycles</mat-label>
               <mat-select formControlName="longBreakIntervalCycles">
                 @for (option of FREESTYLE_CYCLE_OPTIONS; track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
               </mat-select>
-              <mat-hint>Cycles before long break</mat-hint>
+              <mat-hint>Session ends after this many cycles</mat-hint>
             </mat-form-field>
           </div>
         </div>
-      </div>
+      }
 
       <!-- Loop Preview -->
       <div class="loop-preview">
@@ -211,7 +235,7 @@
           }
           <i class="fa-solid fa-rotate-right loop-repeat"></i>
         </div>
-        <p class="loop-hint">This pattern repeats until you stop the session.</p>
+        <p class="loop-hint">This pattern runs for {{ longBreakIntervalCycles }} cycle(s), then the session completes.</p>
       </div>
 
       <!-- Global Error: Focus > Break -->

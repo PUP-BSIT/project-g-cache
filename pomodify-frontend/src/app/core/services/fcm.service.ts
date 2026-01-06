@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, firstValueFrom, Subject } from 'rxjs';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
@@ -29,7 +29,6 @@ export class FcmService {
     if (!this.app) {
       try {
         console.log('🔥 Initializing Firebase app...');
-        console.log('🔧 Firebase config:', environment.firebase);
         
         // Always try to initialize a new app with a unique name
         const appName = `pomodify-app-${Date.now()}`;
@@ -69,11 +68,33 @@ async initializeFCM(): Promise<void> {
         // Register service worker
         console.log('🔧 Registering service worker...');
         const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        console.log('✅ Service worker registered');
+        console.log('✅ Service worker registered, state:', swReg.active?.state);
         
         // Wait for service worker to be ready and active
         await navigator.serviceWorker.ready;
         console.log('✅ Service worker is ready');
+        
+        // If there's a waiting service worker, activate it immediately
+        if (swReg.waiting) {
+          console.log('🔄 Activating waiting service worker...');
+          swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        
+        // Wait a bit for the service worker to take control
+        if (!navigator.serviceWorker.controller) {
+          console.log('⏳ Waiting for service worker to take control...');
+          await new Promise<void>((resolve) => {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              console.log('✅ Service worker now controlling the page');
+              resolve();
+            }, { once: true });
+            // Timeout after 3 seconds
+            setTimeout(() => {
+              console.log('⚠️ Service worker control timeout, proceeding anyway');
+              resolve();
+            }, 3000);
+          });
+        }
         
         // Send login state to service worker
         if (navigator.serviceWorker.controller) {
@@ -82,6 +103,8 @@ async initializeFCM(): Promise<void> {
             isLoggedIn: true
           });
           console.log('📡 Sent login state to service worker');
+        } else {
+          console.log('⚠️ No service worker controller available');
         }
         
         // Initialize Firebase app
@@ -121,18 +144,13 @@ async initializeFCM(): Promise<void> {
         console.log('🎉 FCM initialization completed successfully!');
         
       } catch (firebaseError: any) {
-        console.log('⚠️ Firebase FCM failed, using simple browser notifications:', firebaseError?.message || firebaseError);
+        console.log('⚠️ Firebase FCM failed, using browser-only notifications:', firebaseError?.message || firebaseError);
         
-        // Fallback: Register a simple token with backend
-        const simpleToken = `browser-fallback-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-        console.log('📡 Registering fallback token with backend...');
-        
-        try {
-          await firstValueFrom(this.registerToken(simpleToken));
-          console.log('✅ Fallback token registered successfully');
-        } catch (tokenError: any) {
-          console.log('❌ Fallback token registration failed:', tokenError?.message || tokenError);
-        }
+        // DO NOT register fallback tokens - they cannot receive FCM messages
+        // Backend notifications will not work without a real FCM token
+        // User will only get notifications when the tab is open
+        console.log('⚠️ Background notifications will NOT work without FCM');
+        console.log('⚠️ User will only receive notifications when the app tab is open/focused');
         
         // Still throw error so notification service can handle fallback
         throw firebaseError;
@@ -162,6 +180,23 @@ async initializeFCM(): Promise<void> {
 
   disablePush(): Observable<any> {
     return this.http.put(API.PUSH.DISABLE, {}, { withCredentials: true, responseType: 'text' });
+  }
+
+  /**
+   * Get debug information about push notification status
+   */
+  getDebugInfo(): Observable<any> {
+    return this.http.get(API.PUSH.DEBUG, { withCredentials: true });
+  }
+
+  /**
+   * Send a test push notification to verify FCM is working
+   */
+  sendTestNotification(title?: string, body?: string): Observable<any> {
+    const payload: any = {};
+    if (title) payload.title = title;
+    if (body) payload.body = body;
+    return this.http.post(API.PUSH.TEST, payload, { withCredentials: true });
   }
 
   getFcmToken(): Observable<string | null> {
