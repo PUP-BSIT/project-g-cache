@@ -35,19 +35,23 @@ public class PhaseNotificationScheduler {
     private final BadgeService badgeService;
 
     /**
-     * Runs every 30 seconds to check for sessions that need phase completion notifications.
+     * Runs every 10 seconds to check for sessions that need phase completion notifications.
+     * Reduced from 30 seconds for better responsiveness when user is away from the app.
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 10000)
     @Transactional
     public void checkAndSendPhaseNotifications() {
         LocalDateTime now = LocalDateTime.now();
         
         log.info("🔔 Scheduler running at {} - checking for sessions needing notification", now);
         
+        // Debug: Log the query parameters
+        log.debug("🔔 Query: status=IN_PROGRESS, phaseEndTime <= {}, phaseNotified=false", now);
+        
         List<PomodoroSession> sessions = sessionRepository.findSessionsNeedingNotification(now);
         
         if (sessions.isEmpty()) {
-            log.info("🔔 No sessions needing notification at {}", now);
+            log.debug("🔔 No sessions needing notification at {}", now);
             return;
         }
         

@@ -63,7 +63,7 @@ export class TimerSyncService {
   }
 
   initializeTimer(session: PomodoroSession, activityId: number, activityTitle?: string): void {
-    console.log('Initializing timer sync service for session:', session.id);
+    console.log('Initializing timer sync service for session:', session.id, 'status:', session.status);
     
     this.currentSession = session;
     this.activityId = activityId;
@@ -73,52 +73,40 @@ export class TimerSyncService {
 
     const persistedState = this.loadPersistedState();
 
-    if (persistedState && persistedState.isRunning) {
-      // Check if backend has already transitioned the session to PAUSED
-      // This happens when the scheduler processed phase completion while user was away
-      if (session.status === 'PAUSED') {
-        console.log('Persisted state shows running, but backend is PAUSED - using server state');
-        const serverRemaining = session.remainingPhaseSeconds || 0;
-        this._remainingSeconds.set(serverRemaining);
-        this._isRunning.set(false);
-        this._isPaused.set(true);
-        // Clear stale persisted state
-        this.clearPersistedState();
-      } else {
-        const age = Date.now() - persistedState.lastSyncTime;
-        const elapsedSinceLastPersist = Math.floor(age / 1000);
-        const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
-        
-        console.log('Resuming running timer (persisted state):', {
-          persistedRemaining: persistedState.remainingSeconds,
-          elapsedSinceLastPersist,
-          adjustedRemaining,
-          serverStatus: session.status
-        });
-        
-        this._remainingSeconds.set(adjustedRemaining);
-        this.serverRemainingAtSync = adjustedRemaining;
-        this.localStartTime = Date.now();
-
-        this.startTimer();
-      }
-    } else if (session.status === 'IN_PROGRESS') {
-      this.updateFromSession(session);
-      this.startTimer();
-    } else if (session.status === 'PAUSED') {
-      // For PAUSED sessions, always use server's remainingPhaseSeconds
-      // This handles the case where backend scheduler processed phase completion
-      // and set remainingSecondsAtPause to the full duration of the next phase
+    // CRITICAL: If session is PAUSED or COMPLETED, always use server state
+    // This handles the case where backend scheduler processed phase completion
+    if (session.status === 'PAUSED' || session.status === 'COMPLETED') {
+      console.log('Session is PAUSED/COMPLETED - using server state exclusively');
       const serverRemaining = session.remainingPhaseSeconds || 0;
       this._remainingSeconds.set(serverRemaining);
       this._isRunning.set(false);
-      this._isPaused.set(true);
-      console.log('Using server state for paused session:', {
-        status: session.status,
-        serverRemaining: serverRemaining,
-        persistedRemaining: persistedState?.remainingSeconds,
-        phase: session.currentPhase
+      this._isPaused.set(session.status === 'PAUSED');
+      // Clear any stale persisted state
+      this.clearPersistedState();
+      return;
+    }
+
+    if (persistedState && persistedState.isRunning) {
+      // Session is IN_PROGRESS or NOT_STARTED with persisted running state
+      const age = Date.now() - persistedState.lastSyncTime;
+      const elapsedSinceLastPersist = Math.floor(age / 1000);
+      const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
+      
+      console.log('Resuming running timer (persisted state):', {
+        persistedRemaining: persistedState.remainingSeconds,
+        elapsedSinceLastPersist,
+        adjustedRemaining,
+        serverStatus: session.status
       });
+      
+      this._remainingSeconds.set(adjustedRemaining);
+      this.serverRemainingAtSync = adjustedRemaining;
+      this.localStartTime = Date.now();
+
+      this.startTimer();
+    } else if (session.status === 'IN_PROGRESS') {
+      this.updateFromSession(session);
+      this.startTimer();
     } else if (session.status === 'NOT_STARTED' && persistedState && persistedState.remainingSeconds > 0) {
       console.log('Using persisted state for NOT_STARTED session:', {
         persistedRemaining: persistedState.remainingSeconds,
@@ -325,6 +313,17 @@ export class TimerSyncService {
     
     this.stopTimers();
     this._remainingSeconds.set(0);
+    
+    // CRITICAL: Only emit timer completion event if tab is visible
+    // When tab is hidden, backend scheduler will handle phase completion and send FCM
+    // This prevents race conditions where frontend completes phase before backend can notify
+    if (document.hidden) {
+      console.log('🔔 Tab hidden - NOT emitting timer completion event (backend scheduler will handle)');
+      // Also pause the timer to prevent it from going negative
+      this._isRunning.set(false);
+      this._isPaused.set(true);
+      return;
+    }
     
     // Emit timer completion event for background notification handling
     if (this.currentSession && this.activityId) {

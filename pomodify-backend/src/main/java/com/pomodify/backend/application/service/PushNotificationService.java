@@ -1,16 +1,13 @@
 package com.pomodify.backend.application.service;
 
 import com.google.firebase.messaging.AndroidConfig;
-import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.ApsAlert;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
-import com.google.firebase.messaging.WebpushNotification;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.pomodify.backend.domain.model.UserPushToken;
 import com.pomodify.backend.domain.repository.UserPushTokenRepository;
@@ -28,67 +25,60 @@ public class PushNotificationService {
 
     private final UserPushTokenRepository tokenRepository;
     private final SettingsRepository settingsRepository;
-    
-    // Android channel ID for high-priority timer notifications
-    private static final String ANDROID_CHANNEL_ID = "pomodoro_urgent_channel";
 
     public void sendNotificationToUser(Long userId, String title, String body) {
-        log.info("Attempting to send notification to user {}: title='{}', body='{}'", userId, title, body);
+        log.info("📤 Attempting to send notification to user {}: title='{}', body='{}'", userId, title, body);
         
         // Global settings guard: respect notificationsEnabled
-        settingsRepository.findById(userId).ifPresent(settings -> {
-            if (!settings.isNotificationsEnabled()) {
-                log.debug("Notifications disabled in settings for user {} — skipping push", userId);
-                throw new IllegalStateException("Notifications disabled");
-            }
-        });
+        var settingsOpt = settingsRepository.findById(userId);
+        if (settingsOpt.isPresent() && !settingsOpt.get().isNotificationsEnabled()) {
+            log.info("🔕 Notifications disabled in settings for user {} — skipping push", userId);
+            throw new IllegalStateException("Notifications disabled");
+        }
+        
         Optional<UserPushToken> opt = tokenRepository.findByUserId(userId);
         if (opt.isEmpty()) {
-            log.warn("No push token for user {} — skipping push. User needs to enable notifications in browser.", userId);
+            log.warn("⚠️ No push token for user {} — skipping push. User needs to enable notifications in browser.", userId);
             return;
         }
         UserPushToken upt = opt.get();
         if (!upt.isEnabled()) {
-            log.debug("Push disabled for user {} — skipping push", userId);
+            log.info("🔕 Push disabled for user {} — skipping push", userId);
             return;
         }
         String token = upt.getToken();
         if (token == null || token.isBlank()) {
-            log.warn("Empty push token for user {} — skipping push", userId);
+            log.warn("⚠️ Empty push token for user {} — skipping push", userId);
             return;
         }
         
         // Check if this is a fallback token (not a real FCM token)
         if (token.startsWith("browser-fallback-")) {
-            log.warn("User {} has a fallback token (not a real FCM token) — FCM push will fail. Token: {}", userId, token);
+            log.warn("⚠️ User {} has a fallback token (not a real FCM token) — FCM push will fail. Token: {}", userId, token);
+            log.warn("⚠️ Background notifications will NOT work for user {} until they get a real FCM token", userId);
+            return; // Don't even try to send - it will fail
         }
         
-        log.info("Sending FCM notification to user {} with token: {}...", userId, token.substring(0, Math.min(20, token.length())));
+        log.info("📤 Sending FCM notification to user {} with token: {}...", userId, token.substring(0, Math.min(20, token.length())));
         
+        // IMPORTANT: We send DATA-ONLY messages (no notification payload) for web push.
+        // This allows the service worker to have full control over notification display
+        // and prevents duplicate notifications.
+        // 
+        // When a message has a 'notification' payload, the browser automatically displays it
+        // AND the service worker's push handler also runs, causing duplicates.
+        // With data-only messages, only the service worker handles the notification.
         Message message = Message.builder()
                 .setToken(token)
-                // Base notification (fallback for platforms not explicitly configured)
-                .setNotification(Notification.builder()
-                        .setTitle(title)
-                        .setBody(body)
-                        .build())
-                // Android configuration for heads-up notification
+                // NO .setNotification() - this would cause browser to auto-show notification
+                // Android configuration - use data message with high priority
                 .setAndroidConfig(AndroidConfig.builder()
                         .setPriority(AndroidConfig.Priority.HIGH)
-                        .setNotification(AndroidNotification.builder()
-                                .setTitle(title)
-                                .setBody(body)
-                                .setChannelId(ANDROID_CHANNEL_ID)
-                                .setPriority(AndroidNotification.Priority.HIGH)
-                                .setDefaultVibrateTimings(true)
-                                .setDefaultSound(true)
-                                .setIcon("ic_notification")
-                                .setColor("#6366f1")
-                                .build())
+                        // NO .setNotification() for Android either - let service worker handle it
                         .build())
-                // iOS/APNs configuration for banner notification
+                // iOS/APNs configuration for banner notification (iOS needs notification payload)
                 .setApnsConfig(ApnsConfig.builder()
-                        .putHeader("apns-priority", "10") // High priority for immediate delivery
+                        .putHeader("apns-priority", "10")
                         .putHeader("apns-push-type", "alert")
                         .setAps(Aps.builder()
                                 .setAlert(ApsAlert.builder()
@@ -97,24 +87,16 @@ public class PushNotificationService {
                                         .build())
                                 .setSound("default")
                                 .setBadge(1)
+                                .setContentAvailable(true)
                                 .build())
                         .build())
-                // Web push configuration
+                // Web push configuration - NO notification, only headers for priority
                 .setWebpushConfig(WebpushConfig.builder()
-                        .putHeader("Urgency", "high") // Web Push urgency header
-                        .putHeader("TTL", "86400") // Time to live: 24 hours
-                        .setNotification(WebpushNotification.builder()
-                                .setTitle(title)
-                                .setBody(body)
-                                .setIcon("/assets/images/logo.png")
-                                .setBadge("/assets/images/logo.png")
-                                .setTag("pomodify-timer-" + System.currentTimeMillis()) // Unique tag
-                                .setRequireInteraction(true)
-                                .setRenotify(true)
-                                .putCustomData("sound", "default")
-                                .build())
+                        .putHeader("Urgency", "high")
+                        .putHeader("TTL", "86400")
+                        // NO .setNotification() - service worker will show the notification
                         .build())
-                // Data payload - important for service worker to handle background messages
+                // Data payload - service worker reads this to show notification
                 .putData("title", title)
                 .putData("body", body)
                 .putData("sound", "default")

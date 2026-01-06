@@ -97,21 +97,20 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// CRITICAL: Take full control of push events to prevent duplicate notifications
+// CRITICAL: Handle push events for data-only FCM messages
 // 
-// Problem: Backend sends FCM message with BOTH:
-// 1. .setNotification() - base notification payload
-// 2. .setWebpushConfig().setNotification() - webpush-specific notification
-//
-// This can cause the browser to show multiple notifications.
+// Backend now sends DATA-ONLY messages (no notification payload) for web push.
+// This gives us full control over notification display and prevents duplicates.
 // 
-// Solution: Intercept the push event, show exactly ONE notification ourselves,
-// and prevent the default browser behavior.
+// With data-only messages:
+// - Browser does NOT auto-show any notification
+// - Only this push handler runs and shows the notification
+// - We have full control over notification appearance and behavior
 self.addEventListener('push', (event) => {
   console.log('Push event received');
   
   // We MUST call event.waitUntil with a showNotification promise
-  // Otherwise the browser will show its default notification
+  // For data-only messages, if we don't show a notification, nothing happens
   event.waitUntil((async () => {
     try {
       let title = 'Pomodify';
@@ -123,7 +122,8 @@ self.addEventListener('push', (event) => {
           const payload = event.data.json();
           console.log('Push payload:', JSON.stringify(payload));
           
-          // Extract notification info from various possible locations
+          // For data-only messages, title/body are in payload.data
+          // For messages with notification payload (legacy), check payload.notification first
           title = payload.notification?.title || payload.data?.title || title;
           body = payload.notification?.body || payload.data?.body || body;
           data = payload.data || {};
@@ -149,7 +149,7 @@ self.addEventListener('push', (event) => {
       }
       
       // Show exactly ONE notification
-      console.log('Showing single notification:', title);
+      console.log('Showing notification:', title, body);
       await showNotification(title, body, data);
       
     } catch (error) {

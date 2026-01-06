@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { SettingsService, AppSettings } from './settings.service';
 import { FcmService } from './fcm.service';
@@ -186,6 +186,33 @@ export class NotificationService {
         activityTitle: 'Test Activity',
         nextAction: 'Great job! Take a break.'
       });
+    };
+    
+    (window as any).testBackendPush = async () => {
+      console.log('🔔 Testing backend push notification...');
+      try {
+        const result = await firstValueFrom(this.fcmService.sendTestNotification(
+          '🧪 Backend Test',
+          'This notification was sent from the backend via FCM'
+        ));
+        console.log('Backend push test result:', result);
+        return result;
+      } catch (error) {
+        console.error('Backend push test failed:', error);
+        return { success: false, error };
+      }
+    };
+    
+    (window as any).checkPushDebug = async () => {
+      console.log('🔍 Checking push notification debug info...');
+      try {
+        const result = await firstValueFrom(this.fcmService.getDebugInfo());
+        console.log('Push debug info:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to get push debug info:', error);
+        return { error };
+      }
     };
   }
 

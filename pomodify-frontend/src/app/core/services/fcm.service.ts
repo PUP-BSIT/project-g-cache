@@ -29,7 +29,6 @@ export class FcmService {
     if (!this.app) {
       try {
         console.log('🔥 Initializing Firebase app...');
-        console.log('🔧 Firebase config:', environment.firebase);
         
         // Always try to initialize a new app with a unique name
         const appName = `pomodify-app-${Date.now()}`;
@@ -181,6 +180,23 @@ async initializeFCM(): Promise<void> {
 
   disablePush(): Observable<any> {
     return this.http.put(API.PUSH.DISABLE, {}, { withCredentials: true, responseType: 'text' });
+  }
+
+  /**
+   * Get debug information about push notification status
+   */
+  getDebugInfo(): Observable<any> {
+    return this.http.get(API.PUSH.DEBUG, { withCredentials: true });
+  }
+
+  /**
+   * Send a test push notification to verify FCM is working
+   */
+  sendTestNotification(title?: string, body?: string): Observable<any> {
+    const payload: any = {};
+    if (title) payload.title = title;
+    if (body) payload.body = body;
+    return this.http.post(API.PUSH.TEST, payload, { withCredentials: true });
   }
 
   getFcmToken(): Observable<string | null> {

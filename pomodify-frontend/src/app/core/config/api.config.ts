@@ -165,6 +165,8 @@ export const API = {
     STATUS: `${ROOT}/push/status`,
     ENABLE: `${ROOT}/push/enable`,
     DISABLE: `${ROOT}/push/disable`,
+    DEBUG: `${ROOT}/push/debug`,
+    TEST: `${ROOT}/push/test`,
   },
 
   // Badges Resource

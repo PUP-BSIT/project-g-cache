@@ -264,6 +264,9 @@ export class SessionTimerComponent implements OnDestroy {
     }
   }
 
+  // Visibility change handler reference for cleanup
+  private visibilityChangeHandler: (() => void) | null = null;
+
   constructor() {
     // Tell notification service we're on the timer page
     this.notificationService.setOnTimerPage(true);
@@ -308,6 +311,116 @@ export class SessionTimerComponent implements OnDestroy {
         }
       }
     });
+    
+    // Listen for tab visibility changes to reload session when user returns
+    // This handles the case where user clicks a notification to return to the app
+    if (isPlatformBrowser(this.platformId)) {
+      this.visibilityChangeHandler = () => this.handleVisibilityChange();
+      document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    }
+  }
+  
+  /**
+   * Handle tab visibility change - reload session when tab becomes visible
+   * This ensures the timer shows the correct state after clicking a notification
+   * or when returning to the app after being away
+   */
+  private handleVisibilityChange(): void {
+    if (document.hidden) {
+      return; // Tab became hidden, nothing to do
+    }
+    
+    console.log('[Session Timer] Tab became visible - checking if session reload needed');
+    
+    const sess = this.session();
+    const remainingSeconds = this.remainingSeconds();
+    
+    // Always reload session when tab becomes visible if session exists
+    // Backend scheduler may have processed phase completion while we were away
+    // This ensures we sync with the latest backend state
+    if (sess && sess.status !== 'COMPLETED' && sess.status !== 'ABANDONED' && sess.status !== 'NOT_STARTED') {
+      console.log('[Session Timer] Reloading session after tab became visible', {
+        remainingSeconds,
+        status: sess.status,
+        isRunning: this.isRunning(),
+        currentPhase: sess.currentPhase
+      });
+      
+      // CRITICAL: Stop local timer immediately to prevent race conditions
+      // The backend may have already processed the phase completion
+      if (remainingSeconds <= 0 && this.timerSyncService.isRunning()) {
+        console.log('[Session Timer] Timer at 0 - stopping local timer before reload');
+        this.timerSyncService.pauseTimer();
+      }
+      
+      // Reload session from backend to get latest state
+      this.reloadSessionFromBackend();
+    }
+  }
+  
+  /**
+   * Reload session data from backend without full component reload
+   */
+  private reloadSessionFromBackend(): void {
+    const actId = this.activityId();
+    const sess = this.session();
+    
+    if (!actId || !sess) {
+      return;
+    }
+    
+    // Store the current local state for comparison
+    const localPhase = sess.currentPhase;
+    const localStatus = sess.status;
+    const localCycles = sess.cyclesCompleted;
+    
+    this.sessionService.getSession(actId, sess.id).subscribe({
+      next: (updatedSession) => {
+        console.log('[Session Timer] Session reloaded from backend:', {
+          status: updatedSession.status,
+          currentPhase: updatedSession.currentPhase,
+          remainingPhaseSeconds: updatedSession.remainingPhaseSeconds,
+          cyclesCompleted: updatedSession.cyclesCompleted,
+          localPhase,
+          localStatus,
+          localCycles
+        });
+        
+        // Check if backend has already processed a phase transition
+        const backendProcessedPhase = localPhase !== updatedSession.currentPhase || 
+                                       localCycles !== updatedSession.cyclesCompleted;
+        
+        if (backendProcessedPhase) {
+          console.log('[Session Timer] Backend already processed phase transition - syncing UI');
+          // Reset notification guard since backend already sent notification
+          this.notificationSentForCurrentPhase = true;
+        }
+        
+        // Update session state
+        this.session.set(updatedSession);
+        
+        // Initialize timer with the backend state
+        this.timerSyncService.initializeTimer(updatedSession, actId, this.activityTitle());
+        
+        // If session is PAUSED after backend processing, mark as at phase start
+        if (updatedSession.status === 'PAUSED' && backendProcessedPhase) {
+          this.isAtPhaseStart.set(true);
+          
+          // Check auto-start for the new phase
+          const currentPhase = updatedSession.currentPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK';
+          this.checkAndAutoStartNextPhase(currentPhase);
+        }
+        
+        // Handle completed session
+        if (updatedSession.status === 'COMPLETED') {
+          console.log('[Session Timer] Session is completed');
+          this.timerSyncService.stopTimer();
+        }
+      },
+      error: (err) => {
+        console.error('[Session Timer] Failed to reload session:', err);
+      }
+    });
   }
 
   ngOnDestroy() {
@@ -326,6 +439,12 @@ export class SessionTimerComponent implements OnDestroy {
     // Restore original browser tab title
     if (isPlatformBrowser(this.platformId)) {
       this.document.title = this.originalTitle;
+      
+      // Remove visibility change listener
+      if (this.visibilityChangeHandler) {
+        document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+        this.visibilityChangeHandler = null;
+      }
     }
     
     // Clean up auto-start timeout
@@ -437,11 +556,17 @@ export class SessionTimerComponent implements OnDestroy {
    * Cases handled:
    * 1. Session is PAUSED with timer at full phase duration - scheduler processed it
    * 2. Session is IN_PROGRESS with timer at 0 - timer just completed, needs transition
+   * 3. Session is COMPLETED - all cycles done
    */
   private checkForMissedNotification(sess: PomodoroSession): void {
     const sessionNotCompleted = sess.status !== 'COMPLETED' && sess.status !== 'ABANDONED';
     
     if (!sessionNotCompleted) {
+      // Session is completed or abandoned - nothing to do
+      if (sess.status === 'COMPLETED') {
+        console.log('📱 Session is COMPLETED - stopping timer');
+        this.timerSyncService.stopTimer();
+      }
       return;
     }
     
@@ -464,21 +589,17 @@ export class SessionTimerComponent implements OnDestroy {
     }
     
     // Case 2: Timer reached 0 but phase wasn't transitioned yet (rare edge case)
+    // This can happen if the backend scheduler hasn't run yet (10 second interval)
     const timerAtZero = sess.remainingPhaseSeconds !== undefined && sess.remainingPhaseSeconds <= 0;
     const sessionInProgress = sess.status === 'IN_PROGRESS';
     
     if (timerAtZero && sessionInProgress) {
-      console.log('📱 Detected timer at 0 - triggering phase completion (skipping notification - already sent)');
+      console.log('📱 Detected timer at 0 with IN_PROGRESS status - triggering phase completion');
       
-      // Skip notification/sound here - the user already received it when the timer completed
-      // (either via FCM push notification or browser notification when timer hit 0)
-      // We only need to trigger the phase transition to move to the next phase
-      
-      // Set the notification guard to prevent handlePhaseComplete from sending another notification
-      this.notificationSentForCurrentPhase = true;
+      // Set the notification guard - we'll send notification as part of phase completion
+      this.notificationSentForCurrentPhase = false;
       
       // Trigger phase completion to transition to next phase
-      // This ensures the timer moves to the next phase (FOCUS -> BREAK or BREAK -> FOCUS)
       this.handlePhaseComplete();
     }
   }
@@ -1086,24 +1207,62 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
+    // CRITICAL: If tab is not visible, let the backend scheduler handle phase completion
+    // This prevents race conditions where frontend calls completePhase() before backend
+    // can send FCM push notification. Backend scheduler will:
+    // 1. Find the session (status=IN_PROGRESS, phaseEndTime <= now)
+    // 2. Send FCM push notification
+    // 3. Transition to next phase and set status to PAUSED
+    if (document.hidden) {
+      console.log('[Session Timer] Tab not visible - letting backend scheduler handle phase completion');
+      // Stop the local timer to prevent it from going negative
+      this.timerSyncService.pauseTimer();
+      return;
+    }
+
+    // Store local phase for comparison
+    const localPhase = sess.currentPhase || 'FOCUS';
+    const localCycles = sess.cyclesCompleted || 0;
+
     // First, fetch the latest session state from backend to check if phase was already transitioned
     // This prevents duplicate notifications when backend scheduler already processed the phase
     this.sessionService.getSession(actId, sess.id).subscribe({
       next: (latestSession) => {
-        // Check if backend already transitioned to a different phase
+        // Check if backend already transitioned to a different phase or incremented cycles
         const backendPhase = latestSession.currentPhase;
-        const localPhase = sess.currentPhase || 'FOCUS';
+        const backendCycles = latestSession.cyclesCompleted || 0;
+        const backendStatus = latestSession.status;
         
-        if (backendPhase !== localPhase) {
+        const phaseChanged = backendPhase !== localPhase;
+        const cyclesChanged = backendCycles !== localCycles;
+        const isNotInProgress = backendStatus === 'PAUSED' || backendStatus === 'COMPLETED';
+        
+        if (phaseChanged || cyclesChanged || isNotInProgress) {
           // Backend already processed the phase transition - just sync UI, no notification
-          console.log(`[Session Timer] Backend already transitioned from ${localPhase} to ${backendPhase} - syncing UI only`);
+          console.log(`[Session Timer] Backend already processed phase transition:`, {
+            localPhase,
+            backendPhase,
+            localCycles,
+            backendCycles,
+            backendStatus
+          });
+          
           this.session.set(latestSession);
-          this.timerSyncService.updateFromSession(latestSession);
+          this.timerSyncService.initializeTimer(latestSession, actId, this.activityTitle());
           this.isAtPhaseStart.set(true);
-          this.notificationSentForCurrentPhase = false;
+          this.notificationSentForCurrentPhase = true; // Backend already sent notification
+          
+          // Handle completed session
+          if (backendStatus === 'COMPLETED') {
+            console.log('[Session Timer] Session completed by backend');
+            this.timerSyncService.stopTimer();
+            return;
+          }
           
           // Check auto-start for the new phase
-          this.checkAndAutoStartNextPhase(backendPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK');
+          if (backendPhase) {
+            this.checkAndAutoStartNextPhase(backendPhase as 'FOCUS' | 'BREAK' | 'LONG_BREAK');
+          }
           return;
         }
         
