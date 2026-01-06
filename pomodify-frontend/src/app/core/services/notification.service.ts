@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { SettingsService, AppSettings } from './settings.service';
 import { FcmService } from './fcm.service';
 import { Auth } from './auth';
 import { MobileDetectionService } from './mobile-detection.service';
 import { NotificationModalComponent, NotificationModalData } from '../../shared/components/notification-modal/notification-modal.component';
+import { TimerSyncService, TimerCompletionEvent } from './timer-sync.service';
 
 export interface NotificationContext {
   title: string;
@@ -27,9 +28,13 @@ export class NotificationService {
   private authService = inject(Auth);
   private mobileDetection = inject(MobileDetectionService);
   private dialog = inject(MatDialog);
+  private timerSyncService = inject(TimerSyncService);
   
   private isTabVisible$ = new BehaviorSubject<boolean>(true);
   private pendingNotifications: NotificationContext[] = [];
+  
+  // Track if we're on the timer page (to avoid duplicate notifications)
+  private isOnTimerPage = false;
 
   constructor() {
     this.initializeVisibilityTracking();
@@ -39,6 +44,49 @@ export class NotificationService {
       console.log('🔔 Received foreground FCM message in NotificationService:', payload);
       this.handleFcmMessage(payload);
     });
+    
+    // Subscribe to timer completion events for background notifications
+    // This handles notifications when user navigates away from timer page
+    this.timerSyncService.timerComplete$.subscribe(event => {
+      console.log('🔔 Timer completion event received in NotificationService:', event);
+      // Only handle if NOT on timer page (timer page handles its own notifications)
+      if (!this.isOnTimerPage) {
+        this.handleBackgroundTimerCompletion(event);
+      } else {
+        console.log('🔔 On timer page - letting session-timer handle notification');
+      }
+    });
+  }
+  
+  /**
+   * Set whether we're currently on the timer page
+   * Called by session-timer component to prevent duplicate notifications
+   */
+  setOnTimerPage(isOnPage: boolean): void {
+    this.isOnTimerPage = isOnPage;
+    console.log('🔔 Timer page status:', isOnPage ? 'ON timer page' : 'NOT on timer page');
+  }
+  
+  /**
+   * Handle timer completion when user is NOT on the timer page
+   */
+  private async handleBackgroundTimerCompletion(event: TimerCompletionEvent): Promise<void> {
+    console.log('🔔 Handling background timer completion:', event);
+    
+    const activityTitle = event.activityTitle || 'Activity';
+    const nextPhase = event.phase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    const phaseName = event.phase === 'LONG_BREAK' ? 'Long Break' : event.phase;
+    
+    const context: NotificationContext = {
+      title: `${phaseName} Phase Complete!`,
+      body: `Time for a ${nextPhase.toLowerCase()} in "${activityTitle}"`,
+      sessionId: event.sessionId,
+      activityId: event.activityId,
+      activityTitle: activityTitle,
+      type: 'phase-complete'
+    };
+    
+    await this.handlePhaseCompletion(context);
   }
 
   private initializeVisibilityTracking(): void {
@@ -139,6 +187,33 @@ export class NotificationService {
         nextAction: 'Great job! Take a break.'
       });
     };
+    
+    (window as any).testBackendPush = async () => {
+      console.log('🔔 Testing backend push notification...');
+      try {
+        const result = await firstValueFrom(this.fcmService.sendTestNotification(
+          '🧪 Backend Test',
+          'This notification was sent from the backend via FCM'
+        ));
+        console.log('Backend push test result:', result);
+        return result;
+      } catch (error) {
+        console.error('Backend push test failed:', error);
+        return { success: false, error };
+      }
+    };
+    
+    (window as any).checkPushDebug = async () => {
+      console.log('🔍 Checking push notification debug info...');
+      try {
+        const result = await firstValueFrom(this.fcmService.getDebugInfo());
+        console.log('Push debug info:', result);
+        return result;
+      } catch (error) {
+        console.error('Failed to get push debug info:', error);
+        return { error };
+      }
+    };
   }
 
   private handleTabBecameVisible(): void {
@@ -186,6 +261,8 @@ export class NotificationService {
 
   /**
    * Handle incoming FCM message
+   * NOTE: This is for FCM messages received when app is in foreground
+   * We only play sound here since browser notification is already shown by sendPushNotification
    */
   private handleFcmMessage(payload: any): void {
     const notification = payload.notification;
@@ -193,17 +270,14 @@ export class NotificationService {
     
     if (!notification) return;
 
-    const context: NotificationContext = {
-      title: notification.title,
-      body: notification.body,
-      sessionId: data?.sessionId ? parseInt(data.sessionId) : undefined,
-      activityId: data?.activityId ? parseInt(data.activityId) : undefined,
-      type: 'session-complete', // Default to session complete if not specified
-      nextAction: 'View Session'
-    };
-
-    // We treat FCM messages as "foreground" if the app is open
-    this.handleNotification(context);
+    console.log('🔔 FCM message received - playing sound only (notification already shown)');
+    
+    // Only play sound for FCM messages, don't create another notification
+    // The browser notification was already created by sendPushNotification
+    const settings = this.settingsService.getSettings();
+    if (settings.sound.enabled) {
+      this.settingsService.playSound(settings.sound.type);
+    }
   }
 
   /**
@@ -362,12 +436,13 @@ export class NotificationService {
     console.log('Desktop foreground notification - same as background behavior');
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound');
-      await this.sendPushNotification(context, jwt);
+      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      // Play sound and send notification simultaneously (no await) for better sync
       this.settingsService.playSound(settings.sound.type);
+      this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
       console.log('Only notifications enabled - sending push notification (no sound)');
-      await this.sendPushNotification(context, jwt);
+      this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
       console.log('Only sound enabled - playing sound (no push notification)');
       this.settingsService.playSound(settings.sound.type);
@@ -388,12 +463,13 @@ export class NotificationService {
     console.log('Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound');
-      await this.sendPushNotification(context, jwt);
+      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      // Play sound and send notification simultaneously for better sync
       this.playBackgroundSound();
+      this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
       console.log('Only notifications enabled - sending push notification (no sound)');
-      await this.sendPushNotification(context, jwt);
+      this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
       console.log('Only sound enabled - playing sound (no push notification)');
       this.playBackgroundSound();
@@ -437,8 +513,9 @@ export class NotificationService {
 
   /**
    * Send push notification (desktop notification)
+   * Only sends a single browser notification - no FCM to avoid duplicates
    */
-  private async sendPushNotification(context: NotificationContext, jwt: string | null): Promise<void> {
+  private async sendPushNotification(context: NotificationContext, _jwt: string | null): Promise<void> {
     try {
       console.log('Sending desktop push notification:', context.title);
       
@@ -458,7 +535,7 @@ export class NotificationService {
           const notification = new Notification(context.title, {
             body: context.body,
             icon: '/assets/images/logo.png',
-            tag: 'pomodify-session'
+            tag: 'pomodify-session' // Same tag prevents duplicate notifications
           });
           
           // Add click handler to focus the app
@@ -467,8 +544,6 @@ export class NotificationService {
             window.focus();
             notification.close();
           };
-          
-          // No auto-close - let user decide when to dismiss
           
           console.log('🎉 Desktop notification sent successfully!');
           
@@ -484,11 +559,8 @@ export class NotificationService {
           }
         }
         
-        // Also try FCM registration in background (for future use)
-        // JWT is no longer needed, auth is handled by cookies
-        this.fcmService.initializeFCM().catch(error => {
-          console.log('FCM registration failed (not critical):', error);
-        });
+        // NOTE: Removed FCM initialization here to prevent duplicate notifications
+        // FCM should only be initialized once during app startup, not on every notification
         
       } else if (permission === 'denied') {
         console.log('Notification permission denied by user');

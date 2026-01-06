@@ -48,6 +48,10 @@ describe('SessionsListComponent', () => {
     expect((component as any).sessions().length).toBe(0);
   });
 
+  it('should return correct status class for NOT_STARTED', () => {
+    expect((component as any).getStatusClass('NOT_STARTED')).toBe('status-not-started');
+  });
+
   it('should return correct status class for PENDING', () => {
     expect((component as any).getStatusClass('PENDING')).toBe('status-pending');
   });

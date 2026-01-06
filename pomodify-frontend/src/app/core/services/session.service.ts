@@ -5,8 +5,8 @@ import { map } from 'rxjs/operators';
 import { API } from '../config/api.config';
 
 export type SessionType = 'CLASSIC' | 'FREESTYLE';
-export type SessionStatus = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
-export type SessionPhase = 'FOCUS' | 'BREAK';
+export type SessionStatus = 'NOT_STARTED' | 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'COMPLETED' | 'ABANDONED';
+export type SessionPhase = 'FOCUS' | 'BREAK' | 'LONG_BREAK';
 
 // Note structure from backend
 export interface SessionNoteDto {
@@ -208,20 +208,12 @@ export class SessionService {
 
 function extractSession(response: SessionResponse): PomodoroSession {
   if (response && Array.isArray(response.sessions) && response.sessions.length > 0) {
-    const s = response.sessions[0];
-    const rawStatus = (s as any).status as string;
-    const normalizedStatus = (rawStatus === 'NOT_STARTED' ? 'PENDING' : rawStatus) as SessionStatus;
-    const normalized = { ...s, status: normalizedStatus };
-    return normalized;
+    return response.sessions[0];
   }
 
   const anyResp = response as unknown as { session?: PomodoroSession };
   if (anyResp && anyResp.session) {
-    const s = anyResp.session;
-    const rawStatus = (s as any).status as string;
-    const normalizedStatus = (rawStatus === 'NOT_STARTED' ? 'PENDING' : rawStatus) as SessionStatus;
-    const normalized = { ...s, status: normalizedStatus };
-    return normalized;
+    return anyResp.session;
   }
   throw new Error('Session not found in response');
 }

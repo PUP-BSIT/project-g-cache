@@ -563,3 +563,27 @@ mat-dialog-actions {
   }
 }
 
+
+// Info Card (for no long break message)
+.info-card {
+  border-color: rgba($text-muted, 0.3);
+  
+  .config-header {
+    background: rgba($text-muted, 0.08);
+    
+    i {
+      color: $text-muted;
+    }
+    
+    span {
+      color: $text-muted;
+    }
+  }
+  
+  .info-text {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: $text-muted;
+    line-height: 1.5;
+  }
+}

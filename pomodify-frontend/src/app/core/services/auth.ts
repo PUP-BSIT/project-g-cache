@@ -48,13 +48,24 @@ export class Auth {
   /**
    * Sync login state with the service worker for background notifications
    */
-  private syncLoginStateWithServiceWorker(isLoggedIn: boolean): void {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SET_LOGIN_STATE',
-        isLoggedIn
-      });
-      console.log('[Auth] Synced login state with service worker:', isLoggedIn);
+  private async syncLoginStateWithServiceWorker(isLoggedIn: boolean): Promise<void> {
+    if ('serviceWorker' in navigator) {
+      try {
+        // Wait for service worker to be ready
+        await navigator.serviceWorker.ready;
+        
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SET_LOGIN_STATE',
+            isLoggedIn
+          });
+          console.log('[Auth] Synced login state with service worker:', isLoggedIn);
+        } else {
+          console.log('[Auth] No service worker controller available for login state sync');
+        }
+      } catch (error) {
+        console.warn('[Auth] Failed to sync login state with service worker:', error);
+      }
     }
   }
   

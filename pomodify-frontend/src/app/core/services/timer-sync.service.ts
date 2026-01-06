@@ -1,8 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { timer, Subscription, BehaviorSubject, interval } from 'rxjs';
-import { switchMap, catchError, filter, tap } from 'rxjs/operators';
+import { timer, Subscription, interval, Subject } from 'rxjs';
+import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from './session.service';
-import { NotificationService } from './notification.service';
 
 export interface TimerState {
   remainingSeconds: number;
@@ -13,12 +12,18 @@ export interface TimerState {
   drift?: number;
 }
 
+export interface TimerCompletionEvent {
+  sessionId: number;
+  activityId: number;
+  phase: 'FOCUS' | 'BREAK' | 'LONG_BREAK';
+  activityTitle?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class TimerSyncService {
   private sessionService = inject(SessionService);
-  private notificationService = inject(NotificationService);
 
   private _remainingSeconds = signal(0);
   private _isRunning = signal(false);
@@ -40,29 +45,49 @@ export class TimerSyncService {
 
   private currentSession: PomodoroSession | null = null;
   private activityId: number | null = null;
+  private activityTitle: string | null = null;
   private timerSub?: Subscription;
   private syncSub?: Subscription;
   private localStartTime: number = 0;
   private serverRemainingAtSync: number = 0;
   private syncInterval = 15000; 
   private maxDrift = 3; 
-  private hasCustomTime = false; 
+  private hasCustomTime = false;
+  
+  // Event emitter for timer completion (used for background notifications)
+  private _timerComplete$ = new Subject<TimerCompletionEvent>();
+  timerComplete$ = this._timerComplete$.asObservable(); 
 
   private getStorageKey(sessionId: number): string {
     return `pomodify_timer_${sessionId}`;
   }
 
-  initializeTimer(session: PomodoroSession, activityId: number): void {
-    console.log('Initializing timer sync service for session:', session.id);
+  initializeTimer(session: PomodoroSession, activityId: number, activityTitle?: string): void {
+    console.log('Initializing timer sync service for session:', session.id, 'status:', session.status);
     
     this.currentSession = session;
     this.activityId = activityId;
+    this.activityTitle = activityTitle || null;
     this._currentSessionId.set(session.id);
     this._currentActivityId.set(activityId);
 
     const persistedState = this.loadPersistedState();
 
+    // CRITICAL: If session is PAUSED or COMPLETED, always use server state
+    // This handles the case where backend scheduler processed phase completion
+    if (session.status === 'PAUSED' || session.status === 'COMPLETED') {
+      console.log('Session is PAUSED/COMPLETED - using server state exclusively');
+      const serverRemaining = session.remainingPhaseSeconds || 0;
+      this._remainingSeconds.set(serverRemaining);
+      this._isRunning.set(false);
+      this._isPaused.set(session.status === 'PAUSED');
+      // Clear any stale persisted state
+      this.clearPersistedState();
+      return;
+    }
+
     if (persistedState && persistedState.isRunning) {
+      // Session is IN_PROGRESS or NOT_STARTED with persisted running state
       const age = Date.now() - persistedState.lastSyncTime;
       const elapsedSinceLastPersist = Math.floor(age / 1000);
       const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
@@ -82,16 +107,8 @@ export class TimerSyncService {
     } else if (session.status === 'IN_PROGRESS') {
       this.updateFromSession(session);
       this.startTimer();
-    } else if (session.status === 'PAUSED' && persistedState && persistedState.isPaused) {
-      this._isRunning.set(false);
-      this._isPaused.set(true);
-      console.log('Using persisted state for paused session:', {
-        status: session.status,
-        remainingSeconds: this._remainingSeconds(),
-        phase: session.currentPhase
-      });
-    } else if (session.status === 'PENDING' && persistedState && persistedState.remainingSeconds > 0) {
-      console.log('Using persisted state for PENDING session:', {
+    } else if (session.status === 'NOT_STARTED' && persistedState && persistedState.remainingSeconds > 0) {
+      console.log('Using persisted state for NOT_STARTED session:', {
         persistedRemaining: persistedState.remainingSeconds,
         serverRemaining: session.remainingPhaseSeconds
       });
@@ -296,25 +313,32 @@ export class TimerSyncService {
     
     this.stopTimers();
     this._remainingSeconds.set(0);
-
-    this.triggerPhaseCompleteNotification();
-  }
-
-  private async triggerPhaseCompleteNotification(): Promise<void> {
-    if (!this.currentSession) return;
     
-    const currentPhase = this.currentSession.currentPhase || 'FOCUS';
-    const nextPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
+    // CRITICAL: Only emit timer completion event if tab is visible
+    // When tab is hidden, backend scheduler will handle phase completion and send FCM
+    // This prevents race conditions where frontend completes phase before backend can notify
+    if (document.hidden) {
+      console.log('🔔 Tab hidden - NOT emitting timer completion event (backend scheduler will handle)');
+      // Also pause the timer to prevent it from going negative
+      this._isRunning.set(false);
+      this._isPaused.set(true);
+      return;
+    }
     
-    const context = {
-      title: `${currentPhase} Phase Complete!`,
-      body: `Time for a ${nextPhase.toLowerCase()}!`,
-      sessionId: this.currentSession.id,
-      activityId: this.currentSession.activityId,
-      type: 'phase-complete' as const
-    };
+    // Emit timer completion event for background notification handling
+    if (this.currentSession && this.activityId) {
+      const event: TimerCompletionEvent = {
+        sessionId: this.currentSession.id,
+        activityId: this.activityId,
+        phase: (this.currentSession.currentPhase || 'FOCUS') as 'FOCUS' | 'BREAK' | 'LONG_BREAK',
+        activityTitle: this.activityTitle || undefined
+      };
+      console.log('🔔 Emitting timer completion event:', event);
+      this._timerComplete$.next(event);
+    }
     
-    await this.notificationService.handlePhaseCompletion(context);
+    // Note: Notification is handled by subscribers to timerComplete$
+    // session-timer.ts subscribes when on the page, app.component or notification service handles background
   }
 
   private stopTimers(): void {

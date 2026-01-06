@@ -130,10 +130,15 @@ jobs:
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-frontend:latest || { echo "❌ Failed to pull frontend image"; exit 1; }
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/pomodify-backend:latest || { echo "❌ Failed to pull backend image"; exit 1; }
 
-            # Setup Firebase credentials if provided
-            sudo mkdir -p /app
-            if [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
-              echo "Setting up Firebase credentials..."
+            # Setup Firebase credentials - use existing file on server or decode from secret
+            echo "Setting up Firebase credentials..."
+            if [ -f ~/pomodify/firebase-key.json ]; then
+              echo "Using existing Firebase key from ~/pomodify/firebase-key.json"
+              FIREBASE_MOUNT="-v ~/pomodify/firebase-key.json:/app/firebase-key.json:ro"
+              FIREBASE_ENV="-e FCM_SERVICE_ACCOUNT=/app/firebase-key.json"
+            elif [ -n "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" ]; then
+              echo "Decoding Firebase credentials from secret..."
+              sudo mkdir -p /app
               echo "${{ secrets.FCM_SERVICE_ACCOUNT_BASE64 }}" | base64 -d | sudo tee /app/firebase-key.json > /dev/null
               sudo chown root:root /app/firebase-key.json
               sudo chmod 600 /app/firebase-key.json

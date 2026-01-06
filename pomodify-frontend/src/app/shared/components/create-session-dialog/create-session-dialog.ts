@@ -124,6 +124,17 @@ export class CreateSessionDialogComponent {
   get longBreakTime() { return this.form.get('longBreakTimeInMinutes')?.value || 15; }
   get longBreakIntervalCycles() { return this.form.get('longBreakIntervalCycles')?.value || 4; }
 
+  // Check if total session time exceeds 180 minutes (backend requirement for long breaks)
+  get isLongBreakEligible(): boolean {
+    if (this.sessionType === 'CLASSIC') {
+      // Classic: (25 + 5) * cycles
+      return (this.CLASSIC_FOCUS + this.CLASSIC_BREAK) * this.cycles > 180;
+    }
+    // Freestyle: (focus + break) * longBreakIntervalCycles
+    const totalMinutes = (this.focusTime + this.breakTime) * this.longBreakIntervalCycles;
+    return totalMinutes > 180;
+  }
+
   get totalDurationMinutes(): number {
     if (this.sessionType === 'CLASSIC') {
       // Classic: (25 focus + 5 break) * cycles, plus long breaks
@@ -169,13 +180,15 @@ export class CreateSessionDialogComponent {
 
   getLoopPreview(): string[] {
     // Generate preview pattern: F B F B F B F L (for 4 cycle interval)
+    // But only show L if long breaks are actually eligible (total time > 180 min)
     const pattern: string[] = [];
     const interval = this.longBreakIntervalCycles;
+    const showLongBreak = this.isLongBreakEligible;
     
     for (let i = 1; i <= interval; i++) {
       pattern.push('F'); // Focus
-      if (i === interval) {
-        pattern.push('L'); // Long break at the end
+      if (i === interval && showLongBreak) {
+        pattern.push('L'); // Long break at the end (only if eligible)
       } else {
         pattern.push('B'); // Short break
       }
@@ -192,17 +205,30 @@ export class CreateSessionDialogComponent {
     if (this.form.valid) {
       const formValue = this.form.value;
       
+      // Calculate if long breaks are eligible (total time > 180 minutes)
+      const isFreestyle = formValue.sessionType === 'FREESTYLE';
+      const focusMin = isFreestyle ? formValue.focusTimeInMinutes : this.CLASSIC_FOCUS;
+      const breakMin = isFreestyle ? formValue.breakTimeInMinutes : this.CLASSIC_BREAK;
+      const cycleCount = isFreestyle ? formValue.longBreakIntervalCycles : formValue.cycles;
+      const totalMinutes = (focusMin + breakMin) * cycleCount;
+      const longBreakEligible = totalMinutes > 180;
+      
       // Prepare data
+      // For FREESTYLE, use longBreakIntervalCycles as the cycle limit (frequency = total cycles before session ends)
       const data: CreateSessionDialogData = {
         sessionType: formValue.sessionType,
         focusTimeInMinutes: formValue.sessionType === 'CLASSIC' ? this.CLASSIC_FOCUS : formValue.focusTimeInMinutes,
         breakTimeInMinutes: formValue.sessionType === 'CLASSIC' ? this.CLASSIC_BREAK : formValue.breakTimeInMinutes,
-        cycles: formValue.sessionType === 'CLASSIC' ? formValue.cycles : null,
-        enableLongBreak: true,
-        longBreakTimeInMinutes: formValue.sessionType === 'CLASSIC' ? this.CLASSIC_LONG_BREAK : formValue.longBreakTimeInMinutes,
-        longBreakIntervalInMinutes: formValue.sessionType === 'FREESTYLE' 
-          ? (formValue.focusTimeInMinutes + formValue.breakTimeInMinutes) * formValue.longBreakIntervalCycles 
-          : (this.CLASSIC_FOCUS + this.CLASSIC_BREAK) * this.CLASSIC_LONG_BREAK_INTERVAL
+        cycles: formValue.sessionType === 'CLASSIC' ? formValue.cycles : formValue.longBreakIntervalCycles,
+        enableLongBreak: longBreakEligible,
+        longBreakTimeInMinutes: longBreakEligible 
+          ? (formValue.sessionType === 'CLASSIC' ? this.CLASSIC_LONG_BREAK : formValue.longBreakTimeInMinutes)
+          : undefined,
+        longBreakIntervalInMinutes: longBreakEligible
+          ? (formValue.sessionType === 'FREESTYLE' 
+              ? (formValue.focusTimeInMinutes + formValue.breakTimeInMinutes) * formValue.longBreakIntervalCycles 
+              : (this.CLASSIC_FOCUS + this.CLASSIC_BREAK) * this.CLASSIC_LONG_BREAK_INTERVAL)
+          : undefined
       };
 
       this.dialogRef.close(data);

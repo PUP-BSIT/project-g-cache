@@ -38,7 +38,7 @@
           <div class="mascot-container" 
                [class.celebrating]="isCompleted()"
                [class.bouncing]="isRunning()"
-               [class.idle]="isPending() || isPaused()"
+               [class.idle]="isNotStarted() || isPaused()"
                [class.shake]="isTimeLow()">
             <img src="/assets/images/pomodify-mascoot.png" 
                  alt="Pomodify Mascot" 
@@ -69,7 +69,7 @@
                 <span 
                   class="phase-label" 
                   [class.active]="currentPhase() === 'FOCUS'"
-                  [class.clickable]="(isPending() || isPaused()) && !isFreestyle()"
+                  [class.clickable]="(isNotStarted() || isPaused()) && !isFreestyle()"
                   (click)="switchToPhase('FOCUS')">
                   Focus
                 </span>
@@ -78,7 +78,7 @@
                 <span 
                   class="phase-label" 
                   [class.active]="currentPhase() === 'BREAK'"
-                  [class.clickable]="(isPending() || isPaused()) && !isFreestyle()"
+                  [class.clickable]="(isNotStarted() || isPaused()) && !isFreestyle()"
                   (click)="switchToPhase('BREAK')">
                   Break
                 </span>
@@ -99,7 +99,7 @@
               @if (canEditTimer()) {
                 <i class="fa-solid fa-pen-to-square edit-icon"></i>
               }
-              @if (!isFreestyle() && (isPending() || isPaused())) {
+              @if (!isFreestyle() && (isNotStarted() || isPaused())) {
                 <i class="fa-solid fa-lock locked-icon" title="Classic sessions have fixed durations"></i>
               }
             </div>
@@ -109,8 +109,8 @@
 
             <!-- Timer Controls - Different layouts based on state -->
             <div class="timer-controls">
-              <!-- PENDING State -->
-              @if (isPending()) {
+              <!-- NOT_STARTED State -->
+              @if (isNotStarted()) {
                 <!-- Classic: Start + Stop -->
                 <!-- Freestyle: Start + Skip -->
                 <button 
