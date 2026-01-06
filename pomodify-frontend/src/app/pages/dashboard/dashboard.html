@@ -242,39 +242,40 @@
             </div>
           } @else {
             <div class="recent-sessions-list">
-              @for (session of recentActivities(); track session.id) {
-                <div class="session-card clickable" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)">
-                  <div class="session-header">
-                    <div class="session-icon">
-                      <i class="fa-solid fa-check-circle"></i>
+              @for (session of recentActivities(); track session.id; let i = $index) {
+                <div class="session-card clickable" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)" [style.animation-delay]="i * 0.08 + 's'">
+                  <!-- Gradient accent bar -->
+                  <div class="card-accent"></div>
+                  
+                  <!-- Main content area -->
+                  <div class="card-main">
+                    <!-- Left: Activity info -->
+                    <div class="activity-section">
+                      <div class="activity-avatar">
+                        <span class="avatar-letter">{{ session.activityName.charAt(0).toUpperCase() }}</span>
+                      </div>
+                      <div class="activity-details">
+                        <h4 class="activity-name">{{ session.activityName }}</h4>
+                        <span class="activity-time">{{ getRelativeTime(session.completedAt) }}</span>
+                      </div>
                     </div>
-                    <div class="session-info">
-                      <h4 class="session-activity">{{ session.activityName }}</h4>
-                      <div class="session-time">
-                        <i class="fa-solid fa-clock"></i>
-                        {{ getRelativeTime(session.completedAt) }}
+                    
+                    <!-- Right: Stats -->
+                    <div class="stats-section">
+                      <div class="stat-pill">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="stat-num">{{ session.cyclesCompleted }}</span>
+                      </div>
+                      <div class="stat-pill highlight">
+                        <i class="fa-solid fa-fire"></i>
+                        <span class="stat-num">{{ session.focusHours.toFixed(1) }}h</span>
                       </div>
                     </div>
                   </div>
-                  <div class="session-meta">
-                    <div class="meta-item">
-                      <div class="meta-icon">
-                        <i class="fa-solid fa-repeat"></i>
-                      </div>
-                      <div class="meta-value">
-                        <span>{{ session.cyclesCompleted }}</span>
-                        <span>cycles</span>
-                      </div>
-                    </div>
-                    <div class="meta-item">
-                      <div class="meta-icon">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                      </div>
-                      <div class="meta-value">
-                        <span>{{ session.focusHours.toFixed(1) }}</span>
-                        <span>hours</span>
-                      </div>
-                    </div>
+                  
+                  <!-- Hover indicator -->
+                  <div class="card-arrow">
+                    <i class="fa-solid fa-chevron-right"></i>
                   </div>
                 </div>
               }

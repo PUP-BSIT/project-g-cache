@@ -225,12 +225,7 @@ export class ActivitiesPage implements OnInit {
     this.activityService.getAllActivities(page, this.itemsPerPage, 'desc', 'createdAt', categoryId).subscribe({
       next: (response: ActivityResponse) => {
         console.log('[ActivitiesPage] Activities loaded:', response);
-        // Apply stored color tags to activities
-        const activitiesWithColors = (response.activities || []).map(activity => ({
-          ...activity,
-          colorTag: this.activityColorService.getColorTag(activity.activityId) || activity.color || 'teal'
-        }));
-        this.activities.set(activitiesWithColors);
+        this.activities.set(response.activities || []);
         this.totalPages.set(response.totalPages || 1);
         this.totalItems.set(response.totalItems || 0);
         this.isLoading.set(false);
@@ -240,7 +235,7 @@ export class ActivitiesPage implements OnInit {
         console.log('[ActivitiesPage] Available categories after loading:', availableCategories);
         
         // Load sessions for each activity to calculate completion
-        activitiesWithColors.forEach(activity => {
+        (response.activities || []).forEach(activity => {
           this.loadActivitySessions(activity.activityId);
         });
       },
@@ -266,7 +261,9 @@ export class ActivitiesPage implements OnInit {
     console.log('[ActivitiesPage] Opening create activity modal');
     this.dialog
       .open(CreateActivityModal, { 
-        data: { categories: this.categories() } 
+        data: { categories: this.categories() },
+        panelClass: 'create-activity-dialog-panel',
+        maxWidth: '95vw'
       })
       .afterClosed()
       .subscribe((result: CreateActivityModalData) => {
@@ -373,7 +370,9 @@ export class ActivitiesPage implements OnInit {
         data: { 
           ...modalData,
           categories: this.categories() 
-        } 
+        },
+        panelClass: 'create-activity-dialog-panel',
+        maxWidth: '95vw'
       })
       .afterClosed()
       .subscribe((updated: CreateActivityModalData) => {
@@ -633,6 +632,11 @@ export class ActivitiesPage implements OnInit {
 
   // Convert color name to hex format for backend
   private colorNameToHex(colorName: string): string {
+    // If it's already a hex color (from slider), return it directly
+    if (colorName?.startsWith('#')) {
+      return colorName;
+    }
+    
     const colorMap: Record<string, string> = {
       red: '#EF4444',
       orange: '#F97316',
@@ -643,5 +647,34 @@ export class ActivitiesPage implements OnInit {
       teal: '#4da1a9',
     };
     return colorMap[colorName?.toLowerCase()] || colorMap['teal'];
+  }
+
+  // Get gradient background for activity card based on color tag
+  protected getActivityCardGradient(activity: ActivityData): string {
+    // First check localStorage for color tag
+    const storedColor = this.activityColorService.getColorTag(activity.activityId);
+    const colorTag = storedColor || activity.color || '#5FA9A4'; // Default to teal hex
+    
+    // If it's already a hex color (from slider or default), use it directly
+    if (colorTag.startsWith('#')) {
+      const baseColor = colorTag;
+      const lighterColor = this.lightenColor(baseColor, 15);
+      return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 100%)`;
+    }
+    
+    // Otherwise, convert color name to hex
+    const baseColor = this.colorNameToHex(colorTag);
+    const lighterColor = this.lightenColor(baseColor, 15);
+    return `linear-gradient(135deg, ${baseColor} 0%, ${lighterColor} 100%)`;
+  }
+
+  // Lighten a hex color by a percentage
+  private lightenColor(hex: string, percent: number): string {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+    const B = Math.min(255, (num & 0x0000FF) + amt);
+    return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
   }
 }

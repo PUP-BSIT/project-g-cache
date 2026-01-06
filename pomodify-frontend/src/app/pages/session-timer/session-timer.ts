@@ -108,8 +108,13 @@ export class SessionTimerComponent implements OnDestroy {
     return this.getColorHex('teal');
   });
 
-  // Color mapping helper
+  // Color mapping helper - handles both color names and hex values
   private getColorHex(colorName: string): string {
+    // If it's already a hex color (from slider), return it directly
+    if (colorName?.startsWith('#')) {
+      return colorName;
+    }
+    
     const colorMap: Record<string, string> = {
       'red': '#EF4444',
       'orange': '#F97316',
