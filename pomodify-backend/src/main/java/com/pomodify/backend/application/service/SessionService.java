@@ -145,52 +145,57 @@ public class SessionService {
     }
 
     @Transactional
-    public SessionResult completeEarly(CompleteEarlyCommand command) {
-        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
-        activity.completeEarly(command.sessionId());
-        PomodoroSession saved = sessionRepository.save(session);
-        return toResult(saved);
-    }
-
-    @Transactional
     public SessionResult completePhase(CompletePhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
+        
+        // Check if the scheduler already processed this phase (session is PAUSED)
+        // If so, just return the current state without processing again
+        if (session.getStatus() == SessionStatus.PAUSED) {
+            log.info("Session {} is already PAUSED - scheduler already processed phase completion", session.getId());
+            return toResult(session);
+        }
+        
+        // Check if the scheduler already processed this phase (phaseNotified = true)
+        // If so, the notification was already sent - don't send another one
+        boolean schedulerAlreadyNotified = Boolean.TRUE.equals(session.getPhaseNotified());
+        
+        // Store the current phase before transition
+        String currentPhase = session.getCurrentPhase() != null ? session.getCurrentPhase().name() : null;
+        
+        // Complete the phase (this will transition to next phase)
         activity.completePhase(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
         
-        // Notify user on phase change with heads-up style messages
-        String title;
-        String body;
-        
-        if (saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")) {
-            // Just entered BREAK phase (focus completed)
-            int focusMinutes = (int) saved.getFocusDuration().toMinutes();
-            title = "☕ It's Break Time!";
-            body = String.format("%d minutes of focus completed", focusMinutes);
+        // Only send notification if scheduler hasn't already sent one
+        if (!schedulerAlreadyNotified) {
+            String title = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("BREAK")
+                ? "Focus ended — take a break"
+                : "Break ended — back to focus";
+            String body = saved.getCurrentPhase() != null && saved.getCurrentPhase().name().equalsIgnoreCase("FOCUS")
+                ? "Cycles completed: " + (saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0)
+                : "Stay mindful and recharge.";
+            
+            try {
+                pushNotificationService.sendNotificationToUser(command.user(), title, body);
+            } catch (Exception e) {
+                log.warn("Failed to send phase completion notification for session {}: {}", session.getId(), e.getMessage());
+            }
         } else {
-            // Just entered FOCUS phase (break completed)
-            title = "🔥 Focus Now!";
-            body = "Break is done. Time to get back to work!";
+            log.info("Skipping notification for session {} - scheduler already sent notification", session.getId());
         }
         
-        try {
-            pushNotificationService.sendNotificationToUser(command.user(), title, body);
-        } catch (IllegalStateException e) {
-            // Notifications disabled - ignore
-        }
-        
-        // If session just became COMPLETED (classic), send completion push
+        // If session just became COMPLETED, send completion push (only if not already notified)
         if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
             int completed = saved.getCyclesCompleted() != null ? saved.getCyclesCompleted() : 0;
-            try {
-                pushNotificationService.sendNotificationToUser(command.user(), "🎉 Session Complete!", "You finished " + completed + " focus cycle(s). Great work!");
-            } catch (IllegalStateException e) {
-                // Notifications disabled - ignore
+            if (!schedulerAlreadyNotified) {
+                try {
+                    pushNotificationService.sendNotificationToUser(command.user(), "Session completed", "You completed " + completed + " cycle(s).");
+                } catch (Exception e) {
+                    log.warn("Failed to send session completion notification: {}", e.getMessage());
+                }
             }
-            // Award badges if user reached new streaks
-            // Award badges if eligible (BadgeService computes current streak internally)
+            // Award badges if eligible
             badgeService.awardBadgesIfEligible(command.user());
         }
         return toResult(saved);
@@ -202,15 +207,6 @@ public class SessionService {
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         session.skipPhase();
         PomodoroSession saved = sessionRepository.save(session);
-        return toResult(saved);
-    }
-
-    @Transactional
-    public SessionResult resetSession(ResetSessionCommand command) {
-        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
-        session.resetSession();
-        PomodoroSession saved = sessionRepository.save(session);
-        log.info("Reset session {} to NOT_STARTED", saved.getId());
         return toResult(saved);
     }
 
@@ -352,20 +348,24 @@ public class SessionService {
         log.info("Soft deleted session {} by setting isDeleted=true", command.sessionId());
     }
 
+    /* -------------------- CLEAR ALL -------------------- */
+    @Transactional
+    public void clearAllSessions(Long userId) {
+        userHelper.getUserOrThrow(userId); // ensure user exists
+        sessionRepository.deleteAllByUserId(userId);
+        log.info("Cleared all sessions for user {}", userId);
+    }
+
     /* -------------------- MAPPER -------------------- */
     private SessionResult toResult(PomodoroSession s) {
         int cycles;
         int totalMinutes;
 
-        if (SessionType.FREESTYLE.equals(s.getSessionType())) {
-            int completed = s.getCyclesCompleted() != null ? s.getCyclesCompleted() : 0;
-            cycles = completed; // FREESTYLE: cycles represent completed rounds
-            totalMinutes = completed * (int)(s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes());
-            // Note: by spec, partial focus time is not added on finish; only add an extra cycle if finishing during BREAK (handled above)
-        } else {
-            cycles = s.getTotalCycles() != null ? s.getTotalCycles() : 1;
-            totalMinutes = (int) (s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes()) * cycles;
-        }
+        // For both CLASSIC and FREESTYLE, use totalCycles as the cycle limit
+        // FREESTYLE sessions now have a cycle limit based on the frequency setting
+        cycles = s.getTotalCycles() != null ? s.getTotalCycles() : 1;
+        totalMinutes = (int) (s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes()) * cycles;
+        
         long totalElapsedSeconds = s.calculateTotalElapsed().getSeconds();
 
         // Use the enhanced timer calculation from domain model
@@ -388,7 +388,6 @@ public class SessionService {
                 .startedAt(s.getStartedAt())
                 .completedAt(s.getCompletedAt())
                 .createdAt(s.getCreatedAt())
-                .phaseNotified(s.getPhaseNotified())
                 .build();
     }
 }
