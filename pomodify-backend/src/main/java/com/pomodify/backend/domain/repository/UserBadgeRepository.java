@@ -9,4 +9,8 @@ import java.util.Optional;
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     Optional<UserBadge> findByUserIdAndMilestoneDays(Long userId, int milestoneDays);
     List<UserBadge> findByUserId(Long userId);
+    
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM UserBadge b WHERE b.userId = :userId")
+    void deleteAllByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }
