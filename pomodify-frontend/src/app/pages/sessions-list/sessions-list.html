@@ -226,6 +226,7 @@
         <!-- Completed Pagination -->
         @if (completedTotalPages() > 1) {
           <div class="pagination">
+            <!-- Previous Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="completedPage() === 1"
@@ -233,15 +234,21 @@
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             
-            @for (page of [].constructor(completedTotalPages()); track $index) {
-              <button 
-                class="pagination-btn" 
-                [class.active]="completedPage() === $index + 1"
-                (click)="goToCompletedPage($index + 1)">
-                {{ $index + 1 }}
-              </button>
+            <!-- Page Numbers with Smart Truncation -->
+            @for (page of completedVisiblePages(); track $index) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button 
+                  class="pagination-btn" 
+                  [class.active]="completedPage() === page"
+                  (click)="navigateCompletedPage(page)">
+                  {{ page }}
+                </button>
+              }
             }
-            
+
+            <!-- Next Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="completedPage() === completedTotalPages()"
@@ -334,6 +341,7 @@
         <!-- Abandoned Pagination -->
         @if (abandonedTotalPages() > 1) {
           <div class="pagination">
+            <!-- Previous Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="abandonedPage() === 1"
@@ -341,15 +349,21 @@
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             
-            @for (page of [].constructor(abandonedTotalPages()); track $index) {
-              <button 
-                class="pagination-btn" 
-                [class.active]="abandonedPage() === $index + 1"
-                (click)="goToAbandonedPage($index + 1)">
-                {{ $index + 1 }}
-              </button>
+            <!-- Page Numbers with Smart Truncation -->
+            @for (page of abandonedVisiblePages(); track $index) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button 
+                  class="pagination-btn" 
+                  [class.active]="abandonedPage() === page"
+                  (click)="navigateAbandonedPage(page)">
+                  {{ page }}
+                </button>
+              }
             }
-            
+
+            <!-- Next Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="abandonedPage() === abandonedTotalPages()"
