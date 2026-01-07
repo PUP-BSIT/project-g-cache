@@ -48,4 +48,8 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
            "AND s.phaseEndTime <= :now " +
            "AND (s.phaseNotified = false OR s.phaseNotified IS NULL)")
     List<PomodoroSession> findSessionsNeedingNotification(@Param("now") java.time.LocalDateTime now);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM PomodoroSession s WHERE s.activity.user.id = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 }
