@@ -72,9 +72,6 @@ body {
 .input-surface { background: var(--card); border: 1px solid var(--border); color: var(--text); }
 .divider-surface { background: var(--border); }
 
-
-}
-
 // Dark mode - simpler gradient without floating shapes
 html.theme-dark {
   .activities-page,
