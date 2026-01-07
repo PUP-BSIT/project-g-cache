@@ -1447,34 +1447,59 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
 
   .section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text-dark;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    i {
+      color: $primary-teal;
+      font-size: 20px;
+    }
   }
 
   .view-all-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(95, 169, 164, 0.4);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(95, 169, 164, 0.5);
+      
+      &::before {
+        left: 100%;
+      }
     }
 
     &:active {
@@ -1487,11 +1512,268 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
     &:hover i {
-      transform: translateX(4px);
+      transform: translateX(5px);
     }
   }
 }
 
+// Activity Cards Grid - New Design
+.activities-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// New Activity Card Design
+.activity-card-new {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardFadeSlide 0.5s ease-out backwards;
+  overflow: hidden;
+  
+  // Gradient top border on hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-teal 0%, $primary-teal-light 50%, #FFB800 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px 20px 0 0;
+  }
+  
+  // Subtle glow background
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at top left, rgba(95, 169, 164, 0.08) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  
+  // Card header row
+  .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Avatar box
+  .avatar-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-light 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+  }
+  
+  // Time tag
+  .time-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(95, 169, 164, 0.1);
+    border-radius: 20px;
+    border: 1px solid rgba(95, 169, 164, 0.15);
+    transition: all 0.3s ease;
+    
+    i {
+      font-size: 12px;
+      color: $primary-teal;
+    }
+    
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  
+  // Card title
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    transition: color 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Stats pills container
+  .stats-pills {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Individual pill
+  .pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    i {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .pill-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    
+    .pill-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+    }
+    
+    &.cycles-pill {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.12) 0%, rgba(95, 169, 164, 0.06) 100%);
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      
+      i {
+        color: $primary-teal;
+      }
+      
+      .pill-label {
+        color: $primary-teal;
+      }
+    }
+    
+    &.focus-pill {
+      background: linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 193, 7, 0.06) 100%);
+      border: 1px solid rgba(255, 152, 0, 0.2);
+      
+      i {
+        color: #FF9800;
+      }
+      
+      .pill-label {
+        color: #FF9800;
+      }
+    }
+  }
+  
+  // Hover state
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(95, 169, 164, 0.15), 0 8px 16px rgba(0, 0, 0, 0.06);
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &::before {
+      transform: scaleX(1);
+    }
+    
+    &::after {
+      opacity: 1;
+    }
+    
+    .avatar-box {
+      transform: scale(1.1) rotate(-5deg);
+      box-shadow: 0 10px 28px rgba(95, 169, 164, 0.45);
+    }
+    
+    .time-tag {
+      background: rgba(95, 169, 164, 0.18);
+      border-color: rgba(95, 169, 164, 0.3);
+    }
+    
+    .card-title {
+      color: $primary-teal;
+    }
+    
+    .pill {
+      transform: translateY(-2px);
+      
+      &.cycles-pill {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.2) 0%, rgba(95, 169, 164, 0.1) 100%);
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.15);
+      }
+      
+      &.focus-pill {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+      }
+    }
+  }
+  
+  &:active {
+    transform: translateY(-4px);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.25), 0 20px 40px rgba(95, 169, 164, 0.15);
+  }
+}
+
+@keyframes cardFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Keep old styles for backward compatibility
+.recent-activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// Keep old session-card styles for backward compatibility
 .recent-sessions-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));

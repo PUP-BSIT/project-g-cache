@@ -46,6 +46,81 @@ body {
   --accent-light: rgba(95, 169, 164, 0.1);
 }
 
+// Light mode animated gradient background
+html:not(.theme-dark) {
+  .activities-page,
+  .dashboard,
+  .settings-page,
+  .sessions-page,
+  .sessions-list-container,
+  .profile-page,
+  .report-page {
+    background: linear-gradient(135deg, #E8F4F3 0%, #F5F9FC 25%, #FDF8F3 50%, #F0F4FA 75%, #E8F4F3 100%) !important;
+    background-size: 400% 400% !important;
+    animation: lightGradientShift 25s ease infinite !important;
+    position: relative;
+    min-height: 100vh;
+    
+    // Soft floating orbs for visual interest
+    &::before {
+      content: '';
+      position: fixed;
+      top: 5%;
+      right: 10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(95, 169, 164, 0.08) 0%, rgba(95, 169, 164, 0.02) 40%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatOrb 30s ease-in-out infinite;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      bottom: 10%;
+      left: 5%;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(255, 184, 0, 0.06) 0%, rgba(255, 152, 0, 0.02) 40%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatOrb 35s ease-in-out infinite reverse;
+    }
+  }
+}
+
+// Light mode gradient animation
+@keyframes lightGradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Floating orb animation
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(30px, -40px) scale(1.1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-20px, -60px) scale(0.9);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translate(40px, -30px) scale(1.05);
+    opacity: 0.8;
+  }
+}
+
 :root.theme-dark {
   --bg: #0F172A;
   --bg-gradient: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
