@@ -46,6 +46,10 @@ public class AuthService {
     private final EmailService emailService;
     private final VerificationTokenRepository tokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final SessionService sessionService;
+    private final ActivityService activityService;
+    private final com.pomodify.backend.domain.repository.UserBadgeRepository userBadgeRepository;
+    private final com.pomodify.backend.domain.repository.CategoryRepository categoryRepository;
 
     // Register
     @Transactional
@@ -429,6 +433,22 @@ public class AuthService {
             passwordResetTokenRepository.delete(token);
             log.info("Deleted password reset token for user {}", userId);
         });
+
+        // Delete all sessions (this also deletes session notes and todo items)
+        sessionService.clearAllSessions(userId);
+        log.info("Deleted all sessions for user {}", userId);
+
+        // Delete all activities
+        activityService.clearAllActivities(userId);
+        log.info("Deleted all activities for user {}", userId);
+
+        // Delete all badges
+        userBadgeRepository.deleteAllByUserId(userId);
+        log.info("Deleted all badges for user {}", userId);
+
+        // Delete all categories
+        categoryRepository.deleteAllByUserId(userId);
+        log.info("Deleted all categories for user {}", userId);
 
         // Soft delete the user (deactivate)
         user.deactivate();

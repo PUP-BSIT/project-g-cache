@@ -9,6 +9,6 @@ public interface SpringActivityJpaRepository extends JpaRepository<Activity, Lon
     Optional<Activity> findByIdAndUserId(Long id, Long userId);
 
     @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query("DELETE FROM Activity a WHERE a.user.id = :userId")
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM activity WHERE user_id = :userId", nativeQuery = true)
     void deleteAllByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }

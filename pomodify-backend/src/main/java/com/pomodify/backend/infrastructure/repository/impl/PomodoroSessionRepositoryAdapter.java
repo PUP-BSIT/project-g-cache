@@ -93,6 +93,12 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
 
     @Override
     public void deleteAllByUserId(Long userId) {
+        // Delete in correct order to respect foreign key constraints:
+        // 1. Delete todo items (references session_note)
+        springRepo.deleteAllTodoItemsByUserId(userId);
+        // 2. Delete session notes (references pomodoro_session)
+        springRepo.deleteAllNotesByUserId(userId);
+        // 3. Delete sessions (references activity)
         springRepo.deleteAllByUserId(userId);
     }
 }
