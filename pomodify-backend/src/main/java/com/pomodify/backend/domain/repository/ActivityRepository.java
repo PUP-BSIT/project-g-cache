@@ -15,4 +15,7 @@ public interface ActivityRepository {
     /** Dynamic, pageable fetching of activities */
     Page<Activity> findAllDynamic(Long userId, Boolean deleted, Long categoryId, Pageable pageable);
     Long countActivities(Long userId, Boolean deleted, Long categoryId);
+
+    /** Delete all activities for a specific user */
+    void deleteAllByUserId(Long userId);
 }
