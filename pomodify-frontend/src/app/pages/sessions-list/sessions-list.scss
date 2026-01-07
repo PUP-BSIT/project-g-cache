@@ -1,6 +1,6 @@
 .sessions-list-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, rgba(95, 169, 164, 0.08) 0%, rgba(95, 169, 164, 0.15) 50%, rgba(95, 169, 164, 0.08) 100%);
+  background: var(--bg);
   padding: 2rem;
   position: relative;
 }
@@ -26,7 +26,8 @@
   }
 
   .back-btn,
-  .create-session-btn {
+  .create-session-btn,
+  .toggle-abandoned-btn {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 12px;
@@ -53,6 +54,29 @@
       color: white;
       border-color: #5FA9A4;
       transform: translateX(-5px);
+      box-shadow: 0 6px 20px rgba(95, 169, 164, 0.3);
+    }
+  }
+
+  .toggle-abandoned-btn {
+    background: var(--card);
+    color: var(--text);
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &:hover {
+      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+      color: white;
+      border-color: #5FA9A4;
+      transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(95, 169, 164, 0.3);
     }
   }
@@ -392,12 +416,12 @@
   }
 
   .session-note {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--card);
     border-left: 4px solid #5FA9A4;
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
     border-radius: 12px;
-    color: #2C3E50;
+    color: var(--text);
     font-size: 0.95rem;
     display: flex;
     gap: 0.75rem;
@@ -415,7 +439,7 @@
 
   /* Notes Preview Section - Display only */
   .session-notes-preview {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--card);
     border-radius: 12px;
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
@@ -438,7 +462,7 @@
       .notes-label {
         font-size: 0.8rem;
         font-weight: 700;
-        color: #2C3E50;
+        color: var(--text);
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
@@ -448,7 +472,7 @@
       display: block !important;
       
       .note-text {
-        color: #2C3E50 !important;
+        color: var(--text) !important;
         font-size: 0.9rem;
         line-height: 1.5;
         margin: 0;
@@ -461,7 +485,7 @@
       }
 
       .note-empty {
-        color: #7F8C8D !important;
+        color: var(--muted) !important;
         font-size: 0.85rem;
         font-style: italic;
         margin: 0;
@@ -905,6 +929,21 @@
       border: 2px solid var(--border) !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
     }
+    
+    .toggle-abandoned-btn {
+      background: var(--card) !important;
+      color: var(--text) !important;
+      border: 2px solid var(--border) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+      
+      &:hover {
+        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
+        border-color: #5FA9A4 !important;
+        color: white !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(95, 169, 164, 0.3) !important;
+      }
+    }
   }
 
   .sessions-section {
@@ -954,13 +993,37 @@
   
   .session-card {
     // Keep the teal gradient for session cards - they should stay colorful
-    // Only override if we want them to match the dark card style
-    // background: var(--card) !important;
-    // border: 1px solid var(--border) !important;
+    // Only override the notes section for better readability
     
     .session-note {
       background: var(--card) !important;
       color: var(--text) !important;
+      border-left-color: #5FA9A4 !important;
+    }
+
+    .session-notes-preview {
+      background: var(--card) !important;
+      border-left-color: #5FA9A4 !important;
+      
+      .notes-header {
+        .notes-label {
+          color: var(--text) !important;
+        }
+        
+        i {
+          color: #5FA9A4 !important;
+        }
+      }
+      
+      .notes-content {
+        .note-text {
+          color: var(--text) !important;
+        }
+        
+        .note-empty {
+          color: var(--muted) !important;
+        }
+      }
     }
 
     .session-notes-section {
@@ -1009,3 +1072,4 @@
     }
   }
 }
+

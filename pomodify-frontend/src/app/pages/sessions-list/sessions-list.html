@@ -6,7 +6,7 @@
     </button>
     <h1>{{ activityTitle() }}</h1>
     <div class="header-actions" style="display: flex; gap: 10px;">
-      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer;">
+      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()">
         {{ showAbandoned() ? 'Hide Abandoned' : 'Show Abandoned' }}
       </button>
       <button class="create-session-btn" (click)="createNewSession()" [disabled]="hasActiveSession()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
