@@ -119,6 +119,17 @@ export class SessionsListComponent implements OnInit {
     return Math.ceil(this.allAbandonedSessions().length / this.PAGE_SIZE);
   });
 
+  // Smart pagination - shows max 5 pages with ellipsis
+  readonly MAX_VISIBLE_PAGES = 5;
+
+  completedVisiblePages = computed(() => {
+    return this.getVisiblePages(this.completedPage(), this.completedTotalPages());
+  });
+
+  abandonedVisiblePages = computed(() => {
+    return this.getVisiblePages(this.abandonedPage(), this.abandonedTotalPages());
+  });
+
   hasActiveSession = computed(() => {
     return this.sessions().some(s => 
       s.status === 'NOT_STARTED' || 
@@ -132,6 +143,47 @@ export class SessionsListComponent implements OnInit {
     this.abandonedPage.set(1); // Reset to first page when toggling
   }
 
+  // Helper function to determine which pages to display with smart truncation
+  private getVisiblePages(currentPage: number, totalPages: number): (number | string)[] {
+    if (totalPages <= this.MAX_VISIBLE_PAGES) {
+      // Show all pages if we're under the limit
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages: (number | string)[] = [];
+
+    if (currentPage <= this.MAX_VISIBLE_PAGES) {
+      // Show first 5 pages (1-5)
+      for (let i = 1; i <= this.MAX_VISIBLE_PAGES; i++) {
+        pages.push(i);
+      }
+      // Add ellipsis and last page if there are more pages
+      if (totalPages > this.MAX_VISIBLE_PAGES) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    } else {
+      // Show page 1, ellipsis, then 4 pages ending at currentPage
+      pages.push(1);
+      pages.push('...');
+      
+      const start = currentPage - 3; // This gives us 4 pages (start to currentPage inclusive)
+      const end = Math.min(currentPage, totalPages);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis and last page if current page is not the last
+      if (end < totalPages) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  }
+
   // Pagination methods
   goToCompletedPage(page: number): void {
     if (page >= 1 && page <= this.completedTotalPages()) {
@@ -142,6 +194,19 @@ export class SessionsListComponent implements OnInit {
   goToAbandonedPage(page: number): void {
     if (page >= 1 && page <= this.abandonedTotalPages()) {
       this.abandonedPage.set(page);
+    }
+  }
+
+  // Helper methods for template pagination (handles string | number from array)
+  navigateCompletedPage(page: string | number): void {
+    if (typeof page === 'number') {
+      this.goToCompletedPage(page);
+    }
+  }
+
+  navigateAbandonedPage(page: string | number): void {
+    if (typeof page === 'number') {
+      this.goToAbandonedPage(page);
     }
   }
 
