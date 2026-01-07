@@ -264,10 +264,15 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmDelete(): void {
     this.showDeleteModal.set(false);
-    // TODO: Call backend API to delete account
     console.log('Deleting account...');
-    alert('Account deletion requested. You will be logged out.');
-    this.auth.logout();
+    this.auth.deleteAccount()
+      .then(() => {
+        console.log('Account deleted successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to delete account:', error);
+        alert('Failed to delete account. Please try again.');
+      });
   }
 
   protected onCancelDelete(): void {
@@ -281,9 +286,17 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmClearSessions(): void {
     this.showClearSessionsModal.set(false);
-    // TODO: Call backend API to clear session history
     console.log('Clearing session history...');
-    this.showSuccessModal.set(true);
+    this.settingsService.clearSessionHistory().subscribe({
+      next: (response) => {
+        console.log('Session history cleared:', response.message);
+        this.showSuccessModal.set(true);
+      },
+      error: (error) => {
+        console.error('Failed to clear session history:', error);
+        alert('Failed to clear session history. Please try again.');
+      }
+    });
   }
 
   protected onCancelClearSessions(): void {
@@ -297,9 +310,17 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmClearActivities(): void {
     this.showClearActivitiesModal.set(false);
-    // TODO: Call backend API to clear activity data
     console.log('Clearing activity data...');
-    this.showSuccessModal.set(true);
+    this.settingsService.clearActivityData().subscribe({
+      next: (response) => {
+        console.log('Activity data cleared:', response.message);
+        this.showSuccessModal.set(true);
+      },
+      error: (error) => {
+        console.error('Failed to clear activity data:', error);
+        alert('Failed to clear activity data. Please try again.');
+      }
+    });
   }
 
   protected onCancelClearActivities(): void {

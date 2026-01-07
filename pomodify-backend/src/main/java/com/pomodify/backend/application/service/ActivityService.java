@@ -143,6 +143,19 @@ public class ActivityService {
         return mapToResult(deleted);
     }
 
+    /* -------------------- CLEAR ALL -------------------- */
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "activities", allEntries = true),
+            @CacheEvict(value = "activity", allEntries = true),
+            @CacheEvict(value = "categories", allEntries = true)
+    })
+    public void clearAllActivities(Long userId) {
+        userHelper.getUserOrThrow(userId); // ensure user exists
+        activityRepository.deleteAllByUserId(userId);
+        log.info("Cleared all activities for user {}", userId);
+    }
+
     /* -------------------- HELPERS -------------------- */
     private ActivityResult mapToResult(Activity activity) {
         return ActivityResult.builder()

@@ -117,4 +117,12 @@ public interface PomodoroSessionRepository {
      * @return List of sessions needing notification.
      */
     List<PomodoroSession> findSessionsNeedingNotification(LocalDateTime now);
+
+    /**
+     * Delete all sessions for a specific user.
+     * Used for clearing session history.
+     *
+     * @param userId The ID of the user.
+     */
+    void deleteAllByUserId(Long userId);
 }

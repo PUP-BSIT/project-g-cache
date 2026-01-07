@@ -7,4 +7,8 @@ import java.util.Optional;
 
 public interface SpringActivityJpaRepository extends JpaRepository<Activity, Long>, JpaSpecificationExecutor<Activity> {
     Optional<Activity> findByIdAndUserId(Long id, Long userId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Activity a WHERE a.user.id = :userId")
+    void deleteAllByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }

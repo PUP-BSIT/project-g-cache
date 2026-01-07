@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { API } from '../config/api.config';
 
 export interface SoundSettings {
   enabled: boolean;
@@ -36,6 +39,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   providedIn: 'root'
 })
 export class SettingsService {
+  private http = inject(HttpClient);
+  
   // Only app settings (not tokens) are stored in localStorage
   private readonly STORAGE_KEY = 'pomodify_settings';
   
@@ -113,6 +118,16 @@ export class SettingsService {
   resetToDefaults() {
     this.settingsSignal.set(DEFAULT_SETTINGS);
     this.saveSettings(DEFAULT_SETTINGS);
+  }
+
+  // Clear all session history
+  clearSessionHistory(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(API.SETTINGS.CLEAR_SESSIONS, { withCredentials: true });
+  }
+
+  // Clear all activity data
+  clearActivityData(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(API.SETTINGS.CLEAR_ACTIVITIES, { withCredentials: true });
   }
   
   // Private methods
