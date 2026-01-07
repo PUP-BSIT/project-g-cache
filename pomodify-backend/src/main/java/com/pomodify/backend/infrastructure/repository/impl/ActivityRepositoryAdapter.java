@@ -57,4 +57,9 @@ public class ActivityRepositoryAdapter implements ActivityRepository {
     public Optional<Activity> findByIdAndUserId(Long id, Long userId) {
         return springRepo.findByIdAndUserId(id, userId);
     }
+
+    @Override
+    public void deleteAllByUserId(Long userId) {
+        springRepo.deleteAllByUserId(userId);
+    }
 }
