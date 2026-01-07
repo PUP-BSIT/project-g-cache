@@ -1,3 +1,53 @@
+/* ==================== ANIMATION KEYFRAMES ==================== */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes floatBubble {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(95, 169, 164, 0.15),
+                0 0 0 1px rgba(95, 169, 164, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 35px rgba(95, 169, 164, 0.25),
+                0 0 0 2px rgba(95, 169, 164, 0.2);
+  }
+}
+
+@keyframes iconBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
 .sessions-list-container {
   min-height: 100vh;
   background: var(--bg);
@@ -300,14 +350,18 @@
   overflow: hidden;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 2px solid transparent;
+  box-shadow: 
+    0 4px 20px rgba(95, 169, 164, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(95, 169, 164, 0.12);
   position: relative;
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    border-color: rgba(95, 169, 164, 0.3);
+    box-shadow: 
+      0 20px 40px rgba(95, 169, 164, 0.2),
+      0 15px 35px rgba(0, 0, 0, 0.12);
+    border-color: rgba(95, 169, 164, 0.4);
     
     .card-header .header-decoration .circle {
       transform: scale(1.2);
@@ -318,22 +372,34 @@
       transform: scale(1.02);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
+    
+    .stats-grid .stat-item {
+      transform: translateX(3px);
+    }
   }
   
   &.completed {
     cursor: default;
+    border-color: rgba(39, 174, 96, 0.15);
+    
     &:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 
+        0 12px 30px rgba(39, 174, 96, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.08);
     }
   }
   
   &.abandoned {
     cursor: default;
-    opacity: 0.85;
+    opacity: 0.8;
+    filter: grayscale(20%);
+    border-color: rgba(149, 165, 166, 0.15);
+    
     &:hover {
-      transform: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+      opacity: 0.9;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -360,8 +426,8 @@
     }
     
     .session-icon {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       background: rgba(255, 255, 255, 0.25);
       backdrop-filter: blur(10px);
       border-radius: 12px;
@@ -369,9 +435,11 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       
       i {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         color: white;
       }
     }
@@ -477,6 +545,13 @@
           height: 60px;
           bottom: -20px;
           right: 30px;
+        }
+        
+        &.circle-3 {
+          width: 40px;
+          height: 40px;
+          top: 15px;
+          right: 45%;
         }
       }
     }
@@ -669,6 +744,46 @@
       font-size: 0.8rem;
       color: #27AE60;
       font-weight: 600;
+    }
+  }
+  
+  // Notes section styling
+  .notes-section {
+    background: #F8FAFA;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid #5FA9A4;
+    
+    .notes-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+      
+      i {
+        color: #5FA9A4;
+        font-size: 0.85rem;
+      }
+      
+      span {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #4A6B6B;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+    }
+    
+    .notes-text {
+      font-size: 0.88rem;
+      color: #445555;
+      line-height: 1.5;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-style: italic;
     }
   }
 }

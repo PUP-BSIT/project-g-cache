@@ -228,9 +228,12 @@
         <!-- Recent Sessions Section -->
         <div class="recent-sessions-section">
           <div class="section-header">
-            <h3 class="section-title">Recent Sessions</h3>
+            <h3 class="section-title">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Recent Activities
+            </h3>
             <button class="view-all-btn" routerLink="/activities">
-              View All Activities
+              View All
               <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
@@ -241,41 +244,35 @@
               <p class="empty-hint">Start your first session to see it here</p>
             </div>
           } @else {
-            <div class="recent-sessions-list">
+            <div class="activities-card-grid">
               @for (session of recentActivities(); track session.id; let i = $index) {
-                <div class="session-card clickable" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)" [style.animation-delay]="i * 0.08 + 's'">
-                  <!-- Gradient accent bar -->
-                  <div class="card-accent"></div>
-                  
-                  <!-- Main content area -->
-                  <div class="card-main">
-                    <!-- Left: Activity info -->
-                    <div class="activity-section">
-                      <div class="activity-avatar">
-                        <span class="avatar-letter">{{ session.activityName.charAt(0).toUpperCase() }}</span>
-                      </div>
-                      <div class="activity-details">
-                        <h4 class="activity-name">{{ session.activityName }}</h4>
-                        <span class="activity-time">{{ getRelativeTime(session.completedAt) }}</span>
-                      </div>
+                <div class="activity-card-new" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)" [style.animation-delay]="i * 0.08 + 's'">
+                  <!-- Card header -->
+                  <div class="card-header-row">
+                    <div class="avatar-box">
+                      {{ session.activityName.charAt(0).toUpperCase() }}
                     </div>
-                    
-                    <!-- Right: Stats -->
-                    <div class="stats-section">
-                      <div class="stat-pill">
-                        <i class="fa-solid fa-rotate"></i>
-                        <span class="stat-num">{{ session.cyclesCompleted }}</span>
-                      </div>
-                      <div class="stat-pill highlight">
-                        <i class="fa-solid fa-fire"></i>
-                        <span class="stat-num">{{ session.focusHours.toFixed(1) }}h</span>
-                      </div>
+                    <div class="time-tag">
+                      <i class="fa-regular fa-clock"></i>
+                      {{ getRelativeTime(session.completedAt) }}
                     </div>
                   </div>
                   
-                  <!-- Hover indicator -->
-                  <div class="card-arrow">
-                    <i class="fa-solid fa-chevron-right"></i>
+                  <!-- Activity name -->
+                  <h4 class="card-title">{{ session.activityName }}</h4>
+                  
+                  <!-- Stats pills -->
+                  <div class="stats-pills">
+                    <div class="pill cycles-pill">
+                      <i class="fa-solid fa-sync-alt"></i>
+                      <span class="pill-value">{{ session.cyclesCompleted }}</span>
+                      <span class="pill-label">cycles</span>
+                    </div>
+                    <div class="pill focus-pill">
+                      <i class="fa-solid fa-fire"></i>
+                      <span class="pill-value">{{ session.focusHours.toFixed(1) }}h</span>
+                      <span class="pill-label">focus</span>
+                    </div>
                   </div>
                 </div>
               }

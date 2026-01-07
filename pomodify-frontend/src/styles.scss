@@ -27,6 +27,72 @@ body {
   border-radius: 16px !important;
 }
 
+// Global Material Dialog Text Visibility Fix
+.mat-mdc-dialog-container {
+  .mdc-dialog__title {
+    color: #2C3E50 !important;
+    font-weight: 600 !important;
+  }
+  
+  .mdc-dialog__content {
+    color: #4A5568 !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+  }
+  
+  .mat-mdc-dialog-actions {
+    .mat-mdc-button,
+    .mdc-button {
+      font-weight: 600 !important;
+      
+      &.mat-mdc-button-base {
+        color: #5FA9A4 !important;
+      }
+    }
+    
+    // Primary/Confirm button
+    .mat-primary,
+    .mat-mdc-unelevated-button.mat-primary {
+      background-color: #5FA9A4 !important;
+      color: white !important;
+    }
+    
+    // Cancel/Secondary button
+    .mat-mdc-button:not(.mat-primary) {
+      color: #6B7280 !important;
+      
+      &:hover {
+        background-color: rgba(107, 114, 128, 0.1) !important;
+      }
+    }
+  }
+}
+
+// Dark mode dialog styles
+html.theme-dark .mat-mdc-dialog-container {
+  .mat-mdc-dialog-surface {
+    background: #1F2937 !important;
+  }
+  
+  .mdc-dialog__title {
+    color: #F3F4F6 !important;
+  }
+  
+  .mdc-dialog__content {
+    color: #D1D5DB !important;
+  }
+  
+  .mat-mdc-dialog-actions {
+    .mat-mdc-button:not(.mat-primary) {
+      color: #9CA3AF !important;
+      
+      &:hover {
+        background-color: rgba(156, 163, 175, 0.15) !important;
+      }
+    }
+  }
+}
+
 .create-session-dialog-panel {
   .mat-mdc-dialog-surface {
     border-radius: 16px !important;
@@ -44,6 +110,81 @@ body {
   --border: #DEE2E6;
   --accent: #5FA9A4;
   --accent-light: rgba(95, 169, 164, 0.1);
+}
+
+// Light mode animated gradient background
+html:not(.theme-dark) {
+  .activities-page,
+  .dashboard,
+  .settings-page,
+  .sessions-page,
+  .sessions-list-container,
+  .profile-page,
+  .report-page {
+    background: linear-gradient(135deg, #E8F4F3 0%, #F5F9FC 25%, #FDF8F3 50%, #F0F4FA 75%, #E8F4F3 100%) !important;
+    background-size: 400% 400% !important;
+    animation: lightGradientShift 25s ease infinite !important;
+    position: relative;
+    min-height: 100vh;
+    
+    // Soft floating orbs for visual interest
+    &::before {
+      content: '';
+      position: fixed;
+      top: 5%;
+      right: 10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(95, 169, 164, 0.08) 0%, rgba(95, 169, 164, 0.02) 40%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatOrb 30s ease-in-out infinite;
+    }
+    
+    &::after {
+      content: '';
+      position: fixed;
+      bottom: 10%;
+      left: 5%;
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(255, 184, 0, 0.06) 0%, rgba(255, 152, 0, 0.02) 40%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      animation: floatOrb 35s ease-in-out infinite reverse;
+    }
+  }
+}
+
+// Light mode gradient animation
+@keyframes lightGradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
+}
+
+// Floating orb animation
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(30px, -40px) scale(1.1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-20px, -60px) scale(0.9);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translate(40px, -30px) scale(1.05);
+    opacity: 0.8;
+  }
 }
 
 :root.theme-dark {
@@ -443,6 +584,52 @@ html.theme-dark {
     color: var(--text) !important;
     border-color: var(--border) !important;
   }
+  
+  // Session timer page - override for notes panel inputs in light mode
+  .session-timer-page {
+    .todo-text {
+      background: transparent !important;
+      color: #2C3E50 !important;
+      
+      &::placeholder {
+        color: #7F8C8D !important;
+      }
+    }
+    
+    .notes-textarea {
+      background: #F8FAFA !important;
+      color: #2C3E50 !important;
+      border: 1px solid rgba(95, 169, 164, 0.15) !important;
+      
+      &:focus {
+        background: #FFFFFF !important;
+        border-color: #5FA9A4 !important;
+      }
+      
+      &::placeholder {
+        color: #7F8C8D !important;
+      }
+    }
+    
+    .todo-item {
+      background: #F8FAFA !important;
+      border: 1px solid rgba(95, 169, 164, 0.12) !important;
+      
+      &:hover {
+        background: #FFFFFF !important;
+      }
+    }
+    
+    .notes-todo-wrapper {
+      background: #F8FAFA !important;
+      border: 1px solid rgba(95, 169, 164, 0.12) !important;
+    }
+    
+    .notes-panel {
+      background: #FFFFFF !important;
+      border: 1px solid rgba(95, 169, 164, 0.15) !important;
+    }
+  }
 
   .activities-list,
   .recent-sessions-list,
@@ -538,6 +725,31 @@ html.theme-dark {
     background: var(--card) !important;
     color: var(--text) !important;
     border-color: var(--border) !important;
+  }
+  
+  // Session timer page - override for notes panel inputs in dark mode
+  .session-timer-page {
+    .todo-text {
+      background: transparent !important;
+      color: var(--text) !important;
+      
+      &::placeholder {
+        color: var(--muted) !important;
+      }
+    }
+    
+    .notes-textarea {
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      
+      &:focus {
+        background: var(--card) !important;
+      }
+      
+      &::placeholder {
+        color: var(--muted) !important;
+      }
+    }
   }
 
   /* Containers */
@@ -1544,17 +1756,29 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
 
 @media (max-width: 576px) {
   .mat-mdc-dialog-panel.profile-dialog {
-    max-width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 32px) !important;
+    width: calc(100vw - 32px) !important;
+    margin: 0 auto !important;
+  }
+  
+  .cdk-overlay-pane.profile-dialog {
+    max-width: calc(100vw - 32px) !important;
+    width: calc(100vw - 32px) !important;
+    margin: 0 auto !important;
   }
 }
 
 .profile-modal {
   max-width: 100% !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
+  margin: 0 auto !important;
 }
 
 .profile-modal .modal-content {
   box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
 }
 
 .profile-modal .form-section {
@@ -1563,9 +1787,9 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
 }
 
 .profile-modal .form-input {
-  padding: 8px 10px !important;
-  font-size: 13px !important;
-  border-radius: 6px !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
@@ -1576,21 +1800,99 @@ html.theme-dark .mat-overlay-backdrop.mat-overlay-backdrop-showing {
 .profile-modal .password-display {
   max-width: 100% !important;
   box-sizing: border-box !important;
+  width: 100% !important;
 }
 
 .profile-modal .btn-save-inline,
 .profile-modal .btn-change-password,
 .profile-modal .btn-save-modal,
 .profile-modal .btn-cancel-modal {
-  padding: 8px 12px !important;
-  font-size: 12px !important;
-  border-radius: 6px !important;
+  padding: 10px 16px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
   box-sizing: border-box !important;
 }
 
 .profile-modal .modal-footer {
   max-width: 100% !important;
   box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+/* Profile Modal - Mobile Specific Overrides */
+@media (max-width: 600px) {
+  .profile-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  .profile-modal .modal-content {
+    padding: 12px !important;
+  }
+  
+  .profile-modal .profile-picture-section {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 16px 12px !important;
+  }
+  
+  .profile-modal .profile-info-header {
+    width: 100% !important;
+    text-align: center !important;
+    
+    h3 {
+      font-size: 16px !important;
+      word-break: break-word !important;
+    }
+    
+    .email-text {
+      font-size: 12px !important;
+      word-break: break-all !important;
+    }
+  }
+  
+  .profile-modal .badges-section {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    min-height: auto !important;
+  }
+  
+  .profile-modal .badges-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-items: center !important;
+  }
+  
+  .profile-modal .badge-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .profile-modal .badge-image {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    display: block !important;
+  }
+  
+  .profile-modal .badge-name {
+    font-size: 9px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    text-align: center !important;
+  }
 }
 
 .logout-overlay {
@@ -1790,6 +2092,33 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
   }
 }
 
+/* Badge Achievement Dialog - Mobile Responsive */
+@media (max-width: 480px) {
+  .badge-achievement-dialog,
+  .cdk-overlay-pane.badge-achievement-dialog {
+    max-width: 92vw !important;
+    width: 92vw !important;
+    margin: 0 auto !important;
+    
+    .mat-mdc-dialog-surface {
+      border-radius: 20px !important;
+      max-width: 100% !important;
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  .badge-achievement-dialog,
+  .cdk-overlay-pane.badge-achievement-dialog {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    
+    .mat-mdc-dialog-surface {
+      border-radius: 16px !important;
+    }
+  }
+}
+
 /* Notification Bell Dropdown z-index fix */
 .notification-bell-container {
   z-index: 1000;
@@ -1847,4 +2176,223 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
     margin-left: auto !important;
     margin-right: auto !important;
   }
+}
+
+/* ========================================================================
+   SESSION TIMER NOTES PANEL - FINAL OVERRIDES
+   Ensures proper styling for notes panel in both light and dark modes
+   ======================================================================== */
+
+// Light mode - clean white/light gray styling
+html:not(.theme-dark) .session-timer-page {
+  .notes-panel {
+    background: #FFFFFF !important;
+    border: 1px solid rgba(95, 169, 164, 0.15) !important;
+    box-shadow: 0 8px 32px rgba(95, 169, 164, 0.08) !important;
+  }
+  
+  .notes-textarea {
+    background: #F8FAFA !important;
+    color: #2C3E50 !important;
+    border: 1px solid rgba(95, 169, 164, 0.15) !important;
+    
+    &:focus {
+      background: #FFFFFF !important;
+      border-color: #5FA9A4 !important;
+    }
+    
+    &::placeholder {
+      color: #7F8C8D !important;
+    }
+  }
+  
+  .todo-item {
+    background: #F8FAFA !important;
+    border: 1px solid rgba(95, 169, 164, 0.12) !important;
+    
+    &:hover {
+      background: #FFFFFF !important;
+      border-color: rgba(95, 169, 164, 0.25) !important;
+    }
+  }
+  
+  .todo-text {
+    background: transparent !important;
+    color: #2C3E50 !important;
+    
+    &::placeholder {
+      color: #7F8C8D !important;
+    }
+  }
+  
+  .notes-todo-wrapper {
+    background: #F8FAFA !important;
+    border: 1px solid rgba(95, 169, 164, 0.12) !important;
+  }
+  
+  .notes-label {
+    color: #2C3E50 !important;
+  }
+}
+
+// Dark mode - proper dark theme styling
+html.theme-dark .session-timer-page {
+  .notes-panel {
+    background: #111827 !important;
+    border: 1px solid #1F2937 !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .notes-textarea {
+    background: #0F172A !important;
+    color: #E5E7EB !important;
+    border: 1px solid #1F2937 !important;
+    
+    &:focus {
+      background: #111827 !important;
+      border-color: #5FA9A4 !important;
+    }
+    
+    &::placeholder {
+      color: #9CA3AF !important;
+    }
+  }
+  
+  .todo-item {
+    background: #0F172A !important;
+    border: 1px solid #1F2937 !important;
+    
+    &:hover {
+      background: #111827 !important;
+      border-color: rgba(95, 169, 164, 0.3) !important;
+    }
+  }
+  
+  .todo-text {
+    background: transparent !important;
+    color: #E5E7EB !important;
+    
+    &::placeholder {
+      color: #9CA3AF !important;
+    }
+  }
+  
+  .notes-todo-wrapper {
+    background: #0F172A !important;
+    border: 1px solid #1F2937 !important;
+  }
+  
+  .notes-label {
+    color: #E5E7EB !important;
+  }
+}
+
+
+/* ========================================================================
+   SESSION TIMER PAGE - DARK MODE COMPLETE FIX
+   Timer circle, page background, and all components
+   ======================================================================== */
+
+html.theme-dark .session-timer-page {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%) !important;
+  background-size: 400% 400% !important;
+  animation: darkGradientShift 20s ease infinite !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important; // Dynamic viewport height for mobile
+  
+  // Timer circle - dark glassmorphism
+  .timer-circle {
+    background: rgba(17, 24, 39, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(95, 169, 164, 0.2) !important;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.4),
+      0 0 0 8px rgba(95, 169, 164, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    
+    &::before {
+      background: linear-gradient(135deg, 
+        rgba(95, 169, 164, 0.15) 0%,
+        rgba(123, 196, 191, 0.08) 50%,
+        rgba(95, 169, 164, 0.1) 100%
+      ) !important;
+    }
+    
+    &:hover {
+      box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 8px rgba(95, 169, 164, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    }
+  }
+  
+  // Timer top section
+  .timer-top {
+    .session-type {
+      color: #E5E7EB !important;
+      -webkit-text-fill-color: #E5E7EB !important;
+    }
+    
+    .cycle-indicator {
+      color: #9CA3AF !important;
+      background: rgba(95, 169, 164, 0.15) !important;
+    }
+  }
+  
+  // Phase labels
+  .phase-labels .phase-label {
+    color: #6B7280 !important;
+    
+    &.active {
+      color: #7BC4BF !important;
+    }
+    
+    .phase-time {
+      color: #6B7280 !important;
+    }
+  }
+  
+  // Back button
+  .btn-back {
+    background: #111827 !important;
+    color: #E5E7EB !important;
+    border: 1px solid #1F2937 !important;
+    
+    &:hover {
+      background: #5FA9A4 !important;
+      color: #FFFFFF !important;
+      border-color: #5FA9A4 !important;
+    }
+  }
+  
+  // Activity title
+  .activity-title {
+    color: #7BC4BF !important;
+    -webkit-text-fill-color: #7BC4BF !important;
+  }
+  
+  // Mascot bubble
+  .mascot-bubble {
+    background: #111827 !important;
+    border: 2px solid #1F2937 !important;
+    
+    &::before {
+      border-top-color: #111827 !important;
+    }
+  }
+}
+
+// Ensure dark background covers entire viewport on mobile
+html.theme-dark body {
+  background: #0F172A !important;
+}
+
+html.theme-dark {
+  background: #0F172A !important;
+}
+
+@keyframes darkGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
