@@ -485,14 +485,59 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   .header {
-    padding: 16px 24px;
-    gap: 16px;
+    padding: 16px 20px;
+    gap: 12px;
   }
   
   .header-left {
+    flex: 0 1 auto;
+    min-width: 0;
+    
     .page-title {
-      font-size: 20px;
+      font-size: 18px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
+  
+  .header-right {
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  
+  .profile-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  
+  .header-left {
+    gap: 10px;
+    
+    .page-title {
+      font-size: 16px;
+    }
+  }
+  
+  .hamburger-btn {
+    padding: 6px;
+    font-size: 20px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .profile-btn {
+    width: 34px;
+    height: 34px;
   }
 }
 

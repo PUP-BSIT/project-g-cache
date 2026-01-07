@@ -1,9 +1,9 @@
 
 // Place after variables are defined
 .notes-todo-wrapper {
-  background: #F5F5F5;
+  background: #F8FAFA;
   border-radius: 10px;
-  border: 1px solid rgba(95, 169, 164, 0.2);
+  border: 1px solid rgba(95, 169, 164, 0.12);
   padding: 0;
   margin-top: 12px;
   margin-bottom: 0;
@@ -879,59 +879,161 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
-.btn-timer-control {
-  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
-  color: $bg-white;
+// Icon-only button style - all circular
+.btn-icon {
+  width: 60px;
+  height: 60px;
   border: none;
-  border-radius: 16px;
-  padding: 16px 52px;
-  font-size: 18px;
-  font-weight: 700;
+  border-radius: 50%;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 8px 24px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  flex-shrink: 0;
   
+  i {
+    font-size: 22px;
+    color: #FFFFFF;
+    line-height: 1;
+  }
+  
+  // Shine effect on hover
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(145deg, 
-      transparent 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      transparent 100%
-    );
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
-  &:hover::before {
-    transform: translateX(100%);
+  // Pulse ring on hover
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
   }
-
+  
   &:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 
-      0 12px 32px rgba(95, 169, 164, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px) scale(1.1);
+    
+    &::before {
+      opacity: 1;
+    }
   }
-
+  
   &:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 
-      0 4px 16px rgba(95, 169, 164, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(0) scale(0.95);
   }
+  
+  // Start/Resume - Green (Primary action)
+  &.btn-start,
+  &.btn-resume {
+    background: linear-gradient(145deg, #2ECC71 0%, #27AE60 100%);
+    box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(46, 204, 113, 0.5);
+      
+      &::after {
+        border-color: rgba(46, 204, 113, 0.3);
+      }
+    }
+  }
+  
+  // Pause - Amber
+  &.btn-pause {
+    background: linear-gradient(145deg, #F1C40F 0%, #F39C12 100%);
+    box-shadow: 0 8px 24px rgba(241, 196, 15, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(241, 196, 15, 0.5);
+      
+      &::after {
+        border-color: rgba(241, 196, 15, 0.3);
+      }
+    }
+  }
+  
+  // Stop - Red
+  &.btn-stop {
+    background: linear-gradient(145deg, #E74C3C 0%, #C0392B 100%);
+    box-shadow: 0 8px 24px rgba(231, 76, 60, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(231, 76, 60, 0.5);
+      
+      &::after {
+        border-color: rgba(231, 76, 60, 0.3);
+      }
+    }
+  }
+  
+  // Reset - Orange
+  &.btn-reset {
+    background: linear-gradient(145deg, #F39C12 0%, #E67E22 100%);
+    box-shadow: 0 8px 24px rgba(243, 156, 18, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(243, 156, 18, 0.5);
+      
+      &::after {
+        border-color: rgba(243, 156, 18, 0.3);
+      }
+    }
+  }
+  
+  // Skip - Teal (activity color)
+  &.btn-skip {
+    background: linear-gradient(145deg, #5FA9A4 0%, #4D8B87 100%);
+    box-shadow: 0 8px 24px rgba(95, 169, 164, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(95, 169, 164, 0.5);
+      
+      &::after {
+        border-color: rgba(95, 169, 164, 0.3);
+      }
+    }
+  }
+  
+  // Complete - Green
+  &.btn-complete {
+    background: linear-gradient(145deg, #2ECC71 0%, #27AE60 100%);
+    box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(46, 204, 113, 0.5);
+      
+      &::after {
+        border-color: rgba(46, 204, 113, 0.3);
+      }
+    }
+  }
+}
+
+// Complete session section - inline with controls
+.complete-session-section {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+// Legacy button styles kept for backward compatibility
+.btn-timer-control {
+  display: none; // Hidden - using icon buttons now
 }
 
 .btn-stop {
@@ -1003,107 +1105,9 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 }
 
+// Legacy button styles - hidden, using .btn-icon now
 .btn-fast-forward {
-  background: var(--activity-color);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: $card-shadow;
-
-  i {
-    font-size: 20px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
-}
-
-// Skip button (similar to fast-forward but with text)
-.btn-skip {
-  background: var(--activity-color);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: $card-shadow;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  i {
-    font-size: 16px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
-}
-
-// Reset button (yellow/orange warning style)
-.btn-reset {
-  background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: $card-shadow;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  i {
-    font-size: 16px;
-  }
-
-  &:hover {
-    background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
+  display: none;
 }
 
 // Complete session section and button
@@ -1408,19 +1412,19 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 .todo-text {
   flex: 1;
   border: none;
-  background: transparent;
+  background: transparent !important;
   font-size: 14px;
-  color: $text-dark;
+  color: #2C3E50 !important;
   outline: none;
   padding: 4px;
 
   &:focus {
-    background: rgba(95, 169, 164, 0.05);
+    background: rgba(95, 169, 164, 0.05) !important;
     border-radius: 4px;
   }
 
   &::placeholder {
-    color: $text-gray;
+    color: #7F8C8D !important;
   }
 }
 
@@ -1455,12 +1459,12 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   width: 100%;
   min-height: 200px;
   padding: 14px;
-  border: 1px solid rgba(95, 169, 164, 0.2);
+  border: 1px solid rgba(95, 169, 164, 0.15);
   border-radius: 10px;
-  background: $bg-light;
+  background: #F8FAFA !important;
   font-size: 14px;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: $text-dark;
+  color: #2C3E50 !important;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
@@ -1468,11 +1472,11 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: $text-light;
+    color: #7F8C8D !important;
   }
 
   &:focus {
-    background: $bg-white;
+    background: #FFFFFF !important;
     border-color: var(--activity-color);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
   }
@@ -1640,60 +1644,26 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .timer-controls {
-    gap: 6px;
-    flex-wrap: wrap;
+    gap: 10px;
+    flex-wrap: nowrap;
     justify-content: center;
     width: 100%;
-    max-width: 260px;
-    margin-top: 4px;
+    max-width: 200px;
+    margin: 8px auto 0;
   }
 
-  .btn-timer-control {
-    padding: 8px 16px;
-    font-size: 12px;
-    border-radius: 10px;
-    min-width: auto;
-    flex: none;
-  }
-
-  .btn-stop {
-    padding: 8px 14px;
-    font-size: 12px;
-    border-radius: 10px;
-    min-width: auto;
-    flex: none;
-  }
-
-  .btn-skip {
-    padding: 8px 12px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 4px;
-
-    i {
-      font-size: 12px;
-    }
-  }
-
-  .btn-reset {
-    padding: 8px 12px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 4px;
-
-    i {
-      font-size: 12px;
-    }
-  }
-
-  .btn-fast-forward {
-    width: 36px;
-    height: 36px;
-    padding: 8px;
+  // Mobile icon buttons - compact circular buttons
+  .btn-icon {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 50% !important;
     flex-shrink: 0;
-
+    padding: 0 !important;
+    
     i {
-      font-size: 14px;
+      font-size: 16px !important;
     }
   }
 
@@ -1701,15 +1671,10 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     margin-top: 10px;
   }
 
+  // Hide legacy button styles
+  .btn-timer-control,
   .btn-complete-session {
-    padding: 10px 18px;
-    font-size: 12px;
-    border-radius: 10px;
-    gap: 6px;
-
-    i {
-      font-size: 14px;
-    }
+    display: none !important;
   }
 
   .early-complete-section {
@@ -1873,65 +1838,27 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .timer-controls {
-    gap: 4px;
+    gap: 8px;
     max-width: 220px;
-    margin-top: 2px;
+    margin-top: 4px;
   }
 
-  .btn-timer-control {
-    padding: 7px 14px;
-    font-size: 11px;
-    flex: none;
-  }
-
-  .btn-stop {
-    padding: 7px 12px;
-    font-size: 11px;
-    flex: none;
-  }
-
-  .btn-skip {
-    padding: 7px 10px;
-    font-size: 10px;
-    gap: 3px;
-
+  // Mobile icon buttons - ensure circular shape
+  .btn-icon {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    
     i {
-      font-size: 11px;
-    }
-  }
-
-  .btn-reset {
-    padding: 7px 10px;
-    font-size: 10px;
-    gap: 3px;
-
-    i {
-      font-size: 11px;
-    }
-  }
-
-  .btn-fast-forward {
-    width: 32px;
-    height: 32px;
-
-    i {
-      font-size: 12px;
+      font-size: 14px !important;
     }
   }
 
   .complete-session-section {
     margin-top: 8px;
-  }
-
-  .btn-complete-session {
-    padding: 8px 14px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 5px;
-
-    i {
-      font-size: 12px;
-    }
   }
 
   .btn-early-complete {
@@ -2383,14 +2310,76 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       }
     }
   }
-}/* -------------------- DARK MODE SUPPORT - CONSISTENT WITH OTHER PAGES -------------------- */
+}
 
-/* Light Mode - Default styling is already light */
+/* -------------------- DARK MODE SUPPORT - CONSISTENT WITH OTHER PAGES -------------------- */
+
+/* Light Mode - Enhanced styling */
 :root:not(.theme-dark) {
   .session-timer-page {
-    background: $bg-gradient;
+    background: linear-gradient(135deg, #E8F4F3 0%, #F5F9FC 25%, #FDF8F3 50%, #F0F4FA 75%, #E8F4F3 100%);
+    background-size: 400% 400%;
+    animation: lightGradientShift 25s ease infinite;
     color: $text-dark;
   }
+  
+  .notes-panel {
+    background: #FFFFFF;
+    border: 1px solid rgba(95, 169, 164, 0.15);
+    box-shadow: 0 8px 32px rgba(95, 169, 164, 0.08);
+    
+    .notes-label {
+      color: $text-dark;
+    }
+    
+    .todo-item {
+      background: #F8FAFA;
+      border: 1px solid rgba(95, 169, 164, 0.12);
+      
+      &:hover {
+        background: #FFFFFF;
+        border-color: rgba(95, 169, 164, 0.25);
+      }
+      
+      .todo-text {
+        background: transparent;
+        color: $text-dark;
+        
+        &::placeholder {
+          color: $text-light;
+        }
+      }
+    }
+    
+    .notes-textarea {
+      background: #F8FAFA;
+      color: $text-dark;
+      border: 1px solid rgba(95, 169, 164, 0.12);
+      
+      &:focus {
+        background: #FFFFFF;
+        border-color: $primary-teal;
+        box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+      }
+      
+      &::placeholder {
+        color: $text-light;
+      }
+    }
+  }
+  
+  .notes-todo-wrapper {
+    background: #F8FAFA;
+    border: 1px solid rgba(95, 169, 164, 0.12);
+  }
+}
+
+@keyframes lightGradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Dark Mode - Using CSS Variables for Consistency */
@@ -2651,19 +2640,19 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       }
       
       .todo-text {
-        background: transparent;
-        color: var(--text);
+        background: transparent !important;
+        color: var(--text) !important;
         
         &:focus {
-          background: rgba(95, 169, 164, 0.05);
+          background: rgba(95, 169, 164, 0.1) !important;
         }
         
         &::placeholder {
-          color: var(--muted);
+          color: var(--muted) !important;
         }
         
         &.todo-checked {
-          color: var(--muted);
+          color: var(--muted) !important;
         }
       }
       
@@ -2678,20 +2667,25 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
     
     .notes-textarea {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg) !important;
+      color: var(--text) !important;
       border: 1px solid var(--border);
       
       &:focus {
-        background: var(--card);
+        background: var(--card) !important;
         border-color: var(--activity-color);
         box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
       }
       
       &::placeholder {
-        color: var(--muted);
+        color: var(--muted) !important;
       }
     }
+  }
+  
+  .notes-todo-wrapper {
+    background: var(--bg);
+    border: 1px solid var(--border);
   }
   
   .mascot-bubble {
