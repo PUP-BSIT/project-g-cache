@@ -477,13 +477,21 @@ export class ActivitiesPage implements OnInit {
       .afterClosed()
       .subscribe((result: SessionData) => {
         if (result) {
-          this.sessionService.createSession(activity.activityId, {
-            sessionType: 'CLASSIC',
+          const sessionData: any = {
+            sessionType: result.sessionType,
             focusTimeInMinutes: result.focusTimeMinutes,
             breakTimeInMinutes: result.breakTimeMinutes,
-            cycles: 1,
-            note: result.note,
-          }).subscribe({
+            cycles: result.cycles,
+          };
+
+          // Add long break settings if enabled
+          if (result.enableLongBreak) {
+            sessionData.enableLongBreak = result.enableLongBreak;
+            sessionData.longBreakTimeInMinutes = result.longBreakTimeInMinutes;
+            sessionData.longBreakIntervalInMinutes = result.longBreakIntervalCycles;
+          }
+
+          this.sessionService.createSession(activity.activityId, sessionData).subscribe({
             next: () => {
               console.log('[ActivitiesPage] Session added successfully');
               // Optionally reload activities or show success message
