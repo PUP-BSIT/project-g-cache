@@ -218,7 +218,9 @@ export class Dashboard implements OnInit {
     console.log('[Dashboard] Quick start - creating new activity and session');
     this.dialog
       .open(CreateActivityModal, {
-        data: { categories: this.categories() }
+        data: { categories: this.categories() },
+        panelClass: 'create-activity-dialog-panel',
+        maxWidth: '95vw'
       })
       .afterClosed()
       .pipe(

@@ -1,7 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, Injector, runInInjectionContext } from '@angular/core';
 import { timer, Subscription, interval, Subject } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from './session.service';
+import { GlobalTimerService, GlobalTimerState } from './global-timer.service';
 
 export interface TimerState {
   remainingSeconds: number;
@@ -24,6 +25,7 @@ export interface TimerCompletionEvent {
 })
 export class TimerSyncService {
   private sessionService = inject(SessionService);
+  private globalTimerService = inject(GlobalTimerService);
 
   private _remainingSeconds = signal(0);
   private _isRunning = signal(false);
@@ -83,6 +85,13 @@ export class TimerSyncService {
       this._isPaused.set(session.status === 'PAUSED');
       // Clear any stale persisted state
       this.clearPersistedState();
+      
+      // Update global timer for paused state, clear for completed
+      if (session.status === 'PAUSED') {
+        this.updateGlobalTimer();
+      } else {
+        this.clearGlobalTimer();
+      }
       return;
     }
 
@@ -115,8 +124,13 @@ export class TimerSyncService {
       this._remainingSeconds.set(persistedState.remainingSeconds);
       this._isRunning.set(false);
       this._isPaused.set(false);
+      this.clearGlobalTimer(); // Not started yet, no global timer
     } else {
       this.updateFromSession(session);
+      // Clear global timer for NOT_STARTED sessions
+      if (session.status === 'NOT_STARTED') {
+        this.clearGlobalTimer();
+      }
     }
   }
 
@@ -135,6 +149,7 @@ export class TimerSyncService {
     this.startPeriodicSync();
 
     this.persistState();
+    this.updateGlobalTimer();
   }
 
   pauseTimer(): void {
@@ -145,6 +160,7 @@ export class TimerSyncService {
     
     this.stopTimers();
     this.persistState();
+    this.updateGlobalTimer();
   }
 
   stopTimer(): void {
@@ -155,6 +171,7 @@ export class TimerSyncService {
     
     this.stopTimers();
     this.clearPersistedState();
+    this.clearGlobalTimer();
   }
 
   updateFromSession(session: PomodoroSession): void {
@@ -233,8 +250,10 @@ export class TimerSyncService {
         this.handleTimerComplete();
       }
 
+      // Persist state and update global timer every 5 seconds
       if (localElapsed % 5 === 0) {
         this.persistState();
+        this.updateGlobalTimer();
       }
     });
   }
@@ -401,5 +420,35 @@ export class TimerSyncService {
     } catch (error) {
       console.warn('Failed to clear persisted timer state:', error);
     }
+  }
+
+  /**
+   * Update the global timer service with current state
+   * This enables the header timer indicator to show on all pages
+   */
+  private updateGlobalTimer(): void {
+    if (!this.currentSession || !this.activityId) {
+      return;
+    }
+
+    const state: GlobalTimerState = {
+      sessionId: this.currentSession.id,
+      activityId: this.activityId,
+      activityTitle: this.activityTitle || '',
+      remainingSeconds: this.remainingSeconds(),
+      isRunning: this.isRunning(),
+      isPaused: this.isPaused(),
+      currentPhase: (this.currentSession.currentPhase || 'FOCUS') as 'FOCUS' | 'BREAK' | 'LONG_BREAK',
+      lastUpdate: Date.now()
+    };
+
+    this.globalTimerService.updateTimerState(state);
+  }
+
+  /**
+   * Clear the global timer state
+   */
+  private clearGlobalTimer(): void {
+    this.globalTimerService.clearTimerState();
   }
 }

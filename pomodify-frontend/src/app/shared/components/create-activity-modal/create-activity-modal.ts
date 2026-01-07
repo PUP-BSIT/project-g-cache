@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,10 +40,16 @@ export class CreateActivityModal implements OnInit {
   private fb = inject(FormBuilder);
   private data = inject(MAT_DIALOG_DATA, { optional: true }) as { categories?: string[] } | null;
 
+  @ViewChild('colorTrack') colorTrack!: ElementRef<HTMLDivElement>;
+
   activityForm!: FormGroup;
   selectedColor: string = 'teal';
+  selectedColorHex: string = '#5FA9A4';
+  sliderPosition: number = 50; // percentage position on slider
   categories: string[] = [];
   filteredCategories$!: Observable<string[]>;
+  
+  private isDragging = false;
   
   colors = [
     { name: 'teal', hex: '#5FA9A4' },
@@ -97,6 +103,113 @@ export class CreateActivityModal implements OnInit {
   selectColor(colorName: string): void {
     this.selectedColor = colorName;
     this.activityForm.patchValue({ colorTag: colorName });
+  }
+
+  // Slider color picker methods
+  onSliderClick(event: MouseEvent): void {
+    this.updateColorFromEvent(event);
+  }
+
+  onThumbMouseDown(event: MouseEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  // Touch events for mobile
+  onThumbTouchStart(event: TouchEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+    this.updateColorFromTouchEvent(event);
+  }
+
+  onSliderTouchMove(event: TouchEvent): void {
+    if (this.isDragging) {
+      event.preventDefault();
+      this.updateColorFromTouchEvent(event);
+    }
+  }
+
+  @HostListener('document:touchend')
+  onTouchEnd(): void {
+    this.isDragging = false;
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(event: MouseEvent): void {
+    if (this.isDragging) {
+      this.updateColorFromEvent(event);
+    }
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp(): void {
+    this.isDragging = false;
+  }
+
+  private updateColorFromTouchEvent(event: TouchEvent): void {
+    if (!this.colorTrack || !event.touches.length) return;
+    
+    const touch = event.touches[0];
+    const track = this.colorTrack.nativeElement;
+    const rect = track.getBoundingClientRect();
+    let position = ((touch.clientX - rect.left) / rect.width) * 100;
+    
+    // Clamp position between 0 and 100
+    position = Math.max(0, Math.min(100, position));
+    
+    this.sliderPosition = position;
+    this.selectedColorHex = this.hueToHex(position / 100 * 360);
+    this.selectedColor = this.selectedColorHex;
+    this.activityForm.patchValue({ colorTag: this.selectedColorHex });
+  }
+
+  private updateColorFromEvent(event: MouseEvent): void {
+    if (!this.colorTrack) return;
+    
+    const track = this.colorTrack.nativeElement;
+    const rect = track.getBoundingClientRect();
+    let position = ((event.clientX - rect.left) / rect.width) * 100;
+    
+    // Clamp position between 0 and 100
+    position = Math.max(0, Math.min(100, position));
+    
+    this.sliderPosition = position;
+    this.selectedColorHex = this.hueToHex(position / 100 * 360);
+    this.selectedColor = this.selectedColorHex;
+    this.activityForm.patchValue({ colorTag: this.selectedColorHex });
+  }
+
+  private hueToHex(hue: number): string {
+    // Convert hue (0-360) to RGB then to hex
+    const s = 1; // Full saturation
+    const l = 0.5; // 50% lightness for vibrant colors
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (hue >= 0 && hue < 60) {
+      r = c; g = x; b = 0;
+    } else if (hue >= 60 && hue < 120) {
+      r = x; g = c; b = 0;
+    } else if (hue >= 120 && hue < 180) {
+      r = 0; g = c; b = x;
+    } else if (hue >= 180 && hue < 240) {
+      r = 0; g = x; b = c;
+    } else if (hue >= 240 && hue < 300) {
+      r = x; g = 0; b = c;
+    } else {
+      r = c; g = 0; b = x;
+    }
+    
+    const toHex = (n: number) => {
+      const hex = Math.round((n + m) * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
   }
 
   onCancel(): void {

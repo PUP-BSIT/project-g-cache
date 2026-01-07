@@ -164,22 +164,14 @@
   }
 }
 
-.loading-state i {
-  color: #5FA9A4;
-}
-
-.error-state i {
-  color: #e74c3c;
-}
-
-.empty-state i {
-  color: #5FA9A4;
-}
+.loading-state i { color: #5FA9A4; }
+.error-state i { color: #e74c3c; }
+.empty-state i { color: #5FA9A4; }
 
 .sessions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
@@ -214,10 +206,7 @@
   &.abandoned-section {
     .section-title {
       border-bottom-color: rgba(149, 165, 166, 0.3);
-
-      i {
-        color: #95A5A6;
-      }
+      i { color: #95A5A6; }
     }
   }
 }
@@ -247,10 +236,6 @@
     cursor: pointer;
     transition: all 0.3s ease;
 
-    i {
-      font-size: 0.85rem;
-    }
-
     &:hover:not(:disabled) {
       background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
       color: white;
@@ -273,144 +258,262 @@
   }
 }
 
+
+/* ==================== SESSION CARD - MODERN DESIGN ==================== */
 .session-card {
-  background: linear-gradient(135deg, #5FA9A4 0%, #6BB5B0 100%);
+  background: white;
   border-radius: 20px;
-  padding: 2rem;
+  overflow: hidden;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 30px rgba(95, 169, 164, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
   position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    transition: transform 0.6s ease;
-  }
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 16px 48px rgba(95, 169, 164, 0.35);
-    border-color: rgba(255, 255, 255, 0.5);
-
-    &::before {
-      transform: translate(-25%, -25%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    .card-header .header-decoration .circle {
+      transform: scale(1.2);
+      opacity: 0.2;
+    }
+    
+    .btn-continue {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  &.completed {
+    cursor: default;
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  &.abandoned {
+    cursor: default;
+    opacity: 0.85;
+    &:hover {
+      transform: none;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
   }
 
-  .session-header {
+  // Colored Header Section
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    min-height: 90px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.25);
-    position: relative;
-    z-index: 1;
-
-    .session-type {
+    align-items: flex-start;
+    
+    &.abandoned-header {
+      background: linear-gradient(135deg, #95A5A6 0%, #BDC3C7 100%) !important;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      z-index: 2;
+      position: relative;
+    }
+    
+    .session-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      color: #FFFFFF;
-      font-weight: 700;
-      font-size: 1.25rem;
-      letter-spacing: 0.5px;
-
+      justify-content: center;
+      flex-shrink: 0;
+      
       i {
-        font-size: 1.4rem;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 0.5rem;
-        border-radius: 10px;
+        font-size: 1.2rem;
+        color: white;
       }
     }
-
-    .session-status {
-      padding: 0.6rem 1.2rem;
-      border-radius: 50px;
-      font-size: 0.7rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      position: relative;
-      z-index: 1;
-
-      &.status-not-started {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%);
-        color: #2C3E50;
+    
+    .session-title-area {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      
+      .session-type-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+      
+      .session-date {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.85);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        
+        i { font-size: 0.7rem; }
+      }
+    }
+    
+    .session-status {
+      padding: 0.4rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      z-index: 2;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
+      &.status-not-started,
       &.status-pending {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F0F0F0 100%);
-        color: #2C3E50;
+        background: rgba(255, 255, 255, 0.95);
+        color: #2C3E50 !important;
+        
+        * { color: #2C3E50 !important; }
       }
 
       &.status-in-progress {
         background: linear-gradient(135deg, #3498db 0%, #5DADE2 100%);
-        color: #FFFFFF;
-        animation: pulse 2s ease-in-out infinite;
+        color: white !important;
+        animation: statusPulse 2s ease-in-out infinite;
+        
+        * { color: white !important; }
       }
 
       &.status-paused {
         background: linear-gradient(135deg, #F39C12 0%, #F8B739 100%);
-        color: #FFFFFF;
+        color: white !important;
+        
+        * { color: white !important; }
       }
 
       &.status-completed {
         background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
-        color: #FFFFFF;
+        color: white !important;
+        
+        * { color: white !important; }
       }
 
       &.status-abandoned {
-        background: linear-gradient(135deg, #95A5A6 0%, #BDC3C7 100%);
-        color: #2C3E50;
+        background: rgba(255, 255, 255, 0.9);
+        color: #7F8C8D !important;
+        
+        * { color: #7F8C8D !important; }
+      }
+    }
+    
+    // Decorative floating circles
+    .header-decoration {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      
+      .circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transition: all 0.4s ease;
+        
+        &.circle-1 {
+          width: 100px;
+          height: 100px;
+          top: -30px;
+          right: -15px;
+        }
+        
+        &.circle-2 {
+          width: 60px;
+          height: 60px;
+          bottom: -20px;
+          right: 30px;
+        }
       }
     }
   }
 
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3); }
-    50% { box-shadow: 0 4px 20px rgba(52, 152, 219, 0.6); }
+  // White Body Section
+  .card-body {
+    padding: 1.25rem;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .session-details {
+  // Stats Grid
+  .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 1.25rem;
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-    position: relative;
-    z-index: 1;
-
-    .detail-item {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    
+    .stat-item {
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-
-      .label {
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.75);
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem;
+      background: #F8FAFA;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: #F0F5F5;
+        transform: translateX(3px);
       }
-
-      .value {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #FFFFFF;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      > i {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+        color: white;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+      }
+      
+      &.completed-badge > i {
+        background: linear-gradient(135deg, #27AE60 0%, #2ECC71 100%);
+      }
+      
+      .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        
+        .stat-label {
+          font-size: 0.65rem;
+          color: #7F8C8D;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+        }
+        
+        .stat-value {
+          font-size: 0.9rem;
+          font-weight: 700;
+          color: #2C3E50;
+          
+          &.success { color: #27AE60; }
+        }
       }
     }
   }
@@ -444,23 +547,20 @@
     padding: 0.75rem 1rem;
     margin-bottom: 1rem;
     border-left: 3px solid #5FA9A4;
-    position: relative;
-    z-index: 1;
-    min-height: 50px;
-
+    
     .notes-header {
-      display: flex !important;
+      display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+      
       i {
         color: #5FA9A4;
-        font-size: 0.9rem;
-      }
-
-      .notes-label {
         font-size: 0.8rem;
+      }
+      
+      span {
+        font-size: 0.7rem;
         font-weight: 700;
         color: var(--text);
         text-transform: uppercase;
@@ -493,39 +593,59 @@
     }
   }
 
-  .session-footer {
+  // Continue Button
+  .btn-continue {
+    width: 100%;
+    padding: 0.8rem 1.25rem;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding-top: 1.25rem;
-    border-top: 2px solid rgba(255, 255, 255, 0.25);
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.95);
-    position: relative;
-    z-index: 1;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    
+    i { font-size: 0.85rem; }
+    
+    &:hover { filter: brightness(1.1); }
+    &:active { transform: scale(0.98); }
+  }
 
-    span {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 500;
-
-      i {
-        font-size: 0.9rem;
-        opacity: 0.9;
-      }
+  // Completed Info
+  .completed-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+    border-radius: 8px;
+    
+    i {
+      color: #27AE60;
+      font-size: 0.8rem;
     }
-
-    .completed-at {
-      color: #FFFFFF;
+    
+    span {
+      font-size: 0.8rem;
+      color: #27AE60;
       font-weight: 600;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
     }
   }
 }
 
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3); }
+  50% { box-shadow: 0 4px 20px rgba(52, 152, 219, 0.6); }
+}
+
+
+/* ==================== RESPONSIVE STYLES ==================== */
 @media (max-width: 768px) {
   .sessions-list-container {
     padding: 1rem;
@@ -540,7 +660,7 @@
     margin-bottom: 1.5rem;
 
     h1 {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       text-align: center;
       order: -1;
     }
@@ -568,13 +688,8 @@
       margin-bottom: 1rem;
       padding-bottom: 0.5rem;
 
-      i {
-        font-size: 1rem;
-      }
-
-      .section-count {
-        font-size: 0.8rem;
-      }
+      i { font-size: 1rem; }
+      .section-count { font-size: 0.8rem; }
     }
   }
 
@@ -591,9 +706,7 @@
       font-size: 0.85rem;
       border-radius: 8px;
 
-      i {
-        font-size: 0.75rem;
-      }
+      i { font-size: 0.75rem; }
     }
   }
 
@@ -603,91 +716,77 @@
   }
 
   .session-card {
-    padding: 1rem;
-    border-radius: 14px;
-
-    .session-header {
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.75rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-
-      .session-type {
-        font-size: 1rem;
-        gap: 0.4rem;
-
-        i {
-          font-size: 1rem;
-          padding: 0.35rem;
-          border-radius: 6px;
-        }
+    .card-header {
+      padding: 1rem;
+      min-height: 75px;
+      
+      .session-icon {
+        width: 38px;
+        height: 38px;
+        i { font-size: 1rem; }
       }
-
+      
+      .session-title-area {
+        .session-type-name { font-size: 1rem; }
+        .session-date { font-size: 0.7rem; }
+      }
+      
       .session-status {
-        padding: 0.4rem 0.8rem;
+        padding: 0.35rem 0.7rem;
         font-size: 0.6rem;
       }
-    }
-
-    .session-details {
-      gap: 0.5rem;
-      padding: 0.75rem;
-      border-radius: 10px;
-      margin-bottom: 0.75rem;
-
-      .detail-item {
-        gap: 0.25rem;
-
-        .label {
-          font-size: 0.65rem;
-        }
-
-        .value {
-          font-size: 0.9rem;
-        }
+      
+      .header-decoration .circle {
+        &.circle-1 { width: 80px; height: 80px; }
+        &.circle-2 { width: 50px; height: 50px; }
       }
     }
-
-    .session-notes-preview {
-      padding: 0.6rem 0.75rem;
-      margin-bottom: 0.75rem;
-      border-radius: 8px;
-      min-height: 40px;
-
-      .notes-header {
-        margin-bottom: 0.35rem;
-
-        i {
-          font-size: 0.75rem;
-        }
-
-        .notes-label {
+    
+    .card-body {
+      padding: 1rem;
+      gap: 0.85rem;
+    }
+    
+    .stats-grid {
+      gap: 0.5rem;
+      
+      .stat-item {
+        padding: 0.5rem;
+        gap: 0.5rem;
+        
+        > i {
+          width: 28px;
+          height: 28px;
           font-size: 0.7rem;
         }
-      }
-
-      .notes-content {
-        .note-text {
-          font-size: 0.8rem;
-          -webkit-line-clamp: 2;
-        }
-
-        .note-empty {
-          font-size: 0.75rem;
+        
+        .stat-content {
+          .stat-label { font-size: 0.6rem; }
+          .stat-value { font-size: 0.8rem; }
         }
       }
     }
-
-    .session-footer {
-      padding-top: 0.75rem;
-      font-size: 0.75rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-
-      .completed-at {
-        padding: 0.3rem 0.6rem;
-        font-size: 0.7rem;
+    
+    .notes-section {
+      padding: 0.7rem;
+      
+      .notes-header {
+        i { font-size: 0.7rem; }
+        span { font-size: 0.65rem; }
       }
+      
+      .notes-text { font-size: 0.8rem; }
+    }
+    
+    .btn-continue {
+      padding: 0.7rem 1rem;
+      font-size: 0.85rem;
+    }
+    
+    .completed-info {
+      padding: 0.5rem;
+      i { font-size: 0.75rem; }
+      span { font-size: 0.75rem; }
     }
   }
 
@@ -696,17 +795,9 @@
   .empty-state {
     padding: 3rem 1.5rem;
 
-    i {
-      font-size: 3rem;
-    }
-
-    h3 {
-      font-size: 1.25rem;
-    }
-
-    p {
-      font-size: 1rem;
-    }
+    i { font-size: 3rem; }
+    h3 { font-size: 1.25rem; }
+    p { font-size: 1rem; }
   }
 }
 
@@ -721,9 +812,7 @@
     border-radius: 12px;
     margin-bottom: 1rem;
 
-    h1 {
-      font-size: 1.1rem;
-    }
+    h1 { font-size: 1.25rem; }
 
     .back-btn,
     .create-session-btn,
@@ -742,13 +831,97 @@
       gap: 0.5rem;
       margin-bottom: 0.75rem;
 
-      i {
-        font-size: 0.9rem;
-      }
+      i { font-size: 0.9rem; }
+      .section-count { font-size: 0.75rem; }
+    }
+  }
 
-      .section-count {
-        font-size: 0.75rem;
+  .sessions-grid {
+    gap: 0.75rem;
+  }
+
+  .session-card {
+    border-radius: 14px;
+    
+    .card-header {
+      padding: 0.85rem;
+      min-height: 65px;
+      
+      .session-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        i { font-size: 0.9rem; }
       }
+      
+      .session-title-area {
+        gap: 0.2rem;
+        .session-type-name { font-size: 0.95rem; }
+        .session-date { font-size: 0.65rem; }
+      }
+      
+      .session-status {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.55rem;
+      }
+    }
+    
+    .card-body {
+      padding: 0.85rem;
+      gap: 0.75rem;
+    }
+    
+    .stats-grid {
+      gap: 0.4rem;
+      
+      .stat-item {
+        padding: 0.4rem;
+        gap: 0.4rem;
+        border-radius: 8px;
+        
+        > i {
+          width: 26px;
+          height: 26px;
+          font-size: 0.65rem;
+          border-radius: 6px;
+        }
+        
+        .stat-content {
+          .stat-label { font-size: 0.55rem; }
+          .stat-value { font-size: 0.75rem; }
+        }
+      }
+    }
+    
+    .notes-section {
+      padding: 0.6rem;
+      border-radius: 8px;
+      
+      .notes-header {
+        margin-bottom: 0.3rem;
+        i { font-size: 0.65rem; }
+        span { font-size: 0.6rem; }
+      }
+      
+      .notes-text {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+      }
+    }
+    
+    .btn-continue {
+      padding: 0.65rem 0.85rem;
+      font-size: 0.8rem;
+      border-radius: 8px;
+      i { font-size: 0.75rem; }
+    }
+    
+    .completed-info {
+      padding: 0.45rem;
+      border-radius: 6px;
+      i { font-size: 0.7rem; }
+      span { font-size: 0.7rem; }
     }
   }
 
@@ -765,120 +938,7 @@
       border-radius: 6px;
       border-width: 1px;
 
-      i {
-        font-size: 0.7rem;
-      }
-    }
-  }
-
-  .sessions-grid {
-    gap: 0.75rem;
-  }
-
-  .session-card {
-    padding: 0.85rem;
-    border-radius: 12px;
-    border-width: 1px;
-
-    &::before {
-      display: none;
-    }
-
-    &:hover {
-      transform: none;
-    }
-
-    .session-header {
-      margin-bottom: 0.6rem;
-      padding-bottom: 0.6rem;
-      border-bottom-width: 1px;
-
-      .session-type {
-        font-size: 0.9rem;
-
-        i {
-          font-size: 0.9rem;
-          padding: 0.3rem;
-          border-radius: 5px;
-        }
-      }
-
-      .session-status {
-        padding: 0.35rem 0.65rem;
-        font-size: 0.55rem;
-        letter-spacing: 0.5px;
-      }
-    }
-
-    .session-details {
-      padding: 0.6rem;
-      gap: 0.4rem;
-      border-radius: 8px;
-      margin-bottom: 0.6rem;
-
-      .detail-item {
-        gap: 0.2rem;
-
-        .label {
-          font-size: 0.6rem;
-        }
-
-        .value {
-          font-size: 0.85rem;
-        }
-      }
-    }
-
-    .session-notes-preview {
-      padding: 0.5rem 0.6rem;
-      margin-bottom: 0.6rem;
-      border-radius: 6px;
-      border-left-width: 2px;
-      min-height: 35px;
-
-      .notes-header {
-        margin-bottom: 0.25rem;
-        gap: 0.35rem;
-
-        i {
-          font-size: 0.7rem;
-        }
-
-        .notes-label {
-          font-size: 0.65rem;
-        }
-      }
-
-      .notes-content {
-        .note-text {
-          font-size: 0.75rem;
-          line-height: 1.4;
-        }
-
-        .note-empty {
-          font-size: 0.7rem;
-        }
-      }
-    }
-
-    .session-footer {
-      padding-top: 0.6rem;
-      font-size: 0.7rem;
-      border-top-width: 1px;
-
-      span {
-        gap: 0.3rem;
-
-        i {
-          font-size: 0.7rem;
-        }
-      }
-
-      .completed-at {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.65rem;
-        border-radius: 12px;
-      }
+      i { font-size: 0.7rem; }
     }
   }
 
@@ -887,29 +947,16 @@
   .empty-state {
     padding: 2rem 1rem;
 
-    i {
-      font-size: 2.5rem;
-    }
-
-    h3 {
-      font-size: 1.1rem;
-    }
-
-    p {
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
-
-    button {
-      padding: 0.65rem 1.5rem;
-      font-size: 0.9rem;
-    }
+    i { font-size: 2.5rem; }
+    h3 { font-size: 1.1rem; }
+    p { font-size: 0.9rem; margin-bottom: 1.5rem; }
+    button { padding: 0.65rem 1.5rem; font-size: 0.9rem; }
   }
 }
-/* -------------------- DARK MODE SUPPORT -------------------- */
+
+/* ==================== DARK MODE SUPPORT ==================== */
 :root.theme-dark {
   .sessions-list-container {
-    background: var(--bg) !important;
     color: var(--text) !important;
   }
   
@@ -950,10 +997,7 @@
     .section-title {
       color: var(--text) !important;
       border-bottom-color: rgba(95, 169, 164, 0.2) !important;
-
-      .section-count {
-        color: var(--muted) !important;
-      }
+      .section-count { color: var(--muted) !important; }
     }
   }
 
@@ -963,12 +1007,7 @@
       color: var(--text) !important;
       border-color: var(--border) !important;
 
-      &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
-        color: white !important;
-        border-color: #5FA9A4 !important;
-      }
-
+      &:hover:not(:disabled),
       &.active {
         background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%) !important;
         color: white !important;
@@ -981,21 +1020,16 @@
   .error-state,
   .empty-state {
     color: var(--text) !important;
-    
-    h3 {
-      color: var(--text) !important;
-    }
-    
-    p {
-      color: var(--muted) !important;
-    }
+    h3 { color: var(--text) !important; }
+    p { color: var(--muted) !important; }
   }
   
+  // Session cards in dark mode - keep colored headers, dark body
   .session-card {
     // Keep the teal gradient for session cards - they should stay colorful
     // Only override the notes section for better readability
     
-    .session-note {
+    .card-body {
       background: var(--card) !important;
       color: var(--text) !important;
       border-left-color: #5FA9A4 !important;
@@ -1025,50 +1059,29 @@
         }
       }
     }
-
-    .session-notes-section {
-      background: var(--card) !important;
+    
+    .stats-grid .stat-item {
+      background: rgba(255, 255, 255, 0.05) !important;
       
-      .notes-header {
-        border-bottom-color: rgba(95, 169, 164, 0.3) !important;
-        
-        .notes-label {
-          color: var(--text) !important;
-        }
+      &:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
       }
       
-      .notes-content {
-        .note-text {
-          color: var(--text) !important;
-        }
-        
-        .note-empty {
-          color: var(--muted) !important;
-        }
+      .stat-content {
+        .stat-label { color: var(--muted) !important; }
+        .stat-value { color: var(--text) !important; }
       }
+    }
+    
+    .notes-section {
+      background: rgba(255, 255, 255, 0.05) !important;
       
-      .notes-edit-area {
-        .notes-textarea {
-          background: var(--bg) !important;
-          border-color: rgba(95, 169, 164, 0.4) !important;
-          color: var(--text) !important;
-          
-          &:focus {
-            background: var(--card) !important;
-          }
-        }
-        
-        .notes-actions {
-          .btn-cancel {
-            background: rgba(255, 255, 255, 0.1) !important;
-            color: var(--text) !important;
-            
-            &:hover {
-              background: rgba(255, 255, 255, 0.15) !important;
-            }
-          }
-        }
-      }
+      .notes-header span { color: var(--text) !important; }
+      .notes-text { color: var(--muted) !important; }
+    }
+    
+    .completed-info {
+      background: rgba(39, 174, 96, 0.15) !important;
     }
   }
 }

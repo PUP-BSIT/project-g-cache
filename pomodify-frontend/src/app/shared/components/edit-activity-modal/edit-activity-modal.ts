@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,10 +35,16 @@ export class EditActivityModal implements OnInit {
   private fb = inject(FormBuilder);
   private data = inject(MAT_DIALOG_DATA) as (ActivityData & { categories?: string[] }) | undefined;
 
+  @ViewChild('colorTrack') colorTrack!: ElementRef<HTMLDivElement>;
+
   activityForm!: FormGroup;
   selectedColor: string = 'teal';
+  selectedColorHex: string = '#5FA9A4';
+  sliderPosition: number = 50;
   categories: string[] = [];
   filteredCategories$!: Observable<string[]>;
+  
+  private isDragging = false;
 
   colors = [
     { name: 'teal', hex: '#5FA9A4' },
@@ -54,7 +60,17 @@ export class EditActivityModal implements OnInit {
     // Convert hex color to color name if needed
     const colorTag = this.data?.colorTag;
     if (colorTag) {
-      this.selectedColor = this.hexToColorName(colorTag);
+      // If it's a hex color, use it directly
+      if (colorTag.startsWith('#')) {
+        this.selectedColorHex = colorTag;
+        this.selectedColor = colorTag;
+        this.sliderPosition = this.hexToSliderPosition(colorTag);
+      } else {
+        // Convert color name to hex
+        this.selectedColor = this.hexToColorName(colorTag);
+        this.selectedColorHex = this.colorNameToHex(this.selectedColor);
+        this.sliderPosition = this.hexToSliderPosition(this.selectedColorHex);
+      }
     }
     // Get categories from data if provided
     this.categories = this.data?.categories || [];
@@ -87,6 +103,33 @@ export class EditActivityModal implements OnInit {
     );
   }
 
+  private colorNameToHex(colorName: string): string {
+    const color = this.colors.find(c => c.name === colorName);
+    return color?.hex || '#5FA9A4';
+  }
+
+  private hexToSliderPosition(hex: string): number {
+    // Convert hex to HSL and get hue
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    
+    if (max !== min) {
+      const d = max - min;
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    
+    return h * 100;
+  }
+
   private _filterCategories(value: string): string[] {
     const filterValue = value.toLowerCase();
     return this.categories.filter(category => 
@@ -97,6 +140,110 @@ export class EditActivityModal implements OnInit {
   selectColor(colorName: string): void {
     this.selectedColor = colorName;
     this.activityForm.patchValue({ colorTag: colorName });
+  }
+
+  // Slider color picker methods
+  onSliderClick(event: MouseEvent): void {
+    this.updateColorFromEvent(event);
+  }
+
+  onThumbMouseDown(event: MouseEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+
+  // Touch events for mobile
+  onThumbTouchStart(event: TouchEvent): void {
+    event.preventDefault();
+    this.isDragging = true;
+    this.updateColorFromTouchEvent(event);
+  }
+
+  onSliderTouchMove(event: TouchEvent): void {
+    if (this.isDragging) {
+      event.preventDefault();
+      this.updateColorFromTouchEvent(event);
+    }
+  }
+
+  @HostListener('document:touchend')
+  onTouchEnd(): void {
+    this.isDragging = false;
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove(event: MouseEvent): void {
+    if (this.isDragging) {
+      this.updateColorFromEvent(event);
+    }
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp(): void {
+    this.isDragging = false;
+  }
+
+  private updateColorFromTouchEvent(event: TouchEvent): void {
+    if (!this.colorTrack || !event.touches.length) return;
+    
+    const touch = event.touches[0];
+    const track = this.colorTrack.nativeElement;
+    const rect = track.getBoundingClientRect();
+    let position = ((touch.clientX - rect.left) / rect.width) * 100;
+    
+    position = Math.max(0, Math.min(100, position));
+    
+    this.sliderPosition = position;
+    this.selectedColorHex = this.hueToHex(position / 100 * 360);
+    this.selectedColor = this.selectedColorHex;
+    this.activityForm.patchValue({ colorTag: this.selectedColorHex });
+  }
+
+  private updateColorFromEvent(event: MouseEvent): void {
+    if (!this.colorTrack) return;
+    
+    const track = this.colorTrack.nativeElement;
+    const rect = track.getBoundingClientRect();
+    let position = ((event.clientX - rect.left) / rect.width) * 100;
+    
+    position = Math.max(0, Math.min(100, position));
+    
+    this.sliderPosition = position;
+    this.selectedColorHex = this.hueToHex(position / 100 * 360);
+    this.selectedColor = this.selectedColorHex;
+    this.activityForm.patchValue({ colorTag: this.selectedColorHex });
+  }
+
+  private hueToHex(hue: number): string {
+    const s = 1;
+    const l = 0.5;
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (hue >= 0 && hue < 60) {
+      r = c; g = x; b = 0;
+    } else if (hue >= 60 && hue < 120) {
+      r = x; g = c; b = 0;
+    } else if (hue >= 120 && hue < 180) {
+      r = 0; g = c; b = x;
+    } else if (hue >= 180 && hue < 240) {
+      r = 0; g = x; b = c;
+    } else if (hue >= 240 && hue < 300) {
+      r = x; g = 0; b = c;
+    } else {
+      r = c; g = 0; b = x;
+    }
+    
+    const toHex = (n: number) => {
+      const hex = Math.round((n + m) * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
   }
 
   onCancel(): void {
