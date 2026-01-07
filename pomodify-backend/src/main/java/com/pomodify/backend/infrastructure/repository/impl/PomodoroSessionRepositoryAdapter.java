@@ -90,4 +90,9 @@ public class PomodoroSessionRepositoryAdapter implements PomodoroSessionReposito
     public List<PomodoroSession> findSessionsNeedingNotification(java.time.LocalDateTime now) {
         return springRepo.findSessionsNeedingNotification(now);
     }
+
+    @Override
+    public void deleteAllByUserId(Long userId) {
+        springRepo.deleteAllByUserId(userId);
+    }
 }
