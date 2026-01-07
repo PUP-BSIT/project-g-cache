@@ -210,6 +210,28 @@ public class SessionService {
         return toResult(saved);
     }
 
+    @Transactional
+    public SessionResult completeEarly(CompleteEarlyCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        session.completeEarly();
+        PomodoroSession saved = sessionRepository.save(session);
+        
+        // Award badges if session was completed
+        if (saved.getStatus() != null && saved.getStatus().name().equalsIgnoreCase("COMPLETED")) {
+            badgeService.awardBadgesIfEligible(command.user());
+        }
+        
+        return toResult(saved);
+    }
+
+    @Transactional
+    public SessionResult resetSession(ResetSessionCommand command) {
+        PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        session.resetSession();
+        PomodoroSession saved = sessionRepository.save(session);
+        return toResult(saved);
+    }
+
         @Transactional
         public SessionResult updateSession(UpdateSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
