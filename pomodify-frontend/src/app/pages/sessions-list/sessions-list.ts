@@ -390,16 +390,19 @@ export class SessionsListComponent implements OnInit {
     });
   }
 
-  protected createNewSession(): void {
+  protected onCreateSessionClick(): void {
     if (this.hasActiveSession()) {
       this.showAlertDialog(
         'Active Session Exists',
-        'You have an active session. Please complete or abandon it before creating a new one.',
+        'Finish current session first',
         'warning'
       );
       return;
     }
+    this.createNewSession();
+  }
 
+  protected createNewSession(): void {
     const actId = this.activityId();
     if (!actId) {
       console.error('Activity ID not available');

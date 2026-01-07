@@ -9,7 +9,7 @@
       <button class="toggle-abandoned-btn" (click)="toggleAbandoned()">
         {{ showAbandoned() ? 'Hide Abandoned' : 'Show Abandoned' }}
       </button>
-      <button class="create-session-btn" (click)="createNewSession()" [disabled]="hasActiveSession()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
+      <button class="create-session-btn" (click)="onCreateSessionClick()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
         <i class="fa-solid fa-plus"></i>
         New Session
       </button>
