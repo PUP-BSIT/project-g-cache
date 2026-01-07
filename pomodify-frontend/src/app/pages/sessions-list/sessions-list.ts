@@ -19,7 +19,10 @@ import { HttpErrorResponse } from '@angular/common/http';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sessions-list.html',
-  styleUrls: ['./sessions-list.scss']
+  styleUrls: ['./sessions-list.scss'],
+  host: {
+    'class': 'sessions-list-page'
+  }
 })
 export class SessionsListComponent implements OnInit {
 

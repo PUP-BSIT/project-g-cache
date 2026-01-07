@@ -72,67 +72,7 @@ body {
 .input-surface { background: var(--card); border: 1px solid var(--border); color: var(--text); }
 .divider-surface { background: var(--border); }
 
-// Enhanced animated background for all main pages - LIGHT MODE
-html:not(.theme-dark) {
-  .activities-page,
-  .dashboard,
-  .settings-page,
-  .sessions-page,
-  .sessions-list-container,
-  .profile-page,
-  .report-page {
-    background: var(--bg-gradient) !important;
-    background-size: 400% 400% !important;
-    animation: gradientShift 15s ease infinite !important;
-    color: var(--text) !important;
-    position: relative;
-    min-height: 100vh;
-    
-    // Floating decorative shapes
-    &::before {
-      content: '';
-      position: fixed;
-      top: 10%;
-      right: 5%;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(95, 169, 164, 0.12) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      animation: floatBubble 20s ease-in-out infinite;
-    }
-    
-    &::after {
-      content: '';
-      position: fixed;
-      bottom: 15%;
-      left: 3%;
-      width: 250px;
-      height: 250px;
-      background: radial-gradient(circle, rgba(123, 196, 191, 0.1) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      animation: floatBubble 25s ease-in-out infinite reverse;
-    }
-    
-    // Third floating shape for more visual interest
-    > *:first-child::before {
-      content: '';
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(255, 182, 193, 0.06) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 0;
-      animation: floatBubble 30s ease-in-out infinite;
-      transform: translate(-50%, -50%);
-    }
-  }
+
 }
 
 // Dark mode - simpler gradient without floating shapes
