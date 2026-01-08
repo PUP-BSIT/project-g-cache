@@ -1,15 +1,19 @@
 package com.pomodify.backend.application.service;
 
 import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.ApsAlert;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
+import com.google.firebase.messaging.WebpushNotification;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.pomodify.backend.domain.model.UserPushToken;
+import com.pomodify.backend.domain.model.settings.UserSettings;
 import com.pomodify.backend.domain.repository.UserPushTokenRepository;
 import com.pomodify.backend.domain.repository.SettingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +40,15 @@ public class PushNotificationService {
             throw new IllegalStateException("Notifications disabled");
         }
         
+        // Get user's sound preference
+        String soundType = "bell"; // default
+        boolean soundEnabled = true;
+        if (settingsOpt.isPresent()) {
+            UserSettings settings = settingsOpt.get();
+            soundType = settings.getSoundType() != null ? settings.getSoundType().name().toLowerCase() : "bell";
+            soundEnabled = settings.isNotificationSound();
+        }
+        
         Optional<UserPushToken> opt = tokenRepository.findByUserId(userId);
         if (opt.isEmpty()) {
             log.warn("⚠️ No push token for user {} — skipping push. User needs to enable notifications in browser.", userId);
@@ -59,24 +72,31 @@ public class PushNotificationService {
             return; // Don't even try to send - it will fail
         }
         
-        log.info("📤 Sending FCM notification to user {} with token: {}...", userId, token.substring(0, Math.min(20, token.length())));
+        log.info("📤 Sending FCM notification to user {} with token: {}... (sound: {}, type: {})", 
+            userId, token.substring(0, Math.min(20, token.length())), soundEnabled, soundType);
         
-        // IMPORTANT: We send DATA-ONLY messages (no notification payload) for web push.
-        // This allows the service worker to have full control over notification display
-        // and prevents duplicate notifications.
+        // Build the FCM message with proper sound configuration
         // 
-        // When a message has a 'notification' payload, the browser automatically displays it
-        // AND the service worker's push handler also runs, causing duplicates.
-        // With data-only messages, only the service worker handles the notification.
+        // For Web Push: We use data-only messages so the service worker has full control.
+        // The service worker will show the notification and can trigger sound via postMessage.
+        // 
+        // For Android: Include notification payload with sound for native notification sound.
+        // 
+        // For iOS: Include APNS config with sound for native notification sound.
         Message message = Message.builder()
                 .setToken(token)
-                // NO .setNotification() - this would cause browser to auto-show notification
-                // Android configuration - use data message with high priority
+                // Android configuration - include notification for native sound support
                 .setAndroidConfig(AndroidConfig.builder()
                         .setPriority(AndroidConfig.Priority.HIGH)
-                        // NO .setNotification() for Android either - let service worker handle it
+                        .setNotification(AndroidNotification.builder()
+                                .setTitle(title)
+                                .setBody(body)
+                                .setSound(soundEnabled ? "default" : null)
+                                .setDefaultSound(soundEnabled)
+                                .setChannelId("pomodify_timer")
+                                .build())
                         .build())
-                // iOS/APNs configuration for banner notification (iOS needs notification payload)
+                // iOS/APNs configuration for banner notification with sound
                 .setApnsConfig(ApnsConfig.builder()
                         .putHeader("apns-priority", "10")
                         .putHeader("apns-push-type", "alert")
@@ -85,21 +105,24 @@ public class PushNotificationService {
                                         .setTitle(title)
                                         .setBody(body)
                                         .build())
-                                .setSound("default")
+                                .setSound(soundEnabled ? "default" : null)
                                 .setBadge(1)
                                 .setContentAvailable(true)
                                 .build())
                         .build())
-                // Web push configuration - NO notification, only headers for priority
+                // Web push configuration - data only, service worker handles display
+                // NO notification payload here to avoid duplicate notifications
                 .setWebpushConfig(WebpushConfig.builder()
                         .putHeader("Urgency", "high")
                         .putHeader("TTL", "86400")
-                        // NO .setNotification() - service worker will show the notification
+                        // Don't include notification here - service worker will handle it
                         .build())
                 // Data payload - service worker reads this to show notification
                 .putData("title", title)
                 .putData("body", body)
-                .putData("sound", "default")
+                .putData("sound", soundEnabled ? "default" : "none")
+                .putData("soundType", soundType)
+                .putData("soundEnabled", String.valueOf(soundEnabled))
                 .putData("click_action", "OPEN_TIMER")
                 .putData("timestamp", String.valueOf(System.currentTimeMillis()))
                 .build();

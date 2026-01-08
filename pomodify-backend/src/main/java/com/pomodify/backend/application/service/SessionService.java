@@ -84,8 +84,12 @@ public class SessionService {
 
         PomodoroSession session = activity.createSession(type, focus, brk, cycles, longBreak, interval, intervalCycles, command.note());
         
+        log.info("Created session: type={}, longBreakDuration={}, longBreakIntervalCycles={}", 
+            type, session.getLongBreakDuration(), session.getLongBreakIntervalCycles());
+        
         PomodoroSession saved = sessionRepository.save(session);
-        log.info("Created session {} for activity {}", saved.getId(), activity.getId());
+        log.info("Saved session {} for activity {}, longBreakDuration={}, longBreakIntervalCycles={}", 
+            saved.getId(), activity.getId(), saved.getLongBreakDuration(), saved.getLongBreakIntervalCycles());
         return toResult(saved);
     }
 
@@ -93,6 +97,8 @@ public class SessionService {
     @Transactional(readOnly = true)
     public SessionResult get(GetSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
+        log.info("GET session {}: longBreakDuration={}, longBreakIntervalCycles={}, sessionType={}", 
+            session.getId(), session.getLongBreakDuration(), session.getLongBreakIntervalCycles(), session.getSessionType());
         session.evaluateAbandonedIfExpired();
         sessionRepository.save(session);
         return toResult(session);
@@ -174,6 +180,10 @@ public class SessionService {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
         
+        log.info("completePhase: sessionId={}, currentPhase={}, cyclesCompleted={}, longBreakDuration={}, longBreakIntervalCycles={}", 
+            session.getId(), session.getCurrentPhase(), session.getCyclesCompleted(), 
+            session.getLongBreakDuration(), session.getLongBreakIntervalCycles());
+        
         // Check if the scheduler already processed this phase (session is PAUSED)
         // If so, just return the current state without processing again
         if (session.getStatus() == SessionStatus.PAUSED) {
@@ -191,6 +201,9 @@ public class SessionService {
         // Complete the phase (this will transition to next phase)
         activity.completePhase(command.sessionId(), command.note());
         PomodoroSession saved = sessionRepository.save(session);
+        
+        log.info("completePhase AFTER: sessionId={}, newPhase={}, cyclesCompleted={}", 
+            saved.getId(), saved.getCurrentPhase(), saved.getCyclesCompleted());
         
         // Only send notification if scheduler hasn't already sent one
         if (!schedulerAlreadyNotified) {
@@ -430,21 +443,35 @@ public class SessionService {
         int cycles;
         int totalMinutes;
 
-        // For both CLASSIC and FREESTYLE, use totalCycles as the cycle limit
-        // FREESTYLE sessions now have a cycle limit based on the frequency setting
-        cycles = s.getTotalCycles() != null ? s.getTotalCycles() : 1;
-        totalMinutes = (int) (s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes()) * cycles;
+        if (SessionType.FREESTYLE.equals(s.getSessionType())) {
+            // FREESTYLE: cycles represent completed rounds, no fixed limit
+            int completed = s.getCyclesCompleted() != null ? s.getCyclesCompleted() : 0;
+            cycles = completed;
+            totalMinutes = completed * (int)(s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes());
+        } else {
+            // CLASSIC: use totalCycles as the cycle limit
+            cycles = s.getTotalCycles() != null ? s.getTotalCycles() : 1;
+            totalMinutes = (int) (s.getFocusDuration().toMinutes() + s.getBreakDuration().toMinutes()) * cycles;
+        }
         
         long totalElapsedSeconds = s.calculateTotalElapsed().getSeconds();
 
         // Use the enhanced timer calculation from domain model
         long remainingPhaseSeconds = s.getRemainingPhaseSeconds();
         
+        // Debug logging for remaining phase seconds
+        log.info("toResult: sessionId={}, status={}, currentPhase={}, remainingPhaseSeconds={}, remainingSecondsAtPause={}", 
+            s.getId(), s.getStatus(), s.getCurrentPhase(), remainingPhaseSeconds, s.getRemainingSecondsAtPause());
+        
         // Map long break settings
         Integer longBreakTimeInMinutes = s.getLongBreakDuration() != null 
                 ? (int) s.getLongBreakDuration().toMinutes() 
                 : null;
         Integer longBreakIntervalCycles = s.getLongBreakIntervalCycles();
+        
+        // Debug logging
+        log.debug("toResult: sessionId={}, sessionType={}, longBreakDuration={}, longBreakIntervalCycles={}", 
+            s.getId(), s.getSessionType(), s.getLongBreakDuration(), s.getLongBreakIntervalCycles());
 
         return SessionResult.builder()
                 .id(s.getId())
@@ -465,6 +492,7 @@ public class SessionService {
                 .startedAt(s.getStartedAt())
                 .completedAt(s.getCompletedAt())
                 .createdAt(s.getCreatedAt())
+                .phaseNotified(s.getPhaseNotified())
                 .build();
     }
 }

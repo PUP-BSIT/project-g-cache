@@ -38,6 +38,7 @@ export class NotificationService {
 
   constructor() {
     this.initializeVisibilityTracking();
+    this.initializeServiceWorkerMessageListener();
     
     // Subscribe to FCM messages to handle foreground notifications
     this.fcmService.messages$.subscribe(payload => {
@@ -56,6 +57,26 @@ export class NotificationService {
         console.log('🔔 On timer page - letting session-timer handle notification');
       }
     });
+  }
+  
+  /**
+   * Listen for messages from the service worker to play notification sounds
+   * This handles sound playback when push notifications arrive via FCM
+   */
+  private initializeServiceWorkerMessageListener(): void {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        console.log('🔔 Received message from service worker:', event.data);
+        
+        if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
+          const soundType = event.data.soundType || this.settingsService.getSettings().sound.type;
+          console.log('🔊 Playing notification sound from service worker request:', soundType);
+          this.settingsService.playSound(soundType);
+        }
+      });
+      
+      console.log('🔔 Service worker message listener initialized for notification sounds');
+    }
   }
   
   /**

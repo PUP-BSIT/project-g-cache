@@ -607,12 +607,6 @@ class SessionControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sessions[0].longBreakIntervalCycles").value(2));
 
-        // Delete the first session before creating the second one
-        // (Activity only allows one active session at a time)
-        mockMvc.perform(delete("/activities/{activityId}/sessions/{id}", activityId, minSessionId)
-                .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isOk());
-
         // Test with maximum interval (10 cycles)
         SessionRequest maxRequest = new SessionRequest("FREESTYLE", 25, 5, null, true, 15, null, 10);
 
