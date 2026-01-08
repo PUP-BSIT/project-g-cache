@@ -85,8 +85,10 @@ export class EditSessionModal implements OnInit {
     if (this.sessionForm.valid) {
       const { focusTimeMinutes, breakTimeMinutes, note } = this.sessionForm.getRawValue() as SessionFormValue;
       const updatedSession: SessionData = {
+        sessionType: 'CLASSIC', // Default to CLASSIC for existing sessions
         focusTimeMinutes,
         breakTimeMinutes,
+        cycles: 1, // Default to 1 cycle for existing sessions
         note: note.trim() || undefined,
       };
       this.dialogRef.close(updatedSession);

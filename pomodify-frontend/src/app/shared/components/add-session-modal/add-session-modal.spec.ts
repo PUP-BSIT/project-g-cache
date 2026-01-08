@@ -30,7 +30,10 @@ describe('AddSessionModal', () => {
   it('should initialize form with default values', () => {
     expect(component.sessionForm.get('focusTimeMinutes')?.value).toBe(25);
     expect(component.sessionForm.get('breakTimeMinutes')?.value).toBe(5);
-    expect(component.sessionForm.get('note')?.value).toBe('');
+    expect(component.sessionForm.get('cycles')?.value).toBe(4);
+    expect(component.sessionForm.get('enableLongBreak')?.value).toBe(true);
+    expect(component.sessionForm.get('longBreakTimeInMinutes')?.value).toBe(15);
+    expect(component.sessionForm.get('longBreakIntervalCycles')?.value).toBe(4);
   });
 
   it('should have focus time presets', () => {
@@ -38,7 +41,8 @@ describe('AddSessionModal', () => {
   });
 
   it('should have break time presets', () => {
-    expect(component.breakTimePresets).toEqual([5, 10, 15, 20, 30]);
+    // Updated for freestyle mode constraints (2-10 minutes)
+    expect(component.breakTimePresets).toEqual([2, 5, 10]);
   });
 
   it('should select focus time', () => {
@@ -47,8 +51,8 @@ describe('AddSessionModal', () => {
   });
 
   it('should select break time', () => {
-    component.selectBreakTime(15);
-    expect(component.sessionForm.get('breakTimeMinutes')?.value).toBe(15);
+    component.selectBreakTime(10);
+    expect(component.sessionForm.get('breakTimeMinutes')?.value).toBe(10);
   });
 
   it('should close dialog on cancel', () => {
@@ -56,27 +60,73 @@ describe('AddSessionModal', () => {
     expect(mockDialogRef.close).toHaveBeenCalledWith();
   });
 
-  it('should close dialog with data on add session', () => {
+  it('should close dialog with session data on add session', () => {
     component.sessionForm.patchValue({
       focusTimeMinutes: 30,
       breakTimeMinutes: 10,
-      note: 'Test note'
+      cycles: 4,
+      enableLongBreak: true,
+      longBreakTimeInMinutes: 15,
+      longBreakIntervalCycles: 4
     });
     component.onAddSession();
     expect(mockDialogRef.close).toHaveBeenCalledWith({
+      sessionType: 'CLASSIC',
       focusTimeMinutes: 30,
       breakTimeMinutes: 10,
-      note: 'Test note'
+      cycles: 4,
+      enableLongBreak: true,
+      longBreakTimeInMinutes: 15,
+      longBreakIntervalCycles: 4
     });
   });
 
-  it('should validate minimum focus time', () => {
-    component.sessionForm.patchValue({ focusTimeMinutes: 10 });
+  it('should validate minimum focus time (5 minutes)', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ focusTimeMinutes: 4 });
     expect(component.sessionForm.get('focusTimeMinutes')?.valid).toBeFalse();
   });
 
-  it('should validate minimum break time', () => {
-    component.sessionForm.patchValue({ breakTimeMinutes: 2 });
+  it('should validate minimum break time (2 minutes)', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ breakTimeMinutes: 1 });
     expect(component.sessionForm.get('breakTimeMinutes')?.valid).toBeFalse();
+  });
+
+  it('should validate maximum focus time (90 minutes)', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ focusTimeMinutes: 91 });
+    expect(component.sessionForm.get('focusTimeMinutes')?.valid).toBeFalse();
+  });
+
+  it('should validate maximum break time (10 minutes)', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ breakTimeMinutes: 11 });
+    expect(component.sessionForm.get('breakTimeMinutes')?.valid).toBeFalse();
+  });
+
+  it('should accept valid focus time within range', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ focusTimeMinutes: 45 });
+    expect(component.sessionForm.get('focusTimeMinutes')?.valid).toBeTrue();
+  });
+
+  it('should accept valid break time within range', () => {
+    component.selectSessionType('FREESTYLE');
+    component.sessionForm.patchValue({ breakTimeMinutes: 5 });
+    expect(component.sessionForm.get('breakTimeMinutes')?.valid).toBeTrue();
+  });
+
+  it('should switch to freestyle mode', () => {
+    component.selectSessionType('FREESTYLE');
+    expect(component.sessionType).toBe('FREESTYLE');
+  });
+
+  it('should switch to classic mode', () => {
+    component.selectSessionType('FREESTYLE');
+    component.selectSessionType('CLASSIC');
+    expect(component.sessionType).toBe('CLASSIC');
+    expect(component.sessionForm.get('focusTimeMinutes')?.value).toBe(25);
+    expect(component.sessionForm.get('breakTimeMinutes')?.value).toBe(5);
   });
 });

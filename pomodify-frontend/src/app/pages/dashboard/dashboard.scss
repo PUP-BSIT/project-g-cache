@@ -53,7 +53,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg);
+  /* Background is handled by global styles.scss with animated gradient */
   font-family: 'Montserrat', sans-serif;
   overflow-x: hidden;
   position: relative;
@@ -181,6 +181,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     flex-shrink: 0;
     min-width: 36px;
     margin-left: 6px;
+    object-fit: contain;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -484,14 +485,59 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   }
   
   .header {
-    padding: 16px 24px;
-    gap: 16px;
+    padding: 16px 20px;
+    gap: 12px;
   }
   
   .header-left {
+    flex: 0 1 auto;
+    min-width: 0;
+    
     .page-title {
-      font-size: 20px;
+      font-size: 18px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+  }
+  
+  .header-right {
+    flex-shrink: 0;
+    gap: 10px;
+  }
+  
+  .profile-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 16px;
+    gap: 10px;
+  }
+  
+  .header-left {
+    gap: 10px;
+    
+    .page-title {
+      font-size: 16px;
+    }
+  }
+  
+  .hamburger-btn {
+    padding: 6px;
+    font-size: 20px;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+  
+  .profile-btn {
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -1446,34 +1492,59 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
 
   .section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text-dark;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    i {
+      color: $primary-teal;
+      font-size: 20px;
+    }
   }
 
   .view-all-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-dark 100%);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(95, 169, 164, 0.4);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(95, 169, 164, 0.5);
+      
+      &::before {
+        left: 100%;
+      }
     }
 
     &:active {
@@ -1486,11 +1557,268 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
     &:hover i {
-      transform: translateX(4px);
+      transform: translateX(5px);
     }
   }
 }
 
+// Activity Cards Grid - New Design
+.activities-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// New Activity Card Design
+.activity-card-new {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: cardFadeSlide 0.5s ease-out backwards;
+  overflow: hidden;
+  
+  // Gradient top border on hover
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $primary-teal 0%, $primary-teal-light 50%, #FFB800 100%);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 20px 20px 0 0;
+  }
+  
+  // Subtle glow background
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at top left, rgba(95, 169, 164, 0.08) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    border-radius: 20px;
+  }
+  
+  // Card header row
+  .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Avatar box
+  .avatar-box {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-light 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(95, 169, 164, 0.35);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+  }
+  
+  // Time tag
+  .time-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(95, 169, 164, 0.1);
+    border-radius: 20px;
+    border: 1px solid rgba(95, 169, 164, 0.15);
+    transition: all 0.3s ease;
+    
+    i {
+      font-size: 12px;
+      color: $primary-teal;
+    }
+    
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  
+  // Card title
+  .card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 20px 0;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    transition: color 0.3s ease;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Stats pills container
+  .stats-pills {
+    display: flex;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  // Individual pill
+  .pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    i {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    
+    .pill-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    
+    .pill-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+    }
+    
+    &.cycles-pill {
+      background: linear-gradient(135deg, rgba(95, 169, 164, 0.12) 0%, rgba(95, 169, 164, 0.06) 100%);
+      border: 1px solid rgba(95, 169, 164, 0.2);
+      
+      i {
+        color: $primary-teal;
+      }
+      
+      .pill-label {
+        color: $primary-teal;
+      }
+    }
+    
+    &.focus-pill {
+      background: linear-gradient(135deg, rgba(255, 152, 0, 0.12) 0%, rgba(255, 193, 7, 0.06) 100%);
+      border: 1px solid rgba(255, 152, 0, 0.2);
+      
+      i {
+        color: #FF9800;
+      }
+      
+      .pill-label {
+        color: #FF9800;
+      }
+    }
+  }
+  
+  // Hover state
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(95, 169, 164, 0.15), 0 8px 16px rgba(0, 0, 0, 0.06);
+    border-color: rgba(95, 169, 164, 0.3);
+    
+    &::before {
+      transform: scaleX(1);
+    }
+    
+    &::after {
+      opacity: 1;
+    }
+    
+    .avatar-box {
+      transform: scale(1.1) rotate(-5deg);
+      box-shadow: 0 10px 28px rgba(95, 169, 164, 0.45);
+    }
+    
+    .time-tag {
+      background: rgba(95, 169, 164, 0.18);
+      border-color: rgba(95, 169, 164, 0.3);
+    }
+    
+    .card-title {
+      color: $primary-teal;
+    }
+    
+    .pill {
+      transform: translateY(-2px);
+      
+      &.cycles-pill {
+        background: linear-gradient(135deg, rgba(95, 169, 164, 0.2) 0%, rgba(95, 169, 164, 0.1) 100%);
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.15);
+      }
+      
+      &.focus-pill {
+        background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 193, 7, 0.1) 100%);
+        box-shadow: 0 4px 12px rgba(255, 152, 0, 0.15);
+      }
+    }
+  }
+  
+  &:active {
+    transform: translateY(-4px);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.25), 0 20px 40px rgba(95, 169, 164, 0.15);
+  }
+}
+
+@keyframes cardFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Keep old styles for backward compatibility
+.recent-activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+// Keep old session-card styles for backward compatibility
 .recent-sessions-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1502,146 +1830,247 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .session-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
-  border: none;
+  background: #ffffff;
   border-radius: 16px;
-  padding: 20px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   position: relative;
+  overflow: hidden;
+  animation: cardFadeIn 0.4s ease-out backwards;
 
-  // Clickable session cards
+  // Left accent bar
+  .card-accent {
+    width: 4px;
+    align-self: stretch;
+    background: linear-gradient(180deg, #5FA9A4 0%, #7BC4BF 100%);
+    border-radius: 4px 0 0 4px;
+    transition: width 0.3s ease;
+  }
+
+  // Main content
+  .card-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    gap: 16px;
+  }
+
+  // Activity section (left)
+  .activity-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+
+    .activity-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #5FA9A4 0%, #7BC4BF 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(95, 169, 164, 0.25);
+      transition: all 0.3s ease;
+
+      .avatar-letter {
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        text-transform: uppercase;
+      }
+    }
+
+    .activity-details {
+      min-width: 0;
+
+      .activity-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: $text-dark;
+        margin: 0 0 4px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transition: color 0.3s ease;
+      }
+
+      .activity-time {
+        font-size: 13px;
+        color: $text-light;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Stats section (right)
+  .stats-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(95, 169, 164, 0.08);
+      border-radius: 24px;
+      transition: all 0.3s ease;
+
+      i {
+        font-size: 13px;
+        color: $primary-teal;
+      }
+
+      .stat-num {
+        font-size: 14px;
+        font-weight: 700;
+        color: $text-dark;
+      }
+
+      &.highlight {
+        background: linear-gradient(135deg, rgba(243, 156, 18, 0.12) 0%, rgba(241, 196, 15, 0.08) 100%);
+
+        i {
+          color: #F39C12;
+        }
+      }
+    }
+  }
+
+  // Arrow indicator
+  .card-arrow {
+    position: absolute;
+    right: 16px;
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: all 0.3s ease;
+
+    i {
+      font-size: 14px;
+      color: $primary-teal;
+    }
+  }
+
+  // Clickable hover states
   &.clickable {
     cursor: pointer;
     
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(95, 169, 164, 0.2);
-      background: linear-gradient(135deg, #f8fffe 0%, #f0faf9 100%);
-      
-      .session-icon {
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(95, 169, 164, 0.12);
+
+      .card-accent {
+        width: 6px;
+      }
+
+      .activity-avatar {
         transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(82, 201, 124, 0.3);
+        box-shadow: 0 6px 16px rgba(95, 169, 164, 0.3);
+      }
+
+      .activity-name {
+        color: $primary-teal;
+      }
+
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.12);
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
+        }
+      }
+
+      .card-arrow {
+        opacity: 1;
+        transform: translateX(0);
       }
     }
     
     &:active {
-      transform: translateY(-2px);
+      transform: translateX(2px);
     }
     
     &:focus {
-      outline: 2px solid $primary-teal;
-      outline-offset: 2px;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.2), 0 8px 24px rgba(95, 169, 164, 0.12);
     }
   }
+}
 
-  .session-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
   }
-
-  .session-icon {
-    width: 54px;
-    height: 54px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #52C97C 0%, #42A95E 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    i {
-      font-size: 24px;
-      color: #fff;
-    }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
+}
 
-  .session-info {
-    flex: 1;
-    min-width: 0;
-
-    .session-activity {
-      font-size: 17px;
-      font-weight: 700;
-      color: $text-dark;
-      margin: 0 0 6px 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.3;
+// Responsive styles for session cards
+@media (max-width: 600px) {
+  .session-card {
+    .card-main {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 16px;
     }
 
-    .session-time {
-      font-size: 13px;
-      color: $text-light;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      background: rgba(95, 169, 164, 0.1);
-      border-radius: 6px;
+    .activity-section {
+      width: 100%;
 
-      i {
-        font-size: 11px;
-        color: $primary-teal;
+      .activity-avatar {
+        width: 42px;
+        height: 42px;
+
+        .avatar-letter {
+          font-size: 18px;
+        }
+      }
+
+      .activity-details {
+        .activity-name {
+          font-size: 15px;
+        }
+
+        .activity-time {
+          font-size: 12px;
+        }
       }
     }
-  }
 
-  .session-meta {
-    display: flex;
-    gap: 20px;
-    padding-top: 12px;
+    .stats-section {
+      width: 100%;
+      justify-content: flex-start;
+      padding-left: 56px;
 
-    .meta-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: $text-dark;
-      font-weight: 600;
-
-      .meta-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: rgba(95, 169, 164, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .stat-pill {
+        padding: 6px 12px;
 
         i {
-          font-size: 14px;
-          color: $primary-teal;
+          font-size: 12px;
+        }
+
+        .stat-num {
+          font-size: 13px;
         }
       }
+    }
 
-      .meta-value {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
-        span:first-child {
-          font-size: 15px;
-          font-weight: 700;
-          color: $text-dark;
-          line-height: 1;
-        }
-
-        span:last-child {
-          font-size: 11px;
-          font-weight: 500;
-          color: $text-light;
-          line-height: 1;
-        }
-      }
+    .card-arrow {
+      top: 16px;
+      right: 12px;
     }
   }
 }
@@ -2262,6 +2691,74 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
     
     &:hover {
       background-color: #4B5563;
+    }
+  }
+
+  // Session card dark mode styles
+  .session-card {
+    background: #1f2021;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+
+    .card-accent {
+      background: linear-gradient(180deg, #5FA9A4 0%, #7BC4BF 100%);
+    }
+
+    .activity-section {
+      .activity-avatar {
+        box-shadow: 0 4px 12px rgba(95, 169, 164, 0.2);
+      }
+
+      .activity-details {
+        .activity-name {
+          color: #E5E7EB;
+        }
+
+        .activity-time {
+          color: #9CA3AF;
+        }
+      }
+    }
+
+    .stats-section {
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.12);
+
+        i {
+          color: #7BC4BF;
+        }
+
+        .stat-num {
+          color: #E5E7EB;
+        }
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.18) 0%, rgba(241, 196, 15, 0.12) 100%);
+
+          i {
+            color: #F8B739;
+          }
+        }
+      }
+    }
+
+    .card-arrow i {
+      color: #7BC4BF;
+    }
+
+    &.clickable:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+      .activity-name {
+        color: #7BC4BF;
+      }
+
+      .stat-pill {
+        background: rgba(95, 169, 164, 0.18);
+
+        &.highlight {
+          background: linear-gradient(135deg, rgba(243, 156, 18, 0.24) 0%, rgba(241, 196, 15, 0.16) 100%);
+        }
+      }
     }
   }
 }  

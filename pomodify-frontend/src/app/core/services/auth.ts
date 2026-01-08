@@ -405,4 +405,22 @@ export class Auth {
     const url = API.USER.DELETE_PROFILE_PICTURE;
     return lastValueFrom(this.http.delete<any>(url, { withCredentials: true }));
   }
+
+  /**
+   * Deletes the user's account and all associated data.
+   * Clears local auth data and redirects to landing page.
+   */
+  deleteAccount(): Promise<void> {
+    const url = API.USER.DELETE_ACCOUNT;
+    return lastValueFrom(this.http.delete<void>(url, { withCredentials: true }))
+      .then(() => {
+        console.log('[Auth] Account deleted successfully');
+        this.clearAuthData();
+        this.router.navigate(['/']);
+      })
+      .catch((error) => {
+        console.error('[Auth] Account deletion failed:', error);
+        throw error;
+      });
+  }
 }

@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { API } from '../config/api.config';
 
 export interface SoundSettings {
   enabled: boolean;
@@ -36,6 +39,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   providedIn: 'root'
 })
 export class SettingsService {
+  private http = inject(HttpClient);
+  
   // Only app settings (not tokens) are stored in localStorage
   private readonly STORAGE_KEY = 'pomodify_settings';
   
@@ -96,15 +101,49 @@ export class SettingsService {
   }
   
   // Play notification sound
+  // Keep a reference to prevent garbage collection during playback
+  private currentAudio: HTMLAudioElement | null = null;
+  
   playSound(type?: 'bell' | 'chime' | 'digital' | 'soft') {
     const settings = this.settingsSignal();
-    if (!settings.sound.enabled) return;
+    if (!settings.sound.enabled) {
+      console.log('Sound disabled in settings, skipping playback');
+      return;
+    }
     
     const soundType = type || settings.sound.type;
-    const audio = new Audio(`assets/sounds/${soundType}.wav`);
+    const soundPath = `assets/sounds/${soundType}.wav`;
+    
+    console.log('🔊 Attempting to play sound:', soundType, 'from path:', soundPath);
+    
+    // Stop any currently playing sound
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio = null;
+    }
+    
+    const audio = new Audio(soundPath);
+    this.currentAudio = audio;
     audio.volume = settings.sound.volume / 100;
-    console.log('Playing sound:', soundType, 'at volume:', audio.volume, '(', settings.sound.volume, '%)');
-    audio.play().catch(err => console.warn('Could not play sound:', err));
+    
+    console.log('🔊 Playing sound:', soundType, 'at volume:', audio.volume, '(', settings.sound.volume, '%)');
+    
+    audio.play()
+      .then(() => {
+        console.log('🔊 Sound started playing successfully:', soundType);
+      })
+      .catch(err => {
+        console.warn('🔇 Could not play sound:', err);
+        console.warn('🔇 This may be due to browser autoplay restrictions. User interaction may be required first.');
+      });
+    
+    // Clean up reference after playback
+    audio.onended = () => {
+      console.log('🔊 Sound finished playing:', soundType);
+      if (this.currentAudio === audio) {
+        this.currentAudio = null;
+      }
+    };
   }
   
 
@@ -113,6 +152,16 @@ export class SettingsService {
   resetToDefaults() {
     this.settingsSignal.set(DEFAULT_SETTINGS);
     this.saveSettings(DEFAULT_SETTINGS);
+  }
+
+  // Clear all session history
+  clearSessionHistory(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(API.SETTINGS.CLEAR_SESSIONS, { withCredentials: true });
+  }
+
+  // Clear all activity data
+  clearActivityData(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(API.SETTINGS.CLEAR_ACTIVITIES, { withCredentials: true });
   }
   
   // Private methods

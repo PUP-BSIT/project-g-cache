@@ -6,10 +6,10 @@
     </button>
     <h1>{{ activityTitle() }}</h1>
     <div class="header-actions" style="display: flex; gap: 10px;">
-      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer;">
+      <button class="toggle-abandoned-btn" (click)="toggleAbandoned()">
         {{ showAbandoned() ? 'Hide Abandoned' : 'Show Abandoned' }}
       </button>
-      <button class="create-session-btn" (click)="createNewSession()" [disabled]="hasActiveSession()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
+      <button class="create-session-btn" (click)="onCreateSessionClick()" [style.opacity]="hasActiveSession() ? '0.5' : '1'">
         <i class="fa-solid fa-plus"></i>
         New Session
       </button>
@@ -47,55 +47,85 @@
         </h2>
         <div class="sessions-grid">
           @for (session of activeSessions(); track session.id) {
-            <div class="session-card" (click)="openSession(session)" style="cursor: pointer;">
-              <div class="session-header">
-                <div class="session-type">
-                  <i class="fa-solid fa-stopwatch"></i>
-                  {{ session.sessionType }}
+            <div class="session-card" (click)="openSession(session)">
+              <!-- Colored Header Section -->
+              <div class="card-header" [ngStyle]="getSessionCardStyle()">
+                <div class="header-content">
+                  <div class="session-icon">
+                    <i class="fa-solid fa-stopwatch"></i>
+                  </div>
+                  <div class="session-title-area">
+                    <h3 class="session-type-name">{{ session.sessionType }}</h3>
+                    <span class="session-date">
+                      <i class="fa-regular fa-calendar"></i>
+                      {{ formatDate(session.createdAt) }}
+                    </span>
+                  </div>
                 </div>
                 <span class="session-status" [ngClass]="getStatusClass(getEffectiveStatus(session))">
-                  {{ getEffectiveStatus(session) }}
-                </span>
-              </div>
-
-              <div class="session-details">
-                <div class="detail-item">
-                  <span class="label">Focus Time:</span>
-                  <span class="value">{{ session.focusTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Break Time:</span>
-                  <span class="value">{{ session.breakTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Cycles:</span>
-                  <span class="value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Current Phase:</span>
-                  <span class="value">{{ session.currentPhase }}</span>
-                </div>
-              </div>
-
-              <div class="session-notes-preview">
-                <div class="notes-header">
-                  <i class="fa-solid fa-note-sticky"></i>
-                  <span class="notes-label">Notes</span>
-                </div>
-                <div class="notes-content">
-                  @if (getNoteText(session.note)) {
-                    <p class="note-text">{{ getNoteText(session.note) }}</p>
-                  } @else {
-                    <p class="note-empty">No notes for this session</p>
+                  @switch (getEffectiveStatus(session)) {
+                    @case ('NOT_STARTED') { <i class="fa-solid fa-circle"></i> Ready }
+                    @case ('IN_PROGRESS') { <i class="fa-solid fa-play"></i> Running }
+                    @case ('PAUSED') { <i class="fa-solid fa-pause"></i> Paused }
+                    @default { {{ getEffectiveStatus(session) }} }
                   }
+                </span>
+                <!-- Decorative circles -->
+                <div class="header-decoration">
+                  <div class="circle circle-1"></div>
+                  <div class="circle circle-2"></div>
+                  <div class="circle circle-3"></div>
                 </div>
               </div>
+              
+              <!-- White Body Section -->
+              <div class="card-body">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Focus</span>
+                      <span class="stat-value">{{ session.focusTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-mug-hot"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Break</span>
+                      <span class="stat-value">{{ session.breakTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-rotate"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Cycles</span>
+                      <span class="stat-value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-flag"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Phase</span>
+                      <span class="stat-value">{{ session.currentPhase }}</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div class="session-footer">
-                <span class="created-at">
-                  <i class="fa-solid fa-calendar"></i>
-                  {{ formatDate(session.createdAt) }}
-                </span>
+                <!-- Notes Preview -->
+                <div class="notes-section">
+                  <div class="notes-header">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span>Notes</span>
+                  </div>
+                  <p class="notes-text">{{ getNoteText(session.note) || 'No notes for this session' }}</p>
+                </div>
+
+                <!-- Action Button -->
+                <button class="btn-continue" [ngStyle]="{'background': getSessionCardStyle()['background']}">
+                  <i class="fa-solid fa-play"></i>
+                  Continue Session
+                </button>
               </div>
             </div>
           }
@@ -113,60 +143,82 @@
         </h2>
         <div class="sessions-grid">
           @for (session of completedSessions(); track session.id) {
-            <div class="session-card" style="cursor: default;">
-              <div class="session-header">
-                <div class="session-type">
-                  <i class="fa-solid fa-stopwatch"></i>
-                  {{ session.sessionType }}
+            <div class="session-card completed">
+              <!-- Colored Header Section -->
+              <div class="card-header" [ngStyle]="getSessionCardStyle()">
+                <div class="header-content">
+                  <div class="session-icon">
+                    <i class="fa-solid fa-trophy"></i>
+                  </div>
+                  <div class="session-title-area">
+                    <h3 class="session-type-name">{{ session.sessionType }}</h3>
+                    <span class="session-date">
+                      <i class="fa-regular fa-calendar"></i>
+                      {{ formatDate(session.createdAt) }}
+                    </span>
+                  </div>
                 </div>
                 <span class="session-status" [ngClass]="getStatusClass(session.status)">
-                  {{ session.status }}
+                  <i class="fa-solid fa-check"></i>
+                  Done
                 </span>
-              </div>
-
-              <div class="session-details">
-                <div class="detail-item">
-                  <span class="label">Focus Time:</span>
-                  <span class="value">{{ session.focusTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Break Time:</span>
-                  <span class="value">{{ session.breakTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Cycles:</span>
-                  <span class="value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Current Phase:</span>
-                  <span class="value">{{ session.currentPhase }}</span>
+                <!-- Decorative circles -->
+                <div class="header-decoration">
+                  <div class="circle circle-1"></div>
+                  <div class="circle circle-2"></div>
+                  <div class="circle circle-3"></div>
                 </div>
               </div>
-
-              <div class="session-notes-preview">
-                <div class="notes-header">
-                  <i class="fa-solid fa-note-sticky"></i>
-                  <span class="notes-label">Notes</span>
+              
+              <!-- White Body Section -->
+              <div class="card-body">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Focus</span>
+                      <span class="stat-value">{{ session.focusTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-mug-hot"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Break</span>
+                      <span class="stat-value">{{ session.breakTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-rotate"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Cycles</span>
+                      <span class="stat-value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
+                    </div>
+                  </div>
+                  <div class="stat-item completed-badge">
+                    <i class="fa-solid fa-medal"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Status</span>
+                      <span class="stat-value success">Complete!</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="notes-content">
-                  @if (getNoteText(session.note)) {
-                    <p class="note-text">{{ getNoteText(session.note) }}</p>
-                  } @else {
-                    <p class="note-empty">No notes for this session</p>
-                  }
-                </div>
-              </div>
 
-              <div class="session-footer">
-                <span class="created-at">
-                  <i class="fa-solid fa-calendar"></i>
-                  {{ formatDate(session.createdAt) }}
-                </span>
+                <!-- Notes Preview -->
+                <div class="notes-section">
+                  <div class="notes-header">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span>Notes</span>
+                  </div>
+                  <p class="notes-text">{{ getNoteText(session.note) || 'No notes for this session' }}</p>
+                </div>
+
+                <!-- Completed Info -->
                 @if (session.updatedAt) {
-                  <span class="completed-at">
-                    <i class="fa-solid fa-check-circle"></i>
-                    Completed: {{ formatDate(session.updatedAt) }}
-                  </span>
+                  <div class="completed-info">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Completed {{ formatDate(session.updatedAt) }}</span>
+                  </div>
                 }
               </div>
             </div>
@@ -176,6 +228,7 @@
         <!-- Completed Pagination -->
         @if (completedTotalPages() > 1) {
           <div class="pagination">
+            <!-- Previous Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="completedPage() === 1"
@@ -183,15 +236,21 @@
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             
-            @for (page of [].constructor(completedTotalPages()); track $index) {
-              <button 
-                class="pagination-btn" 
-                [class.active]="completedPage() === $index + 1"
-                (click)="goToCompletedPage($index + 1)">
-                {{ $index + 1 }}
-              </button>
+            <!-- Page Numbers with Smart Truncation -->
+            @for (page of completedVisiblePages(); track $index) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button 
+                  class="pagination-btn" 
+                  [class.active]="completedPage() === page"
+                  (click)="navigateCompletedPage(page)">
+                  {{ page }}
+                </button>
+              }
             }
-            
+
+            <!-- Next Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="completedPage() === completedTotalPages()"
@@ -213,55 +272,75 @@
         </h2>
         <div class="sessions-grid">
           @for (session of abandonedSessions(); track session.id) {
-            <div class="session-card" style="cursor: default;">
-              <div class="session-header">
-                <div class="session-type">
-                  <i class="fa-solid fa-stopwatch"></i>
-                  {{ session.sessionType }}
+            <div class="session-card abandoned">
+              <!-- Gray Header Section for Abandoned -->
+              <div class="card-header abandoned-header">
+                <div class="header-content">
+                  <div class="session-icon">
+                    <i class="fa-solid fa-ghost"></i>
+                  </div>
+                  <div class="session-title-area">
+                    <h3 class="session-type-name">{{ session.sessionType }}</h3>
+                    <span class="session-date">
+                      <i class="fa-regular fa-calendar"></i>
+                      {{ formatDate(session.createdAt) }}
+                    </span>
+                  </div>
                 </div>
-                <span class="session-status" [ngClass]="getStatusClass(session.status)">
-                  {{ session.status }}
+                <span class="session-status status-abandoned">
+                  <i class="fa-solid fa-ban"></i>
+                  Abandoned
                 </span>
-              </div>
-
-              <div class="session-details">
-                <div class="detail-item">
-                  <span class="label">Focus Time:</span>
-                  <span class="value">{{ session.focusTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Break Time:</span>
-                  <span class="value">{{ session.breakTimeInMinutes }} min</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Cycles:</span>
-                  <span class="value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">Current Phase:</span>
-                  <span class="value">{{ session.currentPhase }}</span>
+                <!-- Decorative circles -->
+                <div class="header-decoration">
+                  <div class="circle circle-1"></div>
+                  <div class="circle circle-2"></div>
+                  <div class="circle circle-3"></div>
                 </div>
               </div>
-
-              <div class="session-notes-preview">
-                <div class="notes-header">
-                  <i class="fa-solid fa-note-sticky"></i>
-                  <span class="notes-label">Notes</span>
+              
+              <!-- White Body Section -->
+              <div class="card-body">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <i class="fa-solid fa-crosshairs"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Focus</span>
+                      <span class="stat-value">{{ session.focusTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-mug-hot"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Break</span>
+                      <span class="stat-value">{{ session.breakTimeInMinutes }}m</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-rotate"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Cycles</span>
+                      <span class="stat-value">{{ session.cyclesCompleted }}/{{ session.cycles }}</span>
+                    </div>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-flag"></i>
+                    <div class="stat-content">
+                      <span class="stat-label">Phase</span>
+                      <span class="stat-value">{{ session.currentPhase }}</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="notes-content">
-                  @if (getNoteText(session.note)) {
-                    <p class="note-text">{{ getNoteText(session.note) }}</p>
-                  } @else {
-                    <p class="note-empty">No notes for this session</p>
-                  }
-                </div>
-              </div>
 
-              <div class="session-footer">
-                <span class="created-at">
-                  <i class="fa-solid fa-calendar"></i>
-                  {{ formatDate(session.createdAt) }}
-                </span>
+                <!-- Notes Preview -->
+                <div class="notes-section">
+                  <div class="notes-header">
+                    <i class="fa-solid fa-note-sticky"></i>
+                    <span>Notes</span>
+                  </div>
+                  <p class="notes-text">{{ getNoteText(session.note) || 'No notes for this session' }}</p>
+                </div>
               </div>
             </div>
           }
@@ -270,6 +349,7 @@
         <!-- Abandoned Pagination -->
         @if (abandonedTotalPages() > 1) {
           <div class="pagination">
+            <!-- Previous Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="abandonedPage() === 1"
@@ -277,15 +357,21 @@
               <i class="fa-solid fa-chevron-left"></i>
             </button>
             
-            @for (page of [].constructor(abandonedTotalPages()); track $index) {
-              <button 
-                class="pagination-btn" 
-                [class.active]="abandonedPage() === $index + 1"
-                (click)="goToAbandonedPage($index + 1)">
-                {{ $index + 1 }}
-              </button>
+            <!-- Page Numbers with Smart Truncation -->
+            @for (page of abandonedVisiblePages(); track $index) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button 
+                  class="pagination-btn" 
+                  [class.active]="abandonedPage() === page"
+                  (click)="navigateAbandonedPage(page)">
+                  {{ page }}
+                </button>
+              }
             }
-            
+
+            <!-- Next Page Button -->
             <button 
               class="pagination-btn" 
               [disabled]="abandonedPage() === abandonedTotalPages()"

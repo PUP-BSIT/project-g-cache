@@ -447,4 +447,37 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @DeleteMapping("/users/me")
+    @Operation(summary = "Delete user account and all associated data")
+    public ResponseEntity<Void> deleteAccount(HttpServletRequest httpRequest, HttpServletResponse response) {
+        String token = extractToken(httpRequest);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String email;
+        try {
+            email = jwtService.extractUserEmailFrom(token);
+        } catch (Exception e) {
+            log.warn("Invalid JWT in accessToken cookie: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        log.info("Delete account request for user: {}", email);
+        authService.deleteAccount(email);
+        
+        // Clear cookies after account deletion
+        String clearAccessToken = String.format(
+                "accessToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
+                java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
+        );
+        String clearRefreshToken = String.format(
+                "refreshToken=; Path=/; HttpOnly; SameSite=None; Max-Age=0; Expires=%s; Secure",
+                java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC))
+        );
+        response.setHeader("Set-Cookie", clearAccessToken);
+        response.addHeader("Set-Cookie", clearRefreshToken);
+        
+        log.info("Account deleted successfully for user: {}", email);
+        return ResponseEntity.ok().build();
+    }
 }

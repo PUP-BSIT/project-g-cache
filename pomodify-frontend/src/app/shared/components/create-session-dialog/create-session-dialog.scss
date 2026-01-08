@@ -1,12 +1,7 @@
-// Variables
+// Variables - Using CSS variables for theming
 $primary-color: #5FA9A4;
 $primary-light: #7BC4BF;
 $primary-dark: #4D8B87;
-$text-color: #2C3E50;
-$text-muted: #7F8C8D;
-$border-color: #E5E7EB;
-$bg-subtle: #F8FAFC;
-$bg-card: #FFFFFF;
 $warn-color: #EF4444;
 $success-color: #10B981;
 $radius: 12px;
@@ -16,11 +11,28 @@ $radius-lg: 16px;
   display: block;
 }
 
+// Material Dialog Container - Main container background
+::ng-deep .mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: 16px;
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+// Dialog content background
+.custom-dialog-content {
+  padding: 16px 24px 24px 24px !important;
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
 // Session Type Tabs
 .session-type-tabs {
   display: flex;
   gap: 12px;
   padding: 24px 24px 0 24px;
+  background: var(--card);
   
   .type-tab {
     flex: 1;
@@ -29,10 +41,10 @@ $radius-lg: 16px;
     justify-content: center;
     gap: 10px;
     padding: 14px 20px;
-    border: 2px solid $border-color;
+    border: 2px solid var(--border);
     border-radius: $radius;
-    background: $bg-card;
-    color: $text-muted;
+    background: var(--card);
+    color: var(--muted);
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
@@ -64,6 +76,8 @@ $radius-lg: 16px;
   padding: 16px 24px 24px 24px !important;
   max-height: 70vh;
   overflow-y: auto;
+  background: var(--card) !important;
+  color: var(--text) !important;
 }
 
 // Mode Container
@@ -81,21 +95,21 @@ $radius-lg: 16px;
     margin: 0 0 8px 0;
     font-size: 22px;
     font-weight: 700;
-    color: $text-color;
+    color: var(--text);
   }
   
   .mode-description {
     margin: 0;
     font-size: 14px;
-    color: $text-muted;
+    color: var(--muted);
     line-height: 1.5;
   }
 }
 
 // Timing Rules Card (Classic)
 .timing-rules-card {
-  background: $bg-subtle;
-  border: 1px solid $border-color;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: $radius-lg;
   overflow: hidden;
   
@@ -104,17 +118,17 @@ $radius-lg: 16px;
     align-items: center;
     gap: 10px;
     padding: 14px 18px;
-    background: rgba($text-muted, 0.06);
-    border-bottom: 1px solid $border-color;
+    background: rgba(127, 140, 141, 0.06);
+    border-bottom: 1px solid var(--border);
     
     i {
-      color: $text-muted;
+      color: var(--muted);
       font-size: 16px;
     }
     
     span {
       font-weight: 600;
-      color: $text-color;
+      color: var(--text);
       font-size: 14px;
     }
   }
@@ -123,7 +137,7 @@ $radius-lg: 16px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1px;
-    background: $border-color;
+    background: var(--border);
     
     @media (max-width: 500px) {
       grid-template-columns: 1fr;
@@ -136,11 +150,11 @@ $radius-lg: 16px;
     align-items: center;
     justify-content: center;
     padding: 18px 12px;
-    background: $bg-card;
+    background: var(--card);
     
     .timing-label {
       font-size: 12px;
-      color: $text-muted;
+      color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
@@ -154,7 +168,7 @@ $radius-lg: 16px;
     
     .timing-note {
       font-size: 11px;
-      color: $text-muted;
+      color: var(--muted);
       margin-top: 4px;
       font-style: italic;
     }
@@ -163,7 +177,7 @@ $radius-lg: 16px;
 
 // Goal Card (Classic)
 .goal-card {
-  background: $bg-card;
+  background: var(--card);
   border: 2px solid $primary-color;
   border-radius: $radius-lg;
   overflow: hidden;
@@ -215,8 +229,8 @@ $radius-lg: 16px;
 }
 
 .badge-fixed {
-  background: rgba($text-muted, 0.12);
-  color: $text-muted;
+  background: rgba(127, 140, 141, 0.12);
+  color: var(--muted);
 }
 
 .badge-editable {
@@ -238,7 +252,7 @@ $radius-lg: 16px;
     
     .summary-label {
       font-size: 14px;
-      color: $text-muted;
+      color: var(--muted);
       font-weight: 500;
     }
     
@@ -264,7 +278,7 @@ $radius-lg: 16px;
     
     span {
       font-size: 13px;
-      color: $text-muted;
+      color: var(--muted);
     }
   }
 }
@@ -288,15 +302,15 @@ $radius-lg: 16px;
   p {
     margin: 0;
     font-size: 13px;
-    color: $text-muted;
+    color: var(--muted);
     line-height: 1.6;
   }
 }
 
 // Config Card (Freestyle)
 .config-card {
-  background: $bg-card;
-  border: 1px solid $border-color;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: $radius;
   overflow: hidden;
   
@@ -305,8 +319,8 @@ $radius-lg: 16px;
     align-items: center;
     gap: 10px;
     padding: 12px 16px;
-    background: $bg-subtle;
-    border-bottom: 1px solid $border-color;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
     
     i {
       color: $primary-color;
@@ -315,7 +329,7 @@ $radius-lg: 16px;
     
     span {
       font-weight: 600;
-      color: $text-color;
+      color: var(--text);
       font-size: 14px;
     }
   }
@@ -332,8 +346,8 @@ $radius-lg: 16px;
 
 // Loop Preview (Freestyle)
 .loop-preview {
-  background: $bg-subtle;
-  border: 1px solid $border-color;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: $radius;
   padding: 16px;
   
@@ -350,7 +364,7 @@ $radius-lg: 16px;
     
     span {
       font-weight: 600;
-      color: $text-color;
+      color: var(--text);
       font-size: 14px;
     }
   }
@@ -362,7 +376,7 @@ $radius-lg: 16px;
     gap: 8px;
     flex-wrap: wrap;
     padding: 12px;
-    background: $bg-card;
+    background: var(--card);
     border-radius: 8px;
     
     .loop-item {
@@ -388,7 +402,7 @@ $radius-lg: 16px;
     }
     
     .loop-arrow {
-      color: $text-muted;
+      color: var(--muted);
       font-size: 12px;
     }
     
@@ -402,7 +416,7 @@ $radius-lg: 16px;
   .loop-hint {
     margin: 12px 0 0 0;
     font-size: 12px;
-    color: $text-muted;
+    color: var(--muted);
     text-align: center;
     font-style: italic;
   }
@@ -448,9 +462,10 @@ $radius-lg: 16px;
 mat-dialog-actions {
   padding: 16px 24px 24px 24px !important;
   gap: 12px;
+  background: var(--card) !important;
   
   .btn-cancel {
-    color: $text-muted;
+    color: var(--muted);
     font-weight: 500;
   }
   
@@ -470,13 +485,14 @@ mat-dialog-actions {
 
 // Fix for transparent dropdown background
 ::ng-deep .mat-mdc-select-panel {
-  background-color: white !important;
-  background: white !important;
+  background-color: var(--card) !important;
+  background: var(--card) !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
   
   .mat-mdc-option {
-    background-color: white;
+    background-color: var(--card);
+    color: var(--text);
     &:hover {
       background-color: rgba($primary-color, 0.08);
     }
@@ -489,6 +505,8 @@ mat-dialog-actions {
 // Material Overrides
 ::ng-deep .mat-mdc-dialog-container {
   --mdc-dialog-container-shape: 16px;
+  background: var(--card) !important;
+  color: var(--text) !important;
 }
 
 // Material Form Field Overrides
@@ -497,7 +515,7 @@ mat-dialog-actions {
     width: 100%;
     
     .mat-mdc-text-field-wrapper {
-      background-color: $bg-subtle !important;
+      background-color: var(--bg) !important;
       border-radius: 10px !important;
     }
     
@@ -509,7 +527,7 @@ mat-dialog-actions {
       .mdc-notched-outline__leading,
       .mdc-notched-outline__notch,
       .mdc-notched-outline__trailing {
-        border-color: $border-color !important;
+        border-color: var(--border) !important;
       }
       
       &:hover .mdc-notched-outline__leading,
@@ -529,14 +547,14 @@ mat-dialog-actions {
     }
     
     .mat-mdc-form-field-hint {
-      color: $text-muted;
+      color: var(--muted);
       font-size: 12px;
     }
     
     input[type="number"] {
       font-size: 16px;
       font-weight: 500;
-      color: $text-color;
+      color: var(--text);
       padding: 8px 12px !important;
       
       &::-webkit-outer-spin-button,
@@ -554,7 +572,7 @@ mat-dialog-actions {
     }
     
     .mat-mdc-floating-label {
-      color: $text-muted;
+      color: var(--muted);
     }
     
     &.mat-focused .mat-mdc-floating-label {
@@ -566,24 +584,64 @@ mat-dialog-actions {
 
 // Info Card (for no long break message)
 .info-card {
-  border-color: rgba($text-muted, 0.3);
+  border-color: rgba(127, 140, 141, 0.3);
   
   .config-header {
-    background: rgba($text-muted, 0.08);
+    background: rgba(127, 140, 141, 0.08);
     
     i {
-      color: $text-muted;
+      color: var(--muted);
     }
     
     span {
-      color: $text-muted;
+      color: var(--muted);
     }
   }
   
   .info-text {
     margin: 0 0 16px 0;
     font-size: 13px;
-    color: $text-muted;
+    color: var(--muted);
     line-height: 1.5;
+  }
+}
+
+// Dark mode specific overrides for Material UI
+:root.theme-dark {
+  ::ng-deep {
+    .mat-mdc-form-field {
+      .mat-mdc-text-field-wrapper {
+        background-color: var(--bg) !important;
+      }
+      
+      .mdc-text-field--outlined {
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: var(--border) !important;
+        }
+      }
+      
+      input[type="number"] {
+        color: var(--text) !important;
+      }
+      
+      .mat-mdc-form-field-hint {
+        color: var(--muted) !important;
+      }
+      
+      .mat-mdc-floating-label {
+        color: var(--muted) !important;
+      }
+    }
+    
+    .mat-mdc-select-panel {
+      background-color: var(--card) !important;
+      
+      .mat-mdc-option {
+        background-color: var(--card) !important;
+        color: var(--text) !important;
+      }
+    }
   }
 }

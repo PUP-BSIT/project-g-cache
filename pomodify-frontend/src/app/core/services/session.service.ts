@@ -34,6 +34,7 @@ export interface PomodoroSession {
   enableLongBreak?: boolean;
   longBreakTimeInMinutes?: number;
   longBreakIntervalInMinutes?: number;
+  longBreakIntervalCycles?: number;
 }
 
 export interface CreateSessionRequest {
@@ -45,6 +46,7 @@ export interface CreateSessionRequest {
   enableLongBreak?: boolean;
   longBreakTimeInMinutes?: number;
   longBreakIntervalInMinutes?: number;
+  longBreakIntervalInCycles?: number;
 }
 
 export interface SessionResponse {
@@ -196,6 +198,10 @@ export class SessionService {
     focusTimeInMinutes?: number;
     breakTimeInMinutes?: number;
     cycles?: number;
+    enableLongBreak?: boolean;
+    longBreakTimeInMinutes?: number;
+    longBreakIntervalInMinutes?: number;
+    longBreakIntervalInCycles?: number;
   }): Observable<PomodoroSession> {
     return this.http.patch<SessionResponse>(API.ACTIVITIES.SESSIONS.UPDATE(activityId, sessionId), updates).pipe(
       map(response => extractSession(response))

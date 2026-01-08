@@ -228,9 +228,12 @@
         <!-- Recent Sessions Section -->
         <div class="recent-sessions-section">
           <div class="section-header">
-            <h3 class="section-title">Recent Sessions</h3>
+            <h3 class="section-title">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Recent Activities
+            </h3>
             <button class="view-all-btn" routerLink="/activities">
-              View All Activities
+              View All
               <i class="fa-solid fa-arrow-right"></i>
             </button>
           </div>
@@ -241,39 +244,34 @@
               <p class="empty-hint">Start your first session to see it here</p>
             </div>
           } @else {
-            <div class="recent-sessions-list">
-              @for (session of recentActivities(); track session.id) {
-                <div class="session-card clickable" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)">
-                  <div class="session-header">
-                    <div class="session-icon">
-                      <i class="fa-solid fa-check-circle"></i>
+            <div class="activities-card-grid">
+              @for (session of recentActivities(); track session.id; let i = $index) {
+                <div class="activity-card-new" (click)="navigateToSession(session)" role="button" tabindex="0" (keydown.enter)="navigateToSession(session)" [style.animation-delay]="i * 0.08 + 's'">
+                  <!-- Card header -->
+                  <div class="card-header-row">
+                    <div class="avatar-box">
+                      {{ session.activityName.charAt(0).toUpperCase() }}
                     </div>
-                    <div class="session-info">
-                      <h4 class="session-activity">{{ session.activityName }}</h4>
-                      <div class="session-time">
-                        <i class="fa-solid fa-clock"></i>
-                        {{ getRelativeTime(session.completedAt) }}
-                      </div>
+                    <div class="time-tag">
+                      <i class="fa-regular fa-clock"></i>
+                      {{ getRelativeTime(session.completedAt) }}
                     </div>
                   </div>
-                  <div class="session-meta">
-                    <div class="meta-item">
-                      <div class="meta-icon">
-                        <i class="fa-solid fa-repeat"></i>
-                      </div>
-                      <div class="meta-value">
-                        <span>{{ session.cyclesCompleted }}</span>
-                        <span>cycles</span>
-                      </div>
+                  
+                  <!-- Activity name -->
+                  <h4 class="card-title">{{ session.activityName }}</h4>
+                  
+                  <!-- Stats pills -->
+                  <div class="stats-pills">
+                    <div class="pill cycles-pill">
+                      <i class="fa-solid fa-sync-alt"></i>
+                      <span class="pill-value">{{ session.cyclesCompleted }}</span>
+                      <span class="pill-label">cycles</span>
                     </div>
-                    <div class="meta-item">
-                      <div class="meta-icon">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                      </div>
-                      <div class="meta-value">
-                        <span>{{ session.focusHours.toFixed(1) }}</span>
-                        <span>hours</span>
-                      </div>
+                    <div class="pill focus-pill">
+                      <i class="fa-solid fa-fire"></i>
+                      <span class="pill-value">{{ session.focusHours.toFixed(1) }}h</span>
+                      <span class="pill-label">focus</span>
                     </div>
                   </div>
                 </div>

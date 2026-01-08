@@ -540,3 +540,198 @@ $text-muted: #64748B;
     }
   }
 }
+
+// Mobile responsive styles
+@media (max-width: 480px) {
+  .badge-dialog-wrapper {
+    width: 100%;
+    max-width: 92vw;
+    border-radius: 20px;
+    margin: 0 auto;
+  }
+
+  .close-btn {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .mascot-hero {
+    padding: 24px 16px 8px;
+  }
+
+  .mascot-glow {
+    width: 140px;
+    height: 140px;
+  }
+
+  .mascot-image {
+    width: 110px;
+    height: 110px;
+  }
+
+  .mascot-sparkles {
+    .sparkle-1 {
+      top: 15px;
+      right: 60px;
+      font-size: 16px;
+    }
+
+    .sparkle-2 {
+      top: 30px;
+      left: 60px;
+      font-size: 14px;
+    }
+
+    .sparkle-3 {
+      bottom: 25px;
+      right: 70px;
+      font-size: 12px;
+    }
+  }
+
+  .ribbon {
+    padding: 8px 18px;
+    gap: 8px;
+    border-radius: 20px;
+
+    .ribbon-badge-img {
+      width: 22px;
+      height: 22px;
+    }
+
+    span {
+      font-size: 12px;
+      letter-spacing: 1.5px;
+    }
+  }
+
+  .content-section {
+    padding: 18px 20px;
+  }
+
+  .title {
+    font-size: 22px;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    i {
+      font-size: 20px;
+    }
+  }
+
+  .badge-name-tag {
+    padding: 8px 16px;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    .badge-tag-img {
+      width: 20px;
+      height: 20px;
+    }
+
+    span {
+      font-size: 13px;
+    }
+  }
+
+  .speech-box {
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-radius: 14px;
+
+    p {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  }
+
+  .date-earned {
+    padding: 6px 12px;
+
+    i {
+      font-size: 12px;
+    }
+
+    span {
+      font-size: 11px;
+    }
+  }
+
+  .action-btn {
+    padding: 14px 24px;
+    font-size: 14px;
+    border-radius: 0 0 20px 20px;
+    gap: 8px;
+
+    i {
+      font-size: 16px;
+    }
+  }
+
+  // Reduce particle and star sizes on mobile
+  .particle {
+    width: 6px;
+    height: 6px;
+
+    &:nth-child(odd) {
+      width: 4px;
+      height: 4px;
+    }
+
+    &:nth-child(3n) {
+      width: 8px;
+      height: 8px;
+    }
+  }
+
+  .star {
+    font-size: 10px;
+
+    &:nth-child(3n) {
+      font-size: 8px;
+    }
+  }
+}
+
+// Extra small screens
+@media (max-width: 360px) {
+  .badge-dialog-wrapper {
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+
+  .mascot-hero {
+    padding: 20px 12px 6px;
+  }
+
+  .mascot-image {
+    width: 90px;
+    height: 90px;
+  }
+
+  .mascot-glow {
+    width: 120px;
+    height: 120px;
+  }
+
+  .content-section {
+    padding: 14px 16px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .speech-box p {
+    font-size: 12px;
+  }
+
+  .action-btn {
+    padding: 12px 20px;
+    font-size: 13px;
+    border-radius: 0 0 16px 16px;
+  }
+}

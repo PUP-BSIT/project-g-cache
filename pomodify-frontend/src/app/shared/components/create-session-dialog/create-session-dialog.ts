@@ -19,6 +19,7 @@ export interface CreateSessionDialogData {
   enableLongBreak: boolean;
   longBreakTimeInMinutes?: number;
   longBreakIntervalInMinutes?: number;
+  longBreakIntervalInCycles?: number;
 }
 
 @Component({
@@ -58,24 +59,34 @@ export class CreateSessionDialogComponent {
   readonly CLASSIC_LONG_BREAK = 15;
   readonly CLASSIC_LONG_BREAK_INTERVAL = 5; // Every 5th break
 
-  // Freestyle Cycle Options for Long Break Frequency
+  // Freestyle Cycle Options for Long Break Frequency (2-10 cycles per Requirements 4.2)
   readonly FREESTYLE_CYCLE_OPTIONS = [
     { label: 'Every 2 cycles', value: 2 },
     { label: 'Every 3 cycles', value: 3 },
     { label: 'Every 4 cycles', value: 4 },
     { label: 'Every 5 cycles', value: 5 },
-    { label: 'Every 6 cycles', value: 6 }
+    { label: 'Every 6 cycles', value: 6 },
+    { label: 'Every 7 cycles', value: 7 },
+    { label: 'Every 8 cycles', value: 8 },
+    { label: 'Every 9 cycles', value: 9 },
+    { label: 'Every 10 cycles', value: 10 }
   ];
+
+  // Freestyle constraints per Requirements 1.2, 2.2, 3.2, 4.2
+  readonly MIN_FOCUS = 5;
+  readonly MAX_FOCUS = 90;
+  readonly MIN_LONG_BREAK_INTERVAL = 2;
+  readonly MAX_LONG_BREAK_INTERVAL = 10;
 
   constructor() {
     this.form = this.fb.group({
       sessionType: ['CLASSIC', Validators.required],
-      focusTimeInMinutes: [this.CLASSIC_FOCUS, [Validators.required, Validators.min(5), Validators.max(90)]],
+      focusTimeInMinutes: [this.CLASSIC_FOCUS, [Validators.required, Validators.min(this.MIN_FOCUS), Validators.max(this.MAX_FOCUS)]],
       breakTimeInMinutes: [this.CLASSIC_BREAK, [Validators.required, Validators.min(this.MIN_SHORT_BREAK), Validators.max(this.MAX_SHORT_BREAK)]],
       cycles: [4, [Validators.required, Validators.min(1), Validators.max(20)]],
       enableLongBreak: [true],
       longBreakTimeInMinutes: [this.CLASSIC_LONG_BREAK, [Validators.min(this.MIN_LONG_BREAK), Validators.max(this.MAX_LONG_BREAK)]],
-      longBreakIntervalCycles: [4] // Cycles before long break (for Freestyle)
+      longBreakIntervalCycles: [4, [Validators.min(this.MIN_LONG_BREAK_INTERVAL), Validators.max(this.MAX_LONG_BREAK_INTERVAL)]] // Cycles before long break (for Freestyle)
     });
 
     // Add custom validator for Focus > Break (only for Freestyle)
@@ -180,15 +191,14 @@ export class CreateSessionDialogComponent {
 
   getLoopPreview(): string[] {
     // Generate preview pattern: F B F B F B F L (for 4 cycle interval)
-    // But only show L if long breaks are actually eligible (total time > 180 min)
+    // Freestyle sessions always have long breaks at the configured interval
     const pattern: string[] = [];
     const interval = this.longBreakIntervalCycles;
-    const showLongBreak = this.isLongBreakEligible;
     
     for (let i = 1; i <= interval; i++) {
       pattern.push('F'); // Focus
-      if (i === interval && showLongBreak) {
-        pattern.push('L'); // Long break at the end (only if eligible)
+      if (i === interval) {
+        pattern.push('L'); // Long break at the end of interval
       } else {
         pattern.push('B'); // Short break
       }
@@ -219,16 +229,17 @@ export class CreateSessionDialogComponent {
         sessionType: formValue.sessionType,
         focusTimeInMinutes: formValue.sessionType === 'CLASSIC' ? this.CLASSIC_FOCUS : formValue.focusTimeInMinutes,
         breakTimeInMinutes: formValue.sessionType === 'CLASSIC' ? this.CLASSIC_BREAK : formValue.breakTimeInMinutes,
-        cycles: formValue.sessionType === 'CLASSIC' ? formValue.cycles : formValue.longBreakIntervalCycles,
-        enableLongBreak: longBreakEligible,
-        longBreakTimeInMinutes: longBreakEligible 
-          ? (formValue.sessionType === 'CLASSIC' ? this.CLASSIC_LONG_BREAK : formValue.longBreakTimeInMinutes)
-          : undefined,
+        cycles: formValue.sessionType === 'CLASSIC' ? formValue.cycles : null, // Freestyle has no fixed cycles
+        enableLongBreak: isFreestyle ? true : longBreakEligible, // Freestyle always has long breaks
+        longBreakTimeInMinutes: isFreestyle 
+          ? formValue.longBreakTimeInMinutes 
+          : (longBreakEligible ? this.CLASSIC_LONG_BREAK : undefined),
         longBreakIntervalInMinutes: longBreakEligible
           ? (formValue.sessionType === 'FREESTYLE' 
               ? (formValue.focusTimeInMinutes + formValue.breakTimeInMinutes) * formValue.longBreakIntervalCycles 
               : (this.CLASSIC_FOCUS + this.CLASSIC_BREAK) * this.CLASSIC_LONG_BREAK_INTERVAL)
-          : undefined
+          : undefined,
+        longBreakIntervalInCycles: isFreestyle ? formValue.longBreakIntervalCycles : undefined
       };
 
       this.dialogRef.close(data);

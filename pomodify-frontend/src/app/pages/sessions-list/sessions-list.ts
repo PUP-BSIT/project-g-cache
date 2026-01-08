@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SessionService, PomodoroSession, SessionStatus } from '../../core/services/session.service';
 import { ActivityService } from '../../core/services/activity.service';
+import { ActivityColorService } from '../../core/services/activity-color.service';
 import { switchMap, catchError, of, filter } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../shared/components/create-session-dialog/create-session-dialog';
@@ -18,7 +19,10 @@ import { HttpErrorResponse } from '@angular/common/http';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './sessions-list.html',
-  styleUrls: ['./sessions-list.scss']
+  styleUrls: ['./sessions-list.scss'],
+  host: {
+    'class': 'sessions-list-page'
+  }
 })
 export class SessionsListComponent implements OnInit {
 
@@ -46,6 +50,7 @@ export class SessionsListComponent implements OnInit {
   protected router = inject(Router);
   private sessionService = inject(SessionService);
   private activityService = inject(ActivityService);
+  private activityColorService = inject(ActivityColorService);
   private dialog = inject(MatDialog);
   
   // Route parameter
@@ -55,6 +60,7 @@ export class SessionsListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   activityId = signal<number | null>(null);
+  activityColor = signal<string | null>(null);  // Store the activity's color
   
   showAbandoned = signal(false);
   
@@ -113,6 +119,17 @@ export class SessionsListComponent implements OnInit {
     return Math.ceil(this.allAbandonedSessions().length / this.PAGE_SIZE);
   });
 
+  // Smart pagination - shows max 5 pages with ellipsis
+  readonly MAX_VISIBLE_PAGES = 5;
+
+  completedVisiblePages = computed(() => {
+    return this.getVisiblePages(this.completedPage(), this.completedTotalPages());
+  });
+
+  abandonedVisiblePages = computed(() => {
+    return this.getVisiblePages(this.abandonedPage(), this.abandonedTotalPages());
+  });
+
   hasActiveSession = computed(() => {
     return this.sessions().some(s => 
       s.status === 'NOT_STARTED' || 
@@ -126,6 +143,47 @@ export class SessionsListComponent implements OnInit {
     this.abandonedPage.set(1); // Reset to first page when toggling
   }
 
+  // Helper function to determine which pages to display with smart truncation
+  private getVisiblePages(currentPage: number, totalPages: number): (number | string)[] {
+    if (totalPages <= this.MAX_VISIBLE_PAGES) {
+      // Show all pages if we're under the limit
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const pages: (number | string)[] = [];
+
+    if (currentPage <= this.MAX_VISIBLE_PAGES) {
+      // Show first 5 pages (1-5)
+      for (let i = 1; i <= this.MAX_VISIBLE_PAGES; i++) {
+        pages.push(i);
+      }
+      // Add ellipsis and last page if there are more pages
+      if (totalPages > this.MAX_VISIBLE_PAGES) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    } else {
+      // Show page 1, ellipsis, then 4 pages ending at currentPage
+      pages.push(1);
+      pages.push('...');
+      
+      const start = currentPage - 3; // This gives us 4 pages (start to currentPage inclusive)
+      const end = Math.min(currentPage, totalPages);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis and last page if current page is not the last
+      if (end < totalPages) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  }
+
   // Pagination methods
   goToCompletedPage(page: number): void {
     if (page >= 1 && page <= this.completedTotalPages()) {
@@ -136,6 +194,19 @@ export class SessionsListComponent implements OnInit {
   goToAbandonedPage(page: number): void {
     if (page >= 1 && page <= this.abandonedTotalPages()) {
       this.abandonedPage.set(page);
+    }
+  }
+
+  // Helper methods for template pagination (handles string | number from array)
+  navigateCompletedPage(page: string | number): void {
+    if (typeof page === 'number') {
+      this.goToCompletedPage(page);
+    }
+  }
+
+  navigateAbandonedPage(page: string | number): void {
+    if (typeof page === 'number') {
+      this.goToAbandonedPage(page);
     }
   }
 
@@ -188,6 +259,11 @@ export class SessionsListComponent implements OnInit {
         
         this.activityId.set(activity.activityId);
         
+        // Get the activity color from localStorage or backend
+        const storedColor = this.activityColorService.getColorTag(activity.activityId);
+        const color = storedColor || activity.color || '#5FA9A4';
+        this.activityColor.set(color);
+        
         // Now fetch sessions for this activity
         return this.sessionService.getSessions(activity.activityId);
       }),
@@ -202,6 +278,92 @@ export class SessionsListComponent implements OnInit {
       this.sessions.set(sessions);
       this.loading.set(false);
     });
+  }
+
+  /**
+   * Get the session card gradient style based on activity color
+   */
+  protected getSessionCardStyle(): { [key: string]: string } {
+    const color = this.activityColor() || '#5FA9A4';
+    console.log('[Sessions List] Activity color:', color);
+    const hexColor = this.colorNameToHex(color);
+    const lighterColor = this.lightenColor(hexColor, 15);
+    
+    return {
+      'background': `linear-gradient(135deg, ${hexColor} 0%, ${lighterColor} 100%)`
+    };
+  }
+
+  /**
+   * Convert color name or hue value to hex
+   */
+  private colorNameToHex(color: string): string {
+    // If already hex, return as-is
+    if (color.startsWith('#')) {
+      return color;
+    }
+    
+    // Check if it's a numeric hue value (from the slider)
+    const hueNum = parseFloat(color);
+    if (!isNaN(hueNum) && hueNum >= 0 && hueNum <= 360) {
+      return this.hueToHex(hueNum);
+    }
+    
+    // Common color name mappings
+    const colorMap: { [key: string]: string } = {
+      'red': '#E74C3C',
+      'orange': '#F39C12',
+      'yellow': '#F1C40F',
+      'green': '#27AE60',
+      'teal': '#5FA9A4',
+      'blue': '#3498DB',
+      'purple': '#9B59B6',
+      'pink': '#E91E63',
+      'indigo': '#5C6BC0',
+      'cyan': '#00BCD4'
+    };
+    
+    return colorMap[color.toLowerCase()] || '#5FA9A4';
+  }
+
+  /**
+   * Convert hue (0-360) to hex color
+   */
+  private hueToHex(hue: number): string {
+    const s = 0.7; // Saturation
+    const l = 0.5; // Lightness
+    
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((hue / 60) % 2 - 1));
+    const m = l - c / 2;
+    
+    let r = 0, g = 0, b = 0;
+    
+    if (hue < 60) { r = c; g = x; b = 0; }
+    else if (hue < 120) { r = x; g = c; b = 0; }
+    else if (hue < 180) { r = 0; g = c; b = x; }
+    else if (hue < 240) { r = 0; g = x; b = c; }
+    else if (hue < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    
+    const toHex = (n: number) => {
+      const hex = Math.round((n + m) * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+
+  /**
+   * Lighten a hex color by a percentage
+   */
+  private lightenColor(hex: string, percent: number): string {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+    const B = Math.min(255, (num & 0x0000FF) + amt);
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   }
 
   protected openSession(session: PomodoroSession): void {
@@ -228,16 +390,19 @@ export class SessionsListComponent implements OnInit {
     });
   }
 
-  protected createNewSession(): void {
+  protected onCreateSessionClick(): void {
     if (this.hasActiveSession()) {
       this.showAlertDialog(
         'Active Session Exists',
-        'You have an active session. Please complete or abandon it before creating a new one.',
+        'Finish current session first',
         'warning'
       );
       return;
     }
+    this.createNewSession();
+  }
 
+  protected createNewSession(): void {
     const actId = this.activityId();
     if (!actId) {
       console.error('Activity ID not available');

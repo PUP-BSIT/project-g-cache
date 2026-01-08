@@ -16,7 +16,7 @@
 }
 
 .wizard-content {
-  background: #fff;
+  background: var(--card);
   border-radius: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 2rem 2.5rem;
@@ -26,10 +26,12 @@
   overflow-y: auto;
   position: relative;
   animation: slideUp 0.3s ease;
+  color: var(--text);
+  width: auto;
   
   &.wide {
-    min-width: 720px;
-    max-width: 900px;
+    min-width: 100%;
+    max-width: min(900px, 95vw);
   }
 }
 
@@ -51,7 +53,7 @@
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #9ca3af;
+  color: var(--muted);
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -62,8 +64,8 @@
   transition: all 0.2s;
   
   &:hover {
-    background: #f3f4f6;
-    color: #6b7280;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--text);
   }
 }
 
@@ -76,7 +78,7 @@ form {
   h2 {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text);
     margin: 0;
     text-align: center;
   }
@@ -85,9 +87,11 @@ form {
 input[type="text"] {
   padding: 0.9rem 1.2rem;
   border-radius: 0.75rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border);
   font-size: 1.1rem;
   transition: all 0.2s;
+  background: var(--card);
+  color: var(--text);
   
   &:focus {
     outline: none;
@@ -96,28 +100,32 @@ input[type="text"] {
   }
   
   &::placeholder {
-    color: #9ca3af;
+    color: var(--muted);
   }
 }
 
 button[type="submit"] {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background-color: #4b9fa8;
   color: #fff;
   border: none;
-  border-radius: 0.75rem;
-  padding: 0.9rem 1.5rem;
-  font-size: 1.1rem;
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    background-color: #3d8490;
+    box-shadow: 0 4px 8px rgba(75, 159, 168, 0.2);
+  }
+  
+  &:active:not(:disabled) {
+    background-color: #2f6a75;
   }
   
   &:disabled {
-    background: #d1d5db;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 }
@@ -171,7 +179,7 @@ button[type="submit"] {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #e5e7eb;
+  border: 3px solid var(--border);
   border-top: 3px solid #6366f1;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -182,7 +190,7 @@ button[type="submit"] {
 }
 
 .generating-text {
-  color: #6b7280;
+  color: var(--muted);
   font-size: 1rem;
   margin: 0;
 }
@@ -195,13 +203,13 @@ button[type="submit"] {
 .preview-title {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.25rem 0;
   text-align: center;
 }
 
 .preview-subtitle {
-  color: #6b7280;
+  color: var(--muted);
   font-size: 0.95rem;
   margin: 0 0 1.5rem 0;
   text-align: center;
@@ -216,8 +224,8 @@ button[type="submit"] {
 }
 
 .plan-card {
-  background: #fff;
-  border: 2px solid #e5e7eb;
+  background: var(--card);
+  border: 2px solid var(--border);
   border-radius: 1rem;
   padding: 1.25rem;
   transition: all 0.25s ease;
@@ -256,14 +264,14 @@ button[type="submit"] {
 .plan-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 0.5rem 0;
   line-height: 1.3;
 }
 
 .plan-description {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--muted);
   margin: 0 0 1rem 0;
   line-height: 1.5;
 }
@@ -273,7 +281,7 @@ button[type="submit"] {
   gap: 1rem;
   margin-bottom: 1rem;
   padding: 0.6rem 0.8rem;
-  background: #f9fafb;
+  background: rgba(99, 102, 241, 0.05);
   border-radius: 0.5rem;
 }
 
@@ -282,7 +290,7 @@ button[type="submit"] {
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -296,7 +304,7 @@ button[type="submit"] {
   h4 {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--text);
     margin: 0 0 0.5rem 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -312,13 +320,13 @@ button[type="submit"] {
     position: relative;
     padding: 0.4rem 0 0.4rem 1.25rem;
     font-size: 0.9rem;
-    color: #4b5563;
+    color: var(--text);
     
     &::before {
       content: '○';
       position: absolute;
       left: 0;
-      color: #9ca3af;
+      color: var(--muted);
       font-size: 0.7rem;
     }
   }
@@ -328,9 +336,10 @@ button[type="submit"] {
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: rgba(251, 191, 36, 0.1);
   border-radius: 0.5rem;
   font-size: 0.85rem;
+  border-left: 3px solid #fbbf24;
 }
 
 .tip-icon {
@@ -338,7 +347,7 @@ button[type="submit"] {
 }
 
 .tip-text {
-  color: #92400e;
+  color: var(--text);
   line-height: 1.4;
 }
 
@@ -417,8 +426,8 @@ button[type="submit"] {
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--border);
+  color: var(--text);
   border: none;
   border-radius: 0.75rem;
   padding: 0.75rem 1.25rem;
@@ -428,7 +437,7 @@ button[type="submit"] {
   transition: all 0.2s;
   
   &:hover {
-    background: #e5e7eb;
+    background: rgba(99, 102, 241, 0.1);
   }
 }
 
@@ -443,20 +452,32 @@ button[type="submit"] {
   font-weight: 500;
   margin: 0 0 1.5rem 0;
   padding: 1rem;
-  background: #fef2f2;
+  background: rgba(220, 38, 38, 0.1);
   border-radius: 0.75rem;
+  border-left: 3px solid #dc2626;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .wizard-content.wide {
-    min-width: auto;
+  .wizard-content {
+    min-width: 100%;
     max-width: 95vw;
     padding: 1.5rem;
+    
+    &.wide {
+      min-width: 100%;
+      max-width: 95vw;
+      padding: 1.5rem;
+    }
   }
   
   .plans-grid {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .plan-card {
+    padding: 1rem;
   }
   
   .wizard-actions {
@@ -464,6 +485,102 @@ button[type="submit"] {
     
     button {
       width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .wizard-content {
+    min-width: auto;
+    max-width: calc(100vw - 32px);
+    padding: 1rem 0.875rem;
+    border-radius: 1rem;
+    margin: 0 16px;
+    
+    &.wide {
+      min-width: auto;
+      max-width: calc(100vw - 32px);
+      padding: 1rem 0.875rem;
+      margin: 0 16px;
+    }
+  }
+  
+  form h2,
+  .preview-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    padding-right: 2.5rem;
+  }
+  
+  form h2,
+  .preview-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .preview-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .plan-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.35rem;
+  }
+  
+  .plan-description {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .plan-timing {
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.6rem;
+  }
+  
+  .timing-item {
+    font-size: 0.75rem;
+  }
+  
+  .plan-todos {
+    margin-bottom: 0.75rem;
+    
+    h4 {
+      font-size: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    
+    li {
+      font-size: 0.8rem;
+      padding: 0.25rem 0 0.25rem 1rem;
+    }
+  }
+  
+  .plan-level-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .plan-tip {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .btn-accept {
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    margin-top: auto;
+  }
+  
+  input[type="text"] {
+    font-size: 0.95rem;
+    
+    &::placeholder {
+      font-size: 0.85rem;
     }
   }
 }

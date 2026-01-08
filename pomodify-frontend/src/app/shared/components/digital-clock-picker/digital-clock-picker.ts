@@ -3,6 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 /**
+ * Constraints for time picker values
+ */
+export interface TimePickerConstraints {
+  minMinutes: number;
+  maxMinutes: number;
+  minSeconds: number;
+  maxSeconds: number;
+}
+
+/**
  * Pure Presentation Component (Dumb Component)
  * Digital Clock Picker with iOS-style scroll snap
  */
@@ -21,7 +31,7 @@ import { FormsModule } from '@angular/forms';
             
             <!-- Scrollable List -->
             <div class="digit-container" #minutesScroll [class.hidden]="editingMinutes()">
-              @for (min of minutes(); track min) {
+              @for (min of minutesRange(); track min) {
                 <div 
                   class="digit-option" 
                   [class.selected]="min === time().minutes"
@@ -43,8 +53,8 @@ import { FormsModule } from '@angular/forms';
                   (blur)="finishEditMinutes()" 
                   (keydown.enter)="finishEditMinutes()"
                   (keydown.tab)="onTabFromMinutes()"
-                  min="0"
-                  max="60">
+                  [min]="effectiveMinMinutes()"
+                  [max]="effectiveMaxMinutes()">
               </div>
             }
 
@@ -62,7 +72,7 @@ import { FormsModule } from '@angular/forms';
             
             <!-- Scrollable List -->
             <div class="digit-container" #secondsScroll [class.hidden]="editingSeconds()">
-              @for (sec of seconds(); track sec) {
+              @for (sec of secondsRange(); track sec) {
                 <div 
                   class="digit-option" 
                   [class.selected]="sec === time().seconds"
@@ -84,8 +94,8 @@ import { FormsModule } from '@angular/forms';
                   (blur)="finishEditSeconds()" 
                   (keydown.enter)="finishEditSeconds()"
                   (keydown.tab)="onTabFromSeconds()"
-                  min="0"
-                  max="59">
+                  [min]="effectiveMinSeconds()"
+                  [max]="effectiveMaxSeconds()">
               </div>
             }
 
@@ -359,14 +369,32 @@ export class DigitalClockPickerComponent implements AfterViewInit {
   
   // Input for editable state
   isEditable = input<boolean>(true);
+  
+  // Input for constraints (optional)
+  constraints = input<TimePickerConstraints | null>(null);
 
   // ViewChild references for auto-scroll
   @ViewChild('minutesScroll') minutesScrollRef!: ElementRef<HTMLDivElement>;
   @ViewChild('secondsScroll') secondsScrollRef!: ElementRef<HTMLDivElement>;
 
-  // Generate number arrays
-  minutes = computed(() => Array.from({ length: 61 }, (_, i) => i)); // 0-60
-  seconds = computed(() => Array.from({ length: 60 }, (_, i) => i)); // 0-59
+  // Effective min/max values based on constraints
+  effectiveMinMinutes = computed(() => this.constraints()?.minMinutes ?? 0);
+  effectiveMaxMinutes = computed(() => this.constraints()?.maxMinutes ?? 60);
+  effectiveMinSeconds = computed(() => this.constraints()?.minSeconds ?? 0);
+  effectiveMaxSeconds = computed(() => this.constraints()?.maxSeconds ?? 59);
+
+  // Generate number arrays based on constraints
+  minutesRange = computed(() => {
+    const min = this.effectiveMinMinutes();
+    const max = this.effectiveMaxMinutes();
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  });
+  
+  secondsRange = computed(() => {
+    const min = this.effectiveMinSeconds();
+    const max = this.effectiveMaxSeconds();
+    return Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  });
 
   // Scroll debounce timers
   private minutesScrollTimeout: any;
@@ -411,28 +439,53 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     }
   }
 
+  /**
+   * Clamp a value to the valid range
+   */
+  private clampMinutes(val: number): number {
+    const min = this.effectiveMinMinutes();
+    const max = this.effectiveMaxMinutes();
+    if (val < min) return min;
+    if (val > max) return max;
+    return val;
+  }
+
+  private clampSeconds(val: number): number {
+    const min = this.effectiveMinSeconds();
+    const max = this.effectiveMaxSeconds();
+    if (val < min) return min;
+    if (val > max) return max;
+    return val;
+  }
+
   updateMinutes(val: number) {
     if (val === null || val === undefined) return;
-    let newMin = val;
-    if (newMin < 0) newMin = 0;
-    if (newMin > 60) newMin = 60;
-    this.time.update(t => ({ ...t, minutes: newMin }));
+    // Don't clamp during typing, only on blur
+    this.time.update(t => ({ ...t, minutes: val }));
   }
 
   updateSeconds(val: number) {
     if (val === null || val === undefined) return;
-    let newSec = val;
-    if (newSec < 0) newSec = 0;
-    if (newSec > 59) newSec = 59;
-    this.time.update(t => ({ ...t, seconds: newSec }));
+    // Don't clamp during typing, only on blur
+    this.time.update(t => ({ ...t, seconds: val }));
   }
 
   finishEditMinutes() {
+    // Clamp value on blur
+    const clamped = this.clampMinutes(this.time().minutes);
+    if (clamped !== this.time().minutes) {
+      this.time.update(t => ({ ...t, minutes: clamped }));
+    }
     this.editingMinutes.set(false);
     this.scrollToSelected();
   }
 
   finishEditSeconds() {
+    // Clamp value on blur
+    const clamped = this.clampSeconds(this.time().seconds);
+    if (clamped !== this.time().seconds) {
+      this.time.update(t => ({ ...t, seconds: clamped }));
+    }
     this.editingSeconds.set(false);
     this.scrollToSelected();
   }
@@ -489,7 +542,10 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     const itemHeight = container.querySelector('.digit-option')?.clientHeight || 160;
     const scrollTop = container.scrollTop;
     const selectedIndex = Math.round(scrollTop / itemHeight);
-    const newMinute = Math.min(60, Math.max(0, selectedIndex));
+    
+    // Map scroll index to actual minute value based on range
+    const minutesArray = this.minutesRange();
+    const newMinute = minutesArray[Math.min(selectedIndex, minutesArray.length - 1)] ?? this.effectiveMinMinutes();
     
     if (newMinute !== this.time().minutes) {
       console.log('📜 Scroll detected minute:', newMinute);
@@ -504,7 +560,10 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     const itemHeight = container.querySelector('.digit-option')?.clientHeight || 160;
     const scrollTop = container.scrollTop;
     const selectedIndex = Math.round(scrollTop / itemHeight);
-    const newSecond = Math.min(59, Math.max(0, selectedIndex));
+    
+    // Map scroll index to actual second value based on range
+    const secondsArray = this.secondsRange();
+    const newSecond = secondsArray[Math.min(selectedIndex, secondsArray.length - 1)] ?? this.effectiveMinSeconds();
     
     if (newSecond !== this.time().seconds) {
       console.log('📜 Scroll detected second:', newSecond);

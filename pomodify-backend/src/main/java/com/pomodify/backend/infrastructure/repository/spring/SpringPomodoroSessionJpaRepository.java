@@ -48,4 +48,27 @@ public interface SpringPomodoroSessionJpaRepository extends JpaRepository<Pomodo
            "AND s.phaseEndTime <= :now " +
            "AND (s.phaseNotified = false OR s.phaseNotified IS NULL)")
     List<PomodoroSession> findSessionsNeedingNotification(@Param("now") java.time.LocalDateTime now);
+
+    // Delete session todo items for all sessions belonging to a user
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM session_todo_item WHERE note_id IN " +
+           "(SELECT sn.id FROM session_note sn " +
+           "JOIN pomodoro_session ps ON sn.pomodoro_session_id = ps.id " +
+           "JOIN activity a ON ps.activity_id = a.id " +
+           "WHERE a.user_id = :userId)", nativeQuery = true)
+    void deleteAllTodoItemsByUserId(@Param("userId") Long userId);
+
+    // Delete session notes for all sessions belonging to a user
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM session_note WHERE pomodoro_session_id IN " +
+           "(SELECT ps.id FROM pomodoro_session ps " +
+           "JOIN activity a ON ps.activity_id = a.id " +
+           "WHERE a.user_id = :userId)", nativeQuery = true)
+    void deleteAllNotesByUserId(@Param("userId") Long userId);
+
+    // Delete all sessions belonging to a user
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM pomodoro_session WHERE activity_id IN " +
+           "(SELECT id FROM activity WHERE user_id = :userId)", nativeQuery = true)
+    void deleteAllByUserId(@Param("userId") Long userId);
 }

@@ -1,9 +1,9 @@
 
 // Place after variables are defined
 .notes-todo-wrapper {
-  background: #F5F5F5;
+  background: #F8FAFA;
   border-radius: 10px;
-  border: 1px solid rgba(95, 169, 164, 0.2);
+  border: 1px solid rgba(95, 169, 164, 0.12);
   padding: 0;
   margin-top: 12px;
   margin-bottom: 0;
@@ -618,6 +618,91 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     background: rgba(95, 169, 164, 0.1);
     border-radius: 20px;
     backdrop-filter: blur(10px);
+    
+    i {
+      margin-right: 6px;
+      color: var(--activity-color);
+    }
+  }
+}
+
+/* Long Break Interval Editor */
+.long-break-interval-editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: rgba(95, 169, 164, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(95, 169, 164, 0.15);
+  
+  .interval-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-light;
+  }
+  
+  .interval-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-interval-adjust {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background: var(--activity-color);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    i {
+      font-size: 12px;
+    }
+    
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--activity-color) 85%, black 15%);
+      transform: scale(1.05);
+    }
+    
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+  
+  .interval-input {
+    width: 48px;
+    height: 32px;
+    border: 1px solid rgba(95, 169, 164, 0.3);
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-dark;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+    
+    // Hide number spinners
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    -moz-appearance: textfield;
+    
+    &:focus {
+      border-color: var(--activity-color);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 15%, transparent 85%);
+    }
   }
 }
 
@@ -879,59 +964,161 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 12px;
 }
 
-.btn-timer-control {
-  background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
-  color: $bg-white;
+// Icon-only button style - all circular
+.btn-icon {
+  width: 60px;
+  height: 60px;
   border: none;
-  border-radius: 16px;
-  padding: 16px 52px;
-  font-size: 18px;
-  font-weight: 700;
+  border-radius: 50%;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 8px 24px color-mix(in srgb, var(--activity-color) 30%, transparent 70%),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  flex-shrink: 0;
   
+  i {
+    font-size: 22px;
+    color: #FFFFFF;
+    line-height: 1;
+  }
+  
+  // Shine effect on hover
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(145deg, 
-      transparent 0%,
-      rgba(255, 255, 255, 0.2) 50%,
-      transparent 100%
-    );
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(255,255,255,0.25) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
-  &:hover::before {
-    transform: translateX(100%);
+  // Pulse ring on hover
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
   }
-
+  
   &:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 
-      0 12px 32px rgba(95, 169, 164, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px) scale(1.1);
+    
+    &::before {
+      opacity: 1;
+    }
   }
-
+  
   &:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 
-      0 4px 16px rgba(95, 169, 164, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(0) scale(0.95);
   }
+  
+  // Start/Resume - Green (Primary action)
+  &.btn-start,
+  &.btn-resume {
+    background: linear-gradient(145deg, #2ECC71 0%, #27AE60 100%);
+    box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(46, 204, 113, 0.5);
+      
+      &::after {
+        border-color: rgba(46, 204, 113, 0.3);
+      }
+    }
+  }
+  
+  // Pause - Amber
+  &.btn-pause {
+    background: linear-gradient(145deg, #F1C40F 0%, #F39C12 100%);
+    box-shadow: 0 8px 24px rgba(241, 196, 15, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(241, 196, 15, 0.5);
+      
+      &::after {
+        border-color: rgba(241, 196, 15, 0.3);
+      }
+    }
+  }
+  
+  // Stop - Red
+  &.btn-stop {
+    background: linear-gradient(145deg, #E74C3C 0%, #C0392B 100%);
+    box-shadow: 0 8px 24px rgba(231, 76, 60, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(231, 76, 60, 0.5);
+      
+      &::after {
+        border-color: rgba(231, 76, 60, 0.3);
+      }
+    }
+  }
+  
+  // Reset - Orange
+  &.btn-reset {
+    background: linear-gradient(145deg, #F39C12 0%, #E67E22 100%);
+    box-shadow: 0 8px 24px rgba(243, 156, 18, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(243, 156, 18, 0.5);
+      
+      &::after {
+        border-color: rgba(243, 156, 18, 0.3);
+      }
+    }
+  }
+  
+  // Skip - Teal (activity color)
+  &.btn-skip {
+    background: linear-gradient(145deg, #5FA9A4 0%, #4D8B87 100%);
+    box-shadow: 0 8px 24px rgba(95, 169, 164, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(95, 169, 164, 0.5);
+      
+      &::after {
+        border-color: rgba(95, 169, 164, 0.3);
+      }
+    }
+  }
+  
+  // Complete - Green
+  &.btn-complete {
+    background: linear-gradient(145deg, #2ECC71 0%, #27AE60 100%);
+    box-shadow: 0 8px 24px rgba(46, 204, 113, 0.4);
+    
+    &:hover {
+      box-shadow: 0 12px 32px rgba(46, 204, 113, 0.5);
+      
+      &::after {
+        border-color: rgba(46, 204, 113, 0.3);
+      }
+    }
+  }
+}
+
+// Complete session section - inline with controls
+.complete-session-section {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+// Legacy button styles kept for backward compatibility
+.btn-timer-control {
+  display: none; // Hidden - using icon buttons now
 }
 
 .btn-stop {
@@ -1003,107 +1190,9 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 }
 
+// Legacy button styles - hidden, using .btn-icon now
 .btn-fast-forward {
-  background: var(--activity-color);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: $card-shadow;
-
-  i {
-    font-size: 20px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
-}
-
-// Skip button (similar to fast-forward but with text)
-.btn-skip {
-  background: var(--activity-color);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: $card-shadow;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  i {
-    font-size: 16px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
-}
-
-// Reset button (yellow/orange warning style)
-.btn-reset {
-  background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
-  color: $bg-white;
-  border: none;
-  border-radius: 12px;
-  padding: 14px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow: $card-shadow;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  i {
-    font-size: 16px;
-  }
-
-  &:hover {
-    background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
-    transform: translateY(-2px);
-    box-shadow: $card-shadow-hover;
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: $card-shadow;
-  }
+  display: none;
 }
 
 // Complete session section and button
@@ -1408,19 +1497,19 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 .todo-text {
   flex: 1;
   border: none;
-  background: transparent;
+  background: transparent !important;
   font-size: 14px;
-  color: $text-dark;
+  color: #2C3E50 !important;
   outline: none;
   padding: 4px;
 
   &:focus {
-    background: rgba(95, 169, 164, 0.05);
+    background: rgba(95, 169, 164, 0.05) !important;
     border-radius: 4px;
   }
 
   &::placeholder {
-    color: $text-gray;
+    color: #7F8C8D !important;
   }
 }
 
@@ -1455,12 +1544,12 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   width: 100%;
   min-height: 200px;
   padding: 14px;
-  border: 1px solid rgba(95, 169, 164, 0.2);
+  border: 1px solid rgba(95, 169, 164, 0.15);
   border-radius: 10px;
-  background: $bg-light;
+  background: #F8FAFA !important;
   font-size: 14px;
   font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color: $text-dark;
+  color: #2C3E50 !important;
   resize: vertical;
   outline: none;
   box-sizing: border-box;
@@ -1468,11 +1557,11 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: $text-light;
+    color: #7F8C8D !important;
   }
 
   &:focus {
-    background: $bg-white;
+    background: #FFFFFF !important;
     border-color: var(--activity-color);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
   }
@@ -1640,60 +1729,26 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .timer-controls {
-    gap: 6px;
-    flex-wrap: wrap;
+    gap: 10px;
+    flex-wrap: nowrap;
     justify-content: center;
     width: 100%;
-    max-width: 260px;
-    margin-top: 4px;
+    max-width: 200px;
+    margin: 8px auto 0;
   }
 
-  .btn-timer-control {
-    padding: 8px 16px;
-    font-size: 12px;
-    border-radius: 10px;
-    min-width: auto;
-    flex: none;
-  }
-
-  .btn-stop {
-    padding: 8px 14px;
-    font-size: 12px;
-    border-radius: 10px;
-    min-width: auto;
-    flex: none;
-  }
-
-  .btn-skip {
-    padding: 8px 12px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 4px;
-
-    i {
-      font-size: 12px;
-    }
-  }
-
-  .btn-reset {
-    padding: 8px 12px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 4px;
-
-    i {
-      font-size: 12px;
-    }
-  }
-
-  .btn-fast-forward {
-    width: 36px;
-    height: 36px;
-    padding: 8px;
+  // Mobile icon buttons - compact circular buttons
+  .btn-icon {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 50% !important;
     flex-shrink: 0;
-
+    padding: 0 !important;
+    
     i {
-      font-size: 14px;
+      font-size: 16px !important;
     }
   }
 
@@ -1701,15 +1756,10 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     margin-top: 10px;
   }
 
+  // Hide legacy button styles
+  .btn-timer-control,
   .btn-complete-session {
-    padding: 10px 18px;
-    font-size: 12px;
-    border-radius: 10px;
-    gap: 6px;
-
-    i {
-      font-size: 14px;
-    }
+    display: none !important;
   }
 
   .early-complete-section {
@@ -1873,65 +1923,27 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   }
 
   .timer-controls {
-    gap: 4px;
+    gap: 8px;
     max-width: 220px;
-    margin-top: 2px;
+    margin-top: 4px;
   }
 
-  .btn-timer-control {
-    padding: 7px 14px;
-    font-size: 11px;
-    flex: none;
-  }
-
-  .btn-stop {
-    padding: 7px 12px;
-    font-size: 11px;
-    flex: none;
-  }
-
-  .btn-skip {
-    padding: 7px 10px;
-    font-size: 10px;
-    gap: 3px;
-
+  // Mobile icon buttons - ensure circular shape
+  .btn-icon {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    
     i {
-      font-size: 11px;
-    }
-  }
-
-  .btn-reset {
-    padding: 7px 10px;
-    font-size: 10px;
-    gap: 3px;
-
-    i {
-      font-size: 11px;
-    }
-  }
-
-  .btn-fast-forward {
-    width: 32px;
-    height: 32px;
-
-    i {
-      font-size: 12px;
+      font-size: 14px !important;
     }
   }
 
   .complete-session-section {
     margin-top: 8px;
-  }
-
-  .btn-complete-session {
-    padding: 8px 14px;
-    font-size: 11px;
-    border-radius: 8px;
-    gap: 5px;
-
-    i {
-      font-size: 12px;
-    }
   }
 
   .btn-early-complete {
@@ -2383,14 +2395,76 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       }
     }
   }
-}/* -------------------- DARK MODE SUPPORT - CONSISTENT WITH OTHER PAGES -------------------- */
+}
 
-/* Light Mode - Default styling is already light */
+/* -------------------- DARK MODE SUPPORT - CONSISTENT WITH OTHER PAGES -------------------- */
+
+/* Light Mode - Enhanced styling */
 :root:not(.theme-dark) {
   .session-timer-page {
-    background: $bg-gradient;
+    background: linear-gradient(135deg, #E8F4F3 0%, #F5F9FC 25%, #FDF8F3 50%, #F0F4FA 75%, #E8F4F3 100%);
+    background-size: 400% 400%;
+    animation: lightGradientShift 25s ease infinite;
     color: $text-dark;
   }
+  
+  .notes-panel {
+    background: #FFFFFF;
+    border: 1px solid rgba(95, 169, 164, 0.15);
+    box-shadow: 0 8px 32px rgba(95, 169, 164, 0.08);
+    
+    .notes-label {
+      color: $text-dark;
+    }
+    
+    .todo-item {
+      background: #F8FAFA;
+      border: 1px solid rgba(95, 169, 164, 0.12);
+      
+      &:hover {
+        background: #FFFFFF;
+        border-color: rgba(95, 169, 164, 0.25);
+      }
+      
+      .todo-text {
+        background: transparent;
+        color: $text-dark;
+        
+        &::placeholder {
+          color: $text-light;
+        }
+      }
+    }
+    
+    .notes-textarea {
+      background: #F8FAFA;
+      color: $text-dark;
+      border: 1px solid rgba(95, 169, 164, 0.12);
+      
+      &:focus {
+        background: #FFFFFF;
+        border-color: $primary-teal;
+        box-shadow: 0 0 0 3px rgba(95, 169, 164, 0.1);
+      }
+      
+      &::placeholder {
+        color: $text-light;
+      }
+    }
+  }
+  
+  .notes-todo-wrapper {
+    background: #F8FAFA;
+    border: 1px solid rgba(95, 169, 164, 0.12);
+  }
+}
+
+@keyframes lightGradientShift {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Dark Mode - Using CSS Variables for Consistency */
@@ -2405,6 +2479,24 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     }
   }
   
+  .loading-container,
+  .error-container {
+    color: var(--text);
+    
+    p {
+      color: var(--muted);
+    }
+    
+    .btn-primary {
+      background: var(--activity-color);
+      color: white;
+      
+      &:hover {
+        background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
+      }
+    }
+  }
+  
   .container {
     color: var(--text);
   }
@@ -2416,8 +2508,9 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       border: 1px solid var(--border);
       
       &:hover {
-        background: var(--muted);
-        color: var(--text);
+        background: var(--activity-color);
+        color: white;
+        border-color: var(--activity-color);
       }
     }
     
@@ -2429,14 +2522,25 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   .timer-circle {
     background: var(--card);
     border: 1px solid var(--border);
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.3),
+      0 0 0 8px rgba(95, 169, 164, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    
+    &:hover {
+      box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.4),
+        0 0 0 8px rgba(95, 169, 164, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
     
     .timer-top {
-      .session-type,
-      .cycle-indicator {
+      .session-type {
         color: var(--text);
       }
       
       .cycle-indicator {
+        color: var(--muted);
         background: rgba(95, 169, 164, 0.1);
       }
     }
@@ -2445,73 +2549,161 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       color: var(--muted);
       
       &.active {
-        color: var(--text);
-        background-color: rgba(95, 169, 164, 0.1);
+        color: var(--activity-color);
       }
       
       &.clickable:hover {
-        background-color: rgba(95, 169, 164, 0.05);
-        color: #7BC4BF;
+        color: color-mix(in srgb, var(--activity-color) 80%, white 20%);
+      }
+      
+      .phase-time {
+        color: var(--muted);
       }
     }
     
-    .time-value {
-      color: #FFFFFF;
-    }
-    
-    .edit-icon {
-      color: rgba(255, 255, 255, 0.7);
+    .timer-display-box {
+      background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
+      
+      .time-value {
+        color: #FFFFFF;
+        
+        .timer-input {
+          background: rgba(255, 255, 255, 0.15);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          color: #FFFFFF;
+          
+          &:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #FFFFFF;
+          }
+        }
+      }
+      
+      .edit-icon {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      .locked-icon {
+        color: rgba(255, 255, 255, 0.5);
+      }
     }
   }
   
   .btn-timer-control {
-    background: linear-gradient(145deg, #4b9fa8 0%, #3d8490 100%);
+    background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
     
     &:hover {
-      background: linear-gradient(145deg, #3d8490 0%, #2f6a75 100%);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--activity-color) 90%, black 10%) 0%, color-mix(in srgb, var(--activity-color) 75%, black 25%) 100%);
+    }
+  }
+  
+  .btn-start {
+    background: linear-gradient(145deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
+  }
+  
+  .btn-pause {
+    background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
+    
+    &:hover {
+      background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
+    }
+  }
+  
+  .btn-resume {
+    background: linear-gradient(145deg, #27AE60 0%, #1E8449 100%);
+    
+    &:hover {
+      background: linear-gradient(145deg, #1E8449 0%, #186A3B 100%);
     }
   }
   
   .btn-stop {
-    background: linear-gradient(145deg, #EF4444 0%, #DC2626 100%);
+    background: linear-gradient(145deg, #E74C3C 0%, #C0392B 100%);
     
     &:hover {
-      background: linear-gradient(145deg, #DC2626 0%, #B91C1C 100%);
+      background: #C0392B;
     }
   }
   
   .btn-early-complete {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border);
+    background: #27AE60;
     
     &:hover {
-      background: var(--muted);
+      background: #229954;
     }
   }
   
   .btn-fast-forward {
-    background: #4b9fa8;
+    background: var(--activity-color);
     
     &:hover {
-      background: #3d8490;
+      background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
+    }
+  }
+  
+  .btn-skip {
+    background: var(--activity-color);
+    
+    &:hover {
+      background: color-mix(in srgb, var(--activity-color) 90%, black 10%);
+    }
+  }
+  
+  .btn-reset {
+    background: linear-gradient(145deg, #F39C12 0%, #D68910 100%);
+    
+    &:hover {
+      background: linear-gradient(145deg, #D68910 0%, #B7770E 100%);
+    }
+  }
+  
+  .btn-complete-session {
+    background: linear-gradient(145deg, #27AE60 0%, #1E8449 100%);
+    
+    &:hover {
+      background: linear-gradient(145deg, #1E8449 0%, #186A3B 100%);
     }
   }
   
   .notes-panel {
     background: var(--card);
     border: 1px solid var(--border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    
+    &.read-only {
+      background: color-mix(in srgb, var(--card) 95%, var(--border) 5%);
+      border-color: var(--border);
+      
+      .notes-textarea,
+      .todo-text {
+        background: color-mix(in srgb, var(--bg) 90%, var(--border) 10%);
+        color: var(--muted);
+      }
+    }
     
     .notes-label {
       color: var(--text);
     }
     
+    .read-only-badge {
+      background: rgba(127, 140, 141, 0.15);
+      color: var(--muted);
+    }
+    
+    .btn-ai-suggest {
+      background: linear-gradient(135deg, #9333ea 0%, #7c3aed 50%, #6366f1 100%);
+      
+      &:hover:not(:disabled) {
+        box-shadow: 0 8px 25px rgba(147, 51, 234, 0.5);
+      }
+    }
+    
     .btn-add-todo {
-      background: #4b9fa8;
+      background: var(--activity-color);
       color: white;
       
       &:hover {
-        background: #3d8490;
+        background: color-mix(in srgb, var(--activity-color) 85%, black 15%);
       }
       
       .todo-label {
@@ -2525,18 +2717,27 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
       
       &:hover {
         background: var(--card);
+        border-color: rgba(95, 169, 164, 0.2);
+      }
+      
+      &.todo-done {
+        background: rgba(95, 169, 164, 0.05);
       }
       
       .todo-text {
-        background: transparent;
-        color: var(--text);
+        background: transparent !important;
+        color: var(--text) !important;
         
         &:focus {
-          background: rgba(75, 159, 168, 0.05);
+          background: rgba(95, 169, 164, 0.1) !important;
         }
         
         &::placeholder {
-          color: var(--muted);
+          color: var(--muted) !important;
+        }
+        
+        &.todo-checked {
+          color: var(--muted) !important;
         }
       }
       
@@ -2544,39 +2745,45 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
         color: var(--muted);
         
         &:hover {
-          background: rgba(239, 68, 68, 0.1);
-          color: #EF4444;
+          background: rgba(231, 76, 60, 0.1);
+          color: #E74C3C;
         }
       }
     }
     
     .notes-textarea {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg) !important;
+      color: var(--text) !important;
       border: 1px solid var(--border);
       
       &:focus {
-        background: var(--card);
-        border-color: #4b9fa8;
+        background: var(--card) !important;
+        border-color: var(--activity-color);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 10%, transparent 90%);
       }
       
       &::placeholder {
-        color: var(--muted);
+        color: var(--muted) !important;
       }
     }
+  }
+  
+  .notes-todo-wrapper {
+    background: var(--bg);
+    border: 1px solid var(--border);
   }
   
   .mascot-bubble {
     background: var(--card);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     
     &::before {
       border-top-color: var(--card);
     }
     
     span {
-      background: linear-gradient(135deg, #4b9fa8 0%, #3d8490 100%);
+      background: linear-gradient(135deg, var(--activity-color) 0%, color-mix(in srgb, var(--activity-color) 85%, black 15%) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -2587,6 +2794,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   .auto-start-toast .toast-content {
     background: var(--card);
     border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
     
     .toast-title {
       color: var(--text);
@@ -2608,9 +2816,14 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   
   // Auto-start modal dark mode
   .auto-start-notification.mobile-modal {
+    .auto-start-overlay {
+      background: rgba(0, 0, 0, 0.8);
+    }
+    
     .auto-start-modal {
       background: var(--card);
       border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       
       .auto-start-title {
         color: var(--text);

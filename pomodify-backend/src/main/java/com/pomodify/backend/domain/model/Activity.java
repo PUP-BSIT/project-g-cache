@@ -119,17 +119,33 @@ public class Activity {
                                          Integer totalCycles,
                                          Duration longBreakDuration,
                                          Duration longBreakInterval,
+                                         Integer longBreakIntervalCycles,
                                          String note) {
         ensureActive();
         ensureNoActiveSession();
         PomodoroSession session = PomodoroSession.create(this, sessionType, focusDuration, breakDuration, totalCycles, note);
-        if (longBreakDuration != null || longBreakInterval != null) {
-            session.validateBreaks(breakDuration, longBreakDuration, longBreakInterval);
+        if (longBreakDuration != null || longBreakInterval != null || longBreakIntervalCycles != null) {
+            session.validateBreaks(breakDuration, longBreakDuration, longBreakInterval, longBreakIntervalCycles);
             session.setLongBreakDuration(longBreakDuration);
             session.setLongBreakInterval(longBreakInterval);
+            session.setLongBreakIntervalCycles(longBreakIntervalCycles);
         }
         this.sessions.add(session);
         return session;
+    }
+    
+    /**
+     * @deprecated Use {@link #createSession(SessionType, Duration, Duration, Integer, Duration, Duration, Integer, String)} instead
+     */
+    @Deprecated
+    public PomodoroSession createSession(SessionType sessionType,
+                                         Duration focusDuration,
+                                         Duration breakDuration,
+                                         Integer totalCycles,
+                                         Duration longBreakDuration,
+                                         Duration longBreakInterval,
+                                         String note) {
+        return createSession(sessionType, focusDuration, breakDuration, totalCycles, longBreakDuration, longBreakInterval, null, note);
     }
 
     public PomodoroSession startSession(Long sessionId) {

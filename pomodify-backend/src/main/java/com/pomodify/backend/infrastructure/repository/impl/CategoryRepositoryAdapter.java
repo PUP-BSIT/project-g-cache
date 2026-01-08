@@ -31,4 +31,9 @@ public class CategoryRepositoryAdapter implements CategoryRepository {
     public List<Category> findAllCategories(Long userId) {
         return springRepo.findAllByUserIdAndIsDeletedFalse(userId);
     }
+
+    @Override
+    public void deleteAllByUserId(Long userId) {
+        springRepo.deleteAllByUserId(userId);
+    }
 }
