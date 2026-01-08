@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { API } from '../config/api.config';
+import { Logger } from './logger.service';
 
 export interface UserProfile {
   firstName: string;
@@ -42,8 +43,8 @@ export class UserProfileService {
    * Updates the user profile data
    */
   updateUserProfile(profile: UserProfile): void {
-    console.log('[UserProfileService] Updating user profile:', profile);
-    console.log('[UserProfileService] Profile picture URL from API:', profile.profilePictureUrl);
+    Logger.log('[UserProfileService] Updating user profile:', profile);
+    Logger.log('[UserProfileService] Profile picture URL from API:', profile.profilePictureUrl);
     this.userProfileSignal.set(profile);
     this.updateProfilePictureFromUrl(profile.profilePictureUrl);
   }
@@ -109,10 +110,10 @@ export class UserProfileService {
     if (url) {
       const baseUrl = API.ROOT.replace('/api/v2', '');
       const fullUrl = baseUrl + url;
-      console.log('[UserProfileService] Setting profile picture URL to:', fullUrl);
+      Logger.log('[UserProfileService] Setting profile picture URL to:', fullUrl);
       this.profilePictureUrlSignal.set(fullUrl);
     } else {
-      console.log('[UserProfileService] No profile picture URL, using default avatar');
+      Logger.log('[UserProfileService] No profile picture URL, using default avatar');
       this.profilePictureUrlSignal.set(this.DEFAULT_AVATAR);
     }
   }

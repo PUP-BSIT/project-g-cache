@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, switchMap, throwError, Observable, BehaviorSubject, filter, take, timer } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { API } from '../config/api.config';
+import { Logger } from '../services/logger.service';
 
 export const SKIP_REDIRECT = new HttpContextToken<boolean>(() => false);
 
@@ -148,6 +149,6 @@ function clearAuthData(): void {
   try {
     // console.log('[AuthErrorInterceptor] Auth data cleared');
   } catch (e) {
-    console.warn('[AuthErrorInterceptor] Unable to clear auth data', e);
+    Logger.warn('[AuthErrorInterceptor] Unable to clear auth data', e);
   }
 }

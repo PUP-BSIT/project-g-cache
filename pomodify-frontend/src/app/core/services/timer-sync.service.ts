@@ -3,6 +3,7 @@ import { timer, Subscription, interval, Subject } from 'rxjs';
 import { switchMap, catchError, filter } from 'rxjs/operators';
 import { SessionService, PomodoroSession } from './session.service';
 import { GlobalTimerService, GlobalTimerState } from './global-timer.service';
+import { Logger } from './logger.service';
 
 export interface TimerState {
   remainingSeconds: number;
@@ -65,7 +66,7 @@ export class TimerSyncService {
   }
 
   initializeTimer(session: PomodoroSession, activityId: number, activityTitle?: string): void {
-    console.log('🔧 Initializing timer sync service:', {
+    Logger.log('🔧 Initializing timer sync service:', {
       sessionId: session.id,
       status: session.status,
       currentPhase: session.currentPhase,
@@ -86,13 +87,13 @@ export class TimerSyncService {
     // CRITICAL: If session is PAUSED or COMPLETED, always use server state
     // This handles the case where backend scheduler processed phase completion
     if (session.status === 'PAUSED' || session.status === 'COMPLETED') {
-      console.log('🔧 Session is PAUSED/COMPLETED - using server state exclusively');
+      Logger.log('🔧 Session is PAUSED/COMPLETED - using server state exclusively');
       let serverRemaining = session.remainingPhaseSeconds || 0;
       
       // If server returned 0 or undefined for a PAUSED session, calculate the phase duration
       // This can happen when the backend transitions to a new phase
       if (serverRemaining <= 0 && session.status === 'PAUSED') {
-        console.log('⚠️ Server returned 0 remainingPhaseSeconds for PAUSED session, calculating fallback');
+        Logger.log('⚠️ Server returned 0 remainingPhaseSeconds for PAUSED session, calculating fallback');
         const phase = session.currentPhase;
         if (phase === 'FOCUS') {
           serverRemaining = (session.focusTimeInMinutes || 25) * 60;
@@ -101,10 +102,10 @@ export class TimerSyncService {
         } else {
           serverRemaining = (session.breakTimeInMinutes || 5) * 60;
         }
-        console.log('⏱️ Calculated fallback duration:', serverRemaining, 'for phase:', phase);
+        Logger.log('⏱️ Calculated fallback duration:', serverRemaining, 'for phase:', phase);
       }
       
-      console.log('🔧 Setting remaining seconds to:', serverRemaining);
+      Logger.log('🔧 Setting remaining seconds to:', serverRemaining);
       this._remainingSeconds.set(serverRemaining);
       this._isRunning.set(false);
       this._isPaused.set(session.status === 'PAUSED');
@@ -118,7 +119,7 @@ export class TimerSyncService {
         this.clearGlobalTimer();
       }
       
-      console.log('🔧 Timer initialized. Display:', this.getTimerDisplay());
+      Logger.log('🔧 Timer initialized. Display:', this.getTimerDisplay());
       return;
     }
 
@@ -128,7 +129,7 @@ export class TimerSyncService {
       const elapsedSinceLastPersist = Math.floor(age / 1000);
       const adjustedRemaining = Math.max(0, persistedState.remainingSeconds - elapsedSinceLastPersist);
       
-      console.log('Resuming running timer (persisted state):', {
+      Logger.log('Resuming running timer (persisted state):', {
         persistedRemaining: persistedState.remainingSeconds,
         elapsedSinceLastPersist,
         adjustedRemaining,
@@ -144,7 +145,7 @@ export class TimerSyncService {
       this.updateFromSession(session);
       this.startTimer();
     } else if (session.status === 'NOT_STARTED' && persistedState && persistedState.remainingSeconds > 0) {
-      console.log('Using persisted state for NOT_STARTED session:', {
+      Logger.log('Using persisted state for NOT_STARTED session:', {
         persistedRemaining: persistedState.remainingSeconds,
         serverRemaining: session.remainingPhaseSeconds
       });
@@ -164,7 +165,7 @@ export class TimerSyncService {
   startTimer(): void {
     if (!this.currentSession) return;
     
-    console.log('Starting timer with sync...');
+    Logger.log('Starting timer with sync...');
     
     this._isRunning.set(true);
     this._isPaused.set(false);
@@ -180,7 +181,7 @@ export class TimerSyncService {
   }
 
   pauseTimer(): void {
-    console.log('⏸Pausing timer...');
+    Logger.log('⏸Pausing timer...');
     
     this._isRunning.set(false);
     this._isPaused.set(true);
@@ -191,7 +192,7 @@ export class TimerSyncService {
   }
 
   stopTimer(): void {
-    console.log('⏹Stopping timer...');
+    Logger.log('⏹Stopping timer...');
     
     this._isRunning.set(false);
     this._isPaused.set(false);
@@ -208,7 +209,7 @@ export class TimerSyncService {
     
     // If server returned 0 or undefined, calculate the phase duration as fallback
     if (serverRemaining <= 0 && session.status !== 'COMPLETED') {
-      console.log('⚠️ Server returned 0 remainingPhaseSeconds, calculating fallback');
+      Logger.log('⚠️ Server returned 0 remainingPhaseSeconds, calculating fallback');
       const phase = session.currentPhase;
       if (phase === 'FOCUS') {
         serverRemaining = (session.focusTimeInMinutes || 25) * 60;
@@ -217,7 +218,7 @@ export class TimerSyncService {
       } else {
         serverRemaining = (session.breakTimeInMinutes || 5) * 60;
       }
-      console.log('⏱️ Calculated fallback duration:', serverRemaining, 'for phase:', phase);
+      Logger.log('⏱️ Calculated fallback duration:', serverRemaining, 'for phase:', phase);
     }
     
     this._remainingSeconds.set(serverRemaining);
@@ -225,7 +226,7 @@ export class TimerSyncService {
     this._isRunning.set(session.status === 'IN_PROGRESS');
     this._isPaused.set(session.status === 'PAUSED');
     
-    console.log('Updated from session:', {
+    Logger.log('Updated from session:', {
       status: session.status,
       remainingSeconds: serverRemaining,
       phase: session.currentPhase
@@ -236,7 +237,7 @@ export class TimerSyncService {
     if (!this.currentSession || !this.activityId) return;
     
     try {
-      console.log('Force syncing with backend...');
+      Logger.log('Force syncing with backend...');
       const updated = await this.sessionService.getSession(this.activityId, this.currentSession.id).toPromise();
       
       if (updated) {
@@ -244,7 +245,7 @@ export class TimerSyncService {
         this._isConnected.set(true);
       }
     } catch (error) {
-      console.warn('Force sync failed:', error);
+      Logger.warn('Force sync failed:', error);
       this._isConnected.set(false);
     }
   }
@@ -261,7 +262,7 @@ export class TimerSyncService {
   }
 
   setRemainingSeconds(seconds: number): void {
-    console.log('⏱️ setRemainingSeconds called:', {
+    Logger.log('⏱️ setRemainingSeconds called:', {
       newValue: seconds,
       oldValue: this._remainingSeconds(),
       isRunning: this._isRunning(),
@@ -274,7 +275,7 @@ export class TimerSyncService {
 
     this.persistState();
     
-    console.log('⏱️ After setRemainingSeconds:', {
+    Logger.log('⏱️ After setRemainingSeconds:', {
       remainingSeconds: this._remainingSeconds(),
       display: this.getTimerDisplay()
     });
@@ -322,7 +323,7 @@ export class TimerSyncService {
         return this.sessionService.getSession(this.activityId, this.currentSession.id);
       }),
       catchError(error => {
-        console.warn('Sync failed:', error);
+        Logger.warn('Sync failed:', error);
         this._isConnected.set(false);
         return [];
       })
@@ -342,7 +343,7 @@ export class TimerSyncService {
     this._drift.set(drift);
     this._lastSyncTime.set(Date.now());
     
-    console.log('Sync response:', {
+    Logger.log('Sync response:', {
       serverRemaining,
       localRemaining,
       drift,
@@ -355,18 +356,18 @@ export class TimerSyncService {
     const isJustStarted = (this.currentSession?.status === 'IN_PROGRESS' && session.status === 'IN_PROGRESS' && serverRemaining > 55);
     
     if (drift > this.maxDrift && !this.hasCustomTime && !isJustStarted) {
-      console.log('Correcting timer drift:', drift, 'seconds');
+      Logger.log('Correcting timer drift:', drift, 'seconds');
       this._remainingSeconds.set(serverRemaining);
       this.localStartTime = Date.now();
       this.serverRemainingAtSync = serverRemaining;
     } else if (drift > this.maxDrift && this.hasCustomTime) {
-      console.log('Skipping drift correction - user has custom time set');
+      Logger.log('Skipping drift correction - user has custom time set');
     } else if (isJustStarted) {
-      console.log('Skipping drift correction - session just started');
+      Logger.log('Skipping drift correction - session just started');
     }
 
     if (session.status !== this.currentSession?.status) {
-      console.log('Status changed:', this.currentSession?.status, '->', session.status);
+      Logger.log('Status changed:', this.currentSession?.status, '->', session.status);
       this.updateFromSession(session);
       
       if (session.status === 'PAUSED') {
@@ -380,7 +381,7 @@ export class TimerSyncService {
   }
 
   private handleTimerComplete(): void {
-    console.log('🔔 Timer completed! Current state:', {
+    Logger.log('🔔 Timer completed! Current state:', {
       remainingSeconds: this._remainingSeconds(),
       isRunning: this._isRunning(),
       isPaused: this._isPaused(),
@@ -396,7 +397,7 @@ export class TimerSyncService {
     // When tab is hidden, backend scheduler will handle phase completion and send FCM
     // This prevents race conditions where frontend completes phase before backend can notify
     if (document.hidden) {
-      console.log('🔔 Tab hidden - NOT emitting timer completion event (backend scheduler will handle)');
+      Logger.log('🔔 Tab hidden - NOT emitting timer completion event (backend scheduler will handle)');
       // Also pause the timer to prevent it from going negative
       this._isRunning.set(false);
       this._isPaused.set(true);
@@ -411,10 +412,10 @@ export class TimerSyncService {
         phase: (this.currentSession.currentPhase || 'FOCUS') as 'FOCUS' | 'BREAK' | 'LONG_BREAK',
         activityTitle: this.activityTitle || undefined
       };
-      console.log('🔔 Emitting timer completion event:', event);
+      Logger.log('🔔 Emitting timer completion event:', event);
       this._timerComplete$.next(event);
     } else {
-      console.warn('🔔 Cannot emit timer completion event - missing session or activityId:', {
+      Logger.warn('🔔 Cannot emit timer completion event - missing session or activityId:', {
         hasSession: !!this.currentSession,
         activityId: this.activityId
       });
@@ -445,7 +446,7 @@ export class TimerSyncService {
       const key = this.getStorageKey(this.currentSession.id);
       localStorage.setItem(key, JSON.stringify(state));
     } catch (error) {
-      console.warn('Failed to persist timer state:', error);
+      Logger.warn('Failed to persist timer state:', error);
     }
   }
 
@@ -458,7 +459,7 @@ export class TimerSyncService {
       
       if (stored) {
         const state: TimerState = JSON.parse(stored);
-        console.log('Loaded persisted timer state:', state);
+        Logger.log('Loaded persisted timer state:', state);
 
         const age = Date.now() - state.lastSyncTime;
         if (age < 5 * 60 * 1000) {
@@ -470,7 +471,7 @@ export class TimerSyncService {
         }
       }
     } catch (error) {
-      console.warn('Failed to load persisted timer state:', error);
+      Logger.warn('Failed to load persisted timer state:', error);
     }
     return null;
   }
@@ -482,7 +483,7 @@ export class TimerSyncService {
       const key = this.getStorageKey(this.currentSession.id);
       localStorage.removeItem(key);
     } catch (error) {
-      console.warn('Failed to clear persisted timer state:', error);
+      Logger.warn('Failed to clear persisted timer state:', error);
     }
   }
 

@@ -20,6 +20,7 @@ import { SuccessNotificationService } from '../../core/services/success-notifica
 import { UserProfileService } from '../../core/services/user-profile.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { BadgeNotificationService } from '../../core/services/badge-notification.service';
+import { Logger } from '../../core/services/logger.service';
 
 export type Session = {
   id: string;
@@ -99,8 +100,8 @@ export class Dashboard implements OnInit {
     // Check for new badge achievements
     this.badgeNotificationService.checkForNewBadges();
     this.auth.fetchAndStoreUserProfile().then(user => {
-        console.log('[Dashboard] User profile fetched:', user);
-        console.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);
+        Logger.log('[Dashboard] User profile fetched:', user);
+        Logger.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);
         this.profile.set(user);
         // Sync profile with shared service
         if (user) {
@@ -155,11 +156,11 @@ export class Dashboard implements OnInit {
     this.dashboardError.set(null);
 
     const timezone = this.dashboardService.getUserTimezone();
-    console.log('[Dashboard] Loading dashboard metrics with timezone:', timezone);
+    Logger.log('[Dashboard] Loading dashboard metrics with timezone:', timezone);
 
     this.dashboardService.getDashboard(timezone).subscribe({
       next: (data) => {
-        console.log('[Dashboard] Metrics loaded successfully:', {
+        Logger.log('[Dashboard] Metrics loaded successfully:', {
           sessions: data.totalSessions,
           focusTime: data.focusHoursAllTime,
           recentSessionsCount: data.recentSessions?.length || 0,
@@ -215,7 +216,7 @@ export class Dashboard implements OnInit {
   });
 
   protected openCreateActivityModal(): void {
-    console.log('[Dashboard] Quick start - creating new activity and session');
+    Logger.log('[Dashboard] Quick start - creating new activity and session');
     this.dialog
       .open(CreateActivityModal, {
         data: { categories: this.categories() },
@@ -226,7 +227,7 @@ export class Dashboard implements OnInit {
       .pipe(
         filter((result: CreateActivityModalData) => !!result),
         switchMap((result: CreateActivityModalData) => {
-          console.log('[Dashboard] Creating new activity:', result.name);
+          Logger.log('[Dashboard] Creating new activity:', result.name);
           // Convert color name to hex for backend
           const colorHex = this.colorNameToHex(result.colorTag);
           const req: any = {
@@ -234,7 +235,7 @@ export class Dashboard implements OnInit {
             description: result.category || '',
             color: colorHex,
           };
-          console.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
+          Logger.log('[Dashboard] Request payload:', JSON.stringify(req, null, 2));
           
           // Create activity via HTTP client
           return this.http.post<any>(API.ACTIVITIES.CREATE, req).pipe(
@@ -242,10 +243,10 @@ export class Dashboard implements OnInit {
           );
         }),
         switchMap(({ created, activityTitle }) => {
-          console.log('[Dashboard] Activity created, auto-creating session');
+          Logger.log('[Dashboard] Activity created, auto-creating session');
           const activityId = created.activities?.[0]?.activityId;
-          console.log('[Dashboard] Activity ID:', activityId);
-          console.log('[Dashboard] Created object:', created);
+          Logger.log('[Dashboard] Activity ID:', activityId);
+          Logger.log('[Dashboard] Created object:', created);
           
           // Auto-create session with CLASSIC preset
           const sessionPayload = {
@@ -255,8 +256,8 @@ export class Dashboard implements OnInit {
             cycles: 6
           };
           
-          console.log('[Dashboard] Session URL:', API.ACTIVITIES.SESSIONS.CREATE(activityId));
-          console.log('[Dashboard] Session payload:', sessionPayload);
+          Logger.log('[Dashboard] Session URL:', API.ACTIVITIES.SESSIONS.CREATE(activityId));
+          Logger.log('[Dashboard] Session payload:', sessionPayload);
           
           return this.http.post<any>(API.ACTIVITIES.SESSIONS.CREATE(activityId), sessionPayload).pipe(
             map(response => ({ response, activityId, activityTitle }))
@@ -265,13 +266,13 @@ export class Dashboard implements OnInit {
       )
       .subscribe({
         next: ({ response, activityId, activityTitle }) => {
-          console.log('[Dashboard] Session created, navigating to timer');
-          console.log('[Dashboard] Session response:', response);
+          Logger.log('[Dashboard] Session created, navigating to timer');
+          Logger.log('[Dashboard] Session response:', response);
           
           // Backend returns { message, sessions: [SessionItem], ... }
           const sessionId = response.sessions?.[0]?.id;
-          console.log('[Dashboard] Extracted sessionId:', sessionId);
-          console.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
+          Logger.log('[Dashboard] Extracted sessionId:', sessionId);
+          Logger.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
           
           if (!sessionId) {
             console.error('[Dashboard] Session ID is undefined!');
@@ -301,11 +302,11 @@ export class Dashboard implements OnInit {
   }
 
   protected onLogout(): void {
-    console.log('[Dashboard] Logout initiated');
+    Logger.log('[Dashboard] Logout initiated');
     this.isLoggingOut.set(true);
     this.auth.logout()
       .then(() => {
-        console.log('[Dashboard] Logout completed');
+        Logger.log('[Dashboard] Logout completed');
       })
       .catch((error) => {
         console.error('[Dashboard] Logout error:', error);
@@ -326,7 +327,7 @@ export class Dashboard implements OnInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          console.log('Profile updated:', result);
+          Logger.log('Profile updated:', result);
         }
       });
   }
