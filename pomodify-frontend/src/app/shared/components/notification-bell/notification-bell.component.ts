@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, ElementRef, Input, effect } from '@angular/core';
+import { Component, inject, HostListener, ElementRef, Input, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { BadgeNotificationService, BadgeNotification } from '../../../core/services/badge-notification.service';
@@ -34,12 +34,6 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
               <h3>Achievements</h3>
             </div>
             <div class="header-actions">
-              @if (notifications().length > 0) {
-                <button class="mark-all-btn" (click)="markAllAsRead()">
-                  <i class="fa-solid fa-check-double"></i>
-                  <span class="mark-text">Mark all read</span>
-                </button>
-              }
               <button class="close-dropdown-btn" (click)="closeDropdown()" aria-label="Close">
                 <i class="fa-solid fa-xmark"></i>
               </button>
@@ -47,7 +41,14 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
           </div>
 
           <div class="dropdown-content">
-            @if (notifications().length === 0) {
+            @if (isLoading()) {
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                </div>
+                <p class="empty-title">Loading achievements...</p>
+              </div>
+            } @else if (notifications().length === 0) {
               <div class="empty-state">
                 <div class="empty-icon">
                   <i class="fa-solid fa-medal"></i>
@@ -59,7 +60,7 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
               @for (notification of notifications(); track notification.id) {
                 <button 
                   class="notification-item" 
-                  [class.unread]="!notification.isRead"
+                  [class.unread]="notification.isNew"
                   (click)="openBadgeDialog(notification)">
                   <div class="notification-badge-img">
                     <img [src]="getBadgeImage(notification.badge.milestoneDays)" [alt]="notification.badge.name" />
@@ -67,14 +68,14 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
                   <div class="notification-content">
                     <div class="notification-header">
                       <span class="badge-name">{{ getBadgeName(notification.badge.milestoneDays) }}</span>
-                      @if (!notification.isRead) {
+                      @if (notification.isNew) {
                         <span class="new-tag">NEW</span>
                       }
                     </div>
                     <p class="notification-desc">{{ notification.badge.milestoneDays }}-day streak achieved!</p>
                     <div class="notification-meta">
-                      <i class="fa-regular fa-clock"></i>
-                      <span>{{ getRelativeTime(notification.createdAt) }}</span>
+                      <i class="fa-regular fa-calendar"></i>
+                      <span>{{ getFormattedDate(notification.badge.dateAwarded) }}</span>
                     </div>
                   </div>
                   <div class="notification-arrow">
@@ -84,22 +85,13 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
               }
             }
           </div>
-
-          @if (notifications().length > 0) {
-            <div class="dropdown-footer">
-              <button class="clear-all-btn" (click)="clearAll()">
-                <i class="fa-regular fa-trash-can"></i>
-                Clear all
-              </button>
-            </div>
-          }
         </div>
       }
     </div>
   `,
   styleUrls: ['./notification-bell.component.scss']
 })
-export class NotificationBellComponent {
+export class NotificationBellComponent implements OnInit {
   @Input() isModalOpen = false;
   
   private dialog = inject(MatDialog);
@@ -109,6 +101,7 @@ export class NotificationBellComponent {
   notifications = this.badgeNotificationService.notifications;
   unreadCount = this.badgeNotificationService.unreadCount;
   isDropdownOpen = this.badgeNotificationService.isDropdownOpen;
+  isLoading = this.badgeNotificationService.isLoading;
 
   constructor() {
     // Close dropdown when modal opens
@@ -117,6 +110,11 @@ export class NotificationBellComponent {
         this.badgeNotificationService.closeDropdown();
       }
     });
+  }
+
+  ngOnInit(): void {
+    // Load badge notifications from backend on component init
+    this.badgeNotificationService.loadBadgeNotifications();
   }
 
   @HostListener('document:click', ['$event'])
@@ -145,11 +143,12 @@ export class NotificationBellComponent {
       return;
     }
     event.stopPropagation();
+    // Refresh badges when opening dropdown
+    this.badgeNotificationService.loadBadgeNotifications();
     this.badgeNotificationService.toggleDropdown();
   }
 
   openBadgeDialog(notification: BadgeNotification): void {
-    this.badgeNotificationService.markAsRead(notification.id);
     this.badgeNotificationService.closeDropdown();
 
     this.dialog.open(BadgeAchievementDialogComponent, {
@@ -158,14 +157,6 @@ export class NotificationBellComponent {
       maxWidth: '95vw',
       disableClose: false
     });
-  }
-
-  markAllAsRead(): void {
-    this.badgeNotificationService.markAllAsRead();
-  }
-
-  clearAll(): void {
-    this.badgeNotificationService.clearAll();
   }
 
   closeDropdown(): void {
@@ -180,17 +171,20 @@ export class NotificationBellComponent {
     return this.badgeNotificationService.getBadgeInfo(milestoneDays).badgeName;
   }
 
-  getRelativeTime(date: Date): string {
+  getFormattedDate(dateStr: string): string {
+    const date = new Date(dateStr);
     const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return '1 day ago';
-    return `${diffDays} days ago`;
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
   }
 }

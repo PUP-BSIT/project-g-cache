@@ -97,8 +97,8 @@ export class Dashboard implements OnInit {
     }
     this.loadDashboardMetrics();
     this.loadCategories();
-    // Check for new badge achievements
-    this.badgeNotificationService.checkForNewBadges();
+    // Load badge notifications from backend
+    this.badgeNotificationService.loadBadgeNotifications();
     this.auth.fetchAndStoreUserProfile().then(user => {
         Logger.log('[Dashboard] User profile fetched:', user);
         Logger.log('[Dashboard] profilePictureUrl from API:', user?.profilePictureUrl);

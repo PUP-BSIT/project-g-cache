@@ -3,10 +3,9 @@ import { Badge, BadgeService } from './badge.service';
 import { Logger } from './logger.service';
 
 export interface BadgeNotification {
-  id: string;
+  id: number;
   badge: Badge;
-  isRead: boolean;
-  createdAt: Date;
+  isNew: boolean; // Based on dateAwarded being recent (e.g., within last 7 days)
 }
 
 // Badge milestone to sound file mapping
@@ -69,51 +68,59 @@ const BADGE_MESSAGES: Record<number, { title: string; badgeName: string; message
   },
 };
 
+// Number of days to consider a badge as "new"
+const NEW_BADGE_THRESHOLD_DAYS = 7;
+
 @Injectable({ providedIn: 'root' })
 export class BadgeNotificationService {
   private badgeService = inject(BadgeService);
 
-  // Store notifications in signal
+  // Store notifications in signal - fetched dynamically from backend
   private notificationsSignal = signal<BadgeNotification[]>([]);
-  private lastCheckedBadgesSignal = signal<number[]>([]);
   private isDropdownOpenSignal = signal(false);
+  private isLoadingSignal = signal(false);
 
   // Public readonly signals
   readonly notifications = this.notificationsSignal.asReadonly();
   readonly isDropdownOpen = this.isDropdownOpenSignal.asReadonly();
+  readonly isLoading = this.isLoadingSignal.asReadonly();
 
+  // Count badges awarded in the last N days as "new"
   readonly unreadCount = computed(() => {
-    return this.notificationsSignal().filter(n => !n.isRead).length;
+    return this.notificationsSignal().filter(n => n.isNew).length;
   });
 
-  constructor() {
-    this.loadFromStorage();
-  }
-
-  // Check for new badges and create notifications
-  checkForNewBadges(): void {
+  // Fetch badges from backend and convert to notifications
+  loadBadgeNotifications(): void {
+    this.isLoadingSignal.set(true);
+    
     this.badgeService.getUserBadges().subscribe({
       next: (badges) => {
-        const lastChecked = this.lastCheckedBadgesSignal();
-        const newBadges = badges.filter(b => !lastChecked.includes(b.id));
-
-        if (newBadges.length > 0) {
-          const newNotifications: BadgeNotification[] = newBadges.map(badge => ({
-            id: `badge-${badge.id}-${Date.now()}`,
+        const notifications: BadgeNotification[] = badges
+          .sort((a, b) => new Date(b.dateAwarded).getTime() - new Date(a.dateAwarded).getTime())
+          .map(badge => ({
+            id: badge.id,
             badge,
-            isRead: false,
-            createdAt: new Date()
+            isNew: this.isBadgeNew(badge.dateAwarded)
           }));
 
-          this.notificationsSignal.update(current => [...newNotifications, ...current]);
-          this.lastCheckedBadgesSignal.set(badges.map(b => b.id));
-          this.saveToStorage();
-        }
+        this.notificationsSignal.set(notifications);
+        this.isLoadingSignal.set(false);
       },
       error: (_err) => {
-        // Failed to check badges - silently handle
+        Logger.warn('Failed to load badge notifications');
+        this.isLoadingSignal.set(false);
       }
     });
+  }
+
+  // Check if a badge was awarded recently
+  private isBadgeNew(dateAwarded: string): boolean {
+    const awardedDate = new Date(dateAwarded);
+    const now = new Date();
+    const diffTime = now.getTime() - awardedDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return diffDays <= NEW_BADGE_THRESHOLD_DAYS;
   }
 
   // Toggle dropdown
@@ -123,30 +130,6 @@ export class BadgeNotificationService {
 
   closeDropdown(): void {
     this.isDropdownOpenSignal.set(false);
-  }
-
-  // Mark notification as read
-  markAsRead(notificationId: string): void {
-    this.notificationsSignal.update(notifications =>
-      notifications.map(n =>
-        n.id === notificationId ? { ...n, isRead: true } : n
-      )
-    );
-    this.saveToStorage();
-  }
-
-  // Mark all as read
-  markAllAsRead(): void {
-    this.notificationsSignal.update(notifications =>
-      notifications.map(n => ({ ...n, isRead: true }))
-    );
-    this.saveToStorage();
-  }
-
-  // Clear all notifications
-  clearAll(): void {
-    this.notificationsSignal.set([]);
-    this.saveToStorage();
   }
 
   // Get badge message info
@@ -179,36 +162,5 @@ export class BadgeNotificationService {
       return audio;
     }
     return null;
-  }
-
-  // Persistence
-  private saveToStorage(): void {
-    try {
-      localStorage.setItem('badge_notifications', JSON.stringify(this.notificationsSignal()));
-      localStorage.setItem('last_checked_badges', JSON.stringify(this.lastCheckedBadgesSignal()));
-    } catch (e) {
-      Logger.warn('Could not save notifications to storage:', e);
-    }
-  }
-
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem('badge_notifications');
-      const lastChecked = localStorage.getItem('last_checked_badges');
-
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        this.notificationsSignal.set(parsed.map((n: any) => ({
-          ...n,
-          createdAt: new Date(n.createdAt)
-        })));
-      }
-
-      if (lastChecked) {
-        this.lastCheckedBadgesSignal.set(JSON.parse(lastChecked));
-      }
-    } catch (e) {
-      Logger.warn('Could not load notifications from storage:', e);
-    }
   }
 }
