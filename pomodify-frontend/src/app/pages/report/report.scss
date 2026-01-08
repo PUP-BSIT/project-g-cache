@@ -611,19 +611,20 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .trend-icon {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   border-radius: 8px;
   background: $primary-teal;
   color: white !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 24px;
 }
 
 .trend-icon i {
   color: white !important;
+  font-size: 24px !important;
 }
 
 .trend-content {
