@@ -1511,6 +1511,11 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
   .report-middle-row {
     grid-template-columns: 1fr;
+    gap: 50px;
+  }
+
+  .insights-section {
+    margin-bottom: 40px;
   }
 
   .report-bottom-row {
