@@ -160,6 +160,9 @@ self.addEventListener('push', (event) => {
 
 // Helper function to display notification
 async function showNotification(title, body, data = {}) {
+  // Determine if we're on mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
   const notificationOptions = {
     body: body,
     icon: '/assets/images/logo.png',
@@ -167,6 +170,8 @@ async function showNotification(title, body, data = {}) {
     tag: 'pomodify-timer-' + Date.now(), // Unique tag to ensure new notifications show
     requireInteraction: true,
     renotify: true,
+    // For mobile PWA, use 'default' to trigger system sound
+    // For desktop, silent: false allows browser to play sound
     silent: false,
     vibrate: [200, 100, 200, 100, 200],
     actions: [
@@ -182,13 +187,24 @@ async function showNotification(title, body, data = {}) {
     data: {
       url: '/',
       timestamp: Date.now(),
+      playSound: true, // Flag for the app to play sound when opened
       ...data
     }
   };
 
   try {
     await self.registration.showNotification(title, notificationOptions);
-    console.log('Notification displayed:', title);
+    console.log('Notification displayed:', title, '(silent:', notificationOptions.silent, ')');
+    
+    // For desktop browsers, try to play sound via the app if it's open
+    // This is a fallback since service workers can't play audio directly
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) {
+      client.postMessage({
+        type: 'PLAY_NOTIFICATION_SOUND',
+        soundType: data.soundType || 'bell'
+      });
+    }
   } catch (error) {
     console.error('Failed to show notification:', error);
   }

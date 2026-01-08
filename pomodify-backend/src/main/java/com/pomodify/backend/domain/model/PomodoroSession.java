@@ -316,6 +316,11 @@ public class PomodoroSession {
     public PomodoroSession completeCyclePhase () {
         ensureActiveAndNotCompleted();
 
+        System.out.println("[DEBUG] completeCyclePhase: currentPhase=" + this.currentPhase + 
+            ", cyclesCompleted=" + this.cyclesCompleted +
+            ", longBreakDuration=" + this.longBreakDuration +
+            ", longBreakIntervalCycles=" + this.longBreakIntervalCycles);
+
         // Reset elapsed time for new phase but DON'T start the timer
         // Frontend controls when the next phase starts (user must press Start/Resume)
         this.elapsedTime = Duration.ZERO;
@@ -329,12 +334,15 @@ public class PomodoroSession {
         if (this.currentPhase == CyclePhase.FOCUS) {
             if (shouldTriggerLongBreak()) {
                 this.currentPhase = CyclePhase.LONG_BREAK;
+                System.out.println("[DEBUG] completeCyclePhase: Transitioning to LONG_BREAK");
             } else {
                 this.currentPhase = CyclePhase.BREAK;
+                System.out.println("[DEBUG] completeCyclePhase: Transitioning to BREAK");
             }
         } else {
             this.currentPhase = CyclePhase.FOCUS;
             this.cyclesCompleted += 1;
+            System.out.println("[DEBUG] completeCyclePhase: Transitioning to FOCUS, cyclesCompleted now=" + this.cyclesCompleted);
         }
 
         // Reset notification flag for new phase
@@ -427,12 +435,22 @@ public class PomodoroSession {
     }
 
     private boolean shouldTriggerLongBreak() {
-        if (this.longBreakDuration == null) return false;
+        if (this.longBreakDuration == null) {
+            System.out.println("[DEBUG] shouldTriggerLongBreak: longBreakDuration is null, returning false");
+            return false;
+        }
         
         // Use cycle-based interval if available (new approach)
         if (this.longBreakIntervalCycles != null) {
-            return (this.cyclesCompleted + 1) % this.longBreakIntervalCycles == 0;
+            boolean shouldTrigger = (this.cyclesCompleted + 1) % this.longBreakIntervalCycles == 0;
+            System.out.println("[DEBUG] shouldTriggerLongBreak: cyclesCompleted=" + this.cyclesCompleted + 
+                ", intervalCycles=" + this.longBreakIntervalCycles + 
+                ", (cyclesCompleted+1) % intervalCycles = " + ((this.cyclesCompleted + 1) % this.longBreakIntervalCycles) +
+                ", shouldTrigger=" + shouldTrigger);
+            return shouldTrigger;
         }
+        
+        System.out.println("[DEBUG] shouldTriggerLongBreak: longBreakIntervalCycles is null, falling back to time-based");
         
         // Fallback to time-based interval for backward compatibility
         if (this.longBreakInterval == null) return false;

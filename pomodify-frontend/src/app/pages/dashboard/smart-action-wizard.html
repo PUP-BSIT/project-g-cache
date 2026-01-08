@@ -7,14 +7,16 @@
         @case ('idle') {
           <form (ngSubmit)="startGeneration()">
             <h2>What do you want to focus on?</h2>
-            <input 
-              type="text" 
+            <textarea 
+              #topicTextarea
               [(ngModel)]="topic" 
               name="topic" 
-              maxlength="50" 
+              maxlength="200" 
               placeholder="e.g. Coding, Writing, Learning..." 
-              required 
-            />
+              required
+              (input)="onTopicInput($event)"
+              class="auto-expand-textarea">
+            </textarea>
             <button type="submit" [disabled]="!topic().trim()">Generate Plans ✨</button>
           </form>
         }

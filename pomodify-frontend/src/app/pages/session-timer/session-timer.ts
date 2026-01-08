@@ -300,6 +300,9 @@ export class SessionTimerComponent implements OnDestroy {
 
   // Visibility change handler reference for cleanup
   private visibilityChangeHandler: (() => void) | null = null;
+  
+  // Subscription for timer completion events
+  private timerCompleteSubscription: Subscription | null = null;
 
   constructor() {
     // Tell notification service we're on the timer page
@@ -311,9 +314,21 @@ export class SessionTimerComponent implements OnDestroy {
       this.loadSession(id);
     });
 
-    // Monitor timer completion
+    // Subscribe to timer completion events from the timer sync service
+    // This is more reliable than the effect-based approach because it catches
+    // the event directly when emitted, avoiding race conditions with signal updates
+    this.timerCompleteSubscription = this.timerSyncService.timerComplete$.subscribe(event => {
+      console.log('🔔 Timer completion event received in session-timer:', event);
+      if (!this.notificationSentForCurrentPhase) {
+        this.notificationSentForCurrentPhase = true;
+        this.handleTimerComplete();
+      }
+    });
+
+    // Monitor timer completion (backup check via effect)
     effect(() => {
       if (this.timerSyncService.isTimerComplete() && !this.notificationSentForCurrentPhase) {
+        console.log('⏰ Timer completion detected via effect');
         this.notificationSentForCurrentPhase = true;
         this.handleTimerComplete();
       }
@@ -460,6 +475,12 @@ export class SessionTimerComponent implements OnDestroy {
   ngOnDestroy() {
     // Tell notification service we're leaving the timer page
     this.notificationService.setOnTimerPage(false);
+    
+    // Clean up timer completion subscription
+    if (this.timerCompleteSubscription) {
+      this.timerCompleteSubscription.unsubscribe();
+      this.timerCompleteSubscription = null;
+    }
     
     // DON'T cleanup the timer sync service if timer is still running
     // This allows the timer to continue in the background when navigating away
@@ -1088,6 +1109,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Clear the reset flag when starting
     this.sessionHasBeenReset.set(false);
+    
+    // CRITICAL: Reset notification guard so timer completion will be handled
+    this.notificationSentForCurrentPhase = false;
 
     // If paused normally (user pressed pause), resume via API
     if (sess.status === 'PAUSED') {
@@ -1180,6 +1204,9 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Mark that we're no longer at phase start
     this.isAtPhaseStart.set(false);
+    
+    // CRITICAL: Reset notification guard so timer completion will be handled
+    this.notificationSentForCurrentPhase = false;
 
     // Call start/resume on backend to begin the phase
     this.sessionService.resumeSession(actId, sess.id).subscribe({
@@ -1212,6 +1239,9 @@ export class SessionTimerComponent implements OnDestroy {
 
     // Clear the reset flag when resuming (for classic mode button pairing)
     this.sessionHasBeenReset.set(false);
+    
+    // CRITICAL: Reset notification guard so timer completion will be handled
+    this.notificationSentForCurrentPhase = false;
 
     this.sessionService.resumeSession(actId, sess.id).subscribe({
       next: (updated) => {
@@ -1312,7 +1342,17 @@ export class SessionTimerComponent implements OnDestroy {
   private handlePhaseComplete(): void {
     const sess = this.session();
     const actId = this.activityId();
-    if (!sess || !actId) return;
+    if (!sess || !actId) {
+      console.warn('[Session Timer] handlePhaseComplete called but session or activityId is missing');
+      return;
+    }
+
+    console.log('[Session Timer] handlePhaseComplete called:', {
+      sessionId: sess.id,
+      currentPhase: sess.currentPhase,
+      status: sess.status,
+      cyclesCompleted: sess.cyclesCompleted
+    });
 
     // CRITICAL: If tab is not visible, let the backend scheduler handle phase completion
     // This prevents race conditions where frontend calls completePhase() before backend
@@ -1331,10 +1371,19 @@ export class SessionTimerComponent implements OnDestroy {
     const localPhase = sess.currentPhase || 'FOCUS';
     const localCycles = sess.cyclesCompleted || 0;
 
+    console.log('[Session Timer] Fetching latest session state from backend...');
+
     // First, fetch the latest session state from backend to check if phase was already transitioned
     // This prevents duplicate notifications when backend scheduler already processed the phase
     this.sessionService.getSession(actId, sess.id).subscribe({
       next: (latestSession) => {
+        console.log('[Session Timer] Latest session from backend:', {
+          status: latestSession.status,
+          currentPhase: latestSession.currentPhase,
+          cyclesCompleted: latestSession.cyclesCompleted,
+          remainingPhaseSeconds: latestSession.remainingPhaseSeconds
+        });
+
         // Check if backend already transitioned to a different phase or incremented cycles
         const backendPhase = latestSession.currentPhase;
         const backendCycles = latestSession.cyclesCompleted || 0;
@@ -1344,15 +1393,20 @@ export class SessionTimerComponent implements OnDestroy {
         const cyclesChanged = backendCycles !== localCycles;
         const isNotInProgress = backendStatus === 'PAUSED' || backendStatus === 'COMPLETED';
         
+        console.log('[Session Timer] Comparison:', {
+          localPhase,
+          backendPhase,
+          phaseChanged,
+          localCycles,
+          backendCycles,
+          cyclesChanged,
+          backendStatus,
+          isNotInProgress
+        });
+
         if (phaseChanged || cyclesChanged || isNotInProgress) {
           // Backend already processed the phase transition - just sync UI, no notification
-          console.log(`[Session Timer] Backend already processed phase transition:`, {
-            localPhase,
-            backendPhase,
-            localCycles,
-            backendCycles,
-            backendStatus
-          });
+          console.log(`[Session Timer] Backend already processed phase transition - syncing UI`);
           
           this.session.set(latestSession);
           this.timerSyncService.initializeTimer(latestSession, actId, this.activityTitle());
@@ -1374,6 +1428,7 @@ export class SessionTimerComponent implements OnDestroy {
         }
         
         // Backend hasn't processed yet - proceed with normal phase completion
+        console.log('[Session Timer] Backend has not processed yet - calling processPhaseCompletion');
         this.processPhaseCompletion(sess, actId, localPhase);
       },
       error: (err) => {
@@ -1427,21 +1482,41 @@ export class SessionTimerComponent implements OnDestroy {
     const newPhaseDuration = nextPhase === 'FOCUS' 
       ? (sess.focusTimeInMinutes || 25) * 60 
       : (sess.breakTimeInMinutes || 5) * 60;
+    console.log('⏱️ Optimistic update - setting timer to:', newPhaseDuration, 'for phase:', nextPhase);
     this.timerSyncService.setRemainingSeconds(newPhaseDuration);
     this.timerSyncService.pauseTimer(); // Ensure timer is paused
+    console.log('⏸️ Timer paused, current display:', this.timerSyncService.getTimerDisplay());
 
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
+        console.log('📥 Backend response for completePhase:', {
+          status: updated.status,
+          currentPhase: updated.currentPhase,
+          remainingPhaseSeconds: updated.remainingPhaseSeconds,
+          cyclesCompleted: updated.cyclesCompleted
+        });
+        
         // Sync with backend response - backend determines the actual next phase (BREAK vs LONG_BREAK)
         const syncedSession: PomodoroSession = {
           ...updated,
-          status: 'IN_PROGRESS' // Keep IN_PROGRESS, frontend controls timer
+          status: 'PAUSED' // Keep as PAUSED since user needs to start the next phase
         };
         this.session.set(syncedSession);
         
+        // Update timer sync service with the new session state
+        // This ensures currentSession is updated with the new phase
+        this.timerSyncService.updateFromSession(syncedSession);
+        
         // Update timer with correct duration from backend (handles LONG_BREAK properly)
-        if (updated.remainingPhaseSeconds !== undefined) {
+        if (updated.remainingPhaseSeconds !== undefined && updated.remainingPhaseSeconds > 0) {
+          console.log('⏱️ Setting timer to backend value:', updated.remainingPhaseSeconds);
           this.timerSyncService.setRemainingSeconds(updated.remainingPhaseSeconds);
+        } else {
+          console.warn('⚠️ Backend returned invalid remainingPhaseSeconds:', updated.remainingPhaseSeconds);
+          // Fallback: calculate duration based on phase
+          const fallbackDuration = this.calculatePhaseDuration(updated.currentPhase, updated);
+          console.log('⏱️ Using fallback duration:', fallbackDuration);
+          this.timerSyncService.setRemainingSeconds(fallbackDuration);
         }
         
         // If session is now completed, show completion message
@@ -1504,6 +1579,20 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Navigate back to sessions list for this activity
     this.router.navigate(['/activities', this.activityTitle(), 'sessions']);
+  }
+
+  /**
+   * Calculate the duration for a given phase based on session settings
+   */
+  private calculatePhaseDuration(phase: string | null, session: PomodoroSession): number {
+    if (phase === 'FOCUS') {
+      return (session.focusTimeInMinutes || 25) * 60;
+    } else if (phase === 'LONG_BREAK') {
+      return (session.longBreakTimeInMinutes || 15) * 60;
+    } else {
+      // BREAK
+      return (session.breakTimeInMinutes || 5) * 60;
+    }
   }
 
   /* -------------------- ERROR HANDLING -------------------- */
@@ -1702,6 +1791,12 @@ export class SessionTimerComponent implements OnDestroy {
     );
     this.persistTodos();
     this.onTodosChanged();
+  }
+
+  protected autoExpandTodo(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   }
 
   protected toggleTodo(id: number): void {

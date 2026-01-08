@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, ElementRef } from '@angular/core';
+import { Component, inject, HostListener, ElementRef, Input, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { BadgeNotificationService, BadgeNotification } from '../../../core/services/badge-notification.service';
@@ -14,6 +14,8 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
         class="notification-bell-btn" 
         (click)="toggleDropdown($event)"
         [class.has-notifications]="unreadCount() > 0"
+        [disabled]="isModalOpen"
+        [class.disabled]="isModalOpen"
         aria-label="Notifications">
         <i class="fa-solid fa-bell"></i>
         @if (unreadCount() > 0) {
@@ -21,7 +23,7 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
         }
       </button>
 
-      @if (isDropdownOpen()) {
+      @if (isDropdownOpen() && !isModalOpen) {
         <!-- Mobile backdrop -->
         <div class="mobile-backdrop" (click)="closeDropdown()"></div>
         
@@ -98,6 +100,8 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
   styleUrls: ['./notification-bell.component.scss']
 })
 export class NotificationBellComponent {
+  @Input() isModalOpen = false;
+  
   private dialog = inject(MatDialog);
   private elementRef = inject(ElementRef);
   private badgeNotificationService = inject(BadgeNotificationService);
@@ -106,6 +110,15 @@ export class NotificationBellComponent {
   unreadCount = this.badgeNotificationService.unreadCount;
   isDropdownOpen = this.badgeNotificationService.isDropdownOpen;
 
+  constructor() {
+    // Close dropdown when modal opens
+    effect(() => {
+      if (this.isModalOpen) {
+        this.badgeNotificationService.closeDropdown();
+      }
+    });
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.elementRef.nativeElement.contains(event.target)) {
@@ -113,7 +126,24 @@ export class NotificationBellComponent {
     }
   }
 
+  @HostListener('click', ['$event'])
+  @HostListener('mousedown', ['$event'])
+  @HostListener('touchstart', ['$event'])
+  onButtonClick(event: Event): void {
+    if (this.isModalOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      return;
+    }
+  }
+
   toggleDropdown(event: Event): void {
+    if (this.isModalOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     event.stopPropagation();
     this.badgeNotificationService.toggleDropdown();
   }

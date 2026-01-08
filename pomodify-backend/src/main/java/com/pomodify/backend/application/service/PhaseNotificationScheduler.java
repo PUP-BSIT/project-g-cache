@@ -149,13 +149,17 @@ public class PhaseNotificationScheduler {
             // Check if should trigger long break
             if (shouldTriggerLongBreak(session)) {
                 nextPhase = CyclePhase.LONG_BREAK;
+                log.info("advanceToNextPhase: Transitioning to LONG_BREAK for session {}", session.getId());
             } else {
                 nextPhase = CyclePhase.BREAK;
+                log.info("advanceToNextPhase: Transitioning to BREAK for session {}", session.getId());
             }
         } else {
             // After any break, go back to focus and increment cycle count
             nextPhase = CyclePhase.FOCUS;
             session.setCyclesCompleted((session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0) + 1);
+            log.info("advanceToNextPhase: Transitioning to FOCUS for session {}, cyclesCompleted now={}", 
+                session.getId(), session.getCyclesCompleted());
         }
         
         session.setCurrentPhase(nextPhase);
@@ -167,23 +171,48 @@ public class PhaseNotificationScheduler {
         // Set remaining time to full duration of the next phase
         long nextPhaseDurationSeconds = getNextPhaseDurationSeconds(session, nextPhase);
         session.setRemainingSecondsAtPause(nextPhaseDurationSeconds);
+        log.info("advanceToNextPhase: Set remainingSecondsAtPause={} for phase {} (session {})", 
+            nextPhaseDurationSeconds, nextPhase, session.getId());
         
-        // Check if session is now complete
+        // Check if session is now complete (only for Classic sessions)
+        // Freestyle sessions never auto-complete - they run until user manually completes
         Integer totalCycles = session.getTotalCycles();
         Integer cyclesCompleted = session.getCyclesCompleted();
-        if (totalCycles != null && cyclesCompleted != null && cyclesCompleted >= totalCycles) {
+        if (session.getSessionType() != com.pomodify.backend.domain.enums.SessionType.FREESTYLE &&
+            totalCycles != null && cyclesCompleted != null && cyclesCompleted >= totalCycles) {
             session.setStatus(SessionStatus.COMPLETED);
             session.setCompletedAt(java.time.LocalDateTime.now());
             session.setRemainingSecondsAtPause(null);
+            log.info("advanceToNextPhase: Session {} marked as COMPLETED (Classic session reached {} cycles)", 
+                session.getId(), cyclesCompleted);
         }
         // Status remains PAUSED (already set before this method is called)
     }
     
     /**
      * Check if a long break should be triggered based on session settings.
+     * Uses cycle-based interval (longBreakIntervalCycles) if available,
+     * otherwise falls back to time-based interval for backward compatibility.
      */
     private boolean shouldTriggerLongBreak(PomodoroSession session) {
-        if (session.getLongBreakDuration() == null || session.getLongBreakInterval() == null) {
+        if (session.getLongBreakDuration() == null) {
+            log.debug("shouldTriggerLongBreak: longBreakDuration is null, returning false");
+            return false;
+        }
+        
+        int cyclesCompleted = session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0;
+        
+        // Use cycle-based interval if available (new approach)
+        if (session.getLongBreakIntervalCycles() != null) {
+            boolean shouldTrigger = (cyclesCompleted + 1) % session.getLongBreakIntervalCycles() == 0;
+            log.info("shouldTriggerLongBreak: cyclesCompleted={}, intervalCycles={}, shouldTrigger={}", 
+                cyclesCompleted, session.getLongBreakIntervalCycles(), shouldTrigger);
+            return shouldTrigger;
+        }
+        
+        // Fallback to time-based interval for backward compatibility
+        if (session.getLongBreakInterval() == null) {
+            log.debug("shouldTriggerLongBreak: both intervalCycles and longBreakInterval are null, returning false");
             return false;
         }
         
@@ -191,8 +220,10 @@ public class PhaseNotificationScheduler {
         long cyclesPerLongBreak = session.getLongBreakInterval().toMinutes() / cycleMinutes;
         if (cyclesPerLongBreak < 1) cyclesPerLongBreak = 1;
         
-        int cyclesCompleted = session.getCyclesCompleted() != null ? session.getCyclesCompleted() : 0;
-        return (cyclesCompleted + 1) % cyclesPerLongBreak == 0;
+        boolean shouldTrigger = (cyclesCompleted + 1) % cyclesPerLongBreak == 0;
+        log.info("shouldTriggerLongBreak (time-based fallback): cyclesCompleted={}, cyclesPerLongBreak={}, shouldTrigger={}", 
+            cyclesCompleted, cyclesPerLongBreak, shouldTrigger);
+        return shouldTrigger;
     }
     
     /**
@@ -212,15 +243,26 @@ public class PhaseNotificationScheduler {
         Long userId = session.getActivity().getUser().getId();
         int focusMinutes = (int) session.getFocusDuration().toMinutes();
         int breakMinutes = (int) session.getBreakDuration().toMinutes();
+        int longBreakMinutes = session.getLongBreakDuration() != null 
+            ? (int) session.getLongBreakDuration().toMinutes() 
+            : breakMinutes;
         
         String title;
         String body;
         
         if (completedPhase == CyclePhase.FOCUS) {
-            // Focus phase just ended → transitioning to break
-            title = "☕ Focus Complete - Take a Break!";
-            body = String.format("Great work! %d minutes of focus done. Time for a %d minute break.", 
-                focusMinutes, breakMinutes);
+            // Focus phase just ended → transitioning to break or long break
+            // Check what the next phase will be
+            boolean isLongBreak = shouldTriggerLongBreak(session);
+            if (isLongBreak) {
+                title = "☕ Focus Complete - Long Break Time!";
+                body = String.format("Great work! %d minutes of focus done. Time for a %d minute long break.", 
+                    focusMinutes, longBreakMinutes);
+            } else {
+                title = "☕ Focus Complete - Take a Break!";
+                body = String.format("Great work! %d minutes of focus done. Time for a %d minute break.", 
+                    focusMinutes, breakMinutes);
+            }
         } else if (completedPhase == CyclePhase.LONG_BREAK) {
             // Long break ended → back to focus
             title = "🔥 Long Break Over - Back to Focus!";
