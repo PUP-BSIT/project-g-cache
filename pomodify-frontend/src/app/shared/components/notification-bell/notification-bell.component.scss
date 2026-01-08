@@ -8,6 +8,16 @@ $bg-light: #F8FAFC;
 
 .notification-bell-container {
   position: relative;
+
+  &.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
 }
 
 .notification-bell-btn {
@@ -25,14 +35,14 @@ $bg-light: #F8FAFC;
   font-size: 18px;
   position: relative;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba($primary-teal, 0.08);
     border-color: $primary-teal;
     color: $primary-teal;
     transform: scale(1.05);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
   }
 
@@ -40,6 +50,13 @@ $bg-light: #F8FAFC;
     i {
       animation: bell-ring 0.5s ease-in-out;
     }
+  }
+
+  &:disabled,
+  &.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 

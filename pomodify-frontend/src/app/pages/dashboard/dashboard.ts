@@ -78,7 +78,7 @@ export class Dashboard implements OnInit {
   // Categories for create activity modal
   protected categories = signal<string[]>([]);
 
-  smartActionWizardOpen = false;
+  protected smartActionWizardOpen = signal(false);
   smartActionMode: SmartActionMode = null;
 
   protected toggleSidebar(): void {
@@ -372,7 +372,7 @@ export class Dashboard implements OnInit {
   onSmartActionSelected(mode: SmartActionMode) {
     this.smartActionMode = mode;
     if (mode === 'wizard') {
-      this.smartActionWizardOpen = true;
+      this.smartActionWizardOpen.set(true);
     } else if (mode === 'quick') {
       this.startQuickFocus();
     } else if (mode === 'custom') {
@@ -381,12 +381,12 @@ export class Dashboard implements OnInit {
   }
 
   onSmartActionWizardClosed() {
-    this.smartActionWizardOpen = false;
+    this.smartActionWizardOpen.set(false);
     this.smartActionMode = null;
   }
 
   onSmartActionWizardConfirmed({ activityId, sessionId }: { activityId: number, sessionId: number }) {
-    this.smartActionWizardOpen = false;
+    this.smartActionWizardOpen.set(false);
     this.smartActionMode = null;
     // Fetch activity details to get the title for navigation
     this.activityService.getActivity(activityId).subscribe({

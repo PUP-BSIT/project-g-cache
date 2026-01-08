@@ -20,18 +20,17 @@
   border-radius: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 2rem 2.5rem;
-  min-width: 340px;
+  width: min(500px, 95vw);
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
   animation: slideUp 0.3s ease;
   color: var(--text);
-  width: auto;
   
   &.wide {
-    min-width: 100%;
-    max-width: min(900px, 95vw);
+    width: min(900px, 95vw);
+    max-width: 95vw;
   }
 }
 
@@ -460,12 +459,12 @@ button[type="submit"] {
 /* Responsive */
 @media (max-width: 768px) {
   .wizard-content {
-    min-width: 100%;
+    width: min(95vw, 500px);
     max-width: 95vw;
     padding: 1.5rem;
     
     &.wide {
-      min-width: 100%;
+      width: min(95vw, 800px);
       max-width: 95vw;
       padding: 1.5rem;
     }
@@ -491,14 +490,14 @@ button[type="submit"] {
 
 @media (max-width: 480px) {
   .wizard-content {
-    min-width: auto;
+    width: calc(100vw - 32px);
     max-width: calc(100vw - 32px);
     padding: 1rem 0.875rem;
     border-radius: 1rem;
     margin: 0 16px;
     
     &.wide {
-      min-width: auto;
+      width: calc(100vw - 32px);
       max-width: calc(100vw - 32px);
       padding: 1rem 0.875rem;
       margin: 0 16px;
