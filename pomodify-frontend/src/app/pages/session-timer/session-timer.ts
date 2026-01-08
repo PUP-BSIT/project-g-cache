@@ -20,7 +20,7 @@ import { ActivityColorService } from '../../core/services/activity-color.service
 import { TimerSyncService } from '../../core/services/timer-sync.service';
 import { AiService } from '../../core/services/ai.service';
 import { MatDialog } from '@angular/material/dialog';
-import { TimePickerModalComponent, TimePickerData } from '../../shared/components/time-picker-modal/time-picker-modal';
+import { TimePickerModalComponent, TimePickerData, PhaseType } from '../../shared/components/time-picker-modal/time-picker-modal';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { Auth } from '../../core/services/auth';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -203,6 +203,35 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     if (!sess) return '0/0';
     return `${sess.cyclesCompleted || 0}/${sess.cycles || 0}`;
+  });
+
+  // Long break interval display for Freestyle sessions
+  // Shows current cycle within the long break interval (e.g., "2/4" means 2nd cycle of 4 before long break)
+  longBreakIntervalDisplay = computed(() => {
+    const sess = this.session();
+    if (!sess || sess.sessionType !== 'FREESTYLE') return null;
+    
+    const interval = sess.longBreakIntervalCycles || 4;
+    const cyclesCompleted = sess.cyclesCompleted || 0;
+    // Current cycle within the interval (1-based)
+    const currentCycleInInterval = (cyclesCompleted % interval) + 1;
+    
+    return {
+      current: currentCycleInInterval,
+      total: interval,
+      display: `${currentCycleInInterval}/${interval}`
+    };
+  });
+
+  // Long break interval value for editing (2-10 cycles)
+  longBreakIntervalValue = signal<number>(4);
+
+  // Check if long break interval can be edited (only when NOT_STARTED)
+  canEditLongBreakInterval = computed(() => {
+    const sess = this.session();
+    return !!sess && 
+           sess.sessionType === 'FREESTYLE' && 
+           sess.status === 'NOT_STARTED';
   });
 
   // Phase indicator color
@@ -621,24 +650,35 @@ export class SessionTimerComponent implements OnDestroy {
   // Inline Timer Editing - Only Freestyle sessions can be edited
   protected canEditTimer(): boolean {
     const sess = this.session();
-    // Only allow editing for FREESTYLE sessions when PENDING or PAUSED
+    // Only allow editing for FREESTYLE sessions when NOT_STARTED
     // CLASSIC sessions have fixed durations: 25 min focus, 5 min break, 15 min long break
+    // Per Requirements 8.6: Editing is disabled for IN_PROGRESS, PAUSED, COMPLETED, ABANDONED
     return !!sess && 
            sess.sessionType === 'FREESTYLE' && 
-           sess.status !== 'COMPLETED' && 
-           sess.status !== 'IN_PROGRESS';
+           sess.status === 'NOT_STARTED';
   }
 
   protected openTimePicker(): void {
     if (!this.canEditTimer()) return;
 
-    const currentSeconds = this.remainingSeconds();
-    const minutes = Math.floor(currentSeconds / 60);
-    const seconds = currentSeconds % 60;
+    const sess = this.session();
+    if (!sess) return;
+    
+    const phase = this.currentPhase() as PhaseType;
 
     const dialogRef = this.dialog.open(TimePickerModalComponent, {
-      data: { minutes, seconds } as TimePickerData,
-      width: '400px',
+      data: { 
+        minutes: phase === 'FOCUS' ? sess.focusTimeInMinutes : (phase === 'BREAK' ? sess.breakTimeInMinutes : sess.longBreakTimeInMinutes || 15),
+        seconds: 0, 
+        phaseType: phase,
+        focusTimeInMinutes: sess.focusTimeInMinutes,
+        breakTimeInMinutes: sess.breakTimeInMinutes,
+        longBreakTimeInMinutes: sess.longBreakTimeInMinutes || 15,
+        longBreakIntervalCycles: sess.longBreakIntervalCycles || 4,
+        showLongBreakInterval: sess.sessionType === 'FREESTYLE' && sess.status === 'NOT_STARTED',
+        showPhaseTabs: sess.sessionType === 'FREESTYLE' && sess.status === 'NOT_STARTED'
+      } as TimePickerData,
+      width: '450px',
       panelClass: 'time-picker-dialog'
     });
 
@@ -650,75 +690,137 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   private updateTimerFromPicker(data: TimePickerData): void {
-    const phase = this.currentPhase();
-    let totalSeconds = (data.minutes * 60) + data.seconds;
-    let totalMinutes = Math.ceil(totalSeconds / 60);
-
-    // Validation (Clamp)
-    if (phase === 'FOCUS') {
-      if (totalMinutes < 1) totalMinutes = 1;
-      if (totalMinutes > 180) totalMinutes = 180;
-    } else if (phase === 'BREAK') {
-      if (totalMinutes < 2) totalMinutes = 2;
-      if (totalMinutes > 10) totalMinutes = 10;
-    } else if (phase === 'LONG_BREAK') {
-      if (totalMinutes < 15) totalMinutes = 15;
-      if (totalMinutes > 30) totalMinutes = 30;
-    }
-    
-    // Clamp seconds based on minutes limits
-    let minSec = 0;
-    let maxSec = 0;
-    
-    if (phase === 'FOCUS') {
-        minSec = 1 * 60;
-        maxSec = 180 * 60;
-    } else if (phase === 'BREAK') {
-        minSec = 2 * 60;
-        maxSec = 10 * 60;
-    } else if (phase === 'LONG_BREAK') {
-        minSec = 15 * 60;
-        maxSec = 30 * 60;
-    }
-    
-    if (totalSeconds < minSec) totalSeconds = minSec;
-    if (totalSeconds > maxSec) totalSeconds = maxSec;
-    
-    // Update Timer
-    this.timerSyncService.setRemainingSeconds(totalSeconds);
-    
-    // Update Backend
     const sess = this.session();
     const actId = this.activityId();
-    if (sess && actId) {
-        let updateReq: any = {
-            sessionType: sess.sessionType,
-            focusTimeInMinutes: sess.focusTimeInMinutes,
-            breakTimeInMinutes: sess.breakTimeInMinutes,
-            cycles: sess.cycles,
-            enableLongBreak: sess.enableLongBreak,
-            longBreakTimeInMinutes: sess.longBreakTimeInMinutes,
-            longBreakIntervalInMinutes: sess.longBreakIntervalInMinutes
-        };
-        
-        // We send minutes to backend.
-        const minutesToSend = Math.ceil(totalSeconds / 60);
-        
-        if (phase === 'FOCUS') {
-            updateReq.focusTimeInMinutes = minutesToSend;
-        } else if (phase === 'BREAK') {
-            updateReq.breakTimeInMinutes = minutesToSend;
-        } else if (phase === 'LONG_BREAK') {
-            updateReq.longBreakTimeInMinutes = minutesToSend;
+    if (!sess || !actId) return;
+
+    // Get the updated times from the result (all phases)
+    const focusMinutes = data.focusTimeInMinutes || sess.focusTimeInMinutes;
+    const breakMinutes = data.breakTimeInMinutes || sess.breakTimeInMinutes;
+    const longBreakMinutes = data.longBreakTimeInMinutes || sess.longBreakTimeInMinutes || 15;
+    const longBreakInterval = data.longBreakIntervalCycles || sess.longBreakIntervalCycles || 4;
+
+    // Clamp values to valid ranges
+    const clampedFocus = Math.max(5, Math.min(90, focusMinutes));
+    const clampedBreak = Math.max(2, Math.min(10, breakMinutes));
+    const clampedLongBreak = Math.max(15, Math.min(30, longBreakMinutes));
+    const clampedInterval = Math.max(2, Math.min(10, longBreakInterval));
+
+    // Update the timer display based on current phase
+    const currentPhase = this.currentPhase();
+    let newRemainingSeconds: number;
+    if (currentPhase === 'FOCUS') {
+      newRemainingSeconds = clampedFocus * 60;
+    } else if (currentPhase === 'BREAK') {
+      newRemainingSeconds = clampedBreak * 60;
+    } else {
+      newRemainingSeconds = clampedLongBreak * 60;
+    }
+    
+    // Update Timer display
+    this.timerSyncService.setRemainingSeconds(newRemainingSeconds);
+    
+    // Update Backend with all phase times
+    // Note: For Freestyle sessions, don't send cycles (they're unlimited)
+    const updateReq: any = {
+      sessionType: sess.sessionType,
+      focusTimeInMinutes: clampedFocus,
+      breakTimeInMinutes: clampedBreak,
+      enableLongBreak: true,
+      longBreakTimeInMinutes: clampedLongBreak,
+      longBreakIntervalInCycles: clampedInterval
+    };
+    
+    // Only include cycles for CLASSIC sessions
+    if (sess.sessionType === 'CLASSIC' && sess.cycles) {
+      updateReq.cycles = sess.cycles;
+    }
+    
+    console.log('📤 Sending update request:', updateReq);
+    
+    this.sessionService.updateSession(actId, sess.id, updateReq).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        // Re-initialize timer with updated session to ensure correct remaining time
+        this.timerSyncService.initializeTimer(updatedSession, actId, this.activityTitle());
+        console.log('✅ Session settings updated:', updatedSession);
+      },
+      error: (err) => {
+        console.error('❌ Failed to update session settings:', err);
+        if (err.error) {
+          console.error('❌ Error details:', err.error);
         }
-        
-        this.sessionService.updateSession(actId, sess.id, updateReq).subscribe({
-            next: (updatedSession) => {
-                this.session.set(updatedSession);
-                console.log('✅ Session settings updated:', updatedSession);
-            },
-            error: (err) => console.error('❌ Failed to update session settings:', err)
-        });
+        this.handleError(err, 'update session settings');
+      }
+    });
+  }
+
+  /**
+   * Update the long break interval (cycles before long break)
+   * Only allowed when session status is NOT_STARTED
+   * @param newInterval - New interval value (2-10 cycles)
+   */
+  protected updateLongBreakInterval(newInterval: number): void {
+    if (!this.canEditLongBreakInterval()) return;
+    
+    // Clamp to valid range (2-10)
+    const clampedInterval = Math.max(2, Math.min(10, newInterval));
+    
+    const sess = this.session();
+    const actId = this.activityId();
+    if (!sess || !actId) return;
+    
+    // Update local signal
+    this.longBreakIntervalValue.set(clampedInterval);
+    
+    // Update backend
+    this.sessionService.updateSession(actId, sess.id, {
+      sessionType: sess.sessionType,
+      focusTimeInMinutes: sess.focusTimeInMinutes,
+      breakTimeInMinutes: sess.breakTimeInMinutes,
+      cycles: sess.cycles ?? undefined,
+      enableLongBreak: sess.enableLongBreak,
+      longBreakTimeInMinutes: sess.longBreakTimeInMinutes,
+      longBreakIntervalInCycles: clampedInterval
+    }).subscribe({
+      next: (updatedSession) => {
+        this.session.set(updatedSession);
+        console.log('✅ Long break interval updated:', clampedInterval);
+      },
+      error: (err) => console.error('❌ Failed to update long break interval:', err)
+    });
+  }
+
+  /**
+   * Handle long break interval input change
+   */
+  protected onLongBreakIntervalChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value, 10);
+    if (!isNaN(value)) {
+      this.updateLongBreakInterval(value);
+    }
+  }
+
+  /**
+   * Increment long break interval
+   */
+  protected incrementLongBreakInterval(): void {
+    const sess = this.session();
+    const currentInterval = sess?.longBreakIntervalCycles || 4;
+    if (currentInterval < 10) {
+      this.updateLongBreakInterval(currentInterval + 1);
+    }
+  }
+
+  /**
+   * Decrement long break interval
+   */
+  protected decrementLongBreakInterval(): void {
+    const sess = this.session();
+    const currentInterval = sess?.longBreakIntervalCycles || 4;
+    if (currentInterval > 2) {
+      this.updateLongBreakInterval(currentInterval - 1);
     }
   }
 

@@ -12,6 +12,7 @@ public record UpdateSessionCommand(
         Integer cycles,
         Boolean enableLongBreak,
         Integer longBreakTimeInMinutes,
-        Integer longBreakIntervalInMinutes
+        Integer longBreakIntervalInMinutes,
+        Integer longBreakIntervalInCycles
 ) {
 }

@@ -64,6 +64,9 @@ application-dev.properties
 *.db
 *.sqlite
 
+### jqwik property testing cache ###
+.jqwik-database
+
 ### Temporary files ###
 *.tmp
 *.temp
