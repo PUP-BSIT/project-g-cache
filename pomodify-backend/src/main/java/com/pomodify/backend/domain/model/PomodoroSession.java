@@ -48,6 +48,9 @@ public class PomodoroSession {
     @Column(name = "long_break_interval")
     private Duration longBreakInterval;
 
+    @Column(name = "long_break_interval_cycles")
+    private Integer longBreakIntervalCycles;
+
     @Column(name = "total_cycles")
     private Integer totalCycles;
 
@@ -371,8 +374,10 @@ public class PomodoroSession {
             this.cyclesCompleted += 1;
         }
 
-        // Check if session is now complete
-        if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
+        // Check if session is now complete (only for Classic sessions)
+        // Freestyle sessions never auto-complete - they run until user manually completes
+        if (this.sessionType != SessionType.FREESTYLE && 
+            this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
             this.status = SessionStatus.COMPLETED;
             this.completedAt = LocalDateTime.now();
             this.phaseStartedAt = null;
@@ -389,7 +394,7 @@ public class PomodoroSession {
         return this;
     }
 
-    public void validateBreaks(Duration shortBreak, Duration longBreak, Duration interval) {
+    public void validateBreaks(Duration shortBreak, Duration longBreak, Duration interval, Integer intervalCycles) {
         long shortMin = shortBreak.toMinutes();
         if (shortMin < 2 || shortMin > 10) {
             throw new IllegalArgumentException("Short break must be between 2 and 10 minutes");
@@ -401,15 +406,37 @@ public class PomodoroSession {
                 throw new IllegalArgumentException("Long break must be between 15 and 30 minutes");
             }
 
-            if (interval == null || interval.toHours() < 3) {
+            // Validate cycle-based interval if provided
+            if (intervalCycles != null) {
+                if (intervalCycles < 2 || intervalCycles > 10) {
+                    throw new IllegalArgumentException("Long break interval must be between 2 and 10 cycles");
+                }
+            } else if (interval == null || interval.toHours() < 3) {
+                // Fallback to time-based validation for backward compatibility
                 throw new IllegalArgumentException("Long break interval must be at least 3 hours");
             }
         }
     }
 
-    private boolean shouldTriggerLongBreak() {
-        if (this.longBreakDuration == null || this.longBreakInterval == null) return false;
+    /**
+     * @deprecated Use {@link #validateBreaks(Duration, Duration, Duration, Integer)} instead
+     */
+    @Deprecated
+    public void validateBreaks(Duration shortBreak, Duration longBreak, Duration interval) {
+        validateBreaks(shortBreak, longBreak, interval, null);
+    }
 
+    private boolean shouldTriggerLongBreak() {
+        if (this.longBreakDuration == null) return false;
+        
+        // Use cycle-based interval if available (new approach)
+        if (this.longBreakIntervalCycles != null) {
+            return (this.cyclesCompleted + 1) % this.longBreakIntervalCycles == 0;
+        }
+        
+        // Fallback to time-based interval for backward compatibility
+        if (this.longBreakInterval == null) return false;
+        
         long cycleMinutes = focusDuration.toMinutes() + breakDuration.toMinutes();
         long cyclesPerLongBreak = this.longBreakInterval.toMinutes() / cycleMinutes;
         if (cyclesPerLongBreak < 1) cyclesPerLongBreak = 1;
@@ -418,8 +445,12 @@ public class PomodoroSession {
     }
 
     private void checkCompletion() {
-        // Check if session has reached its cycle limit
-        // Both CLASSIC and FREESTYLE sessions can have a cycle limit
+        // Freestyle sessions should never auto-complete - they run until user manually completes
+        if (this.sessionType == SessionType.FREESTYLE) {
+            return;
+        }
+        
+        // Check if session has reached its cycle limit (Classic sessions only)
         if (this.totalCycles != null && this.cyclesCompleted >= this.totalCycles) {
             this.status = SessionStatus.COMPLETED;
             this.completedAt = LocalDateTime.now();

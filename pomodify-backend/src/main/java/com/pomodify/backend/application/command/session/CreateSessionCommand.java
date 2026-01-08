@@ -13,6 +13,7 @@ public record CreateSessionCommand(
         Boolean enableLongBreak,
         Integer longBreakTimeInMinutes,
         Integer longBreakIntervalInMinutes,
+        Integer longBreakIntervalInCycles,
         String note
 ) {
 }

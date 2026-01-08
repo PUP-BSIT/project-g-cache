@@ -73,6 +73,7 @@ public class SessionController {
         .enableLongBreak(request.enableLongBreak())
         .longBreakTimeInMinutes(request.longBreakTimeInMinutes())
         .longBreakIntervalInMinutes(request.longBreakIntervalInMinutes())
+        .longBreakIntervalInCycles(request.longBreakIntervalInCycles())
             .note(null)
             .build();
     SessionItem item = SessionMapper.toItem(sessionService.create(command));
@@ -224,6 +225,7 @@ public class SessionController {
             .enableLongBreak(request.enableLongBreak())
             .longBreakTimeInMinutes(request.longBreakTimeInMinutes())
             .longBreakIntervalInMinutes(request.longBreakIntervalInMinutes())
+            .longBreakIntervalInCycles(request.longBreakIntervalInCycles())
                 .build();
         SessionItem item = SessionMapper.toItem(sessionService.updateSession(cmd));
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Session updated successfully"));

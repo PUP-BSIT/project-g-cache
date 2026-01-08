@@ -618,6 +618,91 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
     background: rgba(95, 169, 164, 0.1);
     border-radius: 20px;
     backdrop-filter: blur(10px);
+    
+    i {
+      margin-right: 6px;
+      color: var(--activity-color);
+    }
+  }
+}
+
+/* Long Break Interval Editor */
+.long-break-interval-editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: rgba(95, 169, 164, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(95, 169, 164, 0.15);
+  
+  .interval-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-light;
+  }
+  
+  .interval-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .btn-interval-adjust {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background: var(--activity-color);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    i {
+      font-size: 12px;
+    }
+    
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--activity-color) 85%, black 15%);
+      transform: scale(1.05);
+    }
+    
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+  
+  .interval-input {
+    width: 48px;
+    height: 32px;
+    border: 1px solid rgba(95, 169, 164, 0.3);
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-dark;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+    
+    // Hide number spinners
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    -moz-appearance: textfield;
+    
+    &:focus {
+      border-color: var(--activity-color);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--activity-color) 15%, transparent 85%);
+    }
   }
 }
 

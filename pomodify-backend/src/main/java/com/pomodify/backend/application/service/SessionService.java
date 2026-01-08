@@ -41,24 +41,49 @@ public class SessionService {
         SessionType type = SessionType.valueOf(command.sessionType().toUpperCase());
         Duration focus = Duration.ofMinutes(command.focusTimeInMinutes());
         Duration brk = Duration.ofMinutes(command.breakTimeInMinutes());
-        Integer cycles = command.cycles() != null ? command.cycles() : 1;
-        long totalMinutes = (focus.toMinutes() + brk.toMinutes()) * cycles;
+        
+        // For Freestyle sessions, cycles should be null (unlimited)
+        // For Classic sessions, default to 1 if not provided
+        Integer cycles;
+        if (type == SessionType.FREESTYLE) {
+            cycles = null; // Freestyle sessions are unlimited
+        } else {
+            cycles = command.cycles() != null ? command.cycles() : 1;
+        }
+        
+        // Calculate total minutes for long break eligibility (only for Classic sessions)
+        long totalMinutes = cycles != null ? (focus.toMinutes() + brk.toMinutes()) * cycles : 0;
         Duration longBreak = null;
         Duration interval = null;
-        if (command.enableLongBreak() != null && command.enableLongBreak() && totalMinutes > 180) {
-            if (command.longBreakIntervalInMinutes() == null
-                || !(command.longBreakIntervalInMinutes() == 180
+        Integer intervalCycles = null;
+        
+        // For Freestyle sessions, always allow long break settings
+        if (type == SessionType.FREESTYLE) {
+            if (command.longBreakTimeInMinutes() != null) {
+                longBreak = Duration.ofMinutes(command.longBreakTimeInMinutes());
+            } else {
+                longBreak = Duration.ofMinutes(15); // Default long break for Freestyle
+            }
+            intervalCycles = command.longBreakIntervalInCycles() != null ? command.longBreakIntervalInCycles() : 4;
+        } else if (command.enableLongBreak() != null && command.enableLongBreak() && totalMinutes > 180) {
+            // Use cycle-based interval if provided, otherwise fall back to time-based
+            if (command.longBreakIntervalInCycles() != null) {
+                intervalCycles = command.longBreakIntervalInCycles();
+            } else if (command.longBreakIntervalInMinutes() != null) {
+                if (!(command.longBreakIntervalInMinutes() == 180
                     || command.longBreakIntervalInMinutes() == 210
                     || command.longBreakIntervalInMinutes() == 240)) {
-                throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+                    throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+                }
+                interval = Duration.ofMinutes(command.longBreakIntervalInMinutes());
             }
             if (command.longBreakTimeInMinutes() != null) {
                 longBreak = Duration.ofMinutes(command.longBreakTimeInMinutes());
             }
-            interval = Duration.ofMinutes(command.longBreakIntervalInMinutes());
         }
 
-        PomodoroSession session = activity.createSession(type, focus, brk, cycles, longBreak, interval, command.note());
+        PomodoroSession session = activity.createSession(type, focus, brk, cycles, longBreak, interval, intervalCycles, command.note());
+        
         PomodoroSession saved = sessionRepository.save(session);
         log.info("Created session {} for activity {}", saved.getId(), activity.getId());
         return toResult(saved);
@@ -237,6 +262,11 @@ public class SessionService {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
 
+        // Enforce edit restriction: only allow updates when status is NOT_STARTED
+        if (session.getStatus() != SessionStatus.NOT_STARTED) {
+            throw new IllegalStateException("Cannot edit session while in progress, paused, completed, or abandoned");
+        }
+
         SessionType newType = command.sessionType() != null
             ? SessionType.valueOf(command.sessionType().toUpperCase())
             : null;
@@ -249,6 +279,8 @@ public class SessionService {
         Integer newCycles = command.cycles();
         Duration newLongBreak = null;
         Duration newInterval = null;
+        Integer newIntervalCycles = command.longBreakIntervalInCycles();
+        
         if (command.enableLongBreak() != null) {
             if (Boolean.TRUE.equals(command.enableLongBreak())) {
                 if (command.longBreakTimeInMinutes() != null) {
@@ -261,9 +293,14 @@ public class SessionService {
                 } else {
                     newInterval = session.getLongBreakInterval();
                 }
+                // Use cycle-based interval if provided
+                if (newIntervalCycles == null) {
+                    newIntervalCycles = session.getLongBreakIntervalCycles();
+                }
             } else {
                 newLongBreak = null;
                 newInterval = null;
+                newIntervalCycles = null;
             }
         }
 
@@ -273,26 +310,36 @@ public class SessionService {
         long totalMinutes = (effectiveFocus.toMinutes() + effectiveBreak.toMinutes()) * effectiveCycles;
 
         if (totalMinutes <= 180) {
-            newLongBreak = null;
-            newInterval = null;
-        } else if (command.enableLongBreak() != null && Boolean.TRUE.equals(command.enableLongBreak())) {
-            Integer intervalMinutes = command.longBreakIntervalInMinutes();
-            if (intervalMinutes == null
-                || !(intervalMinutes == 180 || intervalMinutes == 210 || intervalMinutes == 240)) {
-                throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+            // For Freestyle sessions, always allow long break settings since they're unlimited
+            if (session.getSessionType() != SessionType.FREESTYLE) {
+                newLongBreak = null;
+                newInterval = null;
+                newIntervalCycles = null;
             }
-            newInterval = Duration.ofMinutes(intervalMinutes);
+            // For Freestyle, keep the long break settings as-is
+        } else if (command.enableLongBreak() != null && Boolean.TRUE.equals(command.enableLongBreak())) {
+            // Only validate time-based interval if cycle-based is not provided
+            if (newIntervalCycles == null) {
+                Integer intervalMinutes = command.longBreakIntervalInMinutes();
+                if (intervalMinutes == null
+                    || !(intervalMinutes == 180 || intervalMinutes == 210 || intervalMinutes == 240)) {
+                    throw new IllegalArgumentException("Long break interval must be 180, 210, or 240 minutes");
+                }
+                newInterval = Duration.ofMinutes(intervalMinutes);
+            }
         }
 
-        if (newBreak != null || newLongBreak != null || newInterval != null) {
+        if (newBreak != null || newLongBreak != null || newInterval != null || newIntervalCycles != null) {
             session.validateBreaks(newBreak != null ? newBreak : session.getBreakDuration(),
                     newLongBreak != null ? newLongBreak : session.getLongBreakDuration(),
-                    newInterval != null ? newInterval : session.getLongBreakInterval());
+                    newInterval != null ? newInterval : session.getLongBreakInterval(),
+                    newIntervalCycles != null ? newIntervalCycles : session.getLongBreakIntervalCycles());
         }
 
         session.updateSettings(newType, newFocus, newBreak, newCycles);
         session.setLongBreakDuration(newLongBreak != null ? newLongBreak : session.getLongBreakDuration());
         session.setLongBreakInterval(newInterval != null ? newInterval : session.getLongBreakInterval());
+        session.setLongBreakIntervalCycles(newIntervalCycles != null ? newIntervalCycles : session.getLongBreakIntervalCycles());
         PomodoroSession saved = sessionRepository.save(session);
         return toResult(saved);
         }
@@ -392,6 +439,12 @@ public class SessionService {
 
         // Use the enhanced timer calculation from domain model
         long remainingPhaseSeconds = s.getRemainingPhaseSeconds();
+        
+        // Map long break settings
+        Integer longBreakTimeInMinutes = s.getLongBreakDuration() != null 
+                ? (int) s.getLongBreakDuration().toMinutes() 
+                : null;
+        Integer longBreakIntervalCycles = s.getLongBreakIntervalCycles();
 
         return SessionResult.builder()
                 .id(s.getId())
@@ -404,8 +457,10 @@ public class SessionService {
                 .cycles(cycles)
                 .cyclesCompleted(s.getCyclesCompleted() != null ? s.getCyclesCompleted() : 0)
                 .totalTimeInMinutes(totalMinutes)
-            .totalElapsedSeconds(totalElapsedSeconds)
-            .remainingPhaseSeconds(remainingPhaseSeconds)
+                .totalElapsedSeconds(totalElapsedSeconds)
+                .remainingPhaseSeconds(remainingPhaseSeconds)
+                .longBreakTimeInMinutes(longBreakTimeInMinutes)
+                .longBreakIntervalCycles(longBreakIntervalCycles)
                 .note(com.pomodify.backend.presentation.mapper.SessionNoteMapper.toDto(s.getNote()))
                 .startedAt(s.getStartedAt())
                 .completedAt(s.getCompletedAt())

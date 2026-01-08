@@ -120,16 +120,16 @@
         <div class="config-content">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Minutes</mat-label>
-            <input matInput type="number" formControlName="focusTimeInMinutes" min="5" max="90">
-            <mat-hint>Choose between 5 – 90 minutes</mat-hint>
+            <input matInput type="number" formControlName="focusTimeInMinutes" [min]="MIN_FOCUS" [max]="MAX_FOCUS">
+            <mat-hint>Choose between {{ MIN_FOCUS }} – {{ MAX_FOCUS }} minutes</mat-hint>
             @if (form.get('focusTimeInMinutes')?.hasError('required')) {
               <mat-error>Required</mat-error>
             }
             @if (form.get('focusTimeInMinutes')?.hasError('min')) {
-              <mat-error>Minimum 5 minutes</mat-error>
+              <mat-error>Minimum {{ MIN_FOCUS }} minutes</mat-error>
             }
             @if (form.get('focusTimeInMinutes')?.hasError('max')) {
-              <mat-error>Maximum 90 minutes</mat-error>
+              <mat-error>Maximum {{ MAX_FOCUS }} minutes</mat-error>
             }
           </mat-form-field>
         </div>
@@ -187,7 +187,7 @@
                     <mat-option [value]="option.value">{{ option.label }}</mat-option>
                   }
                 </mat-select>
-                <mat-hint>Total cycles before session ends</mat-hint>
+                <mat-hint>{{ MIN_LONG_BREAK_INTERVAL }} – {{ MAX_LONG_BREAK_INTERVAL }} cycles</mat-hint>
               </mat-form-field>
             </div>
           </div>
@@ -195,22 +195,21 @@
       } @else {
         <div class="config-card info-card">
           <div class="config-header">
-            <i class="fa-solid fa-info-circle"></i>
-            <span>No Long Break</span>
+            <i class="fa-solid fa-coffee"></i>
+            <span>Long Break Interval</span>
           </div>
           <div class="config-content">
             <p class="info-text">
-              Long breaks are available for sessions longer than 3 hours. 
-              Your current session is too short for long breaks.
+              Configure how many focus cycles occur before a long break.
             </p>
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Total Cycles</mat-label>
+              <mat-label>Cycles before long break</mat-label>
               <mat-select formControlName="longBreakIntervalCycles">
                 @for (option of FREESTYLE_CYCLE_OPTIONS; track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
               </mat-select>
-              <mat-hint>Session ends after this many cycles</mat-hint>
+              <mat-hint>{{ MIN_LONG_BREAK_INTERVAL }} – {{ MAX_LONG_BREAK_INTERVAL }} cycles</mat-hint>
             </mat-form-field>
           </div>
         </div>
@@ -235,7 +234,7 @@
           }
           <i class="fa-solid fa-rotate-right loop-repeat"></i>
         </div>
-        <p class="loop-hint">This pattern runs for {{ longBreakIntervalCycles }} cycle(s), then the session completes.</p>
+        <p class="loop-hint">Long break occurs every {{ longBreakIntervalCycles }} cycle(s). Pattern repeats until you complete the session.</p>
       </div>
 
       <!-- Global Error: Focus > Break -->

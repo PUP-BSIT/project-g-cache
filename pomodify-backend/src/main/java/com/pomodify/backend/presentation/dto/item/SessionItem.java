@@ -17,6 +17,8 @@ public record SessionItem(
         int totalTimeInMinutes,
         long totalElapsedSeconds,
         long remainingPhaseSeconds,
+        Integer longBreakTimeInMinutes,
+        Integer longBreakIntervalCycles,
         SessionNoteDto note,
         LocalDateTime startedAt,
         LocalDateTime completedAt,

@@ -24,6 +24,8 @@ public final class SessionMapper {
             result.totalTimeInMinutes(),
             result.totalElapsedSeconds(),
             result.remainingPhaseSeconds(),
+            result.longBreakTimeInMinutes(),
+            result.longBreakIntervalCycles(),
             result.note(),
             result.startedAt(),
             result.completedAt(),
