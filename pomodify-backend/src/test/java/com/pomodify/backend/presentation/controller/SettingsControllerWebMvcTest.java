@@ -1,5 +1,7 @@
 package com.pomodify.backend.presentation.controller;
 
+import com.pomodify.backend.application.service.ActivityService;
+import com.pomodify.backend.application.service.SessionService;
 import com.pomodify.backend.application.service.SettingsService;
 import com.pomodify.backend.presentation.dto.settings.UpdateSettingsRequest;
 import com.pomodify.backend.presentation.dto.settings.UserSettingsResponse;
@@ -26,6 +28,12 @@ class SettingsControllerWebMvcTest {
 
     @MockBean
     private SettingsService settingsService;
+
+    @MockBean
+    private SessionService sessionService;
+
+    @MockBean
+    private ActivityService activityService;
 
     @Test
     void getSettings_returnsDefaults() throws Exception {
