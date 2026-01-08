@@ -295,15 +295,16 @@
                   (change)="toggleTodo(todo.id)"
                   [disabled]="isCompleted()"
                   [id]="'todo-' + todo.id">
-                <input 
-                  type="text"
+                <textarea
                   class="todo-text"
                   [class.todo-checked]="todo.done"
                   [value]="todo.text"
-                  (input)="updateTodoText(todo.id, $any($event.target).value)"
+                  (input)="updateTodoText(todo.id, $any($event.target).value); autoExpandTodo($event)"
                   [readonly]="isCompleted()"
                   [id]="'todo-text-' + todo.id"
-                  placeholder="Todo item">
+                  placeholder="Todo item"
+                  rows="1"
+                  wrap="soft"></textarea>
                 @if (!isCompleted()) {
                   <button 
                     class="btn-remove-todo"

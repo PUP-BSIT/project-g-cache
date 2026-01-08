@@ -29,7 +29,6 @@ export class VerifyComponent implements OnInit {
           next: res => {
             this.success = res.success;
             this.message = res.message;
-            setTimeout(() => this.router.navigate(['/login']), 3000);
           },
           error: err => {
             this.success = false;
@@ -47,5 +46,9 @@ export class VerifyComponent implements OnInit {
 
   onLogin() {
       this.router.navigate(['/login']);
+  }
+
+  goToDashboard() {
+      this.router.navigate(['/dashboard']);
   }
 }
