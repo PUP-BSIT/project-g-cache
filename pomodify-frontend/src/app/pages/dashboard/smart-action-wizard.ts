@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal, DestroyRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, DestroyRef, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { API } from '../../core/config/api.config';
 import { CommonModule } from '@angular/common';
@@ -39,10 +39,11 @@ type ConfirmBlueprintResponse = {
   standalone: true,
   imports: [CommonModule, FormsModule],
 })
-export class SmartActionWizardComponent {
+export class SmartActionWizardComponent implements AfterViewInit {
   @Input() open = false;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<{ activityId: number; sessionId: number }>();
+  @ViewChild('topicTextarea') topicTextarea?: ElementRef<HTMLTextAreaElement>;
 
   state = signal<WizardState>('idle');
   topic = signal('');
@@ -56,6 +57,18 @@ export class SmartActionWizardComponent {
   private pollingSubscription: Subscription | null = null;
 
   constructor(private http: HttpClient, private destroyRef: DestroyRef) {}
+
+  ngAfterViewInit(): void {
+    this.adjustTextareaHeight();
+  }
+
+  private adjustTextareaHeight(): void {
+    if (this.topicTextarea?.nativeElement) {
+      const textarea = this.topicTextarea.nativeElement;
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+  }
 
   startGeneration() {
     this.state.set('generating');
@@ -152,6 +165,16 @@ export class SmartActionWizardComponent {
 
   generateAgain() {
     this.startGeneration();
+  }
+
+  onTopicInput(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    // Reset height to auto to get accurate scrollHeight
+    textarea.style.height = 'auto';
+    // Get the scrollHeight which includes all content with wrapping
+    const scrollHeight = textarea.scrollHeight;
+    // Set height to match content
+    textarea.style.height = scrollHeight + 'px';
   }
 
   close() {

@@ -9,6 +9,14 @@
   overflow: hidden;
 }
 
+/* Prevent resize handles on all input/textarea elements */
+input,
+textarea,
+input::-webkit-resizer,
+textarea::-webkit-resizer {
+  resize: none !important;
+}
+
 .verify-container {
   width: 100%;
   max-width: 500px;
@@ -144,6 +152,10 @@
   color: #1f2937;
   margin: 0 0 1rem 0;
   letter-spacing: -0.5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .verify-message {
@@ -151,6 +163,10 @@
   color: #6b7280;
   margin: 0 0 1.5rem 0;
   line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .redirect-text {

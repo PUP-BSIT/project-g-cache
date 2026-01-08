@@ -1704,6 +1704,12 @@ export class SessionTimerComponent implements OnDestroy {
     this.onTodosChanged();
   }
 
+  protected autoExpandTodo(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
   protected toggleTodo(id: number): void {
     this.todos.update(list =>
       list.map(todo => todo.id === id ? { ...todo, done: !todo.done } : todo)

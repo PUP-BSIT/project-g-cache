@@ -103,6 +103,37 @@ input[type="text"] {
   }
 }
 
+textarea.auto-expand-textarea {
+  padding: 0.9rem 1.2rem;
+  border-radius: 0.75rem;
+  border: 2px solid var(--border);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  transition: border-color 0.2s;
+  background: var(--card);
+  color: var(--text);
+  font-family: inherit;
+  resize: none;
+  min-height: 3.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: block;
+  
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+  
+  &::placeholder {
+    color: var(--muted);
+  }
+}
+
 button[type="submit"] {
   background-color: #4b9fa8;
   color: #fff;
@@ -320,6 +351,10 @@ button[type="submit"] {
     padding: 0.4rem 0 0.4rem 1.25rem;
     font-size: 0.9rem;
     color: var(--text);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
     
     &::before {
       content: '○';
