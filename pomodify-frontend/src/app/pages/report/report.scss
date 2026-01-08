@@ -393,107 +393,131 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .section-heading {
   font-size: 20px;
   font-weight: 700;
-  color: $text-dark;
+  color: var(--text);
   margin: 0;
 }
 
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 .summary-card {
-  background: linear-gradient(135deg, $primary-teal, $primary-teal-light);
-  border-radius: 14px;
-  padding: 16px 18px;
-  color: $text-white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  background: linear-gradient(135deg, $primary-teal 0%, $primary-teal-light 100%);
+  border-radius: 12px;
+  padding: 28px;
   box-shadow: $card-shadow;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  transition: all 0.3s ease;
+  color: $text-white !important;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  * {
+    color: $text-white !important;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+  }
+
   &:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     box-shadow: $card-shadow-hover;
+  }
+
+  &.abandoned-card {
+    background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+
+    &::before {
+      background: rgba(255, 255, 255, 0.1);
+    }
   }
 }
 
 .summary-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  flex: 1;
 }
 
 .summary-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.18);
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  color: $text-white;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  position: absolute;
+  top: 16px;
+  right: 16px;
   transition: all 0.3s ease;
+  z-index: 2;
 
   i {
-    font-size: 16px;
-    transition: transform 0.3s ease;
+    font-size: 24px;
+    color: $text-white;
   }
 }
 
 .summary-card:hover .summary-icon {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.1);
-  
-  i {
-    transform: scale(1.1);
-  }
+  /* hover effect removed */
 }
 
 .summary-label {
-  font-size: 15px;
-  font-weight: 500;
-  opacity: 0.9;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.95;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: $text-white;
 }
 
 .summary-value {
-  font-size: 24px;
+  font-size: 42px;
   font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: $text-white;
 }
 
 .summary-sublabel {
-  font-size: 11px;
+  font-size: 13px;
   opacity: 0.85;
-  font-weight: 500;
-  margin-top: 2px;
-}
-
-// Abandoned sessions card styling
-.abandoned-card {
-  background: linear-gradient(135deg, #e8505b, #f27c85);
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(232, 80, 91, 0.25);
-  }
+  margin: 0;
+  margin-top: auto;
+  color: $text-white;
 }
 
 .abandoned-value {
-  font-size: 26px;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+  color: $text-white;
 }
 
 .abandoned-icon {
-  background: rgba(255, 255, 255, 0.2);
-  
   i {
-    font-size: 18px;
+    font-size: 24px;
+    color: $text-white;
   }
-}
-
-.abandoned-card:hover .abandoned-icon {
-  background: rgba(255, 255, 255, 0.3);
 }
 
 // Period Info Section
@@ -608,7 +632,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .trend-label {
   font-size: 13px;
   font-weight: 600;
-  color: $text-dark;
+  color: var(--text);
 }
 
 .trend-comparison {
@@ -617,7 +641,7 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
   justify-content: center;
   gap: 6px;
   font-size: 11px;
-  color: $text-light;
+  color: var(--muted);
 }
 
 .trend-value-group {
@@ -629,24 +653,24 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 .trend-value-label {
   font-size: 9px;
-  color: $text-light;
+  color: var(--muted);
   font-weight: 400;
 }
 
 .trend-current {
   font-weight: 700;
-  color: $text-dark;
+  color: var(--text);
   font-size: 13px;
 }
 
 .trend-vs {
-  color: $text-light;
+  color: var(--muted);
   font-weight: 400;
 }
 
 .trend-previous {
   font-weight: 600;
-  color: $text-dark;
+  color: var(--muted);
   font-size: 12px;
 }
 
@@ -824,16 +848,18 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 
 // Focus panel
 .focus-panel {
-  background: $bg-white;
-  border-radius: 18px;
-  padding: 24px 24px 28px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
   box-shadow: $card-shadow;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  transition: box-shadow 0.3s ease;
+  transition: all 0.2s ease;
   
   &:hover {
+    transform: translateY(-2px);
     box-shadow: $card-shadow-hover;
   }
 }
@@ -854,13 +880,13 @@ $card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.12);
 .panel-title {
   font-size: 18px;
   font-weight: 600;
-  color: $text-dark;
+  color: var(--text);
   margin: 0;
 }
 
 .panel-subtitle {
   font-size: 13px;
-  color: $text-light;
+  color: var(--muted);
 }
 
 .range-tabs {
