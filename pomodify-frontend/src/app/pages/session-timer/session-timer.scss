@@ -1501,14 +1501,16 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   font-size: 14px;
   color: #2C3E50 !important;
   outline: none;
-  padding: 4px;
+  padding: 2px 4px;
   resize: none;
-  min-height: 40px;
+  min-height: auto;
+  height: auto;
   overflow: hidden;
   word-wrap: break-word;
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.5;
+  line-height: 1.4;
+  margin: 0;
 
   &:focus {
     background: rgba(95, 169, 164, 0.05) !important;

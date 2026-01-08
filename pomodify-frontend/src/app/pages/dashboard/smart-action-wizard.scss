@@ -344,17 +344,26 @@ button[type="submit"] {
     list-style: none;
     padding: 0;
     margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
   }
   
   li {
     position: relative;
-    padding: 0.4rem 0 0.4rem 1.25rem;
+    display: block;
+    width: 100%;
+    padding: 2px 4px 2px 1.25rem;
     font-size: 0.9rem;
     color: var(--text);
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
-    max-width: 100%;
+    white-space: pre-wrap;
+    margin: 0;
+    line-height: 1.4;
+    min-height: auto;
     
     &::before {
       content: '○';
@@ -586,9 +595,23 @@ button[type="submit"] {
       margin-bottom: 0.4rem;
     }
     
+    ul {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
     li {
       font-size: 0.8rem;
-      padding: 0.25rem 0 0.25rem 1rem;
+      padding: 2px 4px 2px 1rem;
+      line-height: 1.4;
+      margin: 0;
+      display: block;
+      width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: pre-wrap;
     }
   }
   
