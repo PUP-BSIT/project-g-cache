@@ -9,7 +9,7 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="notification-bell-container" [class.hidden]="isModalOpen">
+    <div class="notification-bell-container">
       <button 
         class="notification-bell-btn" 
         (click)="toggleDropdown($event)"
@@ -123,6 +123,18 @@ export class NotificationBellComponent {
   onDocumentClick(event: MouseEvent): void {
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.badgeNotificationService.closeDropdown();
+    }
+  }
+
+  @HostListener('click', ['$event'])
+  @HostListener('mousedown', ['$event'])
+  @HostListener('touchstart', ['$event'])
+  onButtonClick(event: Event): void {
+    if (this.isModalOpen) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      return;
     }
   }
 
