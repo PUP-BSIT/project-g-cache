@@ -406,7 +406,6 @@ export class SessionsListComponent implements OnInit {
   protected createNewSession(): void {
     const actId = this.activityId();
     if (!actId) {
-      console.error('Activity ID not available');
       return;
     }
 
@@ -424,7 +423,6 @@ export class SessionsListComponent implements OnInit {
         return this.sessionService.createSession(actId, formData);
       }),
       catchError((error: HttpErrorResponse) => {
-        console.error('[Sessions List] Failed to create session:', error);
         // Handle 409 Conflict - active session exists
         if (error.status === 409) {
           const message = error.error?.message || 'An active session already exists. Please complete or abandon it before creating a new one.';
@@ -499,8 +497,7 @@ export class SessionsListComponent implements OnInit {
         this.noteDraft.set('');
         this.savingNote.set(false);
       },
-      error: (err) => {
-        console.error('Failed to save note:', err);
+      error: (_err) => {
         this.savingNote.set(false);
       }
     });

@@ -37,9 +37,7 @@ export class FcmService {
         Logger.log('✅ Firebase app initialized with name:', appName);
         
       } catch (error) {
-        console.error('❌ Firebase app initialization failed:', error);
-        
-        // Complete fallback - return null and handle gracefully
+        // Firebase app initialization failed - using fallback mode
         Logger.log('⚠️ Using fallback mode - no Firebase app');
         this.app = null;
         throw new Error('Firebase initialization failed - using fallback mode');
@@ -158,7 +156,7 @@ async initializeFCM(): Promise<void> {
       }
 
     } catch (error: any) {
-      console.error('❌ FCM initialization failed:', error?.message || error);
+      // FCM initialization failed
       throw error;
     }
   }

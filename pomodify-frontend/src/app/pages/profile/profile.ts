@@ -228,8 +228,7 @@ export class Profile implements OnInit {
           this.notificationService.showSuccess('Profile Updated', 'Your profile picture has been updated successfully.');
         }
         this.isUploadingImage.set(false);
-      }).catch((error) => {
-        console.error('Failed to upload profile picture:', error);
+      }).catch((_error) => {
         this.imageUploadError.set('Failed to upload image. Please try again.');
         this.isUploadingImage.set(false);
       });
@@ -251,8 +250,7 @@ export class Profile implements OnInit {
       // Update shared profile service so all components reflect the change
       this.userProfileService.resetProfilePicture();
       this.notificationService.showSuccess('Profile Updated', 'Your profile picture has been removed.');
-    }).catch((error) => {
-      console.error('Failed to delete profile picture:', error);
+    }).catch((_error) => {
       this.imageUploadError.set('Failed to delete image. Please try again.');
       this.isUploadingImage.set(false);
     });
@@ -274,8 +272,7 @@ export class Profile implements OnInit {
         // Update shared profile service so all components reflect the change
         this.userProfileService.updateUserName(firstName, lastName);
         this.notificationService.showSuccess('Profile Updated', 'Your name has been updated successfully.');
-      }).catch((error) => {
-        console.error('Failed to update name:', error);
+      }).catch((_error) => {
         this.notificationService.showError('Error', 'Failed to update name. Please try again.');
         this.isSavingName.set(false);
       });
@@ -340,8 +337,7 @@ export class Profile implements OnInit {
         setTimeout(() => {
           this.cancelPasswordChange();
         }, 2000);
-      }).catch((error) => {
-        console.error('Failed to change password:', error);
+      }).catch((_error) => {
         this.passwordChangeError.set('Current password is incorrect or failed to update.');
         this.isChangingPassword.set(false);
       });
@@ -375,8 +371,7 @@ export class Profile implements OnInit {
         this.backupEmail.set(email);
         this.showBackupEmailForm.set(false);
         this.isSavingBackupEmail.set(false);
-      }).catch((error) => {
-        console.error('Failed to save backup email:', error);
+      }).catch((_error) => {
         alert('Failed to save backup email. Please try again.');
         this.isSavingBackupEmail.set(false);
       });
@@ -391,8 +386,7 @@ export class Profile implements OnInit {
       this.auth.updateBackupEmail(email).then(() => {
         this.backupEmail.set(email);
         this.isSavingBackupEmail.set(false);
-      }).catch((error) => {
-        console.error('Failed to update backup email:', error);
+      }).catch((_error) => {
         alert('Failed to update backup email. Please try again.');
         this.isSavingBackupEmail.set(false);
       });

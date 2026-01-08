@@ -59,7 +59,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (request, next) => {
       
       // Handle 403 Forbidden (user doesn't have permission)
       if (error.status === 403) {
-        console.error('[AuthErrorInterceptor] Access forbidden:', error);
+        // Access forbidden - silently handle
       }
       return throwError(() => error);
     })

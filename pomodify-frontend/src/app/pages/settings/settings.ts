@@ -79,7 +79,9 @@ export class Settings implements OnInit, AfterViewInit {
           isEmailVerified: user.isEmailVerified || false
         });
       }
-    }).catch(err => console.error('[Settings] Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
   
   // Computed signals that react to settings changes
@@ -270,8 +272,7 @@ export class Settings implements OnInit, AfterViewInit {
       .then(() => {
         Logger.log('Account deleted successfully');
       })
-      .catch((error) => {
-        console.error('Failed to delete account:', error);
+      .catch((_error) => {
         alert('Failed to delete account. Please try again.');
       });
   }
@@ -293,8 +294,7 @@ export class Settings implements OnInit, AfterViewInit {
         Logger.log('Session history cleared:', response.message);
         this.showSuccessModal.set(true);
       },
-      error: (error) => {
-        console.error('Failed to clear session history:', error);
+      error: (_error) => {
         alert('Failed to clear session history. Please try again.');
       }
     });
@@ -317,8 +317,7 @@ export class Settings implements OnInit, AfterViewInit {
         Logger.log('Activity data cleared:', response.message);
         this.showSuccessModal.set(true);
       },
-      error: (error) => {
-        console.error('Failed to clear activity data:', error);
+      error: (_error) => {
         alert('Failed to clear activity data. Please try again.');
       }
     });

@@ -220,7 +220,6 @@ export class Auth {
         return { success: true };
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
-        console.error('[Auth] Login failed:', err);
         // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Login failed';
         return Promise.reject(new Error(errorMessage));
@@ -265,9 +264,6 @@ export class Auth {
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
         // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Registration failed';
-        const statusCode = err?.status || 0;
-        
-        console.error('[Auth] Signup failed:', { status: statusCode, message: errorMessage });
         return Promise.reject(new Error(errorMessage));
       });
   }
@@ -304,7 +300,7 @@ export class Auth {
         }
       }, 2000);
     } catch (error) {
-      console.error('[Auth] ❌ FCM initialization failed:', error);
+      // FCM initialization failed - silently handle
     }
   }
 
@@ -420,7 +416,7 @@ export class Auth {
         this.router.navigate(['/']);
       })
       .catch((error) => {
-        console.error('[Auth] Account deletion failed:', error);
+        // Account deletion failed
         throw error;
       });
   }

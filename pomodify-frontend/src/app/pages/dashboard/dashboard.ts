@@ -114,7 +114,9 @@ export class Dashboard implements OnInit {
             isEmailVerified: user.isEmailVerified || false
           });
         }
-    }).catch(err => console.error('Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
 
   private loadCategories(): void {
@@ -131,8 +133,8 @@ export class Dashboard implements OnInit {
         const categoryNames = categoryList.map(c => c.categoryName).filter(Boolean);
         this.categories.set(categoryNames);
       },
-      error: (err) => {
-        console.error('[Dashboard] Error loading categories:', err);
+      error: (_err) => {
+        // Error loading categories - silently handle
       }
     });
   }
@@ -170,7 +172,6 @@ export class Dashboard implements OnInit {
         this.isLoadingDashboard.set(false);
       },
       error: (err) => {
-        console.error('[Dashboard] Metrics loading error:', err);
         const errorMsg = err?.error?.message || err?.message || 'Failed to load dashboard metrics';
         this.dashboardError.set(`${errorMsg}. Please refresh the page or try logging in again.`);
         this.isLoadingDashboard.set(false);
@@ -275,8 +276,6 @@ export class Dashboard implements OnInit {
           Logger.log('[Dashboard] Navigation params:', { activityTitle, sessionId });
           
           if (!sessionId) {
-            console.error('[Dashboard] Session ID is undefined!');
-            console.error('[Dashboard] Response structure:', JSON.stringify(response, null, 2));
             return;
           }
           
@@ -284,16 +283,11 @@ export class Dashboard implements OnInit {
           this.router.navigate(['/activities', activityTitle, 'sessions', sessionId]);
         },
         error: (err) => {
-          console.error('[Dashboard] Error in create flow:', err);
-          console.error('[Dashboard] Error status:', err.status);
-          console.error('[Dashboard] Error body:', err.error);
-          
           let errorMsg = err?.error?.message || err?.message || 'Failed to create activity/session';
           
           // Check if it's a backend cache configuration error
           if (errorMsg.includes('Cannot find cache')) {
             errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator to configure Spring Boot cache.';
-            console.error('[Dashboard] Backend cache error: Spring Boot cache named "activities" is not configured.');
           }
           
           alert(`Error: ${errorMsg}`);
@@ -308,8 +302,7 @@ export class Dashboard implements OnInit {
       .then(() => {
         Logger.log('[Dashboard] Logout completed');
       })
-      .catch((error) => {
-        console.error('[Dashboard] Logout error:', error);
+      .catch((_error) => {
         // Error is already handled in auth service
       })
       .finally(() => {

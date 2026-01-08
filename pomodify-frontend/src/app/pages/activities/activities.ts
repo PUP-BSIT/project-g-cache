@@ -170,7 +170,9 @@ export class ActivitiesPage implements OnInit {
           isEmailVerified: user.isEmailVerified || false
         });
       }
-    }).catch(err => console.error('[ActivitiesPage] Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
 
   // Load all categories from backend
@@ -204,10 +206,7 @@ export class ActivitiesPage implements OnInit {
         this.allCategories.set(categories);
         Logger.log('[ActivitiesPage] Categories signal updated, length:', this.allCategories().length);
       },
-      error: (err) => {
-        console.error('[ActivitiesPage] Error loading categories:', err);
-        console.error('[ActivitiesPage] Error status:', err.status);
-        console.error('[ActivitiesPage] Error message:', err.message);
+      error: (_err) => {
         // Silently fail - will use categories from activities as fallback
       }
     });
@@ -241,13 +240,11 @@ export class ActivitiesPage implements OnInit {
         });
       },
       error: (err) => {
-        console.error('[ActivitiesPage] Error loading activities:', err);
         let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
         
         // Check if it's a backend cache configuration error
         if (errorMsg.includes('Cannot find cache')) {
           errorMsg = 'Backend cache not configured. Please contact administrator.';
-          console.error('[ActivitiesPage] Backend cache error detected.');
         }
         
         this.error.set(errorMsg);
@@ -306,8 +303,7 @@ export class ActivitiesPage implements OnInit {
           // Create activity with the new category (loadCategories will be called after activity creation)
           this.createActivityWithCategory(result, categoryId);
         },
-        error: (err) => {
-          console.error('[ActivitiesPage] Error creating category:', err);
+        error: (_err) => {
           // Still create activity without category
           this.createActivityWithCategory(result, undefined);
         }
@@ -337,16 +333,11 @@ export class ActivitiesPage implements OnInit {
         this.loadActivities();
       },
       error: (err) => {
-        console.error('[ActivitiesPage] Error creating activity:', err);
-        console.error('[ActivitiesPage] Error status:', err.status);
-        console.error('[ActivitiesPage] Error body:', err.error);
-        
         let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
         
         // Check if it's a backend cache configuration error
         if (errorMsg.includes('Cannot find cache')) {
           errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
-          console.error('[ActivitiesPage] Backend cache error detected.');
         }
         
         alert(`Error: ${errorMsg}`);
@@ -412,8 +403,7 @@ export class ActivitiesPage implements OnInit {
           // Reload categories
           this.loadCategories();
         },
-        error: (err) => {
-          console.error('[ActivitiesPage] Error creating category:', err);
+        error: (_err) => {
           // Still update activity without category
           this.updateActivityRequest(activityId, updated, undefined);
         }
@@ -439,8 +429,7 @@ export class ActivitiesPage implements OnInit {
         this.activityColorService.setColorTag(activityId, updated.colorTag);
         this.loadActivities();
       },
-      error: (err) => {
-        console.error('[ActivitiesPage] Error updating activity:', err);
+      error: (_err) => {
         alert('Failed to update activity. Please try again.');
       }
     });
@@ -462,8 +451,7 @@ export class ActivitiesPage implements OnInit {
               this.activityColorService.removeColorTag(activity.activityId);
               this.loadActivities();
             },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error deleting activity:', err);
+            error: (_err) => {
               alert('Failed to delete activity. Please try again.');
             }
           });
@@ -497,8 +485,7 @@ export class ActivitiesPage implements OnInit {
               Logger.log('[ActivitiesPage] Session added successfully');
               // Optionally reload activities or show success message
             },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error adding session:', err);
+            error: (_err) => {
               alert('Failed to add session. Please try again.');
             }
           });
@@ -591,8 +578,7 @@ export class ActivitiesPage implements OnInit {
         currentCompletions.set(activityId, Math.round(percentage));
         this.activityCompletions.set(currentCompletions);
       },
-      error: (err: any) => {
-        console.error('[ActivitiesPage] Error loading sessions for activity:', activityId, err);
+      error: (_err: any) => {
         // Set to 0% on error
         const currentCompletions = new Map(this.activityCompletions());
         currentCompletions.set(activityId, 0);
@@ -615,8 +601,8 @@ export class ActivitiesPage implements OnInit {
       .then(() => {
         Logger.log('[ActivitiesPage] Logout completed');
       })
-      .catch((error) => {
-        console.error('[ActivitiesPage] Logout error:', error);
+      .catch((_error) => {
+        // Logout error - silently handle
       })
       .finally(() => {
         this.isLoggingOut.set(false);

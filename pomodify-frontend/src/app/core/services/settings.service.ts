@@ -191,7 +191,7 @@ export class SettingsService {
         return merged;
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      // Error loading settings - use defaults
     }
     
     return DEFAULT_SETTINGS;
@@ -208,7 +208,7 @@ export class SettingsService {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
       Logger.log('Settings saved successfully:', settings);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      // Error saving settings - silently handle
     } finally {
       // Simulate a brief saving delay for better UX
       setTimeout(() => {

@@ -110,7 +110,9 @@ export class BadgeNotificationService {
           this.saveToStorage();
         }
       },
-      error: (err) => console.error('Failed to check badges:', err)
+      error: (_err) => {
+        // Failed to check badges - silently handle
+      }
     });
   }
 

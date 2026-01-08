@@ -222,7 +222,6 @@ export class CreateActivityModal implements OnInit {
       const { name, category } = this.activityForm.getRawValue() as ActivityFormValue;
       
       if (!name || name.trim() === '') {
-        console.error('[CreateActivityModal] Activity name is required');
         this.activityForm.get('name')?.markAsTouched();
         return;
       }
@@ -235,7 +234,6 @@ export class CreateActivityModal implements OnInit {
       Logger.log('[CreateActivityModal] Closing with data:', activityData);
       this.dialogRef.close(activityData);
     } else {
-      console.error('[CreateActivityModal] Form is invalid');
       this.activityForm.markAllAsTouched();
     }
   }

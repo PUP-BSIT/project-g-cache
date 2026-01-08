@@ -1,83 +1,72 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../../environments/environment';
 
 /**
- * Logger service that only outputs logs in development mode.
- * In production, only errors are logged to the console.
+ * Logger service that suppresses all console output.
+ * All logging is disabled to keep the console clean.
  * 
  * Usage:
  * - Replace console.log() with Logger.log()
  * - Replace console.warn() with Logger.warn()
- * - console.error() should remain as-is for production visibility
+ * - Replace console.error() with Logger.error()
  */
 @Injectable({
   providedIn: 'root'
 })
 export class LoggerService {
-  private static isProduction = environment.production;
-
   /**
-   * Log a message - only outputs in development mode
+   * Log a message - suppressed
    */
-  static log(...args: unknown[]): void {
-    if (!LoggerService.isProduction) {
-      console.log(...args);
-    }
+  static log(..._args: unknown[]): void {
+    // Logging disabled
   }
 
   /**
-   * Log a warning - only outputs in development mode
+   * Log a warning - suppressed
    */
-  static warn(...args: unknown[]): void {
-    if (!LoggerService.isProduction) {
-      console.warn(...args);
-    }
+  static warn(..._args: unknown[]): void {
+    // Logging disabled
   }
 
   /**
-   * Log debug info - only outputs in development mode
+   * Log debug info - suppressed
    */
-  static debug(...args: unknown[]): void {
-    if (!LoggerService.isProduction) {
-      console.debug(...args);
-    }
+  static debug(..._args: unknown[]): void {
+    // Logging disabled
   }
 
   /**
-   * Log info - only outputs in development mode
+   * Log info - suppressed
    */
-  static info(...args: unknown[]): void {
-    if (!LoggerService.isProduction) {
-      console.info(...args);
-    }
+  static info(..._args: unknown[]): void {
+    // Logging disabled
   }
 
   /**
-   * Log an error - always outputs (even in production)
+   * Log an error - suppressed
    */
-  static error(...args: unknown[]): void {
-    console.error(...args);
+  static error(..._args: unknown[]): void {
+    // Logging disabled
   }
 
   // Instance methods for dependency injection usage
-  log(...args: unknown[]): void {
-    LoggerService.log(...args);
+  log(..._args: unknown[]): void {
+    // Logging disabled
   }
 
-  warn(...args: unknown[]): void {
-    LoggerService.warn(...args);
+  warn(..._args: unknown[]): void {
+    // Logging disabled
   }
 
-  debug(...args: unknown[]): void {
-    LoggerService.debug(...args);
+  debug(..._args: unknown[]): void {
+    // Logging disabled
   }
 
-  info(...args: unknown[]): void {
-    LoggerService.info(...args);
+  info(..._args: unknown[]): void {
+    // Logging disabled
   }
 
-  error(...args: unknown[]): void {
-    LoggerService.error(...args);
+  error(..._args: unknown[]): void {
+    // Logging disabled
   }
 }
 
@@ -86,9 +75,9 @@ export class LoggerService {
  * Use: import { Logger } from './logger.service';
  */
 export const Logger = {
-  log: (...args: unknown[]) => LoggerService.log(...args),
-  warn: (...args: unknown[]) => LoggerService.warn(...args),
-  debug: (...args: unknown[]) => LoggerService.debug(...args),
-  info: (...args: unknown[]) => LoggerService.info(...args),
-  error: (...args: unknown[]) => LoggerService.error(...args),
+  log: (..._args: unknown[]) => {},
+  warn: (..._args: unknown[]) => {},
+  debug: (..._args: unknown[]) => {},
+  info: (..._args: unknown[]) => {},
+  error: (..._args: unknown[]) => {},
 };

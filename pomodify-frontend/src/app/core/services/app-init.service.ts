@@ -32,7 +32,7 @@ export class AppInitService {
       await this.fcmService.initializeFCM();
       Logger.log('FCM initialization completed');
     } catch (error) {
-      console.error('Failed to initialize FCM:', error);
+      // FCM initialization failed - silently handle
     }
   }
 
@@ -46,7 +46,7 @@ export class AppInitService {
       await firstValueFrom(this.fcmService.unregisterToken());
       Logger.log('FCM cleanup completed');
     } catch (error) {
-      console.error('Failed to cleanup FCM:', error);
+      // FCM cleanup failed - silently handle
     }
   }
 }

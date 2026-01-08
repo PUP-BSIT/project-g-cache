@@ -22,7 +22,6 @@ export class AuthGuardService {
       AuthGuardService.profileChecked = false;
       return true;
     } catch (e) {
-      console.error('[AuthGuard] Profile fetch failed:', e);
       AuthGuardService.profileChecked = false;
       // Redirect to login page if not authenticated
       this.router.navigate(['/login']);

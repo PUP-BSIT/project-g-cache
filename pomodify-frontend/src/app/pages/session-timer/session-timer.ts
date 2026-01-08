@@ -467,8 +467,8 @@ export class SessionTimerComponent implements OnDestroy {
           this.timerSyncService.stopTimer();
         }
       },
-      error: (err) => {
-        console.error('[Session Timer] Failed to reload session:', err);
+      error: (_err) => {
+        // Failed to reload session - silently handle
       }
     });
   }
@@ -768,10 +768,6 @@ export class SessionTimerComponent implements OnDestroy {
         Logger.log('✅ Session settings updated:', updatedSession);
       },
       error: (err) => {
-        console.error('❌ Failed to update session settings:', err);
-        if (err.error) {
-          console.error('❌ Error details:', err.error);
-        }
         this.handleError(err, 'update session settings');
       }
     });
@@ -809,7 +805,9 @@ export class SessionTimerComponent implements OnDestroy {
         this.session.set(updatedSession);
         Logger.log('✅ Long break interval updated:', clampedInterval);
       },
-      error: (err) => console.error('❌ Failed to update long break interval:', err)
+      error: (_err) => {
+        // Failed to update long break interval - silently handle
+      }
     });
   }
 
@@ -1689,7 +1687,6 @@ export class SessionTimerComponent implements OnDestroy {
         }
       },
       error: (err) => {
-        console.error('[Session Timer] Failed to update note:', err);
         // Don't show error for note updates - they're not critical
         // Just log it silently
         if (!(err instanceof HttpErrorResponse && err.status === 401)) {
@@ -1749,8 +1746,7 @@ export class SessionTimerComponent implements OnDestroy {
         
         Logger.log(`✅ Added ${suggestions.length} AI-suggested todo(s)`);
       },
-      error: (err) => {
-        console.error('[Session Timer] AI suggestion failed:', err);
+      error: (_err) => {
         this.isGeneratingAi.set(false);
         // No fallback - let the error propagate so user knows AI failed
       }
@@ -1837,8 +1833,8 @@ export class SessionTimerComponent implements OnDestroy {
       next: () => {
         Logger.log('[Session Timer] Todos saved to backend');
       },
-      error: (err) => {
-        console.error('[Session Timer] Failed to save todos:', err);
+      error: (_err) => {
+        // Failed to save todos - silently handle
       }
     });
   }
@@ -2048,7 +2044,6 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     
     if (!sess) {
-      console.error('❌ Cannot auto-start: missing session');
       return;
     }
     
@@ -2102,7 +2097,6 @@ export class SessionTimerComponent implements OnDestroy {
     Logger.log('🧪 Testing auto-start functionality...');
     const sess = this.session();
     if (!sess) {
-      console.error('❌ No session available for testing');
       return;
     }
     

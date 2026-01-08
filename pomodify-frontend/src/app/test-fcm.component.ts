@@ -121,7 +121,6 @@ export class TestFcmComponent {
       this.refreshStatus();
     } catch (error) {
       this.addLog(`❌ FCM initialization failed: ${error}`);
-      console.error('FCM Error:', error);
     }
   }
 

@@ -220,7 +220,7 @@ export class NotificationService {
         Logger.log('Backend push test result:', result);
         return result;
       } catch (error) {
-        console.error('Backend push test failed:', error);
+        Logger.log('Backend push test failed:', error);
         return { success: false, error };
       }
     };
@@ -232,7 +232,7 @@ export class NotificationService {
         Logger.log('Push debug info:', result);
         return result;
       } catch (error) {
-        console.error('Failed to get push debug info:', error);
+        Logger.log('Failed to get push debug info:', error);
         return { error };
       }
     };
@@ -441,7 +441,7 @@ export class NotificationService {
 
       return false;
     } catch (error) {
-      console.error('Mobile browser notification failed:', error);
+      Logger.log('Mobile browser notification failed:', error);
       return false;
     }
   }
@@ -570,14 +570,14 @@ export class NotificationService {
           Logger.log('🎉 Desktop notification sent successfully!');
           
         } catch (notificationError) {
-          console.error('Notification creation failed:', notificationError);
+          Logger.log('Notification creation failed:', notificationError);
           
           // Ultra-simple fallback
           try {
             new Notification(context.title);
             Logger.log('Fallback notification sent');
           } catch (fallbackError) {
-            console.error('Even fallback notification failed:', fallbackError);
+            Logger.log('Even fallback notification failed:', fallbackError);
           }
         }
         
@@ -591,7 +591,7 @@ export class NotificationService {
       }
       
     } catch (error) {
-      console.error('Failed to send push notification:', error);
+      Logger.log('Failed to send push notification:', error);
     }
   }
 
