@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API } from '../config/api.config';
+import { Logger } from './logger.service';
 
 export interface SoundSettings {
   enabled: boolean;
@@ -107,14 +108,14 @@ export class SettingsService {
   playSound(type?: 'bell' | 'chime' | 'digital' | 'soft') {
     const settings = this.settingsSignal();
     if (!settings.sound.enabled) {
-      console.log('Sound disabled in settings, skipping playback');
+      Logger.log('Sound disabled in settings, skipping playback');
       return;
     }
     
     const soundType = type || settings.sound.type;
     const soundPath = `assets/sounds/${soundType}.wav`;
     
-    console.log('🔊 Attempting to play sound:', soundType, 'from path:', soundPath);
+    Logger.log('🔊 Attempting to play sound:', soundType, 'from path:', soundPath);
     
     // Stop any currently playing sound
     if (this.currentAudio) {
@@ -126,20 +127,20 @@ export class SettingsService {
     this.currentAudio = audio;
     audio.volume = settings.sound.volume / 100;
     
-    console.log('🔊 Playing sound:', soundType, 'at volume:', audio.volume, '(', settings.sound.volume, '%)');
+    Logger.log('🔊 Playing sound:', soundType, 'at volume:', audio.volume, '(', settings.sound.volume, '%)');
     
     audio.play()
       .then(() => {
-        console.log('🔊 Sound started playing successfully:', soundType);
+        Logger.log('🔊 Sound started playing successfully:', soundType);
       })
       .catch(err => {
-        console.warn('🔇 Could not play sound:', err);
-        console.warn('🔇 This may be due to browser autoplay restrictions. User interaction may be required first.');
+        Logger.warn('🔇 Could not play sound:', err);
+        Logger.warn('🔇 This may be due to browser autoplay restrictions. User interaction may be required first.');
       });
     
     // Clean up reference after playback
     audio.onended = () => {
-      console.log('🔊 Sound finished playing:', soundType);
+      Logger.log('🔊 Sound finished playing:', soundType);
       if (this.currentAudio === audio) {
         this.currentAudio = null;
       }
@@ -190,7 +191,7 @@ export class SettingsService {
         return merged;
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      // Error loading settings - use defaults
     }
     
     return DEFAULT_SETTINGS;
@@ -205,9 +206,9 @@ export class SettingsService {
     
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
-      console.log('Settings saved successfully:', settings);
+      Logger.log('Settings saved successfully:', settings);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      // Error saving settings - silently handle
     } finally {
       // Simulate a brief saving delay for better UX
       setTimeout(() => {

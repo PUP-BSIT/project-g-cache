@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { NotificationService } from './notification.service';
+import { Logger } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,8 @@ export class NotificationTestService {
    * Call this method and then switch to another tab or close the tab
    */
   async testDesktopClosedTabBehavior(): Promise<void> {
-    console.log('Testing desktop closed tab behavior...');
-    console.log('Current tab visibility:', this.notificationService.isTabVisible());
+    Logger.log('Testing desktop closed tab behavior...');
+    Logger.log('Current tab visibility:', this.notificationService.isTabVisible());
     
     // Simulate a session completion
     const testContext = {
@@ -24,14 +25,14 @@ export class NotificationTestService {
     };
 
     await this.notificationService.handleSessionCompletion(testContext);
-    console.log('Test notification triggered');
+    Logger.log('Test notification triggered');
   }
 
   /**
    * Test phase completion notification
    */
   async testPhaseCompletion(): Promise<void> {
-    console.log('Testing phase completion...');
+    Logger.log('Testing phase completion...');
     
     const testContext = {
       title: 'Focus Phase Complete!',
@@ -41,7 +42,7 @@ export class NotificationTestService {
     };
 
     await this.notificationService.handlePhaseCompletion(testContext);
-    console.log('Phase completion test triggered');
+    Logger.log('Phase completion test triggered');
   }
 
   /**

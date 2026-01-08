@@ -55,8 +55,7 @@ export class AdminDashboard implements OnInit {
         this.filteredUsers = users;
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Search failed:', err);
+      error: (_err) => {
         this.filteredUsers = [];
         this.isLoading = false;
       }
@@ -82,7 +81,6 @@ export class AdminDashboard implements OnInit {
             this.filteredUsers = this.filteredUsers.filter(u => u.id !== user.id);
           },
           error: (err) => {
-            console.error('Delete failed:', err);
             alert('Failed to delete user: ' + (err.error?.message || 'Unknown error'));
           }
         });

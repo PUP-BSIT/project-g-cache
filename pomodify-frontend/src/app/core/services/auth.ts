@@ -9,6 +9,7 @@ import { HistoryService } from './history.service';
 import { FcmService } from './fcm.service';
 import { SKIP_REDIRECT } from '../interceptors/auth-error.interceptor';
 import { UserProfileService } from './user-profile.service';
+import { Logger } from './logger.service';
 
 type LoginResponse = {
   user?: {
@@ -59,12 +60,12 @@ export class Auth {
             type: 'SET_LOGIN_STATE',
             isLoggedIn
           });
-          console.log('[Auth] Synced login state with service worker:', isLoggedIn);
+          Logger.log('[Auth] Synced login state with service worker:', isLoggedIn);
         } else {
-          console.log('[Auth] No service worker controller available for login state sync');
+          Logger.log('[Auth] No service worker controller available for login state sync');
         }
       } catch (error) {
-        console.warn('[Auth] Failed to sync login state with service worker:', error);
+        Logger.warn('[Auth] Failed to sync login state with service worker:', error);
       }
     }
   }
@@ -107,7 +108,7 @@ export class Auth {
     try {
       this.historyService.clearHistory();
     } catch (e) {
-      console.warn('Unable to clear auth data', e);
+      Logger.warn('Unable to clear auth data', e);
     }
   }
 
@@ -136,7 +137,7 @@ export class Auth {
         return this.refreshPromise;
       }
 
-      console.log('[Auth] Token expiring soon, refreshing...');
+      Logger.log('[Auth] Token expiring soon, refreshing...');
       this.refreshPromise = this.refreshToken()
         .finally(() => {
           this.refreshPromise = null;
@@ -154,7 +155,7 @@ export class Auth {
     return lastValueFrom(
       this.http.post<void>(API.AUTH.REFRESH, {}, { withCredentials: true })
     ).then(() => {
-      console.log('[Auth] Token refreshed successfully');
+      Logger.log('[Auth] Token refreshed successfully');
       this.updateTokenExpiration();
     });
   }
@@ -176,11 +177,11 @@ export class Auth {
       this.http.post<{ message?: string }>(url, {}, { withCredentials: true })
     )
       .then(() => {
-        console.log('[Auth] Logout successful');
+        Logger.log('[Auth] Logout successful');
         clearAndNavigate();
       })
       .catch((error) => {
-        console.warn('[Auth] Logout API failed, clearing client auth data anyway', error);
+        Logger.warn('[Auth] Logout API failed, clearing client auth data anyway', error);
         clearAndNavigate();
       });
   }
@@ -219,7 +220,6 @@ export class Auth {
         return { success: true };
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
-        console.error('[Auth] Login failed:', err);
         // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Login failed';
         return Promise.reject(new Error(errorMessage));
@@ -238,14 +238,14 @@ export class Auth {
   signup(firstName: string, lastName: string, email: string, password: string): Promise<void> {
     const url = API.AUTH.REGISTER;
     
-    console.log('[Auth] Attempting signup for:', email);
+    Logger.log('[Auth] Attempting signup for:', email);
     
     return lastValueFrom(this.http.post<SignupResponse>(url, { firstName, lastName, email, password }))
       .then(async (response) => {
-        console.log('[Auth] Signup successful for:', response.email);
+        Logger.log('[Auth] Signup successful for:', response.email);
         
         // Auto-login after successful signup
-        console.log('[Auth] Auto-logging in user after signup...');
+        Logger.log('[Auth] Auto-logging in user after signup...');
         return lastValueFrom(this.http.post<LoginResponse>(API.AUTH.LOGIN, { email, password }, { withCredentials: true }))
           .then(() => {
             // Set the permanent flag and login state for FCM/PWA
@@ -258,15 +258,12 @@ export class Auth {
             this.initializeFCMAfterLogin();
             // Fetch user profile after login
             this.fetchAndStoreUserProfile();
-            console.log('[Auth] Auto-login after signup successful');
+            Logger.log('[Auth] Auto-login after signup successful');
           });
       })
       .catch((err: Error & { error?: { message?: string }; status?: number }) => {
         // Extract error message from backend response
         const errorMessage = err?.error?.message || err?.message || 'Registration failed';
-        const statusCode = err?.status || 0;
-        
-        console.error('[Auth] Signup failed:', { status: statusCode, message: errorMessage });
         return Promise.reject(new Error(errorMessage));
       });
   }
@@ -291,19 +288,19 @@ export class Auth {
    */
   private async initializeFCMAfterLogin(): Promise<void> {
     try {
-      console.log('[Auth] 🔔 Initializing FCM after login...');
+      Logger.log('[Auth] 🔔 Initializing FCM after login...');
       // Use a timeout to ensure the app is fully loaded
       setTimeout(async () => {
         try {
           // Initialize FCM (uses cookies for auth)
           await this.fcmService.initializeFCM();
-          console.log('[Auth] (FCM) Initialization complete.');
+          Logger.log('[Auth] (FCM) Initialization complete.');
         } catch (error) {
-          console.log('[Auth] ⚠️ FCM initialization failed, but continuing with app:', error);
+          Logger.log('[Auth] ⚠️ FCM initialization failed, but continuing with app:', error);
         }
       }, 2000);
     } catch (error) {
-      console.error('[Auth] ❌ FCM initialization failed:', error);
+      // FCM initialization failed - silently handle
     }
   }
 
@@ -414,12 +411,12 @@ export class Auth {
     const url = API.USER.DELETE_ACCOUNT;
     return lastValueFrom(this.http.delete<void>(url, { withCredentials: true }))
       .then(() => {
-        console.log('[Auth] Account deleted successfully');
+        Logger.log('[Auth] Account deleted successfully');
         this.clearAuthData();
         this.router.navigate(['/']);
       })
       .catch((error) => {
-        console.error('[Auth] Account deletion failed:', error);
+        // Account deletion failed
         throw error;
       });
   }

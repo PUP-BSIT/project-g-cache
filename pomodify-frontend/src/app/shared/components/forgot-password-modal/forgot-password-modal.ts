@@ -54,7 +54,6 @@ export class ForgotPasswordModal {
       this.sentToEmail.set(email);
       this.currentStep.set('success');
     } catch (error) {
-      console.error('Forgot password error:', error);
       this.snackBar.open('Failed to send reset email. Please try again.', 'Close', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -79,7 +78,6 @@ export class ForgotPasswordModal {
         this.currentStep.set('add-backup-email');
       }
     } catch (error) {
-      console.error('Check backup email error:', error);
       this.snackBar.open('Failed to check backup email. Please try again.', 'Close', {
         duration: 3000,
         panelClass: ['error-snackbar']
@@ -105,7 +103,6 @@ export class ForgotPasswordModal {
       this.sentToEmail.set(backupEmail);
       this.currentStep.set('success');
     } catch (error: any) {
-      console.error('Forgot password via backup email error:', error);
       const message = error?.error?.message || 'Backup email does not match. Please try again.';
       this.snackBar.open(message, 'Close', {
         duration: 3000,
