@@ -1,18 +1,58 @@
-<div class="verify-container">
-  @if (success === true) {
-    <h1>✅ Account Verified</h1>
-    <p>{{ message }}</p>
-    <p>Redirecting to login...</p>
-  }
-  @if (success === false) {
-    <h1>❌ Verification Failed</h1>
-    <p>{{ message }}</p>
-    
-    @if (isExpired) {
-        <p>Your verification link has expired.</p>
-        <button mat-raised-button color="primary" (click)="onLogin()">Login to Resend Verification</button>
-    } @else {
-        <button mat-button (click)="onLogin()">Go to Login</button>
+<div class="verify-wrapper">
+  <div class="verify-container">
+    @if (success === true) {
+      <div class="verify-card success-card">
+        <div class="card-background"></div>
+        
+        <div class="success-icon">
+          <div class="checkmark">
+            <div class="checkmark-circle"></div>
+            <div class="checkmark-check"></div>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <h1 class="verify-title">Account Verified</h1>
+          <p class="verify-message">{{ message }}</p>
+        </div>
+
+        <div class="card-footer">
+          <button mat-raised-button color="accent" (click)="goToDashboard()" class="btn-navigate">
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
     }
-  }
+
+    @if (success === false) {
+      <div class="verify-card failure-card">
+        <div class="card-background"></div>
+        
+        <div class="failure-icon">
+          <div class="error-circle">
+            <div class="error-x"></div>
+          </div>
+        </div>
+
+        <div class="card-content">
+          <h1 class="verify-title">Verification Failed</h1>
+          <p class="verify-message">{{ message }}</p>
+          
+          @if (isExpired) {
+            <div class="expired-notice">
+              <i class="fa-solid fa-exclamation-triangle"></i>
+              <p>Your verification link has expired.</p>
+            </div>
+            <button mat-raised-button color="warn" (click)="onLogin()" class="btn-navigate">
+              Login to Resend Verification
+            </button>
+          } @else {
+            <button mat-raised-button color="primary" (click)="onLogin()" class="btn-navigate">
+              Return to Login
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
 </div>
