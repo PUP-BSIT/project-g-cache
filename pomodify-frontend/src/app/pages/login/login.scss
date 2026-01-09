@@ -235,6 +235,11 @@
       border-color: #e11d48;
       box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.35);
     }
+    
+    &.warning {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.35);
+    }
 
     &::placeholder {
       color: rgba(44, 95, 99, 0.7);
@@ -287,18 +292,77 @@
 }
 
 .field-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
-  color: #e11d48;
-  margin-top: -4px;
+  color: #dc2626;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.04) 100%);
+  border-radius: 10px;
+  border-left: 3px solid #ef4444;
+  animation: slideIn 0.2s ease-out;
+  
+  &::before {
+    content: '\f06a';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 12px;
+    color: #ef4444;
+  }
+}
+
+.field-warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #d97706;
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.06) 100%);
+  border-radius: 10px;
+  border-left: 3px solid #f59e0b;
+  animation: slideIn 0.2s ease-out;
+  
+  i {
+    font-size: 12px;
+    color: #f59e0b;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-error {
-  margin-bottom: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #dc2626;
   font-size: 14px;
+  font-weight: 500;
+  
+  &::before {
+    content: '\f071';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    font-size: 14px;
+    color: #ef4444;
+  }
 }
 
 button.btn-login,
