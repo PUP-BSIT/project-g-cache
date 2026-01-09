@@ -4,10 +4,12 @@ import com.pomodify.backend.application.command.activity.*;
 import com.pomodify.backend.application.helper.DomainHelper;
 import com.pomodify.backend.application.helper.UserHelper;
 import com.pomodify.backend.application.result.ActivityResult;
+import com.pomodify.backend.domain.enums.SessionStatus;
 import com.pomodify.backend.domain.model.Activity;
 import com.pomodify.backend.domain.model.Category;
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.repository.ActivityRepository;
+import com.pomodify.backend.domain.repository.PomodoroSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class ActivityService {
 
     private final ActivityRepository activityRepository;
+    private final PomodoroSessionRepository sessionRepository;
     private final UserHelper userHelper;
     private final DomainHelper domainHelper;
 
@@ -158,6 +161,9 @@ public class ActivityService {
 
     /* -------------------- HELPERS -------------------- */
     private ActivityResult mapToResult(Activity activity) {
+        // Calculate completion rate for this activity
+        int completionRate = calculateActivityCompletionRate(activity.getId(), activity.getUser().getId());
+        
         return ActivityResult.builder()
                 .activityId(activity.getId())
                 .categoryId(activity.getCategory() != null ? activity.getCategory().getId() : null)
@@ -167,6 +173,32 @@ public class ActivityService {
                 .color(activity.getColor())
                 .createdAt(activity.getCreatedAt())
                 .updatedAt(activity.getUpdatedAt())
+                .completionRate(completionRate)
                 .build();
+    }
+
+    /**
+     * Calculate completion rate for a specific activity
+     * Formula: (completed sessions / total sessions) * 100
+     * Total sessions = COMPLETED + ABANDONED sessions
+     */
+    private int calculateActivityCompletionRate(Long activityId, Long userId) {
+        var allSessions = sessionRepository.findByUserId(userId).stream()
+                .filter(s -> s.getActivity().getId().equals(activityId))
+                .filter(s -> !s.isDeleted())
+                .filter(s -> s.getStatus() == SessionStatus.COMPLETED || s.getStatus() == SessionStatus.ABANDONED)
+                .toList();
+
+        long totalSessions = allSessions.size();
+        
+        if (totalSessions == 0) {
+            return 0;
+        }
+
+        long completedSessions = allSessions.stream()
+                .filter(s -> s.getStatus() == SessionStatus.COMPLETED)
+                .count();
+
+        return (int) Math.round((completedSessions * 100.0) / totalSessions);
     }
 }

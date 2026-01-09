@@ -14,6 +14,7 @@ export interface ActivityData {
   color?: string;
   createdAt?: string;
   updatedAt?: string;
+  completionRate?: number; // Added: completion rate from backend
 }
 
 export interface ActivityResponse {

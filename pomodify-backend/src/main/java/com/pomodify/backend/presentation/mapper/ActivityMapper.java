@@ -23,6 +23,7 @@ public class ActivityMapper {
             .color(result.color())
             .createdAt(result.createdAt() != null ? result.createdAt().toString() : null)
             .updatedAt(result.updatedAt() != null ? result.updatedAt().toString() : null)
+            .completionRate(result.completionRate())
             .build();
     }
 
