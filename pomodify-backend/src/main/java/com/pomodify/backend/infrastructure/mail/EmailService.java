@@ -1,5 +1,6 @@
 package com.pomodify.backend.infrastructure.mail;
 
+import com.pomodify.backend.application.port.EmailPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -11,9 +12,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Infrastructure adapter implementing EmailPort.
+ * Handles actual email sending via JavaMailSender.
+ */
 @Service
 @Slf4j
-public class EmailService {
+public class EmailService implements EmailPort {
     @Value("${app.site.base-url:https://pomodify.site}")
     private String baseUrl;
     @Value("${spring.mail.from:contact@pomodify.site}")
@@ -43,6 +48,7 @@ public class EmailService {
         sendVerificationEmail(toEmail, token, overrideBaseUrl, false);
     }
 
+    @Override
     @Async
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
@@ -60,6 +66,7 @@ public class EmailService {
         }
     }
 
+    @Override
     public void sendVerificationEmail(String toEmail, String token, String overrideBaseUrl, boolean isResend) {
         String urlBase = (overrideBaseUrl != null && !overrideBaseUrl.isBlank()) ? overrideBaseUrl : baseUrl;
         String verificationUrl = urlBase + "/verify?token=" + token;
@@ -84,6 +91,7 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Override
     public void sendVerifyAndResetEmail(String toEmail, String token) {
         String verificationUrl = baseUrl + "/verify-and-reset?token=" + token;
         String subject = "Action Required: Verify Account to Reset Password";
@@ -96,7 +104,7 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
-    @Async
+    @Override
     public void sendPasswordResetEmail(String toEmail, String token, String overrideBaseUrl) {
         String urlBase = (overrideBaseUrl != null && !overrideBaseUrl.isBlank()) ? overrideBaseUrl : baseUrl;
         // Ensure we don't double slash if baseUrl ends with /
@@ -112,25 +120,10 @@ public class EmailService {
         String footerMessage = "This link will expire in 15 minutes. If you did not request this, please ignore this email.";
 
         String htmlContent = generateHtmlContent(title, message, buttonText, resetUrl, footerMessage);
-        
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
-            mailSender.send(mimeMessage);
-            log.info("Password reset email sent successfully to: {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
-            // Fallback to simple email if HTML fails
-            sendSimpleEmail(toEmail, subject, htmlContent.replaceAll("<[^>]*>", ""));
-        } catch (Exception e) {
-            log.error("Unexpected error sending password reset email to {}: {}", toEmail, e.getMessage());
-        }
+        sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Override
     public void sendPasswordResetEmail(String toEmail) {
         String resetUrl = baseUrl + "/reset-password";
         String subject = "Reset your Password";
@@ -143,6 +136,7 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    @Override
     public void sendContactEmail(String senderName, String senderEmail, String reason, String messageContent) {
         String toEmail = "contact@pomodify.site";
         String subject = String.format("[Pomodify Contact] %s - %s", reason, senderName);

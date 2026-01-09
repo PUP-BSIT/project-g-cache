@@ -1,6 +1,6 @@
 package com.pomodify.backend.application.result;
 
-import com.pomodify.backend.presentation.dto.note.SessionNoteDto;
+import com.pomodify.backend.application.dto.SessionNoteDto;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
