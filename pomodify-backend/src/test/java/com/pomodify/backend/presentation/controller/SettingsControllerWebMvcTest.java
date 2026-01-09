@@ -48,7 +48,16 @@ class SettingsControllerWebMvcTest {
                 "SYSTEM",
                 true
         );
-        Mockito.when(settingsService.getSettings(userId)).thenReturn(resp);
+        Mockito.when(settingsService.getSettings(userId)).thenReturn(new com.pomodify.backend.application.dto.UserSettingsDto(
+                userId,
+                "BELL",
+                true,
+                70,
+                false,
+                false,
+                "SYSTEM",
+                true
+        ));
 
         MockHttpServletRequestBuilder req = get("/settings")
                 .with(SecurityMockMvcRequestPostProcessors.jwt().jwt(jwt -> jwt.claim("user", userId)));
@@ -73,8 +82,17 @@ class SettingsControllerWebMvcTest {
                 "DARK",
                 true
         );
-        Mockito.when(settingsService.updateSettings(Mockito.eq(userId), Mockito.any(UpdateSettingsRequest.class)))
-                .thenReturn(resp);
+        Mockito.when(settingsService.updateSettings(Mockito.eq(userId), Mockito.any(com.pomodify.backend.application.dto.UpdateSettingsDto.class)))
+                .thenReturn(new com.pomodify.backend.application.dto.UserSettingsDto(
+                        userId,
+                        "SOFT_DING",
+                        true,
+                        50,
+                        true,
+                        true,
+                        "DARK",
+                        true
+                ));
 
         MockHttpServletRequestBuilder req = patch("/settings")
                 .contentType(MediaType.APPLICATION_JSON)

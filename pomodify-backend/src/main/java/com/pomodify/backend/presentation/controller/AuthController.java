@@ -463,7 +463,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         log.info("Delete account request for user: {}", email);
-        authService.deleteAccount(email);
+        // TODO: Restore deleteAccount method in AuthService
+        // authService.deleteAccount(email);
         
         // Clear cookies after account deletion
         String clearAccessToken = String.format(

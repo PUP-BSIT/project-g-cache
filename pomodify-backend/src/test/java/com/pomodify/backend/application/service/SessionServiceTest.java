@@ -66,9 +66,9 @@ class SessionServiceTest {
         when(sessionRepository.save(any(PomodoroSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(sessionRepository.findById(eq(sessionId))).thenReturn(Optional.of(session));
 
-        SessionTodoItemDto algebra = new SessionTodoItemDto(null, "Algebra exercise", false, 0);
-        SessionTodoItemDto geometry = new SessionTodoItemDto(null, "Geometry review", true, 1);
-        SessionNoteDto noteDto = new SessionNoteDto(null, "NOTE: Things I need to do", List.of(algebra, geometry));
+        com.pomodify.backend.application.dto.SessionTodoItemDto algebra = new com.pomodify.backend.application.dto.SessionTodoItemDto(null, "Algebra exercise", false, 0);
+        com.pomodify.backend.application.dto.SessionTodoItemDto geometry = new com.pomodify.backend.application.dto.SessionTodoItemDto(null, "Geometry review", true, 1);
+        com.pomodify.backend.application.dto.SessionNoteDto noteDto = new com.pomodify.backend.application.dto.SessionNoteDto(null, "NOTE: Things I need to do", List.of(algebra, geometry));
 
         SessionResult updated = sessionService.updateNote(
                 UpdateSessionNoteCommand.builder()
@@ -161,7 +161,7 @@ class SessionServiceTest {
         when(domainHelper.getSessionOrThrow(sessionId, userId)).thenReturn(session);
         when(sessionRepository.save(any(PomodoroSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        SessionTodoItemDto patch = new SessionTodoItemDto(null, "New text", true, 5);
+        com.pomodify.backend.application.dto.SessionTodoItemDto patch = new com.pomodify.backend.application.dto.SessionTodoItemDto(null, "New text", true, 5);
 
         SessionResult result = sessionService.patchTodoItem(userId, sessionId, 200L, patch);
 
