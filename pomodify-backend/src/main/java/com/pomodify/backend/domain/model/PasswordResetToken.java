@@ -3,7 +3,7 @@ package com.pomodify.backend.domain.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -16,7 +16,7 @@ public class PasswordResetToken {
 
     private String token;
 
-    private LocalDateTime expiryDate;
+    private Instant expiryDate;
 
     @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "user_id")
@@ -24,11 +24,11 @@ public class PasswordResetToken {
 
     public PasswordResetToken(User user) {
         this.user = user;
-        this.expiryDate = LocalDateTime.now().plusMinutes(15); // 15 minutes expiry
+        this.expiryDate = Instant.now().plusSeconds(15 * 60); // 15 minutes expiry
         this.token = UUID.randomUUID().toString();
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiryDate);
+        return Instant.now().isAfter(this.expiryDate);
     }
 }
