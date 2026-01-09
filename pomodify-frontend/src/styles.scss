@@ -702,16 +702,30 @@ html.theme-dark {
   /* Navigation elements */
   .nav-icon {
     color: var(--muted) !important;
+    background-color: transparent !important;
   }
 
   .nav-icon:hover {
-    background-color: rgba(95,169,164,0.15) !important;
     color: #7BC4BF !important;
+    background-color: transparent !important;
+  }
+
+  .nav-icon:hover::before {
+    background: rgba(95,169,164,0.15) !important;
   }
 
   .nav-icon.active {
-    background-color: #4D8B87 !important;
     color: #FFFFFF !important;
+    background-color: transparent !important;
+  }
+
+  .nav-icon.active::before {
+    background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%) !important;
+  }
+
+  .sidebar.expanded .nav-icon.active::before {
+    border-radius: 14px 0 0 14px !important;
+    right: -16px !important;
   }
 
   /* Text elements */
@@ -803,12 +817,25 @@ html.theme-dark {
 
   .nav-icon:hover {
     color: #5FA9A4 !important;
-    background-color: rgba(95, 169, 164, 0.1) !important;
+    background-color: transparent !important;
+  }
+
+  .nav-icon:hover::before {
+    background: rgba(95, 169, 164, 0.1) !important;
   }
 
   .nav-icon.active {
-    background-color: #5FA9A4 !important;
+    background-color: transparent !important;
     color: white !important;
+  }
+
+  .nav-icon.active::before {
+    background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%) !important;
+  }
+
+  .sidebar.expanded .nav-icon.active::before {
+    border-radius: 14px 0 0 14px !important;
+    right: -16px !important;
   }
 
   /* FORCE LIGHT SECTIONS */
@@ -907,16 +934,30 @@ html:not(.theme-dark) .sidebar {
 
 html:not(.theme-dark) .nav-icon {
   color: #6C757D !important;
+  background-color: transparent !important;
 }
 
 html:not(.theme-dark) .nav-icon:hover {
-  background-color: rgba(95, 169, 164, 0.1) !important;
   color: #5FA9A4 !important;
+  background-color: transparent !important;
+}
+
+html:not(.theme-dark) .nav-icon:hover::before {
+  background: rgba(95, 169, 164, 0.1) !important;
 }
 
 html:not(.theme-dark) .nav-icon.active {
-  background-color: #5FA9A4 !important;
   color: #FFFFFF !important;
+  background-color: transparent !important;
+}
+
+html:not(.theme-dark) .nav-icon.active::before {
+  background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%) !important;
+}
+
+html:not(.theme-dark) .sidebar.expanded .nav-icon.active::before {
+  border-radius: 14px 0 0 14px !important;
+  right: -16px !important;
 }
 
 html:not(.theme-dark) .recent-sessions-section {
@@ -1224,16 +1265,30 @@ html.theme-dark .header {
 
 html.theme-dark .nav-icon {
   color: #9CA3AF !important;
+  background-color: transparent !important;
 }
 
 html.theme-dark .nav-icon:hover {
-  background-color: rgba(95, 169, 164, 0.15) !important;
   color: #7BC4BF !important;
+  background-color: transparent !important;
+}
+
+html.theme-dark .nav-icon:hover::before {
+  background: rgba(95, 169, 164, 0.15) !important;
 }
 
 html.theme-dark .nav-icon.active {
-  background-color: #4D8B87 !important;
   color: #FFFFFF !important;
+  background-color: transparent !important;
+}
+
+html.theme-dark .nav-icon.active::before {
+  background: linear-gradient(135deg, #5FA9A4 0%, #4D8B87 100%) !important;
+}
+
+html.theme-dark .sidebar.expanded .nav-icon.active::before {
+  border-radius: 14px 0 0 14px !important;
+  right: -16px !important;
 }
 
 html.theme-dark .recent-sessions-section {

@@ -49,9 +49,9 @@
             <div class="mascot-bubble" 
                  [class.show]="isRunning()">
               @if (currentPhase() === 'FOCUS') {
-                <span>Stay Focused! 🎯</span>
+                <span>Stay Focused! <i class="fa-solid fa-bullseye"></i></span>
               } @else {
-                <span>Enjoy Your Break! 🌟</span>
+                <span>Enjoy Your Break! <i class="fa-solid fa-star"></i></span>
               }
             </div>
           </div>
@@ -253,10 +253,13 @@
 
         <!-- Right Side: Notes and Todo Panel (hidden for ABANDONED sessions) -->
         @if (!isAbandoned()) {
-        <div class="notes-panel" [class.read-only]="isCompleted()">
+        <div class="notes-panel" [class.read-only]="isCompleted()" [class.collapsed]="!notesExpanded()">
           <!-- Header: Notes label and TODO button -->
           <div class="panel-header">
-            <span class="notes-label">Notes:</span>
+            <button class="notes-toggle-btn" (click)="toggleNotesPanel()">
+              <span class="notes-label">Notes:</span>
+              <i class="fa-solid fa-chevron-down toggle-icon" [class.rotated]="!notesExpanded()"></i>
+            </button>
             @if (isCompleted()) {
               <span class="read-only-badge">
                 <i class="fa-solid fa-lock"></i>
@@ -264,7 +267,7 @@
               </span>
             }
             <div class="header-actions">
-              @if (!isCompleted()) {
+              @if (!isCompleted() && notesExpanded()) {
                 <button 
                   class="btn-ai-suggest" 
                   (click)="generateAiTodos()"
@@ -284,47 +287,50 @@
             </div>
           </div>
 
-          <!-- Todo List -->
-          <div class="todo-list">
-            @for (todo of todos(); track todo.id) {
-              <div class="todo-item" [class.todo-done]="todo.done">
-                <input 
-                  type="checkbox" 
-                  class="todo-checkbox"
-                  [checked]="todo.done"
-                  (change)="toggleTodo(todo.id)"
-                  [disabled]="isCompleted()"
-                  [id]="'todo-' + todo.id">
-                <textarea
-                  class="todo-text"
-                  [class.todo-checked]="todo.done"
-                  [value]="todo.text"
-                  (input)="updateTodoText(todo.id, $any($event.target).value); autoExpandTodo($event)"
-                  [readonly]="isCompleted()"
-                  [id]="'todo-text-' + todo.id"
-                  placeholder="Todo item"
-                  rows="1"
-                  wrap="soft"></textarea>
-                @if (!isCompleted()) {
-                  <button 
-                    class="btn-remove-todo"
-                    (click)="removeTodo(todo.id)"
-                    title="Remove">
-                    <i class="fa-solid fa-x"></i>
-                  </button>
-                }
-              </div>
-            }
-          </div>
+          <!-- Collapsible Content -->
+          @if (notesExpanded()) {
+            <!-- Todo List -->
+            <div class="todo-list">
+              @for (todo of todos(); track todo.id) {
+                <div class="todo-item" [class.todo-done]="todo.done">
+                  <input 
+                    type="checkbox" 
+                    class="todo-checkbox"
+                    [checked]="todo.done"
+                    (change)="toggleTodo(todo.id)"
+                    [disabled]="isCompleted()"
+                    [id]="'todo-' + todo.id">
+                  <textarea
+                    class="todo-text"
+                    [class.todo-checked]="todo.done"
+                    [value]="todo.text"
+                    (input)="updateTodoText(todo.id, $any($event.target).value); autoExpandTodo($event)"
+                    [readonly]="isCompleted()"
+                    [id]="'todo-text-' + todo.id"
+                    placeholder="Todo item"
+                    rows="1"
+                    wrap="soft"></textarea>
+                  @if (!isCompleted()) {
+                    <button 
+                      class="btn-remove-todo"
+                      (click)="removeTodo(todo.id)"
+                      title="Remove">
+                      <i class="fa-solid fa-x"></i>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
 
-          <!-- Notes Textarea at Bottom -->
-          <textarea 
-            class="notes-textarea"
-            [value]="notes"
-            (input)="onNotesChanged($event)"
-            (blur)="saveNotes()"
-            [readonly]="isCompleted()"
-            placeholder="Add your notes here..."></textarea>
+            <!-- Notes Textarea at Bottom -->
+            <textarea 
+              class="notes-textarea"
+              [value]="notes"
+              (input)="onNotesChanged($event)"
+              (blur)="saveNotes()"
+              [readonly]="isCompleted()"
+              placeholder="Add your notes here..."></textarea>
+          }
         </div>
         }
       </div>
