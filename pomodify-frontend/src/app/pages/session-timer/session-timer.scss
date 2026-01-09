@@ -1471,7 +1471,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
 
 .todo-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   background: $bg-light;
   border-radius: 10px;
@@ -1492,6 +1492,7 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   cursor: pointer;
   accent-color: var(--activity-color);
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .todo-text {
@@ -1503,14 +1504,17 @@ $glow-shadow: 0 0 40px rgba(95, 169, 164, 0.3);
   outline: none;
   padding: 2px 4px;
   resize: none;
-  min-height: auto;
+  min-height: 24px;
   height: auto;
   overflow: hidden;
+  overflow-y: auto;
   word-wrap: break-word;
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.4;
   margin: 0;
+  max-height: none;
+  field-sizing: content;
 
   &:focus {
     background: rgba(95, 169, 164, 0.05) !important;

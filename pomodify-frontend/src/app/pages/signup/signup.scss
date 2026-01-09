@@ -250,6 +250,26 @@
 
   input {
     padding-right: 52px; /* leave room for eye icon */
+    
+    /* Hide browser's native password reveal icon */
+    &::-ms-reveal,
+    &::-ms-clear {
+      display: none;
+    }
+    
+    /* Hide Chrome/Edge password reveal icon */
+    &::-webkit-credentials-auto-fill-button,
+    &::-webkit-clear-button {
+      display: none !important;
+    }
+  }
+  
+  /* Hide Edge/Chrome password reveal button */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear,
+  input[type="text"]::-ms-reveal,
+  input[type="text"]::-ms-clear {
+    display: none !important;
   }
 }
 

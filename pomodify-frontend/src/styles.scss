@@ -15,6 +15,26 @@ body {
   padding: 0;
 }
 
+/* Hide browser's native password reveal icon globally */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-clear-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Also hide for text inputs that might be toggled password fields */
+.password-group input::-ms-reveal,
+.password-group input::-ms-clear,
+.password-group input::-webkit-credentials-auto-fill-button,
+.password-group input::-webkit-clear-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .verify-email-dialog {
   .mat-mdc-dialog-surface {
     border-radius: 16px !important;
@@ -2151,10 +2171,13 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
   .mat-mdc-dialog-container {
     padding: 0 !important;
   }
-  
-  @media (max-width: 600px) {
-    max-width: 75% !important;
-    width: 75% !important;
+}
+
+/* Responsive dialog sizing for all screen sizes */
+@media (max-width: 600px) {
+  .cdk-overlay-pane.create-activity-dialog-panel {
+    max-width: calc(100vw - 32px) !important;
+    width: calc(100vw - 32px) !important;
     margin: 0 auto !important;
     
     .mat-mdc-dialog-surface {
@@ -2169,13 +2192,16 @@ html.theme-dark .mat-mdc-option.mdc-list-item--selected {
   }
 }
 
-/* Force dialog to have side margins on mobile */
-@media (max-width: 600px) {
+@media (max-width: 400px) {
   .cdk-overlay-pane.create-activity-dialog-panel {
-    max-width: 75% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    width: calc(100vw - 24px) !important;
   }
+}
+
+/* Ensure dialog is centered and visible on all devices */
+.cdk-overlay-pane.create-activity-dialog-panel {
+  max-height: 90vh !important;
 }
 
 /* ========================================================================
