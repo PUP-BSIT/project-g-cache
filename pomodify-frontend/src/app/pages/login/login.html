@@ -24,14 +24,24 @@
             id="email"
             formControlName="email"
             placeholder="Email"
-            [class.invalid]="loginForm.get('email')?.invalid && (loginForm.get('email')?.touched || loginForm.get('email')?.dirty)"
+            [class.invalid]="loginForm.get('email')?.invalid && submitted"
+            [class.warning]="loginForm.get('email')?.hasError('email') && loginForm.get('email')?.dirty && !submitted"
           />
-          @if (loginForm.get('email')?.hasError('required') && (loginForm.get('email')?.touched || loginForm.get('email')?.dirty)) {
+          <!-- Required error only on submit -->
+          @if (loginForm.get('email')?.hasError('required') && submitted) {
             <div class="field-error">
               Email is required.
             </div>
           }
-          @if (loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required') && (loginForm.get('email')?.touched || loginForm.get('email')?.dirty)) {
+          <!-- Format warning while typing -->
+          @if (loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required') && loginForm.get('email')?.dirty && !submitted) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Please enter a valid email address.
+            </div>
+          }
+          <!-- Format error on submit -->
+          @if (loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required') && submitted) {
             <div class="field-error">
               Please enter a valid email address.
             </div>
@@ -44,7 +54,8 @@
             id="password"
             formControlName="password"
             placeholder="Password"
-            [class.invalid]="loginForm.get('password')?.invalid && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)"
+            [class.invalid]="loginForm.get('password')?.invalid && submitted"
+            [class.warning]="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.dirty && !submitted"
           />
           <button
             type="button"
@@ -53,14 +64,23 @@
             [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
             <i class="fa-solid" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
           </button>
-          @if (loginForm.get('password')?.hasError('required') && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)) {
+          <!-- Required error only on submit -->
+          @if (loginForm.get('password')?.hasError('required') && submitted) {
             <div class="field-error">
               Password is required.
             </div>
           }
-          @if (loginForm.get('password')?.hasError('minlength') && !loginForm.get('password')?.hasError('required') && (loginForm.get('password')?.touched || loginForm.get('password')?.dirty)) {
+          <!-- Format warning while typing -->
+          @if (loginForm.get('password')?.hasError('minlength') && !loginForm.get('password')?.hasError('required') && loginForm.get('password')?.dirty && !submitted) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Password must be at least 8 characters.
+            </div>
+          }
+          <!-- Format error on submit -->
+          @if (loginForm.get('password')?.hasError('minlength') && !loginForm.get('password')?.hasError('required') && submitted) {
             <div class="field-error">
-              Password must be at least 6 characters.
+              Password must be at least 8 characters.
             </div>
           }
         </div>

@@ -18,113 +18,196 @@
     </div>
 
     <form class="signup-form" [formGroup]="signupForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <input
-          type="text"
-          id="firstName"
-          formControlName="firstName"
-          placeholder="First Name"
-          [class.invalid]="signupForm.get('firstName')?.invalid && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)"
-        />
-        @if (signupForm.get('firstName')?.hasError('required') && (signupForm.get('firstName')?.touched || signupForm.get('firstName')?.dirty)) {
-          <div class="field-error">
-            First name is required.
-          </div>
-        }
+      <!-- Name Row - Two fields side by side -->
+      <div class="form-row">
+        <div class="form-group half">
+          <input
+            type="text"
+            id="firstName"
+            formControlName="firstName"
+            placeholder="First Name"
+            maxlength="50"
+            [class.invalid]="signupForm.get('firstName')?.invalid && (signupForm.get('firstName')?.dirty || submitted)"
+          />
+          <!-- Required error only on submit -->
+          @if (signupForm.get('firstName')?.hasError('required') && submitted) {
+            <div class="field-error">
+              First name is required.
+            </div>
+          }
+          <!-- Format errors show while typing -->
+          @if (signupForm.get('firstName')?.hasError('minlength') && signupForm.get('firstName')?.dirty) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Min 2 characters.
+            </div>
+          }
+          @if (signupForm.get('firstName')?.hasError('pattern') && !signupForm.get('firstName')?.hasError('minlength') && signupForm.get('firstName')?.dirty) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Letters, spaces, hyphens only.
+            </div>
+          }
+        </div>
+
+        <div class="form-group half">
+          <input
+            type="text"
+            id="lastName"
+            formControlName="lastName"
+            placeholder="Last Name"
+            maxlength="50"
+            [class.invalid]="signupForm.get('lastName')?.invalid && (signupForm.get('lastName')?.dirty || submitted)"
+          />
+          @if (signupForm.get('lastName')?.hasError('required') && submitted) {
+            <div class="field-error">
+              Last name is required.
+            </div>
+          }
+          @if (signupForm.get('lastName')?.hasError('minlength') && signupForm.get('lastName')?.dirty) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Min 2 characters.
+            </div>
+          }
+          @if (signupForm.get('lastName')?.hasError('pattern') && !signupForm.get('lastName')?.hasError('minlength') && signupForm.get('lastName')?.dirty) {
+            <div class="field-warning">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Letters, spaces, hyphens only.
+            </div>
+          }
+        </div>
       </div>
 
-      <div class="form-group">
-        <input
-          type="text"
-          id="lastName"
-          formControlName="lastName"
-          placeholder="Last Name"
-          [class.invalid]="signupForm.get('lastName')?.invalid && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)"
-        />
-        @if (signupForm.get('lastName')?.hasError('required') && (signupForm.get('lastName')?.touched || signupForm.get('lastName')?.dirty)) {
-          <div class="field-error">
-            Last name is required.
-          </div>
-        }
-      </div>
+      <!-- Email - Full width -->
       <div class="form-group">
         <input
           type="email"
           id="email"
           formControlName="email"
-          placeholder="Email"
-          [class.invalid]="signupForm.get('email')?.invalid && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)"
+          placeholder="Email Address"
+          [class.invalid]="signupForm.get('email')?.invalid && (signupForm.get('email')?.dirty || submitted)"
         />
-        @if (signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)) {
+        @if (signupForm.get('email')?.hasError('required') && submitted) {
           <div class="field-error">
             Email is required.
           </div>
         }
-        @if (signupForm.get('email')?.hasError('email') && !signupForm.get('email')?.hasError('required') && (signupForm.get('email')?.touched || signupForm.get('email')?.dirty)) {
-          <div class="field-error">
+        @if (signupForm.get('email')?.hasError('email') && signupForm.get('email')?.dirty) {
+          <div class="field-warning">
+            <i class="fa-solid fa-triangle-exclamation"></i>
             Please enter a valid email address.
           </div>
         }
       </div>
 
-      <div class="form-group password-group">
-        <input
-          [type]="passwordInputType"
-          id="password"
-          formControlName="password"
-          placeholder="Password"
-          [class.invalid]="signupForm.get('password')?.invalid && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)"
-        />
-        <button
-          type="button"
-          class="password-toggle"
-          (click)="togglePasswordVisibility()"
-          [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
-          <i class="fa-solid" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
-        </button>
-        @if (signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)) {
-          <div class="field-error">
-            Password is required.
-          </div>
-        }
-        @if (signupForm.get('password')?.hasError('minlength') && !signupForm.get('password')?.hasError('required') && (signupForm.get('password')?.touched || signupForm.get('password')?.dirty)) {
-          <div class="field-error">
-            Password must be at least 8 characters.
-          </div>
-        }
-      </div>
+      <!-- Password Row - Two fields side by side -->
+      <div class="form-row">
+        <div class="form-group half password-group">
+          <input
+            [type]="passwordInputType"
+            id="password"
+            formControlName="password"
+            placeholder="Password"
+            maxlength="50"
+            [class.invalid]="signupForm.get('password')?.invalid && submitted"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="passwordVisible ? 'Hide password' : 'Show password'">
+            <i class="fa-solid" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+          @if (signupForm.get('password')?.hasError('required') && submitted) {
+            <div class="field-error">
+              Password is required.
+            </div>
+          }
+        </div>
 
-      <div class="form-group password-group">
-        <input
-          [type]="confirmPasswordInputType"
-          id="confirmPassword"
-          formControlName="confirmPassword"
-          placeholder="Confirm Password"
-          [class.invalid]="(signupForm.get('confirmPassword')?.invalid && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) || signupForm.get('confirmPassword')?.hasError('mismatch')"
-        />
-        <button
-          type="button"
-          class="password-toggle"
-          (click)="toggleConfirmPasswordVisibility()"
-          [attr.aria-label]="confirmPasswordVisible ? 'Hide password' : 'Show password'">
-          <i class="fa-solid" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
-        </button>
-        @if (signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) {
-          <div class="field-error">
-            Please confirm your password.
-          </div>
-        }
-        @if (signupForm.get('confirmPassword')?.hasError('minlength') && !signupForm.get('confirmPassword')?.hasError('required') && (signupForm.get('confirmPassword')?.touched || signupForm.get('confirmPassword')?.dirty)) {
-          <div class="field-error">
-            Confirmation password must be at least 8 characters.
-          </div>
-        }
-        @if (signupForm.get('confirmPassword')?.hasError('mismatch')) {
-          <div class="field-error">
-            Passwords do not match.
-          </div>
-        }
+        <div class="form-group half password-group">
+          <input
+            [type]="confirmPasswordInputType"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Confirm Password"
+            maxlength="50"
+            [class.invalid]="(signupForm.get('confirmPassword')?.invalid || signupForm.get('confirmPassword')?.hasError('mismatch')) && submitted"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+            [attr.aria-label]="confirmPasswordVisible ? 'Hide password' : 'Show password'">
+            <i class="fa-solid" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+          @if (signupForm.get('confirmPassword')?.hasError('required') && submitted) {
+            <div class="field-error">
+              Confirm password.
+            </div>
+          }
+          @if (signupForm.get('confirmPassword')?.hasError('mismatch') && submitted) {
+            <div class="field-error">
+              Passwords don't match.
+            </div>
+          }
+        </div>
       </div>
+      
+      <!-- Password strength checklist - show when user starts typing -->
+      @if (signupForm.get('password')?.value) {
+        <div class="password-requirements">
+          <div class="requirements-header">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Password Strength</span>
+            <span class="strength-badge" [ngClass]="passwordStrengthClass">{{ passwordStrengthLabel }}</span>
+          </div>
+          
+          <div class="strength-meter">
+            <div class="strength-bar-container">
+              <div class="strength-segment" [class.active]="passwordStrengthScore >= 1" [ngClass]="passwordStrengthClass"></div>
+              <div class="strength-segment" [class.active]="passwordStrengthScore >= 2" [ngClass]="passwordStrengthClass"></div>
+              <div class="strength-segment" [class.active]="passwordStrengthScore >= 3" [ngClass]="passwordStrengthClass"></div>
+              <div class="strength-segment" [class.active]="passwordStrengthScore >= 4" [ngClass]="passwordStrengthClass"></div>
+              <div class="strength-segment" [class.active]="passwordStrengthScore >= 5" [ngClass]="passwordStrengthClass"></div>
+            </div>
+          </div>
+          
+          <div class="requirements-grid">
+            <div class="requirement" [class.valid]="passwordHasMinLength">
+              <span class="req-icon">
+                <i class="fa-solid" [ngClass]="passwordHasMinLength ? 'fa-check' : 'fa-xmark'"></i>
+              </span>
+              <span class="req-text">8+ characters</span>
+            </div>
+            <div class="requirement" [class.valid]="passwordHasLowercase">
+              <span class="req-icon">
+                <i class="fa-solid" [ngClass]="passwordHasLowercase ? 'fa-check' : 'fa-xmark'"></i>
+              </span>
+              <span class="req-text">Lowercase (a-z)</span>
+            </div>
+            <div class="requirement" [class.valid]="passwordHasUppercase">
+              <span class="req-icon">
+                <i class="fa-solid" [ngClass]="passwordHasUppercase ? 'fa-check' : 'fa-xmark'"></i>
+              </span>
+              <span class="req-text">Uppercase (A-Z)</span>
+            </div>
+            <div class="requirement" [class.valid]="passwordHasNumber">
+              <span class="req-icon">
+                <i class="fa-solid" [ngClass]="passwordHasNumber ? 'fa-check' : 'fa-xmark'"></i>
+              </span>
+              <span class="req-text">Number (0-9)</span>
+            </div>
+            <div class="requirement special" [class.valid]="passwordHasSpecial">
+              <span class="req-icon">
+                <i class="fa-solid" [ngClass]="passwordHasSpecial ? 'fa-check' : 'fa-xmark'"></i>
+              </span>
+              <span class="req-text">Special (@$!%*?&)</span>
+            </div>
+          </div>
+        </div>
+      }
 
       <button type="submit" class="btn-signup" [disabled]="isLoading || signupForm.invalid">
         @if (isLoading) {

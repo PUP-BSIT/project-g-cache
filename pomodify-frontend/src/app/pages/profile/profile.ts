@@ -40,6 +40,11 @@ export class Profile implements OnInit {
   passwordForm!: FormGroup;
   verificationForm!: FormGroup;
   
+  // Password pattern: at least 1 uppercase, 1 lowercase, 1 number, 1 special char
+  private readonly passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  // Name pattern: only letters, spaces, and hyphens
+  private readonly namePattern = /^[A-Za-z\s-]+$/;
+  
   // UI States
   protected showPasswordVerification = signal(false);
   protected showBackupEmailForm = signal(false);
@@ -56,6 +61,50 @@ export class Profile implements OnInit {
   protected imageUploadError = signal<string | null>(null);
   protected hasCustomProfilePicture = signal(false);
   
+  // Password strength indicators for UI feedback
+  get newPasswordHasLowercase(): boolean {
+    return /[a-z]/.test(this.passwordForm?.get('newPassword')?.value || '');
+  }
+  get newPasswordHasUppercase(): boolean {
+    return /[A-Z]/.test(this.passwordForm?.get('newPassword')?.value || '');
+  }
+  get newPasswordHasNumber(): boolean {
+    return /\d/.test(this.passwordForm?.get('newPassword')?.value || '');
+  }
+  get newPasswordHasSpecial(): boolean {
+    return /[@$!%*?&]/.test(this.passwordForm?.get('newPassword')?.value || '');
+  }
+  get newPasswordHasMinLength(): boolean {
+    return (this.passwordForm?.get('newPassword')?.value || '').length >= 8;
+  }
+  
+  // Password strength score (0-5)
+  get newPasswordStrengthScore(): number {
+    let score = 0;
+    if (this.newPasswordHasMinLength) score++;
+    if (this.newPasswordHasLowercase) score++;
+    if (this.newPasswordHasUppercase) score++;
+    if (this.newPasswordHasNumber) score++;
+    if (this.newPasswordHasSpecial) score++;
+    return score;
+  }
+  
+  get newPasswordStrengthLabel(): string {
+    const score = this.newPasswordStrengthScore;
+    if (score <= 1) return 'Weak';
+    if (score <= 2) return 'Fair';
+    if (score <= 4) return 'Good';
+    return 'Strong';
+  }
+  
+  get newPasswordStrengthClass(): string {
+    const score = this.newPasswordStrengthScore;
+    if (score <= 1) return 'weak';
+    if (score <= 2) return 'fair';
+    if (score <= 4) return 'good';
+    return 'strong';
+  }
+  
   // Profile data
   protected profileImage = signal<string>('assets/images/default-avatar.svg');
   protected userName = signal('');
@@ -71,12 +120,17 @@ export class Profile implements OnInit {
     this.fetchUserProfile();
     this.fetchUserBadges();
 
-    // Initialize profile form
+    // Initialize profile form with name pattern validation
     this.profileForm = this.fb.group({
       name: [
         this.userName(),
         {
-          validators: [Validators.required, Validators.minLength(2)],
+          validators: [
+            Validators.required,
+            Validators.minLength(2),
+            Validators.maxLength(100),
+            Validators.pattern(this.namePattern)
+          ],
         },
       ],
     });
@@ -91,7 +145,7 @@ export class Profile implements OnInit {
       ],
     });
     
-    // Initialize password form (for verification)
+    // Initialize password form with strong password validation
     this.passwordForm = this.fb.group({
       currentPassword: [
         '',
@@ -102,7 +156,12 @@ export class Profile implements OnInit {
       newPassword: [
         '',
         {
-          validators: [Validators.required, Validators.minLength(8)],
+          validators: [
+            Validators.required,
+            Validators.minLength(8),
+            Validators.maxLength(50),
+            Validators.pattern(this.passwordPattern)
+          ],
         },
       ],
       confirmPassword: [
