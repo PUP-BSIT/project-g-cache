@@ -466,6 +466,31 @@
         
         i { font-size: 0.7rem; }
       }
+      
+      .session-date-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        
+        .date-label {
+          font-size: 0.65rem;
+          color: rgba(255, 255, 255, 0.7);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          
+          i { font-size: 0.6rem; }
+        }
+        
+        .date-value {
+          font-size: 0.8rem;
+          color: white;
+          font-weight: 500;
+        }
+      }
     }
     
     .session-status {
@@ -878,6 +903,10 @@
       .session-title-area {
         .session-type-name { font-size: 1rem; }
         .session-date { font-size: 0.7rem; }
+        .session-date-info {
+          .date-label { font-size: 0.6rem; }
+          .date-value { font-size: 0.75rem; }
+        }
       }
       
       .session-status {
@@ -1007,6 +1036,11 @@
         gap: 0.2rem;
         .session-type-name { font-size: 0.95rem; }
         .session-date { font-size: 0.65rem; }
+        .session-date-info {
+          gap: 0.1rem;
+          .date-label { font-size: 0.55rem; }
+          .date-value { font-size: 0.7rem; }
+        }
       }
       
       .session-status {
