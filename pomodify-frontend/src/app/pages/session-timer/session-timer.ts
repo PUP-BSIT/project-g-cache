@@ -280,6 +280,9 @@ export class SessionTimerComponent implements OnDestroy {
       // Ensure nextTodoId is ahead of the max existing id
       const maxId = parsed.reduce((max, t) => Math.max(max, t.id), 0);
       this.nextTodoId = maxId + 1;
+      
+      // Auto-expand todos after DOM updates
+      setTimeout(() => this.autoExpandAllTodos(), 100);
     } catch (e) {
       Logger.warn('[Session Timer] Failed to load todos from storage', e);
     }
@@ -342,19 +345,17 @@ export class SessionTimerComponent implements OnDestroy {
     }
     
     // Effect to update browser tab title with timer
+    // Timer in title should ONLY show on the session timer page
     effect(() => {
       if (isPlatformBrowser(this.platformId)) {
         const timerDisplay = this.timerDisplay();
-        const phase = this.currentPhase();
         const isRunning = this.isRunning();
         const isPaused = this.isPaused();
         const sess = this.session();
         
         if (sess && (isRunning || isPaused)) {
-          // Show timer in tab: "16:11 Focus | Pomodify" or "⏸ 16:11 | Pomodify"
-          const phaseLabel = phase === 'FOCUS' ? '🎯' : '☕';
-          const pauseIcon = isPaused ? '⏸ ' : '';
-          this.document.title = `${pauseIcon}${timerDisplay} ${phaseLabel} Pomodify`;
+          // Show timer in tab: "01:54 Pomodify" (no emojis)
+          this.document.title = `${timerDisplay} Pomodify`;
         } else {
           // Restore original title when not running
           this.document.title = this.originalTitle;
@@ -577,6 +578,8 @@ export class SessionTimerComponent implements OnDestroy {
             this.todos.set(backendTodos);
             const maxId = backendTodos.reduce((max: number, t: any) => Math.max(max, t.id), 0);
             this.nextTodoId = maxId + 1;
+            // Auto-expand todos after DOM updates
+            setTimeout(() => this.autoExpandAllTodos(), 100);
           } else {
             // Fallback to local storage if no backend todos
             this.loadTodosFromStorage(sess);
@@ -597,6 +600,9 @@ export class SessionTimerComponent implements OnDestroy {
           
           // Check for missed notification (backend sent FCM but user wasn't in app)
           this.checkForMissedNotification(sess);
+          
+          // Auto-expand all todos after page load
+          setTimeout(() => this.autoExpandAllTodos(), 200);
         }
       }
     });
@@ -1744,12 +1750,28 @@ export class SessionTimerComponent implements OnDestroy {
         this.onTodosChanged();
         this.isGeneratingAi.set(false);
         
+        // Auto-expand all todo textareas after a short delay to allow DOM to update
+        setTimeout(() => this.autoExpandAllTodos(), 50);
+        
         Logger.log(`✅ Added ${suggestions.length} AI-suggested todo(s)`);
       },
       error: (_err) => {
         this.isGeneratingAi.set(false);
         // No fallback - let the error propagate so user knows AI failed
       }
+    });
+  }
+
+  /**
+   * Auto-expand all todo textareas to fit their content
+   */
+  private autoExpandAllTodos(): void {
+    if (typeof document === 'undefined') return;
+    
+    const textareas = document.querySelectorAll('.todo-text') as NodeListOf<HTMLTextAreaElement>;
+    textareas.forEach(textarea => {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
     });
   }
 

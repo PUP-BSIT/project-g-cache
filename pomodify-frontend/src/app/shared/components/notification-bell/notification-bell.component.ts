@@ -34,6 +34,12 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
               <h3>Achievements</h3>
             </div>
             <div class="header-actions">
+              @if (unreadCount() > 0) {
+                <button class="mark-all-btn" (click)="markAllAsRead()" title="Mark all as read">
+                  <i class="fa-solid fa-check-double"></i>
+                  <span class="mark-text">Mark Read</span>
+                </button>
+              }
               <button class="close-dropdown-btn" (click)="closeDropdown()" aria-label="Close">
                 <i class="fa-solid fa-xmark"></i>
               </button>
@@ -85,6 +91,15 @@ import { BadgeAchievementDialogComponent } from '../badge-achievement-dialog/bad
               }
             }
           </div>
+
+          @if (hasNotifications()) {
+            <div class="dropdown-footer">
+              <button class="clear-all-btn" (click)="clearAllNotifications()">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Clear All Notifications</span>
+              </button>
+            </div>
+          }
         </div>
       }
     </div>
@@ -100,6 +115,7 @@ export class NotificationBellComponent implements OnInit {
 
   notifications = this.badgeNotificationService.notifications;
   unreadCount = this.badgeNotificationService.unreadCount;
+  hasNotifications = this.badgeNotificationService.hasNotifications;
   isDropdownOpen = this.badgeNotificationService.isDropdownOpen;
   isLoading = this.badgeNotificationService.isLoading;
 
@@ -149,6 +165,11 @@ export class NotificationBellComponent implements OnInit {
   }
 
   openBadgeDialog(notification: BadgeNotification): void {
+    // Mark this notification as read when clicked
+    if (notification.isNew) {
+      this.badgeNotificationService.markAsRead(notification.id);
+    }
+    
     this.badgeNotificationService.closeDropdown();
 
     this.dialog.open(BadgeAchievementDialogComponent, {
@@ -161,6 +182,14 @@ export class NotificationBellComponent implements OnInit {
 
   closeDropdown(): void {
     this.badgeNotificationService.closeDropdown();
+  }
+
+  markAllAsRead(): void {
+    this.badgeNotificationService.markAllAsRead();
+  }
+
+  clearAllNotifications(): void {
+    this.badgeNotificationService.clearAllNotifications();
   }
 
   getBadgeImage(milestoneDays: number): string {

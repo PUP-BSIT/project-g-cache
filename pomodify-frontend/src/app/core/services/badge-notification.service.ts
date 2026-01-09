@@ -71,6 +71,9 @@ const BADGE_MESSAGES: Record<number, { title: string; badgeName: string; message
 // Number of days to consider a badge as "new"
 const NEW_BADGE_THRESHOLD_DAYS = 7;
 
+// LocalStorage key for storing read badge IDs
+const READ_BADGES_STORAGE_KEY = 'pomodify_read_badge_ids';
+
 @Injectable({ providedIn: 'root' })
 export class BadgeNotificationService {
   private badgeService = inject(BadgeService);
@@ -79,6 +82,9 @@ export class BadgeNotificationService {
   private notificationsSignal = signal<BadgeNotification[]>([]);
   private isDropdownOpenSignal = signal(false);
   private isLoadingSignal = signal(false);
+  
+  // Set of badge IDs that have been marked as read (persisted in localStorage)
+  private readBadgeIds = new Set<number>();
 
   // Public readonly signals
   readonly notifications = this.notificationsSignal.asReadonly();
@@ -89,6 +95,16 @@ export class BadgeNotificationService {
   readonly unreadCount = computed(() => {
     return this.notificationsSignal().filter(n => n.isNew).length;
   });
+
+  // Check if there are any notifications
+  readonly hasNotifications = computed(() => {
+    return this.notificationsSignal().length > 0;
+  });
+
+  constructor() {
+    // Load read badge IDs from localStorage on service init
+    this.loadReadBadgeIds();
+  }
 
   // Fetch badges from backend and convert to notifications
   loadBadgeNotifications(): void {
@@ -101,7 +117,8 @@ export class BadgeNotificationService {
           .map(badge => ({
             id: badge.id,
             badge,
-            isNew: this.isBadgeNew(badge.dateAwarded)
+            // Badge is "new" if it was awarded recently AND hasn't been marked as read
+            isNew: this.isBadgeNew(badge.dateAwarded) && !this.readBadgeIds.has(badge.id)
           }));
 
         this.notificationsSignal.set(notifications);
@@ -130,6 +147,69 @@ export class BadgeNotificationService {
 
   closeDropdown(): void {
     this.isDropdownOpenSignal.set(false);
+  }
+
+  // Mark all notifications as read (remove "new" status) and persist to localStorage
+  markAllAsRead(): void {
+    const notifications = this.notificationsSignal();
+    
+    // Add all current notification IDs to the read set
+    notifications.forEach(n => {
+      this.readBadgeIds.add(n.id);
+    });
+    
+    // Persist to localStorage
+    this.saveReadBadgeIds();
+    
+    // Update the notifications signal
+    this.notificationsSignal.update(notifications => 
+      notifications.map(n => ({ ...n, isNew: false }))
+    );
+  }
+
+  // Mark a single notification as read
+  markAsRead(badgeId: number): void {
+    this.readBadgeIds.add(badgeId);
+    this.saveReadBadgeIds();
+    
+    this.notificationsSignal.update(notifications => 
+      notifications.map(n => n.id === badgeId ? { ...n, isNew: false } : n)
+    );
+  }
+
+  // Clear all notifications from the list
+  clearAllNotifications(): void {
+    // Mark all as read before clearing
+    const notifications = this.notificationsSignal();
+    notifications.forEach(n => {
+      this.readBadgeIds.add(n.id);
+    });
+    this.saveReadBadgeIds();
+    
+    this.notificationsSignal.set([]);
+  }
+
+  // Load read badge IDs from localStorage
+  private loadReadBadgeIds(): void {
+    try {
+      const stored = localStorage.getItem(READ_BADGES_STORAGE_KEY);
+      if (stored) {
+        const ids: number[] = JSON.parse(stored);
+        this.readBadgeIds = new Set(ids);
+      }
+    } catch (e) {
+      Logger.warn('Failed to load read badge IDs from localStorage:', e);
+    }
+  }
+
+  // Save read badge IDs to localStorage
+  private saveReadBadgeIds(): void {
+    try {
+      const ids = Array.from(this.readBadgeIds);
+      localStorage.setItem(READ_BADGES_STORAGE_KEY, JSON.stringify(ids));
+    } catch (e) {
+      Logger.warn('Failed to save read badge IDs to localStorage:', e);
+    }
   }
 
   // Get badge message info
