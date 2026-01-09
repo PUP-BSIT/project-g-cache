@@ -52,6 +52,7 @@ export const API = {
     CHANGE_PASSWORD: `${ROOT}/auth/users/me/password`,
     UPLOAD_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
     DELETE_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
+    DELETE_ACCOUNT: `${ROOT}/auth/users/me`,
   },
 
   // Activities Resource
@@ -102,18 +103,6 @@ export const API = {
       EVENTS: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/events`,
     },
-
-    // Activity Notes (nested resource)
-    NOTES: {
-      GET_ALL: (activityId: number) => `${ROOT}/activities/${activityId}/notes`,
-      CREATE: (activityId: number) => `${ROOT}/activities/${activityId}/notes`,
-      DETAILS: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-      UPDATE: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-      DELETE: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-    },
   },
 
   // Dashboard Resource
@@ -124,14 +113,14 @@ export const API = {
   // Reports Resource
   REPORTS: {
     SUMMARY: `${ROOT}/reports/summary`,
-    FOCUS_TIME: `${ROOT}/reports/focus-time`,
-    SESSIONS: `${ROOT}/reports/sessions`,
   },
 
   // Settings Resource
   SETTINGS: {
     GET: `${ROOT}/settings`,
     UPDATE: `${ROOT}/settings`,
+    CLEAR_SESSIONS: `${ROOT}/settings/sessions/clear`,
+    CLEAR_ACTIVITIES: `${ROOT}/settings/activities/clear`,
   },
 
   // Categories Resource
@@ -151,11 +140,6 @@ export const API = {
     GET_DUAL_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-dual-preview-async/${requestId}`,
     CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
     QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
-  },
-
-  // History Resource
-  HISTORY: {
-    GET_ALL: `${ROOT}/history`,
   },
 
   // Push Notifications Resource
