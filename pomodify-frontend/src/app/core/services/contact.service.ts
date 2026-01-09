@@ -14,7 +14,7 @@ export interface ContactResponse {
 }
 
 // Use the same base URL pattern as the rest of the app
-const BASE_URL = "https://api.pomodify.site";
+const BASE_URL = "https://apiv2.pomodify.site";
 
 @Injectable({
   providedIn: 'root'

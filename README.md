@@ -7,7 +7,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-brightgreen.svg?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache)
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_App-5FA9A4?style=for-the-badge)](https://pomodify.site/)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_App-5FA9A4?style=for-the-badge)](https://v2.pomodify.site/)
 
 ---
 
@@ -43,7 +43,7 @@ Pomodify is a customizable Pomodoro productivity tracker designed to help users 
 
 <div align="center">
 
-### � [**Pomodify Live**](https://pomodify.site/) 🌟
+### � [**Pomodify Live**](https://v2.pomodify.site/) 🌟
 
 | Badge | � E mail | 🔑 Password |
 |:---:|:---|:---|
@@ -254,7 +254,7 @@ For detailed guides and technical docs, explore:
 
 ### 🎉 Developed by the PUPT-DIT 3 G-Cache Team
 
-[![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://pomodify.site/)
+[![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://v2.pomodify.site/)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-Read_Docs-blue?style=for-the-badge)](document/)
 [![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Walkthrough-FF0000?style=for-the-badge)](https://youtu.be/sMEqr4PYfWk)
 [![Issues](https://img.shields.io/badge/🐛_Issues-Report_Bug-red?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache/issues)

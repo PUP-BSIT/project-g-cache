@@ -57,7 +57,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.info("Set-Cookie headers set for OAuth2 success");
 
             // Respond with 200 OK and JS redirect
-            String targetUrl = "https://pomodify.site/oauth2/redirect";
+            String targetUrl = "https://v2.pomodify.site/oauth2/redirect";
             response.setContentType("text/html;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_OK);
             String html = "<html><head><script>window.location.replace('" + targetUrl + "');</script></head><body>Redirecting...</body></html>";
@@ -67,7 +67,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.error("OAuth2 authentication success handler error", e);
             response.setContentType("text/html;charset=UTF-8");
             response.setStatus(HttpServletResponse.SC_OK);
-            String html = "<html><head><script>window.location.replace('https://pomodify.site/login?error=" + e.getMessage() + "');</script></head><body>Redirecting...</body></html>";
+            String html = "<html><head><script>window.location.replace('https://v2.pomodify.site/login?error=" + e.getMessage() + "');</script></head><body>Redirecting...</body></html>";
             response.getWriter().write(html);
             response.getWriter().flush();
         }

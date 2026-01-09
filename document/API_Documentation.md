@@ -2692,7 +2692,7 @@ data: {"sessionId":1,"currentPhase":"BREAK","cyclesCompleted":1,"status":"IN_PRO
 - **Time Format:** All times are in ISO 8601 format (UTC)
 - **Rate Limiting:** 100 requests per minute per user
 - **API Versioning:** Current version is v1 (no prefix)
-- **CORS:** Enabled for `localhost:4200` and `pomodify.site`
+- **CORS:** Enabled for `localhost:4200` and `v2.pomodify.site`
 - **Content Type:** All requests and responses use `application/json` unless otherwise specified
 - **File Uploads:** Multipart form data for profile pictures (max 5MB)
 - **Real-time:** Server-Sent Events for session updates

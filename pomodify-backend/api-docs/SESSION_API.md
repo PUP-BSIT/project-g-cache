@@ -465,7 +465,7 @@ Sent when `complete-phase` is called.
 **Usage Example** (JavaScript):
 ```javascript
 const eventSource = new EventSource(
-  'https://api.pomodify.site/api/v1/activities/1/sessions/10/events',
+  'https://apiv2.pomodify.site/api/v1/activities/1/sessions/10/events',
   { headers: { 'Authorization': 'Bearer ' + accessToken } }
 );
 
@@ -650,7 +650,7 @@ POST /api/v1/activities/1/sessions/10/start
 **Port**: 8081 (standardized for local/dev/prod)
 
 **Environment Base URLs**:
-- **Production**: `https://api.pomodify.site/api/v1/activities/{activityId}/sessions`
+- **Production**: `https://apiv2.pomodify.site/api/v1/activities/{activityId}/sessions`
 - **Development**: `http://localhost:8081/api/v1/activities/{activityId}/sessions`
 - **Local**: `http://localhost:8081/api/v1/activities/{activityId}/sessions`
 

@@ -40,7 +40,7 @@ public class ContactController {
             log.error("=== CONTACT FORM SUBMISSION FAILED ===");
             log.error("Failed to send contact email from {}: {} - {}", request.getEmail(), e.getClass().getSimpleName(), e.getMessage(), e);
             return ResponseEntity.internalServerError()
-                .body(Map.of("message", "Failed to send your message. Please try again later or email us directly at contact@pomodify.site"));
+                .body(Map.of("message", "Failed to send your message. Please try again later or email us directly at contact@v2.pomodify.site"));
         }
     }
 }

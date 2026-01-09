@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://api.pomodify.site/api/v2',
+  apiUrl: 'https://apiv2.pomodify.site/api/v2',
   useMockBackend: false,
   firebase: {
     apiKey: 'AIzaSyBPye4hQJ270_aL4W9v58dM5eT30dFIwrA',

@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class EmailService implements EmailPort {
-    @Value("${app.site.base-url:https://pomodify.site}")
+    @Value("${app.site.base-url:https://v2.pomodify.site}")
     private String baseUrl;
-    @Value("${spring.mail.from:contact@pomodify.site}")
+    @Value("${spring.mail.from:contact@v2.pomodify.site}")
     private String fromAddress;
     private final JavaMailSender mailSender;
 
@@ -138,7 +138,7 @@ public class EmailService implements EmailPort {
 
     @Override
     public void sendContactEmail(String senderName, String senderEmail, String reason, String messageContent) {
-        String toEmail = "contact@pomodify.site";
+        String toEmail = "contact@v2.pomodify.site";
         String subject = String.format("[Pomodify Contact] %s - %s", reason, senderName);
         
         log.info("Preparing contact email - From: {}, To: {}, Subject: {}", senderEmail, toEmail, subject);

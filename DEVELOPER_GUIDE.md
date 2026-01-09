@@ -34,8 +34,8 @@
 | **Security** | Trivy scanning, Cosign image signing, SBOM generation |
 
 ### Live URLs
-- **Production Site**: https://pomodify.site
-- **API Base URL**: https://api.pomodify.site/api/v2
+- **Production Site**: https://v2.pomodify.site
+- **API Base URL**: https://apiv2.pomodify.site/api/v2
 
 ---
 
@@ -186,7 +186,7 @@ cp .env.example .env
 ## 5. API Reference
 
 ### Base URL
-- **Production**: `https://api.pomodify.site/api/v2`
+- **Production**: `https://apiv2.pomodify.site/api/v2`
 - **Local**: `http://localhost:8081/api/v2`
 
 ### Authentication

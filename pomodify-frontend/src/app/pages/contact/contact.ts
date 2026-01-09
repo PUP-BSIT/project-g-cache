@@ -84,7 +84,7 @@ export class ContactPage {
       },
       error: (error) => {
         this.errorMessage.set(
-          error.error?.message || 'Failed to send your message. Please try again or email us directly at contact@pomodify.site'
+          error.error?.message || 'Failed to send your message. Please try again or email us directly at contact@v2.pomodify.site'
         );
         this.isSubmitting.set(false);
       }
