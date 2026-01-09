@@ -1,9 +1,9 @@
 package com.pomodify.backend.application.service;
 
+import com.pomodify.backend.application.dto.UpdateSettingsDto;
+import com.pomodify.backend.application.dto.UserSettingsDto;
 import com.pomodify.backend.domain.enums.AppTheme;
 import com.pomodify.backend.domain.enums.SoundType;
-import com.pomodify.backend.presentation.dto.settings.UpdateSettingsRequest;
-import com.pomodify.backend.presentation.dto.settings.UserSettingsResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +24,7 @@ class SettingsServicePersistenceTest {
         Long userId = 123L;
 
         // Ensure defaults created
-        UserSettingsResponse initial = settingsService.getSettings(userId);
+        UserSettingsDto initial = settingsService.getSettings(userId);
         assertNotNull(initial);
         assertEquals(userId, initial.userId());
         assertEquals(SoundType.BELL.name(), initial.soundType());
@@ -32,7 +32,7 @@ class SettingsServicePersistenceTest {
         assertTrue(initial.notificationSound());
 
         // Perform partial update
-        UpdateSettingsRequest req = new UpdateSettingsRequest(
+        UpdateSettingsDto req = new UpdateSettingsDto(
                 SoundType.SOFT_DING,
                 null,
                 45,
@@ -41,7 +41,7 @@ class SettingsServicePersistenceTest {
                 AppTheme.DARK,
                 true
         );
-        UserSettingsResponse updated = settingsService.updateSettings(userId, req);
+        UserSettingsDto updated = settingsService.updateSettings(userId, req);
 
         assertEquals(SoundType.SOFT_DING.name(), updated.soundType());
         assertEquals(45, updated.volume());
@@ -51,7 +51,7 @@ class SettingsServicePersistenceTest {
         assertTrue(updated.notificationsEnabled());
 
         // Retrieve and verify cached/DB reflects changes
-        UserSettingsResponse again = settingsService.getSettings(userId);
+        UserSettingsDto again = settingsService.getSettings(userId);
         assertEquals(updated, again);
     }
 }

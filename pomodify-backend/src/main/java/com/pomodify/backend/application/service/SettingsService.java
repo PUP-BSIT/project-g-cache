@@ -1,9 +1,9 @@
 package com.pomodify.backend.application.service;
 
+import com.pomodify.backend.application.dto.UpdateSettingsDto;
+import com.pomodify.backend.application.dto.UserSettingsDto;
 import com.pomodify.backend.domain.model.settings.UserSettings;
 import com.pomodify.backend.domain.repository.SettingsRepository;
-import com.pomodify.backend.presentation.dto.settings.UpdateSettingsRequest;
-import com.pomodify.backend.presentation.dto.settings.UserSettingsResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,15 +20,15 @@ public class SettingsService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(cacheNames = "userSettings", key = "#userId")
-    public UserSettingsResponse getSettings(Long userId) {
+    public UserSettingsDto getSettings(Long userId) {
         UserSettings settings = settingsRepository.findById(userId)
                 .orElseGet(() -> settingsRepository.save(UserSettings.defaultSettings(userId)));
-        return mapToResponse(settings);
+        return mapToDto(settings);
     }
 
     @Transactional
     @CacheEvict(cacheNames = "userSettings", key = "#userId")
-    public UserSettingsResponse updateSettings(Long userId, UpdateSettingsRequest request) {
+    public UserSettingsDto updateSettings(Long userId, UpdateSettingsDto request) {
         UserSettings settings = settingsRepository.findById(userId)
                 .orElseGet(() -> settingsRepository.save(UserSettings.defaultSettings(userId)));
 
@@ -50,11 +50,11 @@ public class SettingsService {
         if (request.notificationsEnabled() != null && prevNotifications != saved.isNotificationsEnabled()) {
             eventPublisher.publishEvent(new UserSettingsChangedEvent(this, userId, saved.isNotificationsEnabled()));
         }
-        return mapToResponse(saved);
+        return mapToDto(saved);
     }
 
-    private UserSettingsResponse mapToResponse(UserSettings s) {
-        return new UserSettingsResponse(
+    private UserSettingsDto mapToDto(UserSettings s) {
+        return new UserSettingsDto(
                 s.getUserId(),
                 s.getSoundType().name(),
                 s.isNotificationSound(),

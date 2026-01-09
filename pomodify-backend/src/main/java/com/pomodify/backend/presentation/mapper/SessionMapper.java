@@ -6,6 +6,7 @@ import com.pomodify.backend.presentation.dto.response.SessionResponse;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public final class SessionMapper {
 
@@ -27,11 +28,79 @@ public final class SessionMapper {
             result.remainingPhaseSeconds(),
             result.longBreakTimeInMinutes(),
             result.longBreakIntervalCycles(),
-            result.note(),
+            toPresentationNoteDto(result.note()),
             toStringOrNull(result.startedAt()),
             toStringOrNull(result.completedAt()),
             toStringOrNull(result.createdAt()),
             result.phaseNotified()
+        );
+    }
+
+    /**
+     * Maps application layer SessionNoteDto to presentation layer SessionNoteDto
+     */
+    private static com.pomodify.backend.presentation.dto.note.SessionNoteDto toPresentationNoteDto(
+            com.pomodify.backend.application.dto.SessionNoteDto appDto) {
+        if (appDto == null) {
+            return null;
+        }
+        List<com.pomodify.backend.presentation.dto.note.SessionTodoItemDto> presentationItems = 
+                appDto.items() != null 
+                    ? appDto.items().stream()
+                        .map(SessionMapper::toPresentationTodoItemDto)
+                        .collect(Collectors.toList())
+                    : null;
+        return new com.pomodify.backend.presentation.dto.note.SessionNoteDto(
+                appDto.id(),
+                appDto.content(),
+                presentationItems
+        );
+    }
+
+    /**
+     * Maps application layer SessionTodoItemDto to presentation layer SessionTodoItemDto
+     */
+    private static com.pomodify.backend.presentation.dto.note.SessionTodoItemDto toPresentationTodoItemDto(
+            com.pomodify.backend.application.dto.SessionTodoItemDto appDto) {
+        return new com.pomodify.backend.presentation.dto.note.SessionTodoItemDto(
+                appDto.id(),
+                appDto.text(),
+                appDto.done(),
+                appDto.orderIndex()
+        );
+    }
+
+    /**
+     * Maps presentation layer SessionNoteDto to application layer SessionNoteDto
+     */
+    public static com.pomodify.backend.application.dto.SessionNoteDto toApplicationNoteDto(
+            com.pomodify.backend.presentation.dto.note.SessionNoteDto presentationDto) {
+        if (presentationDto == null) {
+            return null;
+        }
+        List<com.pomodify.backend.application.dto.SessionTodoItemDto> appItems = 
+                presentationDto.items() != null 
+                    ? presentationDto.items().stream()
+                        .map(SessionMapper::toApplicationTodoItemDto)
+                        .collect(Collectors.toList())
+                    : null;
+        return new com.pomodify.backend.application.dto.SessionNoteDto(
+                presentationDto.id(),
+                presentationDto.content(),
+                appItems
+        );
+    }
+
+    /**
+     * Maps presentation layer SessionTodoItemDto to application layer SessionTodoItemDto
+     */
+    private static com.pomodify.backend.application.dto.SessionTodoItemDto toApplicationTodoItemDto(
+            com.pomodify.backend.presentation.dto.note.SessionTodoItemDto presentationDto) {
+        return new com.pomodify.backend.application.dto.SessionTodoItemDto(
+                presentationDto.id(),
+                presentationDto.text(),
+                presentationDto.done(),
+                presentationDto.orderIndex()
         );
     }
 

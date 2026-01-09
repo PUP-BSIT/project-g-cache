@@ -285,7 +285,9 @@ public class SessionController {
         }
         
         logger.info("[SessionController] Updating note for activityId={}, sessionId={}, userId={}, note={}", activityId, id, userId, noteDto);
-        SessionItem item = SessionMapper.toItem(sessionService.updateNote(UpdateSessionNoteCommand.builder().user(userId).sessionId(id).note(noteDto).build()));
+        // Convert presentation DTO to application DTO
+        com.pomodify.backend.application.dto.SessionNoteDto appNoteDto = SessionMapper.toApplicationNoteDto(noteDto);
+        SessionItem item = SessionMapper.toItem(sessionService.updateNote(UpdateSessionNoteCommand.builder().user(userId).sessionId(id).note(appNoteDto).build()));
         logger.info("[SessionController] Note updated: {}", item.note());
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Note updated successfully"));
     }
@@ -307,9 +309,11 @@ public class SessionController {
                                                          @PathVariable Long activityId,
                                                          @PathVariable Long id,
                                                          @PathVariable Long itemId,
-                                                         @RequestBody SessionTodoItemDto patch) {
+                                                         @RequestBody com.pomodify.backend.presentation.dto.note.SessionTodoItemDto patch) {
         Long userId = requireUserId(jwt);
-        SessionItem item = SessionMapper.toItem(sessionService.patchTodoItem(userId, id, itemId, patch));
+        com.pomodify.backend.application.dto.SessionTodoItemDto appDto = new com.pomodify.backend.application.dto.SessionTodoItemDto(
+                patch.id(), patch.text(), patch.done(), patch.orderIndex());
+        SessionItem item = SessionMapper.toItem(sessionService.patchTodoItem(userId, id, itemId, appDto));
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Checklist item updated"));
     }
 
@@ -355,10 +359,13 @@ public class SessionController {
                 mappedTodos
         );
         
+        // Convert presentation DTO to application DTO
+        com.pomodify.backend.application.dto.SessionNoteDto appNoteDto = SessionMapper.toApplicationNoteDto(noteDto);
+        
         SessionItem item = SessionMapper.toItem(sessionService.updateNote(UpdateSessionNoteCommand.builder()
                 .user(userId)
                 .sessionId(id)
-                .note(noteDto)
+                .note(appNoteDto)
                 .build()));
         logger.info("[SessionController] Todos saved: {}", item.note());
         return ResponseEntity.ok(SessionMapper.toResponse(item, "Todos saved successfully"));
