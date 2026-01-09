@@ -1,26 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal, inject, computed, effect, ViewChild, ElementRef, AfterViewInit, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { toggleTheme } from '../../shared/theme';
 import { Profile, ProfileData } from '../profile/profile';
 import { MatDialog } from '@angular/material/dialog';
 import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
-import { NotificationService } from '../../core/services/notification.service';
 import { UserProfileService } from '../../core/services/user-profile.service';
 import { Logger } from '../../core/services/logger.service';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
   templateUrl: './settings.html',
   styleUrls: ['./settings.scss'],
 })
 export class Settings implements OnInit, AfterViewInit {
   @ViewChild('soundSelect') soundSelect!: ElementRef<HTMLSelectElement>;
   private settingsService = inject(SettingsService);
-  private notificationService = inject(NotificationService);
   private userProfileService = inject(UserProfileService);
   
   // Profile picture from shared service - updates when profile changes
@@ -108,7 +107,7 @@ export class Settings implements OnInit, AfterViewInit {
   protected isDarkMode = signal(false);
 
   // Sound types for dropdown
-  protected soundTypes = [
+  protected allSoundTypes = [
     { value: 'bell', label: 'Bell' },
     { value: 'chime', label: 'Chime' },
     { value: 'digital', label: 'Digital Beep' },
@@ -150,14 +149,21 @@ export class Settings implements OnInit, AfterViewInit {
     this.showAutoSaveSuccess('Notification Sound');
   }
 
-  protected onSoundTypeChange(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const type = select.value as 'bell' | 'chime' | 'digital' | 'soft';
-    Logger.log('Sound type changed to:', type);
-    Logger.log('Current soundType() before update:', this.soundType());
-    this.settingsService.updateSoundSettings({ type });
-    Logger.log('Current soundType() after update:', this.soundType());
+  protected onSoundTypeChange(type: string): void {
+    if (!type || type === this.soundType()) return;
+    
+    const soundType = type as 'bell' | 'chime' | 'digital' | 'soft';
+    Logger.log('Sound type changed to:', soundType);
+    
+    // Update local signal immediately for UI responsiveness
+    this.soundType.set(soundType);
+    
+    // Update settings service (persists to backend)
+    this.settingsService.updateSoundSettings({ type: soundType });
     this.showAutoSaveSuccess('Sound Type');
+    
+    // Auto-play the selected sound so user can hear it
+    this.settingsService.playSound(soundType);
   }
 
   protected onVolumeChange(event: Event): void {
@@ -169,12 +175,6 @@ export class Settings implements OnInit, AfterViewInit {
   }
 
 
-
-  protected testSound(): void {
-    const soundType = this.soundType();
-    Logger.log('🔊 Testing sound:', soundType);
-    this.settingsService.playSound(soundType);
-  }
 
   // Auto-Start Methods
   protected toggleAutoStartBreaks(): void {

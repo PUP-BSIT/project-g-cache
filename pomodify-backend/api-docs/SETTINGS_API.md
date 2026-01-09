@@ -6,7 +6,7 @@ Base path: `/api/v2/settings`
 Authentication: JWT (claim `user` holds numeric user ID). Secured under `prod` profile.
 
 ## Enums
-- `SoundType`: `BELL`, `CHYME`, `DIGITAL_BEEP`, `SOFT_DING`
+- `SoundType`: `BELL`, `CHIME`, `DIGITAL_BEEP`, `SOFT_DING`
 - `AppTheme`: `LIGHT`, `DARK`, `SYSTEM`
 
 ## GET /api/v1/settings
