@@ -99,6 +99,7 @@
                 <div class="summary-value">
                   {{ formatHours(totalFocusHours()) }}
                 </div>
+                <div class="summary-sublabel">total tracked</div>
               </div>
               <div class="summary-icon">
                 <i class="fa-regular fa-clock"></i>
@@ -111,6 +112,7 @@
                 <div class="summary-value">
                   {{ formatHours(dailyAverageFocusHours()) }}
                 </div>
+                <div class="summary-sublabel">per day</div>
               </div>
               <div class="summary-icon">
                 <i class="fa-regular fa-hourglass"></i>
@@ -123,6 +125,7 @@
                 <div class="summary-value">
                   {{ streakDays() }}
                 </div>
+                <div class="summary-sublabel">consecutive days</div>
               </div>
               <div class="summary-icon">
                 <i class="fa-solid fa-fire"></i>
@@ -135,6 +138,7 @@
                 <div class="summary-value">
                   {{ formatHours(totalBreakHours()) }}
                 </div>
+                <div class="summary-sublabel">rest taken</div>
               </div>
               <div class="summary-icon">
                 <i class="fa-solid fa-pause"></i>
@@ -147,6 +151,7 @@
                 <div class="summary-value">
                   {{ sessionsCount() }}
                 </div>
+                <div class="summary-sublabel">completed</div>
               </div>
               <div class="summary-icon">
                 <i class="fa-solid fa-list-check"></i>
@@ -156,10 +161,10 @@
             <div class="summary-card abandoned-card">
               <div class="summary-main">
                 <div class="summary-label">Abandoned Sessions</div>
-                <div class="summary-sublabel">Last Month</div>
                 <div class="summary-value abandoned-value">
                   {{ lastMonthAbandonedSessions() }}
                 </div>
+                <div class="summary-sublabel">Last Month</div>
               </div>
               <div class="summary-icon abandoned-icon">
                 <i class="fa-solid fa-circle-xmark"></i>

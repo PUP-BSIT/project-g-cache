@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { AsyncPipe } from '@angular/common';
 import { Observable, startWith, map } from 'rxjs';
+import { Logger } from '../../../core/services/logger.service';
 
 export type ActivityData = {
   name: string;
@@ -221,7 +222,6 @@ export class CreateActivityModal implements OnInit {
       const { name, category } = this.activityForm.getRawValue() as ActivityFormValue;
       
       if (!name || name.trim() === '') {
-        console.error('[CreateActivityModal] Activity name is required');
         this.activityForm.get('name')?.markAsTouched();
         return;
       }
@@ -231,10 +231,9 @@ export class CreateActivityModal implements OnInit {
         category: category?.trim() || undefined,
         colorTag: this.selectedColor,
       };
-      console.log('[CreateActivityModal] Closing with data:', activityData);
+      Logger.log('[CreateActivityModal] Closing with data:', activityData);
       this.dialogRef.close(activityData);
     } else {
-      console.error('[CreateActivityModal] Form is invalid');
       this.activityForm.markAllAsTouched();
     }
   }

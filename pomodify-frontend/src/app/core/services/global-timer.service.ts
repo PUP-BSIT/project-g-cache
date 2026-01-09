@@ -1,8 +1,9 @@
 import { Injectable, inject, signal, computed, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser, DOCUMENT } from '@angular/common';
-import { interval, Subscription, Subject } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Logger } from './logger.service';
 
 export interface GlobalTimerState {
   sessionId: number;
@@ -64,20 +65,27 @@ export class GlobalTimerService implements OnDestroy {
       const onSessionPage = event.url.includes('/sessions/') && !event.url.endsWith('/sessions');
       this._isOnSessionPage.set(onSessionPage);
       
-      // Update browser tab title when navigating away from session page
-      // (session-timer handles its own title when on that page)
+      // When navigating AWAY from session page, restore original title
+      // Timer in title tab should ONLY be visible on the session timer page
+      // Use setTimeout to ensure this runs AFTER any component effects
       if (!onSessionPage) {
-        this.updateBrowserTitle();
+        setTimeout(() => this.restoreOriginalTitle(), 0);
       }
     });
     
-    // Check initial route
-    this._isOnSessionPage.set(this.router.url.includes('/sessions/') && !this.router.url.endsWith('/sessions'));
+    // Check initial route and set title accordingly
+    const initialOnSessionPage = this.router.url.includes('/sessions/') && !this.router.url.endsWith('/sessions');
+    this._isOnSessionPage.set(initialOnSessionPage);
+    
+    // If not on session page initially, ensure title is correct
+    if (!initialOnSessionPage) {
+      this.restoreOriginalTitle();
+    }
     
     // Load any persisted timer state on init
     this.loadPersistedState();
     
-    // Start tick interval to update remaining time and browser title
+    // Start tick interval to update remaining time (title is handled by session-timer component)
     this.startTicking();
   }
 
@@ -98,10 +106,9 @@ export class GlobalTimerService implements OnDestroy {
     this._timerState.set(state);
     this.persistState(state);
     
-    // Update browser title if not on session page
-    if (!this._isOnSessionPage()) {
-      this.updateBrowserTitle();
-    }
+    // Do NOT update browser title here
+    // Timer in title tab should ONLY be visible on the session timer page
+    // session-timer component handles its own title
   }
 
   /**
@@ -128,27 +135,11 @@ export class GlobalTimerService implements OnDestroy {
   }
 
   /**
-   * Update the browser tab title with timer info
+   * Restore the original browser tab title
+   * Used when navigating away from session timer page
    */
-  private updateBrowserTitle(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    
-    const state = this._timerState();
-    
-    if (state && (state.isRunning || state.isPaused)) {
-      const m = Math.floor(state.remainingSeconds / 60);
-      const s = state.remainingSeconds % 60;
-      const timeDisplay = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-      
-      // Phase emoji
-      const phaseEmoji = state.currentPhase === 'FOCUS' ? '🎯' : '☕';
-      
-      // Pause indicator
-      const pauseIcon = state.isPaused ? '⏸ ' : '';
-      
-      // Format: "⏸ 16:11 🎯 Pomodify" or "16:11 ☕ Pomodify"
-      this.document.title = `${pauseIcon}${timeDisplay} ${phaseEmoji} Pomodify`;
-    } else {
+  private restoreOriginalTitle(): void {
+    if (isPlatformBrowser(this.platformId)) {
       this.document.title = this.originalTitle;
     }
   }
@@ -159,11 +150,12 @@ export class GlobalTimerService implements OnDestroy {
       if (state && state.isRunning && state.remainingSeconds > 0) {
         // Decrement locally
         this._timerState.update(s => s ? { ...s, remainingSeconds: Math.max(0, s.remainingSeconds - 1) } : null);
-        
-        // Update browser title if not on session page
-        if (!this._isOnSessionPage()) {
-          this.updateBrowserTitle();
-        }
+      }
+      
+      // ALWAYS ensure title is correct when NOT on session page
+      // This overrides any stale effects from session-timer component
+      if (!this._isOnSessionPage() && isPlatformBrowser(this.platformId)) {
+        this.document.title = this.originalTitle;
       }
     });
   }
@@ -172,7 +164,7 @@ export class GlobalTimerService implements OnDestroy {
     try {
       localStorage.setItem('pomodify_global_timer', JSON.stringify(state));
     } catch (e) {
-      console.warn('Failed to persist global timer state:', e);
+      Logger.warn('Failed to persist global timer state:', e);
     }
   }
 
@@ -192,16 +184,14 @@ export class GlobalTimerService implements OnDestroy {
           }
           this._timerState.set(state);
           
-          // Update browser title on load
-          if (!this._isOnSessionPage()) {
-            this.updateBrowserTitle();
-          }
+          // Do NOT update browser title on load
+          // Timer in title should ONLY show on session timer page
         } else {
           this.clearPersistedState();
         }
       }
     } catch (e) {
-      console.warn('Failed to load global timer state:', e);
+      Logger.warn('Failed to load global timer state:', e);
     }
   }
 
@@ -209,7 +199,7 @@ export class GlobalTimerService implements OnDestroy {
     try {
       localStorage.removeItem('pomodify_global_timer');
     } catch (e) {
-      console.warn('Failed to clear global timer state:', e);
+      Logger.warn('Failed to clear global timer state:', e);
     }
   }
 }

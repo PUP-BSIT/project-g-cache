@@ -35,7 +35,6 @@ export class UnverifiedAccountModal {
         this.dialogRef.close();
       })
       .catch((error) => {
-        console.error('Resend error:', error);
         this.notificationService.showError('Error', 'Failed to send verification email. Please try again.');
       })
       .finally(() => {

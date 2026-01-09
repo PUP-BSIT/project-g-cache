@@ -7,4 +7,4 @@ import { initTheme } from './app/shared/theme';
 initTheme();
 
 bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+  .catch((_err) => {});

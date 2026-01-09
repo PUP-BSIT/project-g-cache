@@ -8,6 +8,7 @@ import { Auth } from '../../core/services/auth';
 import { SettingsService } from '../../core/services/settings.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { UserProfileService } from '../../core/services/user-profile.service';
+import { Logger } from '../../core/services/logger.service';
 
 @Component({
   selector: 'app-settings',
@@ -44,7 +45,7 @@ export class Settings implements OnInit, AfterViewInit {
     effect(() => {
       const currentSoundType = this.settings().sound.type;
       this.soundType.set(currentSoundType);
-      console.log('Effect: Sound type synced to:', currentSoundType);
+      Logger.log('Effect: Sound type synced to:', currentSoundType);
       
       // Update the select element directly if it exists
       if (this.soundSelect?.nativeElement) {
@@ -53,8 +54,8 @@ export class Settings implements OnInit, AfterViewInit {
     });
     
     // Debug: Log current settings on component init
-    console.log('Settings component initialized with:', this.settings());
-    console.log('Sound type from signal:', this.soundType());
+    Logger.log('Settings component initialized with:', this.settings());
+    Logger.log('Sound type from signal:', this.soundType());
   }
 
   ngOnInit(): void {
@@ -78,7 +79,9 @@ export class Settings implements OnInit, AfterViewInit {
           isEmailVerified: user.isEmailVerified || false
         });
       }
-    }).catch(err => console.error('[Settings] Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
   
   // Computed signals that react to settings changes
@@ -150,10 +153,10 @@ export class Settings implements OnInit, AfterViewInit {
   protected onSoundTypeChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const type = select.value as 'bell' | 'chime' | 'digital' | 'soft';
-    console.log('Sound type changed to:', type);
-    console.log('Current soundType() before update:', this.soundType());
+    Logger.log('Sound type changed to:', type);
+    Logger.log('Current soundType() before update:', this.soundType());
     this.settingsService.updateSoundSettings({ type });
-    console.log('Current soundType() after update:', this.soundType());
+    Logger.log('Current soundType() after update:', this.soundType());
     this.showAutoSaveSuccess('Sound Type');
   }
 
@@ -162,14 +165,14 @@ export class Settings implements OnInit, AfterViewInit {
     const volume = parseInt(input.value, 10);
     this.settingsService.updateSoundSettings({ volume });
     this.showAutoSaveSuccess('Volume');
-    console.log('Volume changed to:', volume);
+    Logger.log('Volume changed to:', volume);
   }
 
 
 
   protected testSound(): void {
     const soundType = this.soundType();
-    console.log('🔊 Testing sound:', soundType);
+    Logger.log('🔊 Testing sound:', soundType);
     this.settingsService.playSound(soundType);
   }
 
@@ -196,7 +199,7 @@ export class Settings implements OnInit, AfterViewInit {
     
     // If enabling notifications, initialize FCM
     if (newNotificationState) {
-      console.log('🔔 Notifications enabled - initializing FCM...');
+      Logger.log('🔔 Notifications enabled - initializing FCM...');
       // FCM will be initialized automatically when first notification is sent
       // This is handled in the notification service
     }
@@ -229,7 +232,7 @@ export class Settings implements OnInit, AfterViewInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          console.log('Profile updated:', result);
+          Logger.log('Profile updated:', result);
           // TODO(Delumen, Ivan): persist profile changes to backend
         }
       });
@@ -264,13 +267,12 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmDelete(): void {
     this.showDeleteModal.set(false);
-    console.log('Deleting account...');
+    Logger.log('Deleting account...');
     this.auth.deleteAccount()
       .then(() => {
-        console.log('Account deleted successfully');
+        Logger.log('Account deleted successfully');
       })
-      .catch((error) => {
-        console.error('Failed to delete account:', error);
+      .catch((_error) => {
         alert('Failed to delete account. Please try again.');
       });
   }
@@ -286,14 +288,13 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmClearSessions(): void {
     this.showClearSessionsModal.set(false);
-    console.log('Clearing session history...');
+    Logger.log('Clearing session history...');
     this.settingsService.clearSessionHistory().subscribe({
       next: (response) => {
-        console.log('Session history cleared:', response.message);
+        Logger.log('Session history cleared:', response.message);
         this.showSuccessModal.set(true);
       },
-      error: (error) => {
-        console.error('Failed to clear session history:', error);
+      error: (_error) => {
         alert('Failed to clear session history. Please try again.');
       }
     });
@@ -310,14 +311,13 @@ export class Settings implements OnInit, AfterViewInit {
 
   protected onConfirmClearActivities(): void {
     this.showClearActivitiesModal.set(false);
-    console.log('Clearing activity data...');
+    Logger.log('Clearing activity data...');
     this.settingsService.clearActivityData().subscribe({
       next: (response) => {
-        console.log('Activity data cleared:', response.message);
+        Logger.log('Activity data cleared:', response.message);
         this.showSuccessModal.set(true);
       },
-      error: (error) => {
-        console.error('Failed to clear activity data:', error);
+      error: (_error) => {
         alert('Failed to clear activity data. Please try again.');
       }
     });
@@ -331,7 +331,7 @@ export class Settings implements OnInit, AfterViewInit {
     // Ensure the select element shows the correct value after view init
     if (this.soundSelect?.nativeElement) {
       this.soundSelect.nativeElement.value = this.soundType();
-      console.log('AfterViewInit: Set select value to:', this.soundType());
+      Logger.log('AfterViewInit: Set select value to:', this.soundType());
     }
     
 

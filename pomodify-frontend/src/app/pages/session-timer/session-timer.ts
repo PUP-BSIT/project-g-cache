@@ -27,6 +27,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from '../../core/services/notification.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { environment } from '../../../environments/environment';
+import { Logger } from '../../core/services/logger.service';
 
 /**
  * Session Timer Page - Main timer interface for Pomodoro sessions
@@ -279,8 +280,11 @@ export class SessionTimerComponent implements OnDestroy {
       // Ensure nextTodoId is ahead of the max existing id
       const maxId = parsed.reduce((max, t) => Math.max(max, t.id), 0);
       this.nextTodoId = maxId + 1;
+      
+      // Auto-expand todos after DOM updates
+      setTimeout(() => this.autoExpandAllTodos(), 100);
     } catch (e) {
-      console.warn('[Session Timer] Failed to load todos from storage', e);
+      Logger.warn('[Session Timer] Failed to load todos from storage', e);
     }
   }
 
@@ -294,7 +298,7 @@ export class SessionTimerComponent implements OnDestroy {
       const value = JSON.stringify(this.todos());
       window.localStorage.setItem(key, value);
     } catch (e) {
-      console.warn('[Session Timer] Failed to persist todos to storage', e);
+      Logger.warn('[Session Timer] Failed to persist todos to storage', e);
     }
   }
 
@@ -318,7 +322,7 @@ export class SessionTimerComponent implements OnDestroy {
     // This is more reliable than the effect-based approach because it catches
     // the event directly when emitted, avoiding race conditions with signal updates
     this.timerCompleteSubscription = this.timerSyncService.timerComplete$.subscribe(event => {
-      console.log('🔔 Timer completion event received in session-timer:', event);
+      Logger.log('🔔 Timer completion event received in session-timer:', event);
       if (!this.notificationSentForCurrentPhase) {
         this.notificationSentForCurrentPhase = true;
         this.handleTimerComplete();
@@ -328,7 +332,7 @@ export class SessionTimerComponent implements OnDestroy {
     // Monitor timer completion (backup check via effect)
     effect(() => {
       if (this.timerSyncService.isTimerComplete() && !this.notificationSentForCurrentPhase) {
-        console.log('⏰ Timer completion detected via effect');
+        Logger.log('⏰ Timer completion detected via effect');
         this.notificationSentForCurrentPhase = true;
         this.handleTimerComplete();
       }
@@ -337,23 +341,21 @@ export class SessionTimerComponent implements OnDestroy {
     // Add test method to window for development (only in development mode)
     if (typeof window !== 'undefined' && !environment.production) {
       (window as any).testAutoStart = () => this.testAutoStart();
-      console.log('🧪 Auto-start test method available: window.testAutoStart()');
+      Logger.log('🧪 Auto-start test method available: window.testAutoStart()');
     }
     
     // Effect to update browser tab title with timer
+    // Timer in title should ONLY show on the session timer page
     effect(() => {
       if (isPlatformBrowser(this.platformId)) {
         const timerDisplay = this.timerDisplay();
-        const phase = this.currentPhase();
         const isRunning = this.isRunning();
         const isPaused = this.isPaused();
         const sess = this.session();
         
         if (sess && (isRunning || isPaused)) {
-          // Show timer in tab: "16:11 Focus | Pomodify" or "⏸ 16:11 | Pomodify"
-          const phaseLabel = phase === 'FOCUS' ? '🎯' : '☕';
-          const pauseIcon = isPaused ? '⏸ ' : '';
-          this.document.title = `${pauseIcon}${timerDisplay} ${phaseLabel} Pomodify`;
+          // Show timer in tab: "01:54 Pomodify" (no emojis)
+          this.document.title = `${timerDisplay} Pomodify`;
         } else {
           // Restore original title when not running
           this.document.title = this.originalTitle;
@@ -379,7 +381,7 @@ export class SessionTimerComponent implements OnDestroy {
       return; // Tab became hidden, nothing to do
     }
     
-    console.log('[Session Timer] Tab became visible - checking if session reload needed');
+    Logger.log('[Session Timer] Tab became visible - checking if session reload needed');
     
     const sess = this.session();
     const remainingSeconds = this.remainingSeconds();
@@ -388,7 +390,7 @@ export class SessionTimerComponent implements OnDestroy {
     // Backend scheduler may have processed phase completion while we were away
     // This ensures we sync with the latest backend state
     if (sess && sess.status !== 'COMPLETED' && sess.status !== 'ABANDONED' && sess.status !== 'NOT_STARTED') {
-      console.log('[Session Timer] Reloading session after tab became visible', {
+      Logger.log('[Session Timer] Reloading session after tab became visible', {
         remainingSeconds,
         status: sess.status,
         isRunning: this.isRunning(),
@@ -398,7 +400,7 @@ export class SessionTimerComponent implements OnDestroy {
       // CRITICAL: Stop local timer immediately to prevent race conditions
       // The backend may have already processed the phase completion
       if (remainingSeconds <= 0 && this.timerSyncService.isRunning()) {
-        console.log('[Session Timer] Timer at 0 - stopping local timer before reload');
+        Logger.log('[Session Timer] Timer at 0 - stopping local timer before reload');
         this.timerSyncService.pauseTimer();
       }
       
@@ -425,7 +427,7 @@ export class SessionTimerComponent implements OnDestroy {
     
     this.sessionService.getSession(actId, sess.id).subscribe({
       next: (updatedSession) => {
-        console.log('[Session Timer] Session reloaded from backend:', {
+        Logger.log('[Session Timer] Session reloaded from backend:', {
           status: updatedSession.status,
           currentPhase: updatedSession.currentPhase,
           remainingPhaseSeconds: updatedSession.remainingPhaseSeconds,
@@ -440,7 +442,7 @@ export class SessionTimerComponent implements OnDestroy {
                                        localCycles !== updatedSession.cyclesCompleted;
         
         if (backendProcessedPhase) {
-          console.log('[Session Timer] Backend already processed phase transition - syncing UI');
+          Logger.log('[Session Timer] Backend already processed phase transition - syncing UI');
           // Reset notification guard since backend already sent notification
           this.notificationSentForCurrentPhase = true;
         }
@@ -462,12 +464,12 @@ export class SessionTimerComponent implements OnDestroy {
         
         // Handle completed session
         if (updatedSession.status === 'COMPLETED') {
-          console.log('[Session Timer] Session is completed');
+          Logger.log('[Session Timer] Session is completed');
           this.timerSyncService.stopTimer();
         }
       },
-      error: (err) => {
-        console.error('[Session Timer] Failed to reload session:', err);
+      error: (_err) => {
+        // Failed to reload session - silently handle
       }
     });
   }
@@ -488,7 +490,7 @@ export class SessionTimerComponent implements OnDestroy {
     if (!this.timerSyncService.isRunning()) {
       this.timerSyncService.cleanup();
     } else {
-      console.log('[Session Timer] Timer still running - keeping timer sync service active for background notifications');
+      Logger.log('[Session Timer] Timer still running - keeping timer sync service active for background notifications');
     }
     
     // Restore original browser tab title
@@ -546,7 +548,7 @@ export class SessionTimerComponent implements OnDestroy {
       })
     ).subscribe(sess => {
       if (sess) {
-        console.log('📋 Session loaded:', {
+        Logger.log('📋 Session loaded:', {
           id: sess.id,
           status: sess.status,
           currentPhase: sess.currentPhase,
@@ -576,6 +578,8 @@ export class SessionTimerComponent implements OnDestroy {
             this.todos.set(backendTodos);
             const maxId = backendTodos.reduce((max: number, t: any) => Math.max(max, t.id), 0);
             this.nextTodoId = maxId + 1;
+            // Auto-expand todos after DOM updates
+            setTimeout(() => this.autoExpandAllTodos(), 100);
           } else {
             // Fallback to local storage if no backend todos
             this.loadTodosFromStorage(sess);
@@ -596,6 +600,9 @@ export class SessionTimerComponent implements OnDestroy {
           
           // Check for missed notification (backend sent FCM but user wasn't in app)
           this.checkForMissedNotification(sess);
+          
+          // Auto-expand all todos after page load
+          setTimeout(() => this.autoExpandAllTodos(), 200);
         }
       }
     });
@@ -619,7 +626,7 @@ export class SessionTimerComponent implements OnDestroy {
     if (!sessionNotCompleted) {
       // Session is completed or abandoned - nothing to do
       if (sess.status === 'COMPLETED') {
-        console.log('📱 Session is COMPLETED - stopping timer');
+        Logger.log('📱 Session is COMPLETED - stopping timer');
         this.timerSyncService.stopTimer();
       }
       return;
@@ -628,8 +635,8 @@ export class SessionTimerComponent implements OnDestroy {
     // Case 1: Backend scheduler already processed the phase completion
     // Session is PAUSED and waiting for user to start the next phase
     if (sess.status === 'PAUSED') {
-      console.log('📱 Session is PAUSED - backend scheduler already processed phase completion');
-      console.log('📱 Current phase:', sess.currentPhase, 'Remaining seconds:', sess.remainingPhaseSeconds);
+      Logger.log('📱 Session is PAUSED - backend scheduler already processed phase completion');
+      Logger.log('📱 Current phase:', sess.currentPhase, 'Remaining seconds:', sess.remainingPhaseSeconds);
       
       // Mark that we're at the start of a new phase (button should show "Start")
       this.isAtPhaseStart.set(true);
@@ -649,7 +656,7 @@ export class SessionTimerComponent implements OnDestroy {
     const sessionInProgress = sess.status === 'IN_PROGRESS';
     
     if (timerAtZero && sessionInProgress) {
-      console.log('📱 Detected timer at 0 with IN_PROGRESS status - triggering phase completion');
+      Logger.log('📱 Detected timer at 0 with IN_PROGRESS status - triggering phase completion');
       
       // Set the notification guard - we'll send notification as part of phase completion
       this.notificationSentForCurrentPhase = false;
@@ -662,7 +669,7 @@ export class SessionTimerComponent implements OnDestroy {
   /* -------------------- TIMER LOGIC -------------------- */
 
   private handleTimerComplete(): void {
-    console.log('⏰ Timer completed - handling phase completion');
+    Logger.log('⏰ Timer completed - handling phase completion');
     this.handlePhaseComplete();
   }
 
@@ -757,20 +764,16 @@ export class SessionTimerComponent implements OnDestroy {
       updateReq.cycles = sess.cycles;
     }
     
-    console.log('📤 Sending update request:', updateReq);
+    Logger.log('📤 Sending update request:', updateReq);
     
     this.sessionService.updateSession(actId, sess.id, updateReq).subscribe({
       next: (updatedSession) => {
         this.session.set(updatedSession);
         // Re-initialize timer with updated session to ensure correct remaining time
         this.timerSyncService.initializeTimer(updatedSession, actId, this.activityTitle());
-        console.log('✅ Session settings updated:', updatedSession);
+        Logger.log('✅ Session settings updated:', updatedSession);
       },
       error: (err) => {
-        console.error('❌ Failed to update session settings:', err);
-        if (err.error) {
-          console.error('❌ Error details:', err.error);
-        }
         this.handleError(err, 'update session settings');
       }
     });
@@ -806,9 +809,11 @@ export class SessionTimerComponent implements OnDestroy {
     }).subscribe({
       next: (updatedSession) => {
         this.session.set(updatedSession);
-        console.log('✅ Long break interval updated:', clampedInterval);
+        Logger.log('✅ Long break interval updated:', clampedInterval);
       },
-      error: (err) => console.error('❌ Failed to update long break interval:', err)
+      error: (_err) => {
+        // Failed to update long break interval - silently handle
+      }
     });
   }
 
@@ -983,7 +988,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // Handle locally if backend fails
-        console.warn('[Session Timer] Skip phase failed, handling locally:', err);
+        Logger.warn('[Session Timer] Skip phase failed, handling locally:', err);
         
         // Calculate the new timer value based on the next phase
         const newTime = nextPhase === 'FOCUS' 
@@ -1042,7 +1047,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // Handle locally if backend fails
-        console.warn('[Session Timer] Reset session failed, handling locally:', err);
+        Logger.warn('[Session Timer] Reset session failed, handling locally:', err);
         
         const resetSession: PomodoroSession = {
           ...sess,
@@ -1104,7 +1109,7 @@ export class SessionTimerComponent implements OnDestroy {
   protected startSession(): void {
     const sess = this.session();
     const actId = this.activityId();
-    console.log('🎬 Starting session...', { sessionId: sess?.id, activityId: actId, status: sess?.status });
+    Logger.log('🎬 Starting session...', { sessionId: sess?.id, activityId: actId, status: sess?.status });
     if (!sess || !actId) return;
 
     // Clear the reset flag when starting
@@ -1120,17 +1125,17 @@ export class SessionTimerComponent implements OnDestroy {
     }
 
     // Otherwise start the session
-    console.log('📡 Calling backend to start session...');
+    Logger.log('📡 Calling backend to start session...');
     this.sessionService.startSession(actId, sess.id).subscribe({
       next: (updated) => {
-        console.log('✅ Session started successfully:', updated.status);
+        Logger.log('✅ Session started successfully:', updated.status);
         this.session.set(updated);
         this.timerSyncService.updateFromSession(updated);
         this.timerSyncService.startTimer();
       },
       error: (err) => {
         // If start fails, still start the timer locally to prevent disruption
-        console.log('[Session Timer] Start failed, handling gracefully:', err);
+        Logger.log('[Session Timer] Start failed, handling gracefully:', err);
         if (err instanceof HttpErrorResponse && err.status === 401) {
           const startedSession: PomodoroSession = {
             ...sess,
@@ -1171,7 +1176,7 @@ export class SessionTimerComponent implements OnDestroy {
     // Try to sync with backend (fire and forget - don't update local state from response)
     this.sessionService.pauseSession(actId, sess.id).pipe(
       catchError(err => {
-        console.log('[Session Timer] Pause sync failed, continuing with local state:', err);
+        Logger.log('[Session Timer] Pause sync failed, continuing with local state:', err);
         return of(null);
       })
     ).subscribe({
@@ -1197,7 +1202,7 @@ export class SessionTimerComponent implements OnDestroy {
     const actId = this.activityId();
     if (!sess || !actId) return;
 
-    console.log('[Session Timer] Starting new phase:', sess.currentPhase);
+    Logger.log('[Session Timer] Starting new phase:', sess.currentPhase);
     
     // Clear the reset flag when starting a phase
     this.sessionHasBeenReset.set(false);
@@ -1221,7 +1226,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // If API fails, start timer locally anyway
-        console.log('[Session Timer] Start phase API failed, starting locally:', err);
+        Logger.log('[Session Timer] Start phase API failed, starting locally:', err);
         const runningSession: PomodoroSession = {
           ...sess,
           status: 'IN_PROGRESS'
@@ -1251,7 +1256,7 @@ export class SessionTimerComponent implements OnDestroy {
       },
       error: (err) => {
         // If resume fails, update local state and start timer anyway
-        console.log('[Session Timer] Resume failed, handling gracefully:', err);
+        Logger.log('[Session Timer] Resume failed, handling gracefully:', err);
         const resumedSession: PomodoroSession = {
           ...sess,
           status: 'IN_PROGRESS'
@@ -1290,7 +1295,7 @@ export class SessionTimerComponent implements OnDestroy {
           this.goBack();
         },
         error: (err) => {
-          console.log('[Session Timer] Stop failed, navigating back:', err);
+          Logger.log('[Session Timer] Stop failed, navigating back:', err);
           this.goBack();
         }
       });
@@ -1325,7 +1330,7 @@ export class SessionTimerComponent implements OnDestroy {
           setTimeout(() => this.goBack(), 1500);
         },
         error: (err) => {
-          console.log('[Session Timer] Complete early failed, handling locally:', err);
+          Logger.log('[Session Timer] Complete early failed, handling locally:', err);
           const completedSession: PomodoroSession = {
             ...sess,
             status: 'COMPLETED'
@@ -1343,11 +1348,11 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     const actId = this.activityId();
     if (!sess || !actId) {
-      console.warn('[Session Timer] handlePhaseComplete called but session or activityId is missing');
+      Logger.warn('[Session Timer] handlePhaseComplete called but session or activityId is missing');
       return;
     }
 
-    console.log('[Session Timer] handlePhaseComplete called:', {
+    Logger.log('[Session Timer] handlePhaseComplete called:', {
       sessionId: sess.id,
       currentPhase: sess.currentPhase,
       status: sess.status,
@@ -1361,7 +1366,7 @@ export class SessionTimerComponent implements OnDestroy {
     // 2. Send FCM push notification
     // 3. Transition to next phase and set status to PAUSED
     if (document.hidden) {
-      console.log('[Session Timer] Tab not visible - letting backend scheduler handle phase completion');
+      Logger.log('[Session Timer] Tab not visible - letting backend scheduler handle phase completion');
       // Stop the local timer to prevent it from going negative
       this.timerSyncService.pauseTimer();
       return;
@@ -1371,13 +1376,13 @@ export class SessionTimerComponent implements OnDestroy {
     const localPhase = sess.currentPhase || 'FOCUS';
     const localCycles = sess.cyclesCompleted || 0;
 
-    console.log('[Session Timer] Fetching latest session state from backend...');
+    Logger.log('[Session Timer] Fetching latest session state from backend...');
 
     // First, fetch the latest session state from backend to check if phase was already transitioned
     // This prevents duplicate notifications when backend scheduler already processed the phase
     this.sessionService.getSession(actId, sess.id).subscribe({
       next: (latestSession) => {
-        console.log('[Session Timer] Latest session from backend:', {
+        Logger.log('[Session Timer] Latest session from backend:', {
           status: latestSession.status,
           currentPhase: latestSession.currentPhase,
           cyclesCompleted: latestSession.cyclesCompleted,
@@ -1393,7 +1398,7 @@ export class SessionTimerComponent implements OnDestroy {
         const cyclesChanged = backendCycles !== localCycles;
         const isNotInProgress = backendStatus === 'PAUSED' || backendStatus === 'COMPLETED';
         
-        console.log('[Session Timer] Comparison:', {
+        Logger.log('[Session Timer] Comparison:', {
           localPhase,
           backendPhase,
           phaseChanged,
@@ -1406,7 +1411,7 @@ export class SessionTimerComponent implements OnDestroy {
 
         if (phaseChanged || cyclesChanged || isNotInProgress) {
           // Backend already processed the phase transition - just sync UI, no notification
-          console.log(`[Session Timer] Backend already processed phase transition - syncing UI`);
+          Logger.log(`[Session Timer] Backend already processed phase transition - syncing UI`);
           
           this.session.set(latestSession);
           this.timerSyncService.initializeTimer(latestSession, actId, this.activityTitle());
@@ -1415,7 +1420,7 @@ export class SessionTimerComponent implements OnDestroy {
           
           // Handle completed session
           if (backendStatus === 'COMPLETED') {
-            console.log('[Session Timer] Session completed by backend');
+            Logger.log('[Session Timer] Session completed by backend');
             this.timerSyncService.stopTimer();
             return;
           }
@@ -1428,12 +1433,12 @@ export class SessionTimerComponent implements OnDestroy {
         }
         
         // Backend hasn't processed yet - proceed with normal phase completion
-        console.log('[Session Timer] Backend has not processed yet - calling processPhaseCompletion');
+        Logger.log('[Session Timer] Backend has not processed yet - calling processPhaseCompletion');
         this.processPhaseCompletion(sess, actId, localPhase);
       },
       error: (err) => {
         // If we can't fetch latest state, proceed with local phase completion
-        console.log('[Session Timer] Could not fetch latest session state, proceeding locally:', err);
+        Logger.log('[Session Timer] Could not fetch latest session state, proceeding locally:', err);
         const localPhase = sess.currentPhase || 'FOCUS';
         this.processPhaseCompletion(sess, actId, localPhase);
       }
@@ -1482,14 +1487,14 @@ export class SessionTimerComponent implements OnDestroy {
     const newPhaseDuration = nextPhase === 'FOCUS' 
       ? (sess.focusTimeInMinutes || 25) * 60 
       : (sess.breakTimeInMinutes || 5) * 60;
-    console.log('⏱️ Optimistic update - setting timer to:', newPhaseDuration, 'for phase:', nextPhase);
+    Logger.log('⏱️ Optimistic update - setting timer to:', newPhaseDuration, 'for phase:', nextPhase);
     this.timerSyncService.setRemainingSeconds(newPhaseDuration);
     this.timerSyncService.pauseTimer(); // Ensure timer is paused
-    console.log('⏸️ Timer paused, current display:', this.timerSyncService.getTimerDisplay());
+    Logger.log('⏸️ Timer paused, current display:', this.timerSyncService.getTimerDisplay());
 
     this.sessionService.completePhase(actId, sess.id).subscribe({
       next: (updated) => {
-        console.log('📥 Backend response for completePhase:', {
+        Logger.log('📥 Backend response for completePhase:', {
           status: updated.status,
           currentPhase: updated.currentPhase,
           remainingPhaseSeconds: updated.remainingPhaseSeconds,
@@ -1509,19 +1514,19 @@ export class SessionTimerComponent implements OnDestroy {
         
         // Update timer with correct duration from backend (handles LONG_BREAK properly)
         if (updated.remainingPhaseSeconds !== undefined && updated.remainingPhaseSeconds > 0) {
-          console.log('⏱️ Setting timer to backend value:', updated.remainingPhaseSeconds);
+          Logger.log('⏱️ Setting timer to backend value:', updated.remainingPhaseSeconds);
           this.timerSyncService.setRemainingSeconds(updated.remainingPhaseSeconds);
         } else {
-          console.warn('⚠️ Backend returned invalid remainingPhaseSeconds:', updated.remainingPhaseSeconds);
+          Logger.warn('⚠️ Backend returned invalid remainingPhaseSeconds:', updated.remainingPhaseSeconds);
           // Fallback: calculate duration based on phase
           const fallbackDuration = this.calculatePhaseDuration(updated.currentPhase, updated);
-          console.log('⏱️ Using fallback duration:', fallbackDuration);
+          Logger.log('⏱️ Using fallback duration:', fallbackDuration);
           this.timerSyncService.setRemainingSeconds(fallbackDuration);
         }
         
         // If session is now completed, show completion message
         if (updated.status === 'COMPLETED') {
-          console.log('🎉 Session completed - triggering session completion notification');
+          Logger.log('🎉 Session completed - triggering session completion notification');
           this.session.set(updated);
           this.timerSyncService.setRemainingSeconds(0);
           this.triggerSessionCompletionNotification();
@@ -1534,7 +1539,7 @@ export class SessionTimerComponent implements OnDestroy {
         this.checkAndAutoStartNextPhase(actualNextPhase);
       },
       error: (err) => {
-        console.log('[Session Timer] Complete phase failed, optimistic update already applied:', err);
+        Logger.log('[Session Timer] Complete phase failed, optimistic update already applied:', err);
         
         // Still check auto-start even if backend fails
         this.checkAndAutoStartNextPhase(nextPhase);
@@ -1559,20 +1564,20 @@ export class SessionTimerComponent implements OnDestroy {
       : settings.autoStart.autoStartPomodoros;
     
     if (shouldAutoStart) {
-      console.log(`[Session Timer] Auto-starting ${nextPhase} phase based on settings`);
+      Logger.log(`[Session Timer] Auto-starting ${nextPhase} phase based on settings`);
       // Use a short delay to let UI update, then auto-start
       setTimeout(() => {
         this.startPhase();
       }, 500);
     } else {
-      console.log(`[Session Timer] Auto-start disabled for ${nextPhase}, waiting for user input`);
+      Logger.log(`[Session Timer] Auto-start disabled for ${nextPhase}, waiting for user input`);
     }
   }
 
   protected goBack(): void {
-    console.log('[goBack] Navigating away - session should stay IN_PROGRESS');
-    console.log('[goBack] Current session status:', this.session()?.status);
-    console.log('[goBack] Timer sync service will handle persistence');
+    Logger.log('[goBack] Navigating away - session should stay IN_PROGRESS');
+    Logger.log('[goBack] Current session status:', this.session()?.status);
+    Logger.log('[goBack] Timer sync service will handle persistence');
     
     // The timer sync service will continue tracking time in the background
     // When user returns, it will restore the correct timer state
@@ -1601,7 +1606,7 @@ export class SessionTimerComponent implements OnDestroy {
     if (err instanceof HttpErrorResponse) {
       // Handle authentication errors (401) - Silent handling, no user message
       if (err.status === 401) {
-        console.log(`[Session Timer] 401 error during ${operation}, handled silently`);
+        Logger.log(`[Session Timer] 401 error during ${operation}, handled silently`);
         return;
       }
       
@@ -1667,7 +1672,7 @@ export class SessionTimerComponent implements OnDestroy {
     if (!sess || !actId) return;
     this.sessionService.updateNote(actId, sess.id, this.notes).subscribe({
       next: (updated) => {
-        console.log('[Session Timer] Note updated:', updated.note);
+        Logger.log('[Session Timer] Note updated:', updated.note);
         const current = this.session();
         // Defensive: handle note as string or object with 'content' field
         const noteValue = updated.note;
@@ -1688,11 +1693,10 @@ export class SessionTimerComponent implements OnDestroy {
         }
       },
       error: (err) => {
-        console.error('[Session Timer] Failed to update note:', err);
         // Don't show error for note updates - they're not critical
         // Just log it silently
         if (!(err instanceof HttpErrorResponse && err.status === 401)) {
-          console.warn('[Session Timer] Note update failed, but continuing...');
+          Logger.warn('[Session Timer] Note update failed, but continuing...');
         }
       }
     });
@@ -1715,19 +1719,19 @@ export class SessionTimerComponent implements OnDestroy {
   protected generateAiTodos(): void {
     const actId = this.activityId();
     if (!actId) {
-      console.warn('[Session Timer] Cannot generate AI todos: no activity ID');
+      Logger.warn('[Session Timer] Cannot generate AI todos: no activity ID');
       return;
     }
 
     this.isGeneratingAi.set(true);
-    console.log('🤖 Generating AI suggestions for activity:', this.activityTitle());
+    Logger.log('🤖 Generating AI suggestions for activity:', this.activityTitle());
 
     // Get current todo texts to avoid duplicates
     const currentTodos = this.todos().map(t => t.text).filter(t => t && t.trim() !== '');
 
     this.aiService.suggestNextStep({ activityId: actId, currentTodos }).subscribe({
       next: (response) => {
-        console.log('✨ AI suggestion received:', response);
+        Logger.log('✨ AI suggestion received:', response);
         
         // Parse the suggested note into todo items
         const suggestions = this.parseAiSuggestionToTodos(response.suggestedNote);
@@ -1746,13 +1750,28 @@ export class SessionTimerComponent implements OnDestroy {
         this.onTodosChanged();
         this.isGeneratingAi.set(false);
         
-        console.log(`✅ Added ${suggestions.length} AI-suggested todo(s)`);
+        // Auto-expand all todo textareas after a short delay to allow DOM to update
+        setTimeout(() => this.autoExpandAllTodos(), 50);
+        
+        Logger.log(`✅ Added ${suggestions.length} AI-suggested todo(s)`);
       },
-      error: (err) => {
-        console.error('[Session Timer] AI suggestion failed:', err);
+      error: (_err) => {
         this.isGeneratingAi.set(false);
         // No fallback - let the error propagate so user knows AI failed
       }
+    });
+  }
+
+  /**
+   * Auto-expand all todo textareas to fit their content
+   */
+  private autoExpandAllTodos(): void {
+    if (typeof document === 'undefined') return;
+    
+    const textareas = document.querySelectorAll('.todo-text') as NodeListOf<HTMLTextAreaElement>;
+    textareas.forEach(textarea => {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
     });
   }
 
@@ -1824,7 +1843,7 @@ export class SessionTimerComponent implements OnDestroy {
       const value = JSON.stringify(this.todos());
       window.localStorage.setItem(key, value);
     } catch (e) {
-      console.warn('[Session Timer] Failed to persist todos to storage', e);
+      Logger.warn('[Session Timer] Failed to persist todos to storage', e);
     }
   }
 
@@ -1834,10 +1853,10 @@ export class SessionTimerComponent implements OnDestroy {
     if (!sess || !actId) return;
     this.sessionService.saveTodos(actId, sess.id, this.todos()).subscribe({
       next: () => {
-        console.log('[Session Timer] Todos saved to backend');
+        Logger.log('[Session Timer] Todos saved to backend');
       },
-      error: (err) => {
-        console.error('[Session Timer] Failed to save todos:', err);
+      error: (_err) => {
+        // Failed to save todos - silently handle
       }
     });
   }
@@ -1884,7 +1903,7 @@ export class SessionTimerComponent implements OnDestroy {
   /* -------------------- NOTIFICATION HANDLERS -------------------- */
 
   private async triggerSessionCompletionNotification(): Promise<void> {
-    console.log('🎯 Session completion notification triggered');
+    Logger.log('🎯 Session completion notification triggered');
     
     const sess = this.session();
     if (!sess) return;
@@ -1904,7 +1923,7 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   private async triggerPhaseCompletionNotification(completedPhase: 'FOCUS' | 'BREAK' | 'LONG_BREAK'): Promise<void> {
-    console.log('🎯 Phase completion notification triggered for:', completedPhase);
+    Logger.log('🎯 Phase completion notification triggered for:', completedPhase);
     
     const sess = this.session();
     if (!sess) return;
@@ -1931,21 +1950,21 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   protected async testTimerNotification(): Promise<void> {
-    console.log('🧪 Testing timer notification manually...');
+    Logger.log('🧪 Testing timer notification manually...');
     
     const sess = this.session();
     if (!sess) return;
     
     const settings = this.settingsService.getSettings();
-    console.log('🔧 Current settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
-    console.log('🔧 Tab hidden:', document.hidden);
+    Logger.log('🔧 Current settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
+    Logger.log('🔧 Tab hidden:', document.hidden);
     
     // Test the notification service directly
     await this.notificationService.testDesktopNotification();
   }
 
   protected async forceTestNotification(): Promise<void> {
-    console.log('🚨 FORCE testing desktop notification (bypassing settings)...');
+    Logger.log('🚨 FORCE testing desktop notification (bypassing settings)...');
     
     const sess = this.session();
     if (!sess) return;
@@ -1963,7 +1982,7 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   protected async forceTimerZero(): Promise<void> {
-    console.log('🚨 FORCING TIMER TO ZERO FOR TESTING...');
+    Logger.log('🚨 FORCING TIMER TO ZERO FOR TESTING...');
     
     const sess = this.session();
     const currentPhase = sess?.currentPhase || 'FOCUS';
@@ -1972,10 +1991,10 @@ export class SessionTimerComponent implements OnDestroy {
     this.timerSyncService.setRemainingSeconds(0);
     
     // Manually trigger the phase completion notification
-    console.log('⏰ Timer reached zero! Triggering phase completion notification...');
+    Logger.log('⏰ Timer reached zero! Triggering phase completion notification...');
     await this.triggerPhaseCompletionNotification(currentPhase as 'FOCUS' | 'BREAK');
     
-    console.log('✅ Forced timer completion test complete!');
+    Logger.log('✅ Forced timer completion test complete!');
   }
 
   // Auto-start functionality methods
@@ -1984,7 +2003,7 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Don't auto-start if session is completed
     if (session.status === 'COMPLETED') {
-      console.log('🏁 Session completed, no auto-start needed');
+      Logger.log('🏁 Session completed, no auto-start needed');
       return;
     }
     
@@ -1994,10 +2013,10 @@ export class SessionTimerComponent implements OnDestroy {
       (currentPhase === 'BREAK' && settings.autoStart.autoStartPomodoros);
     
     if (shouldAutoStart) {
-      console.log(`🚀 Auto-start enabled for next phase after ${currentPhase}`);
+      Logger.log(`🚀 Auto-start enabled for next phase after ${currentPhase}`);
       await this.startAutoStartCountdown();
     } else {
-      console.log(`⏸️ Auto-start disabled for next phase after ${currentPhase}`);
+      Logger.log(`⏸️ Auto-start disabled for next phase after ${currentPhase}`);
     }
   }
 
@@ -2008,7 +2027,7 @@ export class SessionTimerComponent implements OnDestroy {
     const settings = this.settingsService.getSettings();
     const countdownSeconds = settings.autoStart.countdownSeconds;
     
-    console.log(`⏱️ Starting ${countdownSeconds}-second auto-start countdown`);
+    Logger.log(`⏱️ Starting ${countdownSeconds}-second auto-start countdown`);
     
     // Reset cancelled flag
     this.autoStartCancelled = false;
@@ -2018,7 +2037,7 @@ export class SessionTimerComponent implements OnDestroy {
     for (let i = countdownSeconds; i > 0; i--) {
       // Check if cancelled
       if (this.autoStartCancelled) {
-        console.log('🛑 Auto-start countdown cancelled');
+        Logger.log('🛑 Auto-start countdown cancelled');
         this.hideAutoStartCountdown();
         return;
       }
@@ -2028,7 +2047,7 @@ export class SessionTimerComponent implements OnDestroy {
     
     // Check again before starting (in case cancelled during last second)
     if (this.autoStartCancelled) {
-      console.log('🛑 Auto-start cancelled before starting');
+      Logger.log('🛑 Auto-start cancelled before starting');
       this.hideAutoStartCountdown();
       return;
     }
@@ -2038,7 +2057,7 @@ export class SessionTimerComponent implements OnDestroy {
   }
 
   protected cancelAutoStart(): void {
-    console.log('🛑 User cancelled auto-start');
+    Logger.log('🛑 User cancelled auto-start');
     this.autoStartCancelled = true;
     this.hideAutoStartCountdown();
   }
@@ -2047,18 +2066,17 @@ export class SessionTimerComponent implements OnDestroy {
     const sess = this.session();
     
     if (!sess) {
-      console.error('❌ Cannot auto-start: missing session');
       return;
     }
     
-    console.log('🚀 Auto-starting next phase...');
+    Logger.log('🚀 Auto-starting next phase...');
     
     // If session is paused (after phase completion), just start the timer
     if (sess.status === 'PAUSED') {
-      console.log('✅ Auto-start: Starting timer for next phase');
+      Logger.log('✅ Auto-start: Starting timer for next phase');
       this.timerSyncService.startTimer();
     } else {
-      console.log('⚠️ Auto-start: Session not in expected PAUSED state, current status:', sess.status);
+      Logger.log('⚠️ Auto-start: Session not in expected PAUSED state, current status:', sess.status);
       // Try to start anyway
       this.timerSyncService.startTimer();
     }
@@ -2098,15 +2116,14 @@ export class SessionTimerComponent implements OnDestroy {
 
   // Test method for auto-start functionality (can be called from browser console)
   protected testAutoStart(): void {
-    console.log('🧪 Testing auto-start functionality...');
+    Logger.log('🧪 Testing auto-start functionality...');
     const sess = this.session();
     if (!sess) {
-      console.error('❌ No session available for testing');
       return;
     }
     
-    console.log('🧪 Current session:', sess);
-    console.log('🧪 Current phase:', sess.currentPhase);
+    Logger.log('🧪 Current session:', sess);
+    Logger.log('🧪 Current phase:', sess.currentPhase);
     
     // Simulate phase completion
     this.checkAndHandleAutoStart(sess, sess.currentPhase || 'FOCUS');

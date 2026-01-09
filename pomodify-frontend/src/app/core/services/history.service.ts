@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router, NavigationEnd, NavigationStart } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Logger } from './logger.service';
 
 @Injectable({
   providedIn: 'root',
@@ -67,6 +68,6 @@ export class HistoryService {
     if (this.navigationHistory.length > 0) {
       this.navigationHistory.pop();
     }
-    console.warn('User attempted to navigate back to a public page from protected area');
+    Logger.warn('User attempted to navigate back to a public page from protected area');
   }
 }

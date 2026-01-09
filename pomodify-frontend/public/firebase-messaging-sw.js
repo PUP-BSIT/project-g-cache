@@ -49,7 +49,6 @@ async function getLoginState() {
       request.onsuccess = () => resolve(request.result !== false);
     });
   } catch (error) {
-    console.log('Error checking login state, defaulting to true:', error);
     return true; // Default to showing notifications if we can't check
   }
 }
@@ -67,17 +66,14 @@ async function setLoginState(isLoggedIn) {
       request.onsuccess = () => resolve();
     });
   } catch (error) {
-    console.error('Error setting login state:', error);
+    // Silently fail
   }
 }
 
 // Listen for messages from the main app to sync login state
 self.addEventListener('message', (event) => {
-  console.log('Service worker received message:', event.data);
-  
   if (event.data && event.data.type === 'SET_LOGIN_STATE') {
     setLoginState(event.data.isLoggedIn);
-    console.log('Login state updated to:', event.data.isLoggedIn);
   }
   
   // Allow skipWaiting to activate new service worker immediately
@@ -88,12 +84,10 @@ self.addEventListener('message', (event) => {
 
 // Activate immediately and claim all clients
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
   event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(self.clients.claim());
 });
 
@@ -107,8 +101,6 @@ self.addEventListener('activate', (event) => {
 // - Only this push handler runs and shows the notification
 // - We have full control over notification appearance and behavior
 self.addEventListener('push', (event) => {
-  console.log('Push event received');
-  
   // We MUST call event.waitUntil with a showNotification promise
   // For data-only messages, if we don't show a notification, nothing happens
   event.waitUntil((async () => {
@@ -120,7 +112,6 @@ self.addEventListener('push', (event) => {
       if (event.data) {
         try {
           const payload = event.data.json();
-          console.log('Push payload:', JSON.stringify(payload));
           
           // For data-only messages, title/body are in payload.data
           // For messages with notification payload (legacy), check payload.notification first
@@ -128,32 +119,27 @@ self.addEventListener('push', (event) => {
           body = payload.notification?.body || payload.data?.body || body;
           data = payload.data || {};
         } catch (e) {
-          console.log('Could not parse push data as JSON:', e);
-          // Try as text
-          const text = event.data.text();
-          console.log('Push data as text:', text);
+          // Try as text - silently handle parse errors
+          event.data.text();
         }
       }
       
       // Dedup check - prevent showing same notification twice
       if (!shouldShowNotification(title, body)) {
-        console.log('Duplicate notification prevented');
         return;
       }
       
       // Check login state
       const isLoggedIn = await getLoginState();
       if (!isLoggedIn) {
-        console.log('User not logged in - suppressing notification');
         return;
       }
       
       // Show exactly ONE notification
-      console.log('Showing notification:', title, body);
       await showNotification(title, body, data);
       
     } catch (error) {
-      console.error('Error handling push event:', error);
+      // Silently handle errors
     }
   })());
 });
@@ -194,7 +180,6 @@ async function showNotification(title, body, data = {}) {
 
   try {
     await self.registration.showNotification(title, notificationOptions);
-    console.log('Notification displayed:', title, '(silent:', notificationOptions.silent, ')');
     
     // For desktop browsers, try to play sound via the app if it's open
     // This is a fallback since service workers can't play audio directly
@@ -206,7 +191,7 @@ async function showNotification(title, body, data = {}) {
       });
     }
   } catch (error) {
-    console.error('Failed to show notification:', error);
+    // Silently handle notification errors
   }
 }
 
@@ -232,7 +217,6 @@ function shouldShowNotification(title, body) {
   
   // Check if we've shown this notification recently
   if (recentNotifications.has(hash)) {
-    console.log('Duplicate notification suppressed:', title);
     return false;
   }
   
@@ -243,17 +227,14 @@ function shouldShowNotification(title, body) {
 
 // Handle background messages from Firebase
 // NOTE: We handle all notifications in the 'push' event listener above.
-// This handler is kept for logging/debugging purposes only.
+// This handler is kept for compatibility purposes only.
 // It should NOT show any notifications to avoid duplicates.
 messaging.onBackgroundMessage(async (payload) => {
-  console.log('onBackgroundMessage received (notification already handled by push event):', payload);
   // Do NOT show notification here - it's already handled by the push event listener
 });
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
-  
   event.notification.close();
   
   if (event.action === 'dismiss') {
@@ -283,5 +264,5 @@ self.addEventListener('notificationclick', (event) => {
 
 // Handle notification close
 self.addEventListener('notificationclose', (event) => {
-  console.log('Notification closed:', event.notification.tag);
+  // Notification closed - no action needed
 });
