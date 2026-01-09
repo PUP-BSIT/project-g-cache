@@ -7,6 +7,7 @@ import { Auth } from './auth';
 import { MobileDetectionService } from './mobile-detection.service';
 import { NotificationModalComponent, NotificationModalData } from '../../shared/components/notification-modal/notification-modal.component';
 import { TimerSyncService, TimerCompletionEvent } from './timer-sync.service';
+import { Logger } from './logger.service';
 
 export interface NotificationContext {
   title: string;
@@ -42,19 +43,19 @@ export class NotificationService {
     
     // Subscribe to FCM messages to handle foreground notifications
     this.fcmService.messages$.subscribe(payload => {
-      console.log('🔔 Received foreground FCM message in NotificationService:', payload);
+      Logger.log('🔔 Received foreground FCM message in NotificationService:', payload);
       this.handleFcmMessage(payload);
     });
     
     // Subscribe to timer completion events for background notifications
     // This handles notifications when user navigates away from timer page
     this.timerSyncService.timerComplete$.subscribe(event => {
-      console.log('🔔 Timer completion event received in NotificationService:', event);
+      Logger.log('🔔 Timer completion event received in NotificationService:', event);
       // Only handle if NOT on timer page (timer page handles its own notifications)
       if (!this.isOnTimerPage) {
         this.handleBackgroundTimerCompletion(event);
       } else {
-        console.log('🔔 On timer page - letting session-timer handle notification');
+        Logger.log('🔔 On timer page - letting session-timer handle notification');
       }
     });
   }
@@ -66,16 +67,16 @@ export class NotificationService {
   private initializeServiceWorkerMessageListener(): void {
     if (typeof navigator !== 'undefined' && navigator.serviceWorker) {
       navigator.serviceWorker.addEventListener('message', (event) => {
-        console.log('🔔 Received message from service worker:', event.data);
+        Logger.log('🔔 Received message from service worker:', event.data);
         
         if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
           const soundType = event.data.soundType || this.settingsService.getSettings().sound.type;
-          console.log('🔊 Playing notification sound from service worker request:', soundType);
+          Logger.log('🔊 Playing notification sound from service worker request:', soundType);
           this.settingsService.playSound(soundType);
         }
       });
       
-      console.log('🔔 Service worker message listener initialized for notification sounds');
+      Logger.log('🔔 Service worker message listener initialized for notification sounds');
     }
   }
   
@@ -85,14 +86,14 @@ export class NotificationService {
    */
   setOnTimerPage(isOnPage: boolean): void {
     this.isOnTimerPage = isOnPage;
-    console.log('🔔 Timer page status:', isOnPage ? 'ON timer page' : 'NOT on timer page');
+    Logger.log('🔔 Timer page status:', isOnPage ? 'ON timer page' : 'NOT on timer page');
   }
   
   /**
    * Handle timer completion when user is NOT on the timer page
    */
   private async handleBackgroundTimerCompletion(event: TimerCompletionEvent): Promise<void> {
-    console.log('🔔 Handling background timer completion:', event);
+    Logger.log('🔔 Handling background timer completion:', event);
     
     const activityTitle = event.activityTitle || 'Activity';
     const nextPhase = event.phase === 'FOCUS' ? 'BREAK' : 'FOCUS';
@@ -142,21 +143,21 @@ export class NotificationService {
       const settings = this.settingsService.getSettings();
       const deviceType = this.mobileDetection.getDeviceType();
       
-      console.log('Current notification settings:');
-      console.log('  - Device type:', deviceType);
-      console.log('  - Notifications enabled:', settings.notifications);
-      console.log('  - Sound enabled:', settings.sound.enabled);
-      console.log('  - Sound type:', settings.sound.type);
-      console.log('  - Browser permission:', Notification.permission);
-      console.log('  - Tab visible:', this.isTabVisible());
-      console.log('  - PWA notifications supported:', this.mobileDetection.supportsPWANotifications());
+      Logger.log('Current notification settings:');
+      Logger.log('  - Device type:', deviceType);
+      Logger.log('  - Notifications enabled:', settings.notifications);
+      Logger.log('  - Sound enabled:', settings.sound.enabled);
+      Logger.log('  - Sound type:', settings.sound.type);
+      Logger.log('  - Browser permission:', Notification.permission);
+      Logger.log('  - Tab visible:', this.isTabVisible());
+      Logger.log('  - PWA notifications supported:', this.mobileDetection.supportsPWANotifications());
       
       if (!settings.notifications) {
-        console.log('To enable notifications: Go to Settings → Turn on "Notifications" toggle');
+        Logger.log('To enable notifications: Go to Settings → Turn on "Notifications" toggle');
       }
       
       if (Notification.permission !== 'granted') {
-        console.log('To grant browser permission: Click "Allow" when prompted or check browser settings');
+        Logger.log('To grant browser permission: Click "Allow" when prompted or check browser settings');
       }
       
       return {
@@ -170,7 +171,7 @@ export class NotificationService {
     };
     
     (window as any).forceTestNotification = async () => {
-      console.log('Force testing notification...');
+      Logger.log('Force testing notification...');
       const testContext = {
         title: 'Force Test Notification',
         body: 'This notification bypasses app settings for testing',
@@ -181,25 +182,25 @@ export class NotificationService {
     };
     
     (window as any).enableNotifications = () => {
-      console.log('Enabling notifications in app settings...');
+      Logger.log('Enabling notifications in app settings...');
       this.settingsService.updateSettings({ notifications: true });
-      console.log('Notifications enabled! Now test with a timer completion.');
+      Logger.log('Notifications enabled! Now test with a timer completion.');
     };
     
     (window as any).testFCMRegistration = async () => {
-      console.log('Testing FCM registration...');
+      Logger.log('Testing FCM registration...');
       // JWT is no longer needed, auth is handled by cookies
       
       try {
         await this.fcmService.initializeFCM();
-        console.log('FCM registration test completed successfully!');
+        Logger.log('FCM registration test completed successfully!');
       } catch (error) {
-        console.log('FCM registration test failed:', error);
+        Logger.log('FCM registration test failed:', error);
       }
     };
     
     (window as any).testMobileModal = () => {
-      console.log('📱 Testing mobile notification modal...');
+      Logger.log('📱 Testing mobile notification modal...');
       this.showNotificationModal({
         title: 'Test Mobile Modal',
         body: 'This is a test of the mobile notification modal',
@@ -210,28 +211,28 @@ export class NotificationService {
     };
     
     (window as any).testBackendPush = async () => {
-      console.log('🔔 Testing backend push notification...');
+      Logger.log('🔔 Testing backend push notification...');
       try {
         const result = await firstValueFrom(this.fcmService.sendTestNotification(
           '🧪 Backend Test',
           'This notification was sent from the backend via FCM'
         ));
-        console.log('Backend push test result:', result);
+        Logger.log('Backend push test result:', result);
         return result;
       } catch (error) {
-        console.error('Backend push test failed:', error);
+        Logger.log('Backend push test failed:', error);
         return { success: false, error };
       }
     };
     
     (window as any).checkPushDebug = async () => {
-      console.log('🔍 Checking push notification debug info...');
+      Logger.log('🔍 Checking push notification debug info...');
       try {
         const result = await firstValueFrom(this.fcmService.getDebugInfo());
-        console.log('Push debug info:', result);
+        Logger.log('Push debug info:', result);
         return result;
       } catch (error) {
-        console.error('Failed to get push debug info:', error);
+        Logger.log('Failed to get push debug info:', error);
         return { error };
       }
     };
@@ -247,7 +248,7 @@ export class NotificationService {
   private shouldShowPendingNotifications(): boolean {
     // Check if user is logged in using auth service's isLoggedIn method
     if (!this.authService.isLoggedIn()) {
-      console.log('User not logged in - clearing pending notifications');
+      Logger.log('User not logged in - clearing pending notifications');
       this.pendingNotifications = [];
       return false;
     }
@@ -257,7 +258,7 @@ export class NotificationService {
     const irrelevantPages = ['/login', '/signup', '/landing', '/'];
     
     if (irrelevantPages.some(page => currentUrl.includes(page))) {
-      console.log('User on irrelevant page - not showing pending notifications');
+      Logger.log('User on irrelevant page - not showing pending notifications');
       return false;
     }
 
@@ -267,7 +268,7 @@ export class NotificationService {
     });
 
     if (recentNotifications.length !== this.pendingNotifications.length) {
-      console.log('Filtering out old pending notifications');
+      Logger.log('Filtering out old pending notifications');
       this.pendingNotifications = recentNotifications;
     }
 
@@ -291,7 +292,7 @@ export class NotificationService {
     
     if (!notification) return;
 
-    console.log('🔔 FCM message received - playing sound only (notification already shown)');
+    Logger.log('🔔 FCM message received - playing sound only (notification already shown)');
     
     // Only play sound for FCM messages, don't create another notification
     // The browser notification was already created by sendPushNotification
@@ -338,7 +339,7 @@ export class NotificationService {
     const deviceType = this.mobileDetection.getDeviceType();
     const jwt = this.authService.getAccessToken();
 
-    console.log('Notification triggered:', {
+    Logger.log('Notification triggered:', {
       type: context.type,
       tabVisible: isTabVisible,
       deviceType,
@@ -361,7 +362,7 @@ export class NotificationService {
     settings: AppSettings, 
     deviceType: string
   ): Promise<void> {
-    console.log('Foreground notification - Device:', deviceType);
+    Logger.log('Foreground notification - Device:', deviceType);
     
     if (deviceType === 'mobile' || deviceType === 'tablet') {
       await this.handleMobileForegroundNotification(context, settings);
@@ -377,10 +378,10 @@ export class NotificationService {
     context: NotificationContext, 
     settings: AppSettings
   ): Promise<void> {
-    console.log('Mobile foreground notification');
+    Logger.log('Mobile foreground notification');
 
     if (settings.sound.enabled) {
-      console.log('Playing mobile completion sound:', settings.sound.type);
+      Logger.log('Playing mobile completion sound:', settings.sound.type);
       this.settingsService.playSound(settings.sound.type);
     }
 
@@ -388,11 +389,11 @@ export class NotificationService {
       const notificationSent = await this.tryMobileBrowserNotification(context);
       
       if (!notificationSent) {
-        console.log('Browser notification not available, showing modal fallback');
+        Logger.log('Browser notification not available, showing modal fallback');
         this.showNotificationModal(context);
       }
     } else {
-      console.log('Mobile notifications disabled - sound only');
+      Logger.log('Mobile notifications disabled - sound only');
     }
   }
 
@@ -403,19 +404,19 @@ export class NotificationService {
   private async tryMobileBrowserNotification(context: NotificationContext): Promise<boolean> {
     try {
       if (!('Notification' in window)) {
-        console.log('Notification API not available on this device');
+        Logger.log('Notification API not available on this device');
         return false;
       }
 
       let permission = Notification.permission;
 
       if (permission === 'default') {
-        console.log('Requesting notification permission on mobile...');
+        Logger.log('Requesting notification permission on mobile...');
         permission = await Notification.requestPermission();
       }
 
       if (permission === 'granted') {
-        console.log('Permission granted, sending mobile browser notification...');
+        Logger.log('Permission granted, sending mobile browser notification...');
         
         const notification = new Notification(context.title, {
           body: context.body,
@@ -425,22 +426,22 @@ export class NotificationService {
         });
 
         notification.onclick = () => {
-          console.log('Mobile notification clicked - focusing window');
+          Logger.log('Mobile notification clicked - focusing window');
           window.focus();
           notification.close();
         };
 
-        console.log('Mobile browser notification sent successfully!');
+        Logger.log('Mobile browser notification sent successfully!');
         return true;
       }
 
       if (permission === 'denied') {
-        console.log('Notification permission denied on mobile');
+        Logger.log('Notification permission denied on mobile');
       }
 
       return false;
     } catch (error) {
-      console.error('Mobile browser notification failed:', error);
+      Logger.log('Mobile browser notification failed:', error);
       return false;
     }
   }
@@ -454,22 +455,22 @@ export class NotificationService {
   ): Promise<void> {
     const jwt = this.authService.getAccessToken();
     
-    console.log('Desktop foreground notification - same as background behavior');
+    Logger.log('Desktop foreground notification - same as background behavior');
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      Logger.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
       // Play sound and send notification simultaneously (no await) for better sync
       this.settingsService.playSound(settings.sound.type);
       this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
-      console.log('Only notifications enabled - sending push notification (no sound)');
+      Logger.log('Only notifications enabled - sending push notification (no sound)');
       this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
-      console.log('Only sound enabled - playing sound (no push notification)');
+      Logger.log('Only sound enabled - playing sound (no push notification)');
       this.settingsService.playSound(settings.sound.type);
     } else {
       // Both disabled - nothing happens
-      console.log('Both notifications and sound disabled - doing nothing');
+      Logger.log('Both notifications and sound disabled - doing nothing');
     }
   }
 
@@ -481,21 +482,21 @@ export class NotificationService {
     settings: AppSettings, 
     jwt: string | null
   ): Promise<void> {
-    console.log('Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
+    Logger.log('Background notification - Notifications enabled:', settings.notifications, 'Sound enabled:', settings.sound.enabled);
     
     if (settings.notifications && settings.sound.enabled) {
-      console.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
+      Logger.log('Both notifications and sound enabled - sending push notification + playing sound simultaneously');
       // Play sound and send notification simultaneously for better sync
       this.playBackgroundSound();
       this.sendPushNotification(context, jwt);
     } else if (settings.notifications && !settings.sound.enabled) {
-      console.log('Only notifications enabled - sending push notification (no sound)');
+      Logger.log('Only notifications enabled - sending push notification (no sound)');
       this.sendPushNotification(context, jwt);
     } else if (!settings.notifications && settings.sound.enabled) {
-      console.log('Only sound enabled - playing sound (no push notification)');
+      Logger.log('Only sound enabled - playing sound (no push notification)');
       this.playBackgroundSound();
     } else {
-      console.log('Both notifications and sound disabled - doing nothing');
+      Logger.log('Both notifications and sound disabled - doing nothing');
     }
 
     const contextWithTimestamp = {
@@ -528,7 +529,7 @@ export class NotificationService {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('📱 Notification modal closed by user:', result);
+      Logger.log('📱 Notification modal closed by user:', result);
     });
   }
 
@@ -538,19 +539,19 @@ export class NotificationService {
    */
   private async sendPushNotification(context: NotificationContext, _jwt: string | null): Promise<void> {
     try {
-      console.log('Sending desktop push notification:', context.title);
+      Logger.log('Sending desktop push notification:', context.title);
       
       // Check notification permission first
       let permission = Notification.permission;
       
       if (permission === 'default') {
-        console.log('Requesting notification permission...');
+        Logger.log('Requesting notification permission...');
         permission = await Notification.requestPermission();
       }
       
       if (permission === 'granted') {
         // Send browser notification directly (most reliable)
-        console.log('Permission granted, sending desktop notification...');
+        Logger.log('Permission granted, sending desktop notification...');
         
         try {
           const notification = new Notification(context.title, {
@@ -561,22 +562,22 @@ export class NotificationService {
           
           // Add click handler to focus the app
           notification.onclick = () => {
-            console.log('Notification clicked - focusing window');
+            Logger.log('Notification clicked - focusing window');
             window.focus();
             notification.close();
           };
           
-          console.log('🎉 Desktop notification sent successfully!');
+          Logger.log('🎉 Desktop notification sent successfully!');
           
         } catch (notificationError) {
-          console.error('Notification creation failed:', notificationError);
+          Logger.log('Notification creation failed:', notificationError);
           
           // Ultra-simple fallback
           try {
             new Notification(context.title);
-            console.log('Fallback notification sent');
+            Logger.log('Fallback notification sent');
           } catch (fallbackError) {
-            console.error('Even fallback notification failed:', fallbackError);
+            Logger.log('Even fallback notification failed:', fallbackError);
           }
         }
         
@@ -584,19 +585,19 @@ export class NotificationService {
         // FCM should only be initialized once during app startup, not on every notification
         
       } else if (permission === 'denied') {
-        console.log('Notification permission denied by user');
+        Logger.log('Notification permission denied by user');
       } else {
-        console.log('Notification permission not available');
+        Logger.log('Notification permission not available');
       }
       
     } catch (error) {
-      console.error('Failed to send push notification:', error);
+      Logger.log('Failed to send push notification:', error);
     }
   }
 
   private playBackgroundSound(): void {
     const settings = this.settingsService.getSettings();
-    console.log('Playing background sound:', settings.sound.type);
+    Logger.log('Playing background sound:', settings.sound.type);
     this.settingsService.playSound(settings.sound.type);
   }
 
@@ -618,7 +619,7 @@ export class NotificationService {
    * Clear pending notifications
    */
   clearPendingNotifications(): void {
-    console.log('Clearing pending notifications');
+    Logger.log('Clearing pending notifications');
     this.pendingNotifications = [];
   }
 
@@ -626,7 +627,7 @@ export class NotificationService {
    * Clear pending notifications on logout
    */
   onUserLogout(): void {
-    console.log('User logged out - clearing all pending notifications');
+    Logger.log('User logged out - clearing all pending notifications');
     this.clearPendingNotifications();
   }
 
@@ -634,7 +635,7 @@ export class NotificationService {
    * Test desktop notification directly
    */
   async testDesktopNotification(): Promise<void> {
-    console.log('Testing desktop notification from service...');
+    Logger.log('Testing desktop notification from service...');
     
     const testContext: NotificationContext = {
       title: 'Pomodify Test Notification',
@@ -646,10 +647,10 @@ export class NotificationService {
     const settings = this.settingsService.getSettings();
     const jwt = this.authService.getAccessToken();
     
-    console.log('Test settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
+    Logger.log('Test settings:', { notifications: settings.notifications, sound: settings.sound.enabled });
     
     if (!settings.notifications) {
-      console.log('Notifications are disabled in settings. Enabling temporarily for test...');
+      Logger.log('Notifications are disabled in settings. Enabling temporarily for test...');
       await this.sendPushNotification(testContext, jwt);
     } else {
       await this.sendPushNotification(testContext, jwt);
@@ -660,7 +661,7 @@ export class NotificationService {
    * Force send desktop notification (bypasses settings check)
    */
   async forceDesktopNotification(context: NotificationContext): Promise<void> {
-    console.log('Force sending desktop notification (bypassing settings)...');
+    Logger.log('Force sending desktop notification (bypassing settings)...');
     const jwt = this.authService.getAccessToken();
     await this.sendPushNotification(context, jwt);
   }

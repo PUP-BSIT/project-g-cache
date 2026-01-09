@@ -3,6 +3,7 @@ import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { interval, Subscription, Subject } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { Logger } from './logger.service';
 
 export interface GlobalTimerState {
   sessionId: number;
@@ -172,7 +173,7 @@ export class GlobalTimerService implements OnDestroy {
     try {
       localStorage.setItem('pomodify_global_timer', JSON.stringify(state));
     } catch (e) {
-      console.warn('Failed to persist global timer state:', e);
+      Logger.warn('Failed to persist global timer state:', e);
     }
   }
 
@@ -201,7 +202,7 @@ export class GlobalTimerService implements OnDestroy {
         }
       }
     } catch (e) {
-      console.warn('Failed to load global timer state:', e);
+      Logger.warn('Failed to load global timer state:', e);
     }
   }
 
@@ -209,7 +210,7 @@ export class GlobalTimerService implements OnDestroy {
     try {
       localStorage.removeItem('pomodify_global_timer');
     } catch (e) {
-      console.warn('Failed to clear global timer state:', e);
+      Logger.warn('Failed to clear global timer state:', e);
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Badge, BadgeService } from './badge.service';
+import { Logger } from './logger.service';
 
 export interface BadgeNotification {
   id: string;
@@ -109,7 +110,9 @@ export class BadgeNotificationService {
           this.saveToStorage();
         }
       },
-      error: (err) => console.error('Failed to check badges:', err)
+      error: (_err) => {
+        // Failed to check badges - silently handle
+      }
     });
   }
 
@@ -172,7 +175,7 @@ export class BadgeNotificationService {
     if (soundFile) {
       const audio = new Audio(soundFile);
       audio.volume = 0.7;
-      audio.play().catch(err => console.warn('Could not play badge sound:', err));
+      audio.play().catch(err => Logger.warn('Could not play badge sound:', err));
       return audio;
     }
     return null;
@@ -184,7 +187,7 @@ export class BadgeNotificationService {
       localStorage.setItem('badge_notifications', JSON.stringify(this.notificationsSignal()));
       localStorage.setItem('last_checked_badges', JSON.stringify(this.lastCheckedBadgesSignal()));
     } catch (e) {
-      console.warn('Could not save notifications to storage:', e);
+      Logger.warn('Could not save notifications to storage:', e);
     }
   }
 
@@ -205,7 +208,7 @@ export class BadgeNotificationService {
         this.lastCheckedBadgesSignal.set(JSON.parse(lastChecked));
       }
     } catch (e) {
-      console.warn('Could not load notifications from storage:', e);
+      Logger.warn('Could not load notifications from storage:', e);
     }
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Logger } from './logger.service';
 
 /**
  * Service to manage activity color tags in localStorage
@@ -18,7 +19,7 @@ export class ActivityColorService {
       const colors = this.getAllColors();
       return colors[activityId] || null;
     } catch (e) {
-      console.warn('[ActivityColorService] Error reading colors:', e);
+      Logger.warn('[ActivityColorService] Error reading colors:', e);
       return null;
     }
   }
@@ -32,7 +33,7 @@ export class ActivityColorService {
       colors[activityId] = colorTag;
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(colors));
     } catch (e) {
-      console.warn('[ActivityColorService] Error saving color:', e);
+      Logger.warn('[ActivityColorService] Error saving color:', e);
     }
   }
 
@@ -45,7 +46,7 @@ export class ActivityColorService {
       delete colors[activityId];
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(colors));
     } catch (e) {
-      console.warn('[ActivityColorService] Error removing color:', e);
+      Logger.warn('[ActivityColorService] Error removing color:', e);
     }
   }
 
@@ -57,7 +58,7 @@ export class ActivityColorService {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       return stored ? JSON.parse(stored) : {};
     } catch (e) {
-      console.warn('[ActivityColorService] Error parsing colors:', e);
+      Logger.warn('[ActivityColorService] Error parsing colors:', e);
       return {};
     }
   }
@@ -69,7 +70,7 @@ export class ActivityColorService {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch (e) {
-      console.warn('[ActivityColorService] Error clearing colors:', e);
+      Logger.warn('[ActivityColorService] Error clearing colors:', e);
     }
   }
 }

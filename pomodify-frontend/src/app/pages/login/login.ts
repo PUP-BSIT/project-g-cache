@@ -75,7 +75,6 @@ export class Login implements OnInit {
         }
       })
       .catch((error: Error & { message?: string }) => {
-        console.error('Login error:', error);
         this.credentialsRejected = true;
         const msg = error?.message || 'Invalid email or password';
         

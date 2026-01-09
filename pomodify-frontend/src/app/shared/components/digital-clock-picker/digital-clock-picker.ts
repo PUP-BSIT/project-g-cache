@@ -1,6 +1,7 @@
 import { Component, input, model, computed, effect, AfterViewInit, ViewChild, ElementRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Logger } from '../../../core/services/logger.service';
 
 /**
  * Constraints for time picker values
@@ -548,7 +549,7 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     const newMinute = minutesArray[Math.min(selectedIndex, minutesArray.length - 1)] ?? this.effectiveMinMinutes();
     
     if (newMinute !== this.time().minutes) {
-      console.log('📜 Scroll detected minute:', newMinute);
+      Logger.log('📜 Scroll detected minute:', newMinute);
       this.time.update(t => ({ ...t, minutes: newMinute }));
     }
   }
@@ -566,7 +567,7 @@ export class DigitalClockPickerComponent implements AfterViewInit {
     const newSecond = secondsArray[Math.min(selectedIndex, secondsArray.length - 1)] ?? this.effectiveMinSeconds();
     
     if (newSecond !== this.time().seconds) {
-      console.log('📜 Scroll detected second:', newSecond);
+      Logger.log('📜 Scroll detected second:', newSecond);
       this.time.update(t => ({ ...t, seconds: newSecond }));
     }
   }

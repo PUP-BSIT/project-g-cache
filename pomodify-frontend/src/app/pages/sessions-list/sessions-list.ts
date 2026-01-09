@@ -11,6 +11,7 @@ import { CreateSessionDialogComponent, CreateSessionDialogData } from '../../sha
 import { SessionNoteDialogComponent } from '../../shared/components/session-note-dialog/session-note-dialog.component';
 import { AlertDialogComponent, AlertDialogData } from '../../shared/components/alert-dialog/alert-dialog';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Logger } from '../../core/services/logger.service';
 
 // Use PomodoroSession from SessionService for type safety
 
@@ -274,7 +275,7 @@ export class SessionsListComponent implements OnInit {
         return of([]);
       })
     ).subscribe(sessions => {
-      console.log('[Sessions List] Loaded sessions with notes:', sessions.map(s => ({ id: s.id, note: s.note })));
+      Logger.log('[Sessions List] Loaded sessions with notes:', sessions.map(s => ({ id: s.id, note: s.note })));
       this.sessions.set(sessions);
       this.loading.set(false);
     });
@@ -285,7 +286,7 @@ export class SessionsListComponent implements OnInit {
    */
   protected getSessionCardStyle(): { [key: string]: string } {
     const color = this.activityColor() || '#5FA9A4';
-    console.log('[Sessions List] Activity color:', color);
+    Logger.log('[Sessions List] Activity color:', color);
     const hexColor = this.colorNameToHex(color);
     const lighterColor = this.lightenColor(hexColor, 15);
     
@@ -405,7 +406,6 @@ export class SessionsListComponent implements OnInit {
   protected createNewSession(): void {
     const actId = this.activityId();
     if (!actId) {
-      console.error('Activity ID not available');
       return;
     }
 
@@ -419,11 +419,10 @@ export class SessionsListComponent implements OnInit {
     dialogRef.afterClosed().pipe(
       filter((result): result is CreateSessionDialogData => !!result),
       switchMap(formData => {
-        console.log('[Sessions List] Creating session:', formData);
+        Logger.log('[Sessions List] Creating session:', formData);
         return this.sessionService.createSession(actId, formData);
       }),
       catchError((error: HttpErrorResponse) => {
-        console.error('[Sessions List] Failed to create session:', error);
         // Handle 409 Conflict - active session exists
         if (error.status === 409) {
           const message = error.error?.message || 'An active session already exists. Please complete or abandon it before creating a new one.';
@@ -435,7 +434,7 @@ export class SessionsListComponent implements OnInit {
       })
     ).subscribe(newSession => {
       if (newSession) {
-        console.log('[Sessions List] Session created successfully:', newSession);
+        Logger.log('[Sessions List] Session created successfully:', newSession);
         // Navigate to the session timer page
         this.router.navigate(['/activities', this.activityTitle(), 'sessions', newSession.id]);
       }
@@ -498,8 +497,7 @@ export class SessionsListComponent implements OnInit {
         this.noteDraft.set('');
         this.savingNote.set(false);
       },
-      error: (err) => {
-        console.error('Failed to save note:', err);
+      error: (_err) => {
         this.savingNote.set(false);
       }
     });

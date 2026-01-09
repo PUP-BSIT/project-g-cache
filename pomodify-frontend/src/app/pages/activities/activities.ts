@@ -18,6 +18,7 @@ import { AddSessionModal, SessionData } from '../../shared/components/add-sessio
 import { Profile, ProfileData } from '../profile/profile';
 import { IconMapper } from '../../core/services/icon-mapper';
 import { UserProfileService } from '../../core/services/user-profile.service';
+import { Logger } from '../../core/services/logger.service';
 
 @Component({
   selector: 'app-activities-page',
@@ -107,12 +108,12 @@ export class ActivitiesPage implements OnInit {
       const categoryNames = apiCategories
         .map(c => c.categoryName)
         .sort();
-      console.log('[ActivitiesPage] Categories from API:', categoryNames);
+      Logger.log('[ActivitiesPage] Categories from API:', categoryNames);
       return categoryNames;
     }
     
     // Fallback: extract from loaded activities
-    console.log('[ActivitiesPage] Using categories from activities as fallback');
+    Logger.log('[ActivitiesPage] Using categories from activities as fallback');
     const allActivities = this.activities();
     const categoryNames = new Set<string>();
     allActivities.forEach(activity => {
@@ -121,7 +122,7 @@ export class ActivitiesPage implements OnInit {
       }
     });
     const extractedCategories = Array.from(categoryNames).sort();
-    console.log('[ActivitiesPage] Extracted categories from activities:', extractedCategories);
+    Logger.log('[ActivitiesPage] Extracted categories from activities:', extractedCategories);
     return extractedCategories;
   });
 
@@ -136,7 +137,7 @@ export class ActivitiesPage implements OnInit {
       filtered = filtered.filter(activity => 
         activity.categoryName?.toLowerCase() === selectedCatLower
       );
-      console.log('[ActivitiesPage] Filtering by category:', selectedCat, 
+      Logger.log('[ActivitiesPage] Filtering by category:', selectedCat, 
         'Found:', filtered.length, 
         'Activities with categories:', this.activities().map(a => a.categoryName));
     }
@@ -154,7 +155,7 @@ export class ActivitiesPage implements OnInit {
   });
 
   ngOnInit(): void {
-    console.log('[ActivitiesPage] Initializing...');
+    Logger.log('[ActivitiesPage] Initializing...');
     this.loadCategories();
     this.loadActivities();
     // Fetch user profile and sync with shared service
@@ -169,15 +170,17 @@ export class ActivitiesPage implements OnInit {
           isEmailVerified: user.isEmailVerified || false
         });
       }
-    }).catch(err => console.error('[ActivitiesPage] Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
 
   // Load all categories from backend
   private loadCategories(): void {
-    console.log('[ActivitiesPage] Fetching categories from API...');
+    Logger.log('[ActivitiesPage] Fetching categories from API...');
     this.http.get<any>(API.CATEGORIES.GET_ALL).subscribe({
       next: (response) => {
-        console.log('[ActivitiesPage] Categories API response:', response);
+        Logger.log('[ActivitiesPage] Categories API response:', response);
         
         // Handle multiple possible response formats
         let categories: any[] = [];
@@ -199,14 +202,11 @@ export class ActivitiesPage implements OnInit {
           }
         }
         
-        console.log('[ActivitiesPage] Processed categories:', categories);
+        Logger.log('[ActivitiesPage] Processed categories:', categories);
         this.allCategories.set(categories);
-        console.log('[ActivitiesPage] Categories signal updated, length:', this.allCategories().length);
+        Logger.log('[ActivitiesPage] Categories signal updated, length:', this.allCategories().length);
       },
-      error: (err) => {
-        console.error('[ActivitiesPage] Error loading categories:', err);
-        console.error('[ActivitiesPage] Error status:', err.status);
-        console.error('[ActivitiesPage] Error message:', err.message);
+      error: (_err) => {
         // Silently fail - will use categories from activities as fallback
       }
     });
@@ -220,11 +220,11 @@ export class ActivitiesPage implements OnInit {
     const page = this.currentPage() - 1; // Backend uses 0-indexed pages
     const categoryId = this.selectedCategory() ?? undefined;
 
-    console.log('[ActivitiesPage] Loading activities:', { page, categoryId });
+    Logger.log('[ActivitiesPage] Loading activities:', { page, categoryId });
 
     this.activityService.getAllActivities(page, this.itemsPerPage, 'desc', 'createdAt', categoryId).subscribe({
       next: (response: ActivityResponse) => {
-        console.log('[ActivitiesPage] Activities loaded:', response);
+        Logger.log('[ActivitiesPage] Activities loaded:', response);
         this.activities.set(response.activities || []);
         this.totalPages.set(response.totalPages || 1);
         this.totalItems.set(response.totalItems || 0);
@@ -232,7 +232,7 @@ export class ActivitiesPage implements OnInit {
         
         // Log available categories from loaded activities
         const availableCategories = this.categories();
-        console.log('[ActivitiesPage] Available categories after loading:', availableCategories);
+        Logger.log('[ActivitiesPage] Available categories after loading:', availableCategories);
         
         // Load sessions for each activity to calculate completion
         (response.activities || []).forEach(activity => {
@@ -240,13 +240,11 @@ export class ActivitiesPage implements OnInit {
         });
       },
       error: (err) => {
-        console.error('[ActivitiesPage] Error loading activities:', err);
         let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
         
         // Check if it's a backend cache configuration error
         if (errorMsg.includes('Cannot find cache')) {
           errorMsg = 'Backend cache not configured. Please contact administrator.';
-          console.error('[ActivitiesPage] Backend cache error detected.');
         }
         
         this.error.set(errorMsg);
@@ -258,7 +256,7 @@ export class ActivitiesPage implements OnInit {
 
   // Open create activity modal
   protected openCreateActivityModal(): void {
-    console.log('[ActivitiesPage] Opening create activity modal');
+    Logger.log('[ActivitiesPage] Opening create activity modal');
     this.dialog
       .open(CreateActivityModal, { 
         data: { categories: this.categories() },
@@ -268,7 +266,7 @@ export class ActivitiesPage implements OnInit {
       .afterClosed()
       .subscribe((result: CreateActivityModalData) => {
         if (result) {
-          console.log('[ActivitiesPage] Creating activity:', result.name);
+          Logger.log('[ActivitiesPage] Creating activity:', result.name);
           
           // If category is provided, create it first then create activity
           if (result.category && result.category.trim()) {
@@ -291,22 +289,21 @@ export class ActivitiesPage implements OnInit {
     
     if (existingCategory) {
       // Use existing category
-      console.log('[ActivitiesPage] Using existing category:', existingCategory);
+      Logger.log('[ActivitiesPage] Using existing category:', existingCategory);
       this.createActivityWithCategory(result, existingCategory.categoryId);
     } else {
       // Create new category first
-      console.log('[ActivitiesPage] Creating new category:', categoryName);
+      Logger.log('[ActivitiesPage] Creating new category:', categoryName);
       this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
         next: (response) => {
-          console.log('[ActivitiesPage] Category created response:', response);
+          Logger.log('[ActivitiesPage] Category created response:', response);
           // Response structure: { message: string, categories: [{ categoryId, categoryName, activitiesCount }] }
           const categoryId = response?.categories?.[0]?.categoryId || response?.category?.categoryId || response?.categoryId;
-          console.log('[ActivitiesPage] Extracted categoryId:', categoryId);
+          Logger.log('[ActivitiesPage] Extracted categoryId:', categoryId);
           // Create activity with the new category (loadCategories will be called after activity creation)
           this.createActivityWithCategory(result, categoryId);
         },
-        error: (err) => {
-          console.error('[ActivitiesPage] Error creating category:', err);
+        error: (_err) => {
           // Still create activity without category
           this.createActivityWithCategory(result, undefined);
         }
@@ -323,11 +320,11 @@ export class ActivitiesPage implements OnInit {
       categoryId: categoryId,
       color: colorHex
     };
-    console.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
+    Logger.log('[ActivitiesPage] Request payload:', JSON.stringify(request, null, 2));
 
     this.activityService.createActivity(request).subscribe({
       next: (created) => {
-        console.log('[ActivitiesPage] Activity created successfully');
+        Logger.log('[ActivitiesPage] Activity created successfully');
         // Save color tag to localStorage
         this.activityColorService.setColorTag(created.activityId, result.colorTag);
         // Reload categories to include the new category in dropdown
@@ -336,16 +333,11 @@ export class ActivitiesPage implements OnInit {
         this.loadActivities();
       },
       error: (err) => {
-        console.error('[ActivitiesPage] Error creating activity:', err);
-        console.error('[ActivitiesPage] Error status:', err.status);
-        console.error('[ActivitiesPage] Error body:', err.error);
-        
         let errorMsg = err?.error?.message || err?.message || 'Failed to create activity';
         
         // Check if it's a backend cache configuration error
         if (errorMsg.includes('Cannot find cache')) {
           errorMsg = 'Backend cache not configured. Activities cannot be created until the backend cache is properly set up. Please contact your administrator.';
-          console.error('[ActivitiesPage] Backend cache error detected.');
         }
         
         alert(`Error: ${errorMsg}`);
@@ -355,15 +347,15 @@ export class ActivitiesPage implements OnInit {
 
   // Open edit activity modal
   protected openEditActivityModal(activity: ActivityData): void {
-    console.log('[ActivitiesPage] Opening edit modal for activity:', activity);
-    console.log('[ActivitiesPage] Activity categoryName:', activity.categoryName);
+    Logger.log('[ActivitiesPage] Opening edit modal for activity:', activity);
+    Logger.log('[ActivitiesPage] Activity categoryName:', activity.categoryName);
     
     const modalData: CreateActivityModalData = {
       name: activity.activityTitle,
       category: activity.categoryName || '',
       colorTag: activity.color || 'teal',
     };
-    console.log('[ActivitiesPage] Modal data being passed:', modalData);
+    Logger.log('[ActivitiesPage] Modal data being passed:', modalData);
 
     this.dialog
       .open(EditActivityModal, { 
@@ -398,21 +390,20 @@ export class ActivitiesPage implements OnInit {
     
     if (existingCategory) {
       // Use existing category
-      console.log('[ActivitiesPage] Using existing category for update:', existingCategory);
+      Logger.log('[ActivitiesPage] Using existing category for update:', existingCategory);
       this.updateActivityRequest(activityId, updated, existingCategory.categoryId);
     } else {
       // Create new category first
-      console.log('[ActivitiesPage] Creating new category for update:', categoryName);
+      Logger.log('[ActivitiesPage] Creating new category for update:', categoryName);
       this.http.post<any>(API.CATEGORIES.CREATE, { categoryName }).subscribe({
         next: (response) => {
-          console.log('[ActivitiesPage] Category created:', response);
+          Logger.log('[ActivitiesPage] Category created:', response);
           const categoryId = response?.category?.categoryId || response?.categoryId;
           this.updateActivityRequest(activityId, updated, categoryId);
           // Reload categories
           this.loadCategories();
         },
-        error: (err) => {
-          console.error('[ActivitiesPage] Error creating category:', err);
+        error: (_err) => {
           // Still update activity without category
           this.updateActivityRequest(activityId, updated, undefined);
         }
@@ -429,17 +420,16 @@ export class ActivitiesPage implements OnInit {
       newCategoryId: categoryId,
       newColor: colorHex,
     };
-    console.log('[ActivitiesPage] Update request payload:', JSON.stringify(request, null, 2));
+    Logger.log('[ActivitiesPage] Update request payload:', JSON.stringify(request, null, 2));
 
     this.activityService.updateActivity(activityId, request).subscribe({
       next: () => {
-        console.log('[ActivitiesPage] Activity updated successfully');
+        Logger.log('[ActivitiesPage] Activity updated successfully');
         // Save color tag to localStorage
         this.activityColorService.setColorTag(activityId, updated.colorTag);
         this.loadActivities();
       },
-      error: (err) => {
-        console.error('[ActivitiesPage] Error updating activity:', err);
+      error: (_err) => {
         alert('Failed to update activity. Please try again.');
       }
     });
@@ -456,13 +446,12 @@ export class ActivitiesPage implements OnInit {
         if (confirmed) {
           this.activityService.deleteActivity(activity.activityId).subscribe({
             next: () => {
-              console.log('[ActivitiesPage] Activity deleted successfully');
+              Logger.log('[ActivitiesPage] Activity deleted successfully');
               // Remove color tag from localStorage
               this.activityColorService.removeColorTag(activity.activityId);
               this.loadActivities();
             },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error deleting activity:', err);
+            error: (_err) => {
               alert('Failed to delete activity. Please try again.');
             }
           });
@@ -493,11 +482,10 @@ export class ActivitiesPage implements OnInit {
 
           this.sessionService.createSession(activity.activityId, sessionData).subscribe({
             next: () => {
-              console.log('[ActivitiesPage] Session added successfully');
+              Logger.log('[ActivitiesPage] Session added successfully');
               // Optionally reload activities or show success message
             },
-            error: (err) => {
-              console.error('[ActivitiesPage] Error adding session:', err);
+            error: (_err) => {
               alert('Failed to add session. Please try again.');
             }
           });
@@ -534,14 +522,14 @@ export class ActivitiesPage implements OnInit {
   protected selectCategory(category: string | null): void {
     this.selectedCategoryName.set(category);
     this.categoryDropdownOpen.set(false);
-    console.log('[ActivitiesPage] Category selected:', category);
-    console.log('[ActivitiesPage] All categories:', this.allCategories());
+    Logger.log('[ActivitiesPage] Category selected:', category);
+    Logger.log('[ActivitiesPage] All categories:', this.allCategories());
     
     // Find the categoryId for server-side filtering (case-insensitive)
     if (category) {
       const categoryLower = category.toLowerCase();
       const cat = this.allCategories().find(c => c.categoryName.toLowerCase() === categoryLower);
-      console.log('[ActivitiesPage] Found category:', cat);
+      Logger.log('[ActivitiesPage] Found category:', cat);
       this.selectedCategory.set(cat?.categoryId ?? null);
     } else {
       this.selectedCategory.set(null);
@@ -554,7 +542,7 @@ export class ActivitiesPage implements OnInit {
 
   // Select activity and navigate to sessions
   protected selectActivity(activity: ActivityData): void {
-    console.log('[ActivitiesPage] Activity selected:', activity.activityTitle);
+    Logger.log('[ActivitiesPage] Activity selected:', activity.activityTitle);
     // Navigate to sessions list for this activity
     this.router.navigate(['/activities', activity.activityTitle, 'sessions']);
   }
@@ -590,8 +578,7 @@ export class ActivitiesPage implements OnInit {
         currentCompletions.set(activityId, Math.round(percentage));
         this.activityCompletions.set(currentCompletions);
       },
-      error: (err: any) => {
-        console.error('[ActivitiesPage] Error loading sessions for activity:', activityId, err);
+      error: (_err: any) => {
         // Set to 0% on error
         const currentCompletions = new Map(this.activityCompletions());
         currentCompletions.set(activityId, 0);
@@ -608,14 +595,14 @@ export class ActivitiesPage implements OnInit {
 
 
   protected onLogout(): void {
-    console.log('[ActivitiesPage] Logout initiated');
+    Logger.log('[ActivitiesPage] Logout initiated');
     this.isLoggingOut.set(true);
     this.auth.logout()
       .then(() => {
-        console.log('[ActivitiesPage] Logout completed');
+        Logger.log('[ActivitiesPage] Logout completed');
       })
-      .catch((error) => {
-        console.error('[ActivitiesPage] Logout error:', error);
+      .catch((_error) => {
+        // Logout error - silently handle
       })
       .finally(() => {
         this.isLoggingOut.set(false);
@@ -623,7 +610,7 @@ export class ActivitiesPage implements OnInit {
   }
 
   protected openProfileModal(): void {
-    console.log('[ActivitiesPage] Opening profile modal');
+    Logger.log('[ActivitiesPage] Opening profile modal');
     this.dialog
       .open(Profile, {
         width: '550px',
@@ -633,7 +620,7 @@ export class ActivitiesPage implements OnInit {
       .afterClosed()
       .subscribe((result: ProfileData) => {
         if (result) {
-          console.log('[ActivitiesPage] Profile updated:', result);
+          Logger.log('[ActivitiesPage] Profile updated:', result);
         }
       });
   }

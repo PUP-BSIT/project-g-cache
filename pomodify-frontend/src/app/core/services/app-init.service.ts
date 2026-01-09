@@ -4,15 +4,16 @@
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
-    console.log('[AppInit] Cleared legacy tokens from localStorage');
+    // Silent in production - only log in development
   } catch (e) {
-    console.warn('[AppInit] Unable to clear legacy tokens', e);
+    // Silent cleanup - no need to log
   }
 })();
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FcmService } from './fcm.service';
 import { Auth } from './auth';
+import { Logger } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -27,11 +28,11 @@ export class AppInitService {
   async initializeNotifications(): Promise<void> {
     try {
       // JWT is no longer needed, auth is handled by cookies
-      console.log('Initializing FCM for authenticated user...');
+      Logger.log('Initializing FCM for authenticated user...');
       await this.fcmService.initializeFCM();
-      console.log('FCM initialization completed');
+      Logger.log('FCM initialization completed');
     } catch (error) {
-      console.error('Failed to initialize FCM:', error);
+      // FCM initialization failed - silently handle
     }
   }
 
@@ -41,11 +42,11 @@ export class AppInitService {
   async cleanupNotifications(): Promise<void> {
     try {
       // JWT is no longer needed, auth is handled by cookies
-      console.log('Cleaning up FCM registration...');
+      Logger.log('Cleaning up FCM registration...');
       await firstValueFrom(this.fcmService.unregisterToken());
-      console.log('FCM cleanup completed');
+      Logger.log('FCM cleanup completed');
     } catch (error) {
-      console.error('Failed to cleanup FCM:', error);
+      // FCM cleanup failed - silently handle
     }
   }
 }
