@@ -233,7 +233,7 @@ For detailed guides and technical docs, explore:
 - **API Docs:** [pomodify-backend/api-docs](pomodify-backend/api-docs)
 - **Architecture & Diagrams:** [document/](document/)
 - **CI/CD & Deployment:** [deploy-documentation/](deploy-documentation/)
-- **Developer Guide:** [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
+- **Developer Guide:** [document/](developer_guide.md)
 
 ---
 
