@@ -185,7 +185,7 @@ public class SecurityConfig {
         // Explicitly allow frontend dev and prod origins for credentials
         config.setAllowedOrigins(List.of(
                 "http://localhost:4200",
-                "https://pomodify.site"
+                "https://v2.pomodify.site"
         ));
         config.setAllowCredentials(true);
         config.setAllowedMethods(List.of(

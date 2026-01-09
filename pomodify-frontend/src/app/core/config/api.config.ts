@@ -9,7 +9,7 @@
 const BASE_URL = "https://apiv2.pomodify.site";
 // const BASE_URL = "http://localhost:8081";
 
-export const OAUTH2_GOOGLE_URL = "https://api.pomodify.site/api/v2/auth/oauth2/google";
+export const OAUTH2_GOOGLE_URL = "https://apiv2.pomodify.site/api/v2/auth/oauth2/google";
 
 // 2. API VERSION
 // ------------------------
