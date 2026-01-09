@@ -11,6 +11,7 @@ public record ActivityItem(
         String activityDescription,
         String color,
         String createdAt,
-        String updatedAt
+        String updatedAt,
+        Integer completionRate
 ) {
 }

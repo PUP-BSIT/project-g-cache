@@ -47,12 +47,12 @@ export const API = {
   USER: {
     PROFILE: `${ROOT}/auth/users/me`,
     UPDATE_PROFILE: `${ROOT}/auth/users/me`,
-    DELETE_ACCOUNT: `${ROOT}/auth/users/me`,
     VERIFY_EMAIL: `${ROOT}/auth/verify`,
     UPDATE_BACKUP_EMAIL: `${ROOT}/auth/users/me/backup-email`,
     CHANGE_PASSWORD: `${ROOT}/auth/users/me/password`,
     UPLOAD_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
     DELETE_PROFILE_PICTURE: `${ROOT}/auth/users/me/profile-picture`,
+    DELETE_ACCOUNT: `${ROOT}/auth/users/me`,
   },
 
   // Activities Resource
@@ -103,18 +103,6 @@ export const API = {
       EVENTS: (activityId: number, sessionId: number) => 
         `${ROOT}/activities/${activityId}/sessions/${sessionId}/events`,
     },
-
-    // Activity Notes (nested resource)
-    NOTES: {
-      GET_ALL: (activityId: number) => `${ROOT}/activities/${activityId}/notes`,
-      CREATE: (activityId: number) => `${ROOT}/activities/${activityId}/notes`,
-      DETAILS: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-      UPDATE: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-      DELETE: (activityId: number, noteId: number) => 
-        `${ROOT}/activities/${activityId}/notes/${noteId}`,
-    },
   },
 
   // Dashboard Resource
@@ -125,8 +113,6 @@ export const API = {
   // Reports Resource
   REPORTS: {
     SUMMARY: `${ROOT}/reports/summary`,
-    FOCUS_TIME: `${ROOT}/reports/focus-time`,
-    SESSIONS: `${ROOT}/reports/sessions`,
   },
 
   // Settings Resource
@@ -154,11 +140,6 @@ export const API = {
     GET_DUAL_PREVIEW_ASYNC_RESULT: (requestId: string) => `${ROOT}/ai/generate-dual-preview-async/${requestId}`,
     CONFIRM_PLAN: `${ROOT}/ai/confirm-plan`,
     QUICK_FOCUS: `${ROOT}/ai/quick-focus`,
-  },
-
-  // History Resource
-  HISTORY: {
-    GET_ALL: `${ROOT}/history`,
   },
 
   // Push Notifications Resource

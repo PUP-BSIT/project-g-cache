@@ -14,6 +14,8 @@ import com.pomodify.backend.domain.model.SessionNote;
 import com.pomodify.backend.domain.model.SessionTodoItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,7 @@ public class SessionService {
 
     /* -------------------- CREATE -------------------- */
     @Transactional
+    @CacheEvict(value = "activities", allEntries = true)
     public SessionResult create(CreateSessionCommand command) {
         userHelper.getUserOrThrow(command.user()); // ensure user exists
         Activity activity = domainHelper.getActivityOrThrow(command.activityId(), command.user());
@@ -153,6 +156,7 @@ public class SessionService {
     }
 
     @Transactional
+    @CacheEvict(value = "activities", allEntries = true)
     public SessionResult stop(StopSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
@@ -162,6 +166,7 @@ public class SessionService {
     }
 
     @Transactional
+    @CacheEvict(value = "activities", allEntries = true)
     public SessionResult completeEarly(CompleteEarlyCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
@@ -171,6 +176,7 @@ public class SessionService {
     }
 
     @Transactional
+    @CacheEvict(value = "activities", allEntries = true)
     public SessionResult completePhase(CompletePhaseCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());
@@ -232,6 +238,7 @@ public class SessionService {
     }
 
         @Transactional
+        @CacheEvict(value = "activities", allEntries = true)
         public SessionResult updateSession(UpdateSessionCommand command) {
         PomodoroSession session = domainHelper.getSessionOrThrow(command.sessionId(), command.user());
         Activity activity = domainHelper.getActivityOrThrow(session.getActivity().getId(), command.user());

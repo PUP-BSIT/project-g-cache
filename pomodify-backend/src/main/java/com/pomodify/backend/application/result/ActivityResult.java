@@ -11,6 +11,7 @@ public record ActivityResult(
         String activityDescription,
         String color,
         java.time.LocalDateTime createdAt,
-        java.time.LocalDateTime updatedAt
+        java.time.LocalDateTime updatedAt,
+        Integer completionRate
 ) {
 }
