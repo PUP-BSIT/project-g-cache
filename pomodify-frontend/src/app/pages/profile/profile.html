@@ -91,6 +91,9 @@
           formControlName="name" 
           class="form-input"
           placeholder="Enter your name"
+          maxlength="100"
+          [class.invalid]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched"
+          [class.warning]="(profileForm.get('name')?.hasError('pattern') || profileForm.get('name')?.hasError('minlength')) && profileForm.get('name')?.dirty"
         />
         <button 
           type="button"
@@ -101,6 +104,18 @@
           {{ isSavingName() ? 'Saving...' : 'Save' }}
         </button>
       </form>
+      @if (profileForm.get('name')?.hasError('pattern') && profileForm.get('name')?.dirty) {
+        <p class="field-warning">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Name can only contain letters, spaces, and hyphens.
+        </p>
+      }
+      @if (profileForm.get('name')?.hasError('minlength') && !profileForm.get('name')?.hasError('pattern') && profileForm.get('name')?.dirty) {
+        <p class="field-warning">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          Name must be at least 2 characters.
+        </p>
+      }
     </div>
 
     <!-- Email Section (Read-only) -->
@@ -244,7 +259,65 @@
                 class="form-input"
                 placeholder="Min 8 characters"
                 autocomplete="new-password"
+                maxlength="50"
+                [class.invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
               />
+              <!-- Password strength meter -->
+              @if (passwordForm.get('newPassword')?.value) {
+                <div class="password-requirements">
+                  <div class="requirements-header">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Password Strength</span>
+                  </div>
+                  
+                  <div class="strength-meter">
+                    <div class="strength-bar-container">
+                      <div class="strength-segment" [class.active]="newPasswordStrengthScore >= 1" [ngClass]="newPasswordStrengthClass"></div>
+                      <div class="strength-segment" [class.active]="newPasswordStrengthScore >= 2" [ngClass]="newPasswordStrengthClass"></div>
+                      <div class="strength-segment" [class.active]="newPasswordStrengthScore >= 3" [ngClass]="newPasswordStrengthClass"></div>
+                      <div class="strength-segment" [class.active]="newPasswordStrengthScore >= 4" [ngClass]="newPasswordStrengthClass"></div>
+                      <div class="strength-segment" [class.active]="newPasswordStrengthScore >= 5" [ngClass]="newPasswordStrengthClass"></div>
+                    </div>
+                    <div class="strength-label">
+                      <span class="label-text" [ngClass]="newPasswordStrengthClass">{{ newPasswordStrengthLabel }}</span>
+                      <span class="label-hint">{{ newPasswordStrengthScore }}/5</span>
+                    </div>
+                  </div>
+                  
+                  <div class="requirements-grid">
+                    <div class="requirement" [class.valid]="newPasswordHasMinLength">
+                      <span class="req-icon">
+                        <i class="fa-solid" [ngClass]="newPasswordHasMinLength ? 'fa-check' : 'fa-xmark'"></i>
+                      </span>
+                      <span class="req-text">8+ chars</span>
+                    </div>
+                    <div class="requirement" [class.valid]="newPasswordHasLowercase">
+                      <span class="req-icon">
+                        <i class="fa-solid" [ngClass]="newPasswordHasLowercase ? 'fa-check' : 'fa-xmark'"></i>
+                      </span>
+                      <span class="req-text">Lowercase</span>
+                    </div>
+                    <div class="requirement" [class.valid]="newPasswordHasUppercase">
+                      <span class="req-icon">
+                        <i class="fa-solid" [ngClass]="newPasswordHasUppercase ? 'fa-check' : 'fa-xmark'"></i>
+                      </span>
+                      <span class="req-text">Uppercase</span>
+                    </div>
+                    <div class="requirement" [class.valid]="newPasswordHasNumber">
+                      <span class="req-icon">
+                        <i class="fa-solid" [ngClass]="newPasswordHasNumber ? 'fa-check' : 'fa-xmark'"></i>
+                      </span>
+                      <span class="req-text">Number</span>
+                    </div>
+                    <div class="requirement special-req" [class.valid]="newPasswordHasSpecial">
+                      <span class="req-icon">
+                        <i class="fa-solid" [ngClass]="newPasswordHasSpecial ? 'fa-check' : 'fa-xmark'"></i>
+                      </span>
+                      <span class="req-text">Special (@$!%*?&)</span>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
             
             <div class="form-group">
@@ -255,6 +328,7 @@
                 class="form-input"
                 placeholder="Re-enter new password"
                 autocomplete="new-password"
+                maxlength="50"
               />
             </div>
             

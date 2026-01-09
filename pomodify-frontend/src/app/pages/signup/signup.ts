@@ -29,17 +29,84 @@ export class Signup implements OnInit {
   private readonly notificationService = inject(SuccessNotificationService);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  // Password pattern: at least 1 uppercase, 1 lowercase, 1 number, 1 special char
+  private readonly passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  // Name pattern: only letters, spaces, and hyphens
+  private readonly namePattern = /^[A-Za-z\s-]+$/;
+
   readonly signupForm: FormGroup = this.fb.group({
-    firstName: ['', { validators: [Validators.required, Validators.minLength(2)] }],
-    lastName: ['', { validators: [Validators.required, Validators.minLength(2)] }],
+    firstName: ['', { validators: [
+      Validators.required,
+      Validators.minLength(2),
+      Validators.maxLength(50),
+      Validators.pattern(this.namePattern)
+    ] }],
+    lastName: ['', { validators: [
+      Validators.required,
+      Validators.minLength(2),
+      Validators.maxLength(50),
+      Validators.pattern(this.namePattern)
+    ] }],
     email: ['', { validators: [Validators.required, Validators.email] }],
-    password: ['', { validators: [Validators.required, Validators.minLength(8)] }],
-    confirmPassword: ['', { validators: [Validators.required, Validators.minLength(8)] }],
+    password: ['', { validators: [
+      Validators.required,
+      Validators.minLength(8),
+      Validators.maxLength(50),
+      Validators.pattern(this.passwordPattern)
+    ] }],
+    confirmPassword: ['', { validators: [Validators.required] }],
   });
 
   isLoading = false;
   passwordVisible = false;
   confirmPasswordVisible = false;
+  
+  // Track if user has attempted to submit - errors only show after submit attempt
+  submitted = false;
+
+  // Password strength indicators for UI feedback
+  get passwordHasLowercase(): boolean {
+    return /[a-z]/.test(this.signupForm.get('password')?.value || '');
+  }
+  get passwordHasUppercase(): boolean {
+    return /[A-Z]/.test(this.signupForm.get('password')?.value || '');
+  }
+  get passwordHasNumber(): boolean {
+    return /\d/.test(this.signupForm.get('password')?.value || '');
+  }
+  get passwordHasSpecial(): boolean {
+    return /[@$!%*?&]/.test(this.signupForm.get('password')?.value || '');
+  }
+  get passwordHasMinLength(): boolean {
+    return (this.signupForm.get('password')?.value || '').length >= 8;
+  }
+  
+  // Password strength score (0-5)
+  get passwordStrengthScore(): number {
+    let score = 0;
+    if (this.passwordHasMinLength) score++;
+    if (this.passwordHasLowercase) score++;
+    if (this.passwordHasUppercase) score++;
+    if (this.passwordHasNumber) score++;
+    if (this.passwordHasSpecial) score++;
+    return score;
+  }
+  
+  get passwordStrengthLabel(): string {
+    const score = this.passwordStrengthScore;
+    if (score <= 1) return 'Weak';
+    if (score <= 2) return 'Fair';
+    if (score <= 4) return 'Good';
+    return 'Strong';
+  }
+  
+  get passwordStrengthClass(): string {
+    const score = this.passwordStrengthScore;
+    if (score <= 1) return 'weak';
+    if (score <= 2) return 'fair';
+    if (score <= 4) return 'good';
+    return 'strong';
+  }
 
   ngOnInit(): void {
     ensurePublicPageLightTheme();
@@ -62,9 +129,10 @@ export class Signup implements OnInit {
   }
 
   onSubmit(): void {
+    this.submitted = true;
+    
     if (this.signupForm.invalid) {
       this.notificationService.showError('Validation Error', 'Please fill in all fields with valid information.');
-      this.signupForm.markAllAsTouched();
       return;
     }
 
