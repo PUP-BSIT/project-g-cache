@@ -251,18 +251,44 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
+        log.info("Processing password reset request");
+        
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired password reset token"));
+                .orElseThrow(() -> {
+                    log.warn("Password reset token not found: {}", token.substring(0, Math.min(8, token.length())) + "...");
+                    return new IllegalArgumentException("Invalid or expired password reset token");
+                });
+
+        log.info("Token found for user ID: {}, expiry: {}, current time: {} (Asia/Manila)", 
+                resetToken.getUser().getId(), 
+                resetToken.getExpiryDate(), 
+                java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Manila")));
 
         if (resetToken.isExpired()) {
-            throw new IllegalArgumentException("Token expired");
+            log.warn("Password reset token expired. Expiry: {}, Current: {} (Asia/Manila)", 
+                    resetToken.getExpiryDate(), java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Manila")));
+            // Clean up expired token
+            passwordResetTokenRepository.delete(resetToken);
+            throw new IllegalArgumentException("Password reset link has expired. Please request a new one.");
         }
 
         User user = resetToken.getUser();
-        user.updatePassword(passwordEncoder.encode(newPassword));
+        
+        // Check if user is active before attempting password update
+        if (!user.isActive()) {
+            log.warn("Attempted password reset for inactive user: {}", user.getEmail().getValue());
+            passwordResetTokenRepository.delete(resetToken);
+            throw new IllegalArgumentException("This account is inactive. Please contact support.");
+        }
+        
+        // Use setPasswordHash directly to avoid the ensureActive check in updatePassword
+        // since we've already verified the user is active
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        log.info("Password updated successfully for user: {}", user.getEmail().getValue());
 
         passwordResetTokenRepository.delete(resetToken);
+        log.info("Password reset token deleted");
     }
 
     // Login
