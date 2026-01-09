@@ -47,7 +47,6 @@ export const API = {
   USER: {
     PROFILE: `${ROOT}/auth/users/me`,
     UPDATE_PROFILE: `${ROOT}/auth/users/me`,
-    DELETE_ACCOUNT: `${ROOT}/auth/users/me`,
     VERIFY_EMAIL: `${ROOT}/auth/verify`,
     UPDATE_BACKUP_EMAIL: `${ROOT}/auth/users/me/backup-email`,
     CHANGE_PASSWORD: `${ROOT}/auth/users/me/password`,
@@ -133,8 +132,6 @@ export const API = {
   SETTINGS: {
     GET: `${ROOT}/settings`,
     UPDATE: `${ROOT}/settings`,
-    CLEAR_SESSIONS: `${ROOT}/settings/sessions/clear`,
-    CLEAR_ACTIVITIES: `${ROOT}/settings/activities/clear`,
   },
 
   // Categories Resource
