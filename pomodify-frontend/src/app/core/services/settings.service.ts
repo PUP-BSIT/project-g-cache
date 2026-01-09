@@ -22,6 +22,16 @@ export interface AppSettings {
   notifications: boolean;
 }
 
+// Backend settings request format
+interface BackendSettingsRequest {
+  soundType?: 'BELL' | 'CHIME' | 'DIGITAL_BEEP' | 'SOFT_DING';
+  notificationSound?: boolean;
+  volume?: number;
+  autoStartBreaks?: boolean;
+  autoStartPomodoros?: boolean;
+  notificationsEnabled?: boolean;
+}
+
 const DEFAULT_SETTINGS: AppSettings = {
   sound: {
     enabled: true,
@@ -35,6 +45,17 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
   notifications: true
 };
+
+// Map frontend sound type to backend enum
+function toBackendSoundType(type: 'bell' | 'chime' | 'digital' | 'soft'): 'BELL' | 'CHIME' | 'DIGITAL_BEEP' | 'SOFT_DING' {
+  const map: Record<string, 'BELL' | 'CHIME' | 'DIGITAL_BEEP' | 'SOFT_DING'> = {
+    'bell': 'BELL',
+    'chime': 'CHIME',
+    'digital': 'DIGITAL_BEEP',
+    'soft': 'SOFT_DING'
+  };
+  return map[type] || 'BELL';
+}
 
 @Injectable({
   providedIn: 'root'
@@ -80,6 +101,19 @@ export class SettingsService {
     };
     this.settingsSignal.set(updated);
     this.saveSettings(updated);
+    
+    // Sync with backend
+    const backendPayload: BackendSettingsRequest = {};
+    if (settings.type !== undefined) {
+      backendPayload.soundType = toBackendSoundType(settings.type);
+    }
+    if (settings.enabled !== undefined) {
+      backendPayload.notificationSound = settings.enabled;
+    }
+    if (settings.volume !== undefined) {
+      backendPayload.volume = settings.volume;
+    }
+    this.syncWithBackend(backendPayload);
   }
   
   // Update auto-start settings
@@ -91,6 +125,16 @@ export class SettingsService {
     };
     this.settingsSignal.set(updated);
     this.saveSettings(updated);
+    
+    // Sync with backend
+    const backendPayload: BackendSettingsRequest = {};
+    if (settings.autoStartBreaks !== undefined) {
+      backendPayload.autoStartBreaks = settings.autoStartBreaks;
+    }
+    if (settings.autoStartPomodoros !== undefined) {
+      backendPayload.autoStartPomodoros = settings.autoStartPomodoros;
+    }
+    this.syncWithBackend(backendPayload);
   }
   
   // Update general settings
@@ -99,6 +143,32 @@ export class SettingsService {
     const updated = { ...current, ...settings };
     this.settingsSignal.set(updated);
     this.saveSettings(updated);
+    
+    // Sync with backend
+    const backendPayload: BackendSettingsRequest = {};
+    if (settings.notifications !== undefined) {
+      backendPayload.notificationsEnabled = settings.notifications;
+    }
+    if (settings.sound !== undefined) {
+      if (settings.sound.type !== undefined) {
+        backendPayload.soundType = toBackendSoundType(settings.sound.type);
+      }
+      if (settings.sound.enabled !== undefined) {
+        backendPayload.notificationSound = settings.sound.enabled;
+      }
+      if (settings.sound.volume !== undefined) {
+        backendPayload.volume = settings.sound.volume;
+      }
+    }
+    if (settings.autoStart !== undefined) {
+      if (settings.autoStart.autoStartBreaks !== undefined) {
+        backendPayload.autoStartBreaks = settings.autoStart.autoStartBreaks;
+      }
+      if (settings.autoStart.autoStartPomodoros !== undefined) {
+        backendPayload.autoStartPomodoros = settings.autoStart.autoStartPomodoros;
+      }
+    }
+    this.syncWithBackend(backendPayload);
   }
   
   // Play notification sound
@@ -215,5 +285,27 @@ export class SettingsService {
         this.isSavingSignal.set(false);
       }, 200);
     }
+  }
+  
+  /**
+   * Sync settings with backend for push notification sound preferences
+   * This ensures the backend knows the user's sound type for FCM notifications
+   */
+  private syncWithBackend(payload: BackendSettingsRequest): void {
+    if (Object.keys(payload).length === 0) {
+      return;
+    }
+    
+    Logger.log('Syncing settings with backend:', payload);
+    
+    this.http.patch(API.SETTINGS.UPDATE, payload, { withCredentials: true }).subscribe({
+      next: (response) => {
+        Logger.log('Settings synced with backend:', response);
+      },
+      error: (error) => {
+        Logger.warn('Failed to sync settings with backend:', error);
+        // Don't show error to user - local settings still work
+      }
+    });
   }
 }

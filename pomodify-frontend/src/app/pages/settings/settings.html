@@ -168,15 +168,12 @@
                 <div class="setting-control">
                   <select class="sound-select" 
                           #soundSelect
-                          [value]="soundType()" 
-                          (change)="onSoundTypeChange($event)">
-                    @for (type of soundTypes; track type.value) {
-                      <option [value]="type.value">{{ type.label }}</option>
+                          [ngModel]="soundType()"
+                          (ngModelChange)="onSoundTypeChange($event)">
+                    @for (type of allSoundTypes; track type.value) {
+                      <option [value]="type.value" [disabled]="type.value === soundType()">{{ type.label }}</option>
                     }
                   </select>
-                  <button class="test-btn" (click)="testSound()">
-                    <i class="fa-solid fa-volume-high"></i> Test
-                  </button>
                 </div>
               </div>
 
@@ -345,15 +342,12 @@
             <div class="setting-control">
               <select class="sound-select" 
                       #soundSelect
-                      [value]="soundType()" 
-                      (change)="onSoundTypeChange($event)">
-                @for (type of soundTypes; track type.value) {
-                  <option [value]="type.value">{{ type.label }}</option>
+                      [ngModel]="soundType()"
+                      (ngModelChange)="onSoundTypeChange($event)">
+                @for (type of allSoundTypes; track type.value) {
+                  <option [value]="type.value" [disabled]="type.value === soundType()">{{ type.label }}</option>
                 }
               </select>
-              <button class="test-btn" (click)="testSound()">
-                <i class="fa-solid fa-volume-high"></i> Test
-              </button>
             </div>
           </div>
 

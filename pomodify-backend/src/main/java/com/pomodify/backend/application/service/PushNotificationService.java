@@ -45,8 +45,17 @@ public class PushNotificationService {
         boolean soundEnabled = true;
         if (settingsOpt.isPresent()) {
             UserSettings settings = settingsOpt.get();
-            soundType = settings.getSoundType() != null ? settings.getSoundType().name().toLowerCase() : "bell";
             soundEnabled = settings.isNotificationSound();
+            
+            // Map backend enum to frontend sound file names
+            if (settings.getSoundType() != null) {
+                switch (settings.getSoundType()) {
+                    case BELL -> soundType = "bell";
+                    case CHIME -> soundType = "chime";
+                    case DIGITAL_BEEP -> soundType = "digital";
+                    case SOFT_DING -> soundType = "soft";
+                }
+            }
         }
         
         Optional<UserPushToken> opt = tokenRepository.findByUserId(userId);
