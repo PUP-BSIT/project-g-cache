@@ -17,7 +17,7 @@
               (input)="onTopicInput($event)"
               class="auto-expand-textarea">
             </textarea>
-            <button type="submit" [disabled]="!topic().trim()">Generate Plans ✨</button>
+            <button type="submit" [disabled]="!topic().trim()">Generate Plans <i class="fa-solid fa-wand-magic-sparkles"></i></button>
           </form>
         }
         
@@ -41,17 +41,17 @@
             <div class="plans-grid">
               <!-- Beginner Plan Card -->
               <div class="plan-card beginner-card">
-                <div class="plan-level-badge">🌱 Beginner</div>
+                <div class="plan-level-badge"><i class="fa-solid fa-seedling"></i> Beginner</div>
                 <h3 class="plan-title">{{ dualBlueprint()?.beginnerPlan?.activityTitle }}</h3>
                 <p class="plan-description">{{ dualBlueprint()?.beginnerPlan?.activityDescription }}</p>
                 
                 <div class="plan-timing">
                   <span class="timing-item">
-                    <span class="timing-icon">⏱️</span>
+                    <span class="timing-icon"><i class="fa-solid fa-stopwatch"></i></span>
                     {{ dualBlueprint()?.beginnerPlan?.focusMinutes }}m focus
                   </span>
                   <span class="timing-item">
-                    <span class="timing-icon">☕</span>
+                    <span class="timing-icon"><i class="fa-solid fa-mug-hot"></i></span>
                     {{ dualBlueprint()?.beginnerPlan?.breakMinutes }}m break
                   </span>
                 </div>
@@ -66,7 +66,7 @@
                 </div>
                 
                 <div class="plan-tip">
-                  <span class="tip-icon">💡</span>
+                  <span class="tip-icon"><i class="fa-solid fa-lightbulb"></i></span>
                   <span class="tip-text">{{ dualBlueprint()?.beginnerPlan?.tipNote }}</span>
                 </div>
                 
@@ -77,17 +77,17 @@
               
               <!-- Intermediate Plan Card -->
               <div class="plan-card intermediate-card">
-                <div class="plan-level-badge">🚀 Intermediate</div>
+                <div class="plan-level-badge"><i class="fa-solid fa-rocket"></i> Intermediate</div>
                 <h3 class="plan-title">{{ dualBlueprint()?.intermediatePlan?.activityTitle }}</h3>
                 <p class="plan-description">{{ dualBlueprint()?.intermediatePlan?.activityDescription }}</p>
                 
                 <div class="plan-timing">
                   <span class="timing-item">
-                    <span class="timing-icon">⏱️</span>
+                    <span class="timing-icon"><i class="fa-solid fa-stopwatch"></i></span>
                     {{ dualBlueprint()?.intermediatePlan?.focusMinutes }}m focus
                   </span>
                   <span class="timing-item">
-                    <span class="timing-icon">☕</span>
+                    <span class="timing-icon"><i class="fa-solid fa-mug-hot"></i></span>
                     {{ dualBlueprint()?.intermediatePlan?.breakMinutes }}m break
                   </span>
                 </div>
@@ -102,7 +102,7 @@
                 </div>
                 
                 <div class="plan-tip">
-                  <span class="tip-icon">💡</span>
+                  <span class="tip-icon"><i class="fa-solid fa-lightbulb"></i></span>
                   <span class="tip-text">{{ dualBlueprint()?.intermediatePlan?.tipNote }}</span>
                 </div>
                 
@@ -114,7 +114,7 @@
             
             <div class="wizard-actions">
               <button type="button" class="btn-magic" (click)="generateAgain()">
-                <span class="magic-icon">✨</span> Generate Again
+                <span class="magic-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span> Generate Again
               </button>
               <button type="button" class="btn-secondary" (click)="close()">Cancel</button>
             </div>
