@@ -87,7 +87,6 @@ export class Signup implements OnInit {
         this.auth.showVerifyEmailModal();
       })
       .catch((error: Error & { message?: string }) => {
-        console.error('Signup error:', error);
         this.notificationService.showError('Signup Failed', error?.message || 'Failed to create account. Please try again.');
       })
       .finally(() => {

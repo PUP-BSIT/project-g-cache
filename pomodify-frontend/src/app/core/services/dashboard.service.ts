@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { API } from '../config/api.config';
 import { Observable } from 'rxjs';
+import { Logger } from './logger.service';
 
 export interface RecentActivity {
   activityId: number;
@@ -39,7 +40,7 @@ export class DashboardService {
   private readonly API_URL = API.DASHBOARD.GET_DATA;
 
   constructor(private http: HttpClient) {
-    console.log('[DashboardService] Initialized with API URL:', this.API_URL);
+    Logger.log('[DashboardService] Initialized with API URL:', this.API_URL);
   }
 
   /**
@@ -55,7 +56,7 @@ export class DashboardService {
   getDashboard(timezone: string = 'Asia/Manila'): Observable<DashboardMetrics> {
     // Note: Removing X-Timezone header to avoid CORS policy errors
     // Backend should use user's stored timezone preference
-    console.log('[DashboardService] Fetching dashboard (timezone handling on backend)');
+    Logger.log('[DashboardService] Fetching dashboard (timezone handling on backend)');
     return this.http.get<DashboardMetrics>(this.API_URL);
   }
 
@@ -67,7 +68,7 @@ export class DashboardService {
     try {
       return Intl.DateTimeFormat().resolvedOptions().timeZone;
     } catch (error) {
-      console.warn('[DashboardService] Failed to get system timezone, using default:', error);
+      Logger.warn('[DashboardService] Failed to get system timezone, using default:', error);
       return 'Asia/Manila';
     }
   }

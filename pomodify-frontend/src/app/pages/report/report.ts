@@ -139,7 +139,9 @@ export class Report implements OnInit {
           isEmailVerified: user.isEmailVerified || false
         });
       }
-    }).catch(err => console.error('[Report] Failed to fetch profile', err));
+    }).catch(_err => {
+      // Failed to fetch profile - silently handle
+    });
   }
 
   // Toggle sidebar
@@ -216,8 +218,6 @@ export class Report implements OnInit {
     this.reportService.getSummary(range).subscribe({
       next: (summary) => this.updateFromSummary(summary),
       error: (error) => {
-        console.error('Error loading report summary:', error);
-        
         // If it's an authentication error, the interceptor will handle redirect
         // For other errors, clear the data
         if (error.status !== 401) {
@@ -247,7 +247,6 @@ export class Report implements OnInit {
   private updateFromSummary(summary: SummaryItemType): void {
     // Guard against undefined summary
     if (!summary) {
-      console.error('Summary is undefined');
       return;
     }
 

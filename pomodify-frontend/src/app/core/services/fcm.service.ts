@@ -5,6 +5,7 @@ import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { API } from '../config/api.config';
 import { environment } from '../../../environments/environment';
+import { Logger } from './logger.service';
 
 export interface PushStatus {
   registered: boolean;
@@ -28,18 +29,16 @@ export class FcmService {
   private initializeFirebaseApp() {
     if (!this.app) {
       try {
-        console.log('🔥 Initializing Firebase app...');
+        Logger.log('🔥 Initializing Firebase app...');
         
         // Always try to initialize a new app with a unique name
         const appName = `pomodify-app-${Date.now()}`;
         this.app = initializeApp(environment.firebase, appName);
-        console.log('✅ Firebase app initialized with name:', appName);
+        Logger.log('✅ Firebase app initialized with name:', appName);
         
       } catch (error) {
-        console.error('❌ Firebase app initialization failed:', error);
-        
-        // Complete fallback - return null and handle gracefully
-        console.log('⚠️ Using fallback mode - no Firebase app');
+        // Firebase app initialization failed - using fallback mode
+        Logger.log('⚠️ Using fallback mode - no Firebase app');
         this.app = null;
         throw new Error('Firebase initialization failed - using fallback mode');
       }
@@ -49,13 +48,13 @@ export class FcmService {
 
 async initializeFCM(): Promise<void> {
     try {
-      console.log('🔔 Starting FCM initialization...');
+      Logger.log('🔔 Starting FCM initialization...');
       
       // Check notification permission first
       const permission = await Notification.requestPermission();
-      console.log('📱 Notification permission:', permission);
+      Logger.log('📱 Notification permission:', permission);
       if (permission !== 'granted') {
-        console.log('❌ Notification permission denied');
+        Logger.log('❌ Notification permission denied');
         throw new Error('Notification permission denied');
       }
 
@@ -66,31 +65,31 @@ async initializeFCM(): Promise<void> {
         }
 
         // Register service worker
-        console.log('🔧 Registering service worker...');
+        Logger.log('🔧 Registering service worker...');
         const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        console.log('✅ Service worker registered, state:', swReg.active?.state);
+        Logger.log('✅ Service worker registered, state:', swReg.active?.state);
         
         // Wait for service worker to be ready and active
         await navigator.serviceWorker.ready;
-        console.log('✅ Service worker is ready');
+        Logger.log('✅ Service worker is ready');
         
         // If there's a waiting service worker, activate it immediately
         if (swReg.waiting) {
-          console.log('🔄 Activating waiting service worker...');
+          Logger.log('🔄 Activating waiting service worker...');
           swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
         
         // Wait a bit for the service worker to take control
         if (!navigator.serviceWorker.controller) {
-          console.log('⏳ Waiting for service worker to take control...');
+          Logger.log('⏳ Waiting for service worker to take control...');
           await new Promise<void>((resolve) => {
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-              console.log('✅ Service worker now controlling the page');
+              Logger.log('✅ Service worker now controlling the page');
               resolve();
             }, { once: true });
             // Timeout after 3 seconds
             setTimeout(() => {
-              console.log('⚠️ Service worker control timeout, proceeding anyway');
+              Logger.log('⚠️ Service worker control timeout, proceeding anyway');
               resolve();
             }, 3000);
           });
@@ -102,9 +101,9 @@ async initializeFCM(): Promise<void> {
             type: 'SET_LOGIN_STATE',
             isLoggedIn: true
           });
-          console.log('📡 Sent login state to service worker');
+          Logger.log('📡 Sent login state to service worker');
         } else {
-          console.log('⚠️ No service worker controller available');
+          Logger.log('⚠️ No service worker controller available');
         }
         
         // Initialize Firebase app
@@ -114,10 +113,10 @@ async initializeFCM(): Promise<void> {
         }
         
         const messaging = getMessaging(app);
-        console.log('🔥 Firebase messaging initialized');
+        Logger.log('🔥 Firebase messaging initialized');
         
         // Get FCM token
-        console.log('🎫 Getting FCM token...');
+        Logger.log('🎫 Getting FCM token...');
         const token = await getToken(messaging, { 
           vapidKey: environment.vapidKey, 
           serviceWorkerRegistration: swReg 
@@ -127,37 +126,37 @@ async initializeFCM(): Promise<void> {
           throw new Error('No FCM token available');
         }
 
-        console.log('✅ FCM token obtained:', token.substring(0, 20) + '...');
+        Logger.log('✅ FCM token obtained:', token.substring(0, 20) + '...');
         this.fcmToken$.next(token);
         
         // Register token with backend
-        console.log('📡 Registering token with backend...');
+        Logger.log('📡 Registering token with backend...');
         const response = await firstValueFrom(this.registerToken(token));
-        console.log('✅ Token registered with backend successfully:', response);
+        Logger.log('✅ Token registered with backend successfully:', response);
         
         // Listen for foreground messages
         onMessage(messaging, (payload: any) => {
-          console.log('📨 Foreground FCM message:', payload);
+          Logger.log('📨 Foreground FCM message:', payload);
           this.messageSubject.next(payload);
         });
         
-        console.log('🎉 FCM initialization completed successfully!');
+        Logger.log('🎉 FCM initialization completed successfully!');
         
       } catch (firebaseError: any) {
-        console.log('⚠️ Firebase FCM failed, using browser-only notifications:', firebaseError?.message || firebaseError);
+        Logger.log('⚠️ Firebase FCM failed, using browser-only notifications:', firebaseError?.message || firebaseError);
         
         // DO NOT register fallback tokens - they cannot receive FCM messages
         // Backend notifications will not work without a real FCM token
         // User will only get notifications when the tab is open
-        console.log('⚠️ Background notifications will NOT work without FCM');
-        console.log('⚠️ User will only receive notifications when the app tab is open/focused');
+        Logger.log('⚠️ Background notifications will NOT work without FCM');
+        Logger.log('⚠️ User will only receive notifications when the app tab is open/focused');
         
         // Still throw error so notification service can handle fallback
         throw firebaseError;
       }
 
     } catch (error: any) {
-      console.error('❌ FCM initialization failed:', error?.message || error);
+      // FCM initialization failed
       throw error;
     }
   }

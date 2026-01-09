@@ -81,7 +81,6 @@ export class ResetPasswordPage implements OnInit {
       await this.auth.resetPassword(this.token, password);
       this.isSuccess = true;
     } catch (error) {
-      console.error('Reset password error:', error);
       this.snackBar.open('Failed to reset password. The link may have expired.', 'Close', { 
         duration: 5000,
         panelClass: ['error-snackbar']
