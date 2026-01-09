@@ -4,6 +4,7 @@ import com.pomodify.backend.application.result.SessionResult;
 import com.pomodify.backend.presentation.dto.item.SessionItem;
 import com.pomodify.backend.presentation.dto.response.SessionResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public final class SessionMapper {
@@ -27,11 +28,15 @@ public final class SessionMapper {
             result.longBreakTimeInMinutes(),
             result.longBreakIntervalCycles(),
             result.note(),
-            result.startedAt(),
-            result.completedAt(),
-            result.createdAt(),
+            toStringOrNull(result.startedAt()),
+            toStringOrNull(result.completedAt()),
+            toStringOrNull(result.createdAt()),
             result.phaseNotified()
         );
+    }
+
+    private static String toStringOrNull(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.toString() : null;
     }
 
     public static List<SessionItem> toItems(List<SessionResult> results) {

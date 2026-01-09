@@ -2,8 +2,6 @@ package com.pomodify.backend.presentation.dto.item;
 
 import com.pomodify.backend.presentation.dto.note.SessionNoteDto;
 
-import java.time.LocalDateTime;
-
 public record SessionItem(
         Long id,
         Long activityId,
@@ -20,8 +18,8 @@ public record SessionItem(
         Integer longBreakTimeInMinutes,
         Integer longBreakIntervalCycles,
         SessionNoteDto note,
-        LocalDateTime startedAt,
-        LocalDateTime completedAt,
-        LocalDateTime createdAt,
+        String startedAt,
+        String completedAt,
+        String createdAt,
         Boolean phaseNotified
 ) {}
