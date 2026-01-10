@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="pomodify-frontend/src/images/logo.png" alt="Pomodify logo" width="280" />
+<img src="pomodify-frontend/src/assets/images/logo.png" alt="Pomodify logo" width="280" />
 
 # ⏲️ Pomodify
 ### *Your Smart Productivity Companion*
@@ -43,9 +43,9 @@ Pomodify is a customizable Pomodoro productivity tracker designed to help users 
 
 <div align="center">
 
-### � [**Pomodify Live**](https://pomodify.site/) 🌟
+### [**Pomodify Live**](https://pomodify.site/)
 
-| Badge | � E mail | 🔑 Password |
+| Badge | E mail | Password |
 |:---:|:---|:---|
 | 1️⃣ | `hann000345@gmail.com` | `Pomodify@123` |
 | 2️⃣ | `simonejake@gmail.com` | `Pomodify@123` |
@@ -59,7 +59,7 @@ Pomodify is a customizable Pomodoro productivity tracker designed to help users 
 
 ## 🚀 Features
 
-| 🎨 Feature | 📝 Description | 🔧 Tech |
+| Feature | Description | Tech |
 |:---|:---|:---|
 | ⏱️ **Customizable Timers** | Flexible work/break sessions tailored to your needs | Angular + RxJS |
 | 🔐 **User Authentication** | Secure accounts with JWT & Spring Security | Spring Boot + JWT |
@@ -147,19 +147,6 @@ Pomodify is a customizable Pomodoro productivity tracker designed to help users 
 
 </details>
 
-## 🎨 Design System
-
-<div align="center">
-
-| 🎨 Primary Color | 🌈 Style | 📱 Approach |
-|:---:|:---:|:---:|
-| `#5FA9A4` | Modern & Techy | SCSS Components |
-| Teal Mint | Clean Typography | Responsive Design |
-
-**Design Philosophy:** Modern interface with clear typography and subtle motion effects.
-
-</div>
-
 ---
 
 ## 📁 Project Structure
@@ -221,9 +208,9 @@ project-root/
 |:---:|:---:|:---:|
 | **Hannah Lorainne Genandoy** | Project Manager / Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hannah-lorainne-genandoy-3b8a1b2b2/) |
 | **Daniel Victorioso** | Technical Lead / Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/daniel-victorioso-304688292/) |
+| **Simone Jake Reyes** | UI/UX / Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/simone-jake-reyes-75199234a/) |
 | **Ivan Delumen** | UI/UX / Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivan-delumen-53982728a/) |
 | **Gerald Mamasalanang** | DevOps/ Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/gerald-kasan-mamasalanang-95a306386) |
-| **Simone Jake Reyes** | UI/UX / Developer | [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/simone-jake-reyes-75199234a/) |
 
 </div>
 
@@ -246,23 +233,15 @@ For detailed guides and technical docs, explore:
 - **API Docs:** [pomodify-backend/api-docs](pomodify-backend/api-docs)
 - **Architecture & Diagrams:** [document/](document/)
 - **CI/CD & Deployment:** [deploy-documentation/](deploy-documentation/)
-- **Developer Guide:** [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
+- **Developer Guide:** [document/](developer_guide.md)
 
 ---
 
 <div align="center">
 
-### 🎉 Developed by the PUPT-DIT 3 G-Cache Team
+### Developed by the PUPT-DIT 3 G-Cache Team
 
 [![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://pomodify.site/)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-Read_Docs-blue?style=for-the-badge)](document/)
 [![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Walkthrough-FF0000?style=for-the-badge)](https://youtu.be/sMEqr4PYfWk)
 [![Issues](https://img.shields.io/badge/🐛_Issues-Report_Bug-red?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache/issues)
-
-<br><br>
-
-![GitHub stars](https://img.shields.io/github/stars/PUP-BSIT/project-g-cache?style=social)
-![GitHub forks](https://img.shields.io/github/forks/PUP-BSIT/project-g-cache?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/PUP-BSIT/project-g-cache?style=social)
-
-</div>
