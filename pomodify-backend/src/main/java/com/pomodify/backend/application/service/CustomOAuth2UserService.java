@@ -1,10 +1,10 @@
 package com.pomodify.backend.application.service;
 
+import com.pomodify.backend.application.port.OAuth2UserPort;
 import com.pomodify.backend.domain.model.User;
 import com.pomodify.backend.domain.enums.AuthProvider;
 import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
-import com.pomodify.backend.infrastructure.security.CustomOAuth2User; // Import from your config package
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -22,6 +22,7 @@ import java.util.UUID;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final OAuth2UserPort oAuth2UserPort;
 
     @Override
     @Transactional
@@ -72,6 +73,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         log.info("User successfully loaded/saved: {}", user.getId());
 
         // 4. Return the Custom Wrapper containing BOTH the OAuth data and your Backend User
-        return new CustomOAuth2User(oAuth2User, user);
+        return oAuth2UserPort.createOAuth2User(oAuth2User, user);
     }
 }

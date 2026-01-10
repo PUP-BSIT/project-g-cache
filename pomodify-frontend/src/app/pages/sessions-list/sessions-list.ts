@@ -70,6 +70,9 @@ export class SessionsListComponent implements OnInit {
   noteDraft = signal<string>('');
   savingNote = signal(false);
   
+  // Notes toggle state - tracks which sessions have expanded notes
+  expandedNotes = signal<Set<number>>(new Set());
+  
   // Pagination state
   readonly PAGE_SIZE = 6;
   completedPage = signal(1);
@@ -142,6 +145,29 @@ export class SessionsListComponent implements OnInit {
   toggleAbandoned() {
     this.showAbandoned.update(v => !v);
     this.abandonedPage.set(1); // Reset to first page when toggling
+  }
+
+  /**
+   * Toggle notes expansion for a session
+   */
+  toggleNotes(sessionId: number, event: Event): void {
+    event.stopPropagation();
+    this.expandedNotes.update(set => {
+      const newSet = new Set(set);
+      if (newSet.has(sessionId)) {
+        newSet.delete(sessionId);
+      } else {
+        newSet.add(sessionId);
+      }
+      return newSet;
+    });
+  }
+
+  /**
+   * Check if notes are expanded for a session
+   */
+  isNotesExpanded(sessionId: number): boolean {
+    return this.expandedNotes().has(sessionId);
   }
 
   // Helper function to determine which pages to display with smart truncation

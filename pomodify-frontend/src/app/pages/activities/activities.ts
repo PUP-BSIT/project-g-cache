@@ -233,11 +233,6 @@ export class ActivitiesPage implements OnInit {
         // Log available categories from loaded activities
         const availableCategories = this.categories();
         Logger.log('[ActivitiesPage] Available categories after loading:', availableCategories);
-        
-        // Load sessions for each activity to calculate completion
-        (response.activities || []).forEach(activity => {
-          this.loadActivitySessions(activity.activityId);
-        });
       },
       error: (err) => {
         let errorMsg = err?.error?.message || err?.message || 'Failed to load activities';
@@ -558,33 +553,8 @@ export class ActivitiesPage implements OnInit {
 
   // Get completion percentage for activity based on sessions
   protected getActivityCompletionPercentage(activity: ActivityData): number {
-    const completions = this.activityCompletions();
-    return completions.get(activity.activityId) || 0;
-  }
-
-  // Load sessions for an activity and calculate completion
-  private loadActivitySessions(activityId: number): void {
-    this.sessionService.getSessions(activityId, 'COMPLETED').subscribe({
-      next: (sessions: any[]) => {
-        // Calculate completion percentage
-        // Using a default target of 5 hours per week
-        const targetHoursPerWeek = 5;
-        const totalFocusHours = sessions.reduce((sum: number, session: any) => {
-          return sum + (session.focusTimeInMinutes || 0) / 60;
-        }, 0);
-        const percentage = Math.min((totalFocusHours / targetHoursPerWeek) * 100, 100);
-        
-        const currentCompletions = new Map(this.activityCompletions());
-        currentCompletions.set(activityId, Math.round(percentage));
-        this.activityCompletions.set(currentCompletions);
-      },
-      error: (_err: any) => {
-        // Set to 0% on error
-        const currentCompletions = new Map(this.activityCompletions());
-        currentCompletions.set(activityId, 0);
-        this.activityCompletions.set(currentCompletions);
-      }
-    });
+    // Use backend-calculated completion rate if available
+    return activity.completionRate ?? 0;
   }
 
   // Navigation

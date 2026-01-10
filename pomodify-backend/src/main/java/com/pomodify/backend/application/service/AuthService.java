@@ -4,6 +4,7 @@ import com.pomodify.backend.application.command.auth.LoginUserCommand;
 import com.pomodify.backend.application.command.auth.LogoutCommand;
 import com.pomodify.backend.application.command.auth.RefreshTokensCommand;
 import com.pomodify.backend.application.command.auth.RegisterUserCommand;
+import com.pomodify.backend.application.port.EmailPort;
 import com.pomodify.backend.application.result.AuthResult;
 import com.pomodify.backend.application.result.UserResult;
 import com.pomodify.backend.application.validator.RegistrationValidator;
@@ -13,7 +14,6 @@ import com.pomodify.backend.domain.repository.UserRepository;
 import com.pomodify.backend.domain.valueobject.Email;
 import com.pomodify.backend.domain.model.RevokedToken;
 import com.pomodify.backend.domain.repository.RevokedTokenRepository;
-import com.pomodify.backend.infrastructure.mail.EmailService;
 import com.pomodify.backend.domain.model.VerificationToken;
 import com.pomodify.backend.domain.repository.VerificationTokenRepository;
 import com.pomodify.backend.domain.model.PasswordResetToken;
@@ -43,13 +43,9 @@ public class AuthService {
 
     private final RevokedTokenRepository revokedTokenRepository;
 
-    private final EmailService emailService;
+    private final EmailPort emailPort;
     private final VerificationTokenRepository tokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final SessionService sessionService;
-    private final ActivityService activityService;
-    private final com.pomodify.backend.domain.repository.UserBadgeRepository userBadgeRepository;
-    private final com.pomodify.backend.domain.repository.CategoryRepository categoryRepository;
 
     // Register
     @Transactional
@@ -78,7 +74,7 @@ public class AuthService {
 
         // Send verification email
         try {
-            emailService.sendVerificationEmail(savedUser.getEmail().getValue(), newToken.getToken(), baseUrl);
+            emailPort.sendVerificationEmail(savedUser.getEmail().getValue(), newToken.getToken(), baseUrl);
         } catch (Exception e) {
             log.warn("Failed to send verification email to {}: {}", savedUser.getEmail().getValue(), e.getMessage());
         }
@@ -141,7 +137,7 @@ public class AuthService {
         // Send verification email
         try {
             // Pass isLocked as the boolean flag to trigger the "Reactivate" template if needed
-            emailService.sendVerificationEmail(user.getEmail().getValue(), newToken.getToken(), baseUrl, isLocked);
+            emailPort.sendVerificationEmail(user.getEmail().getValue(), newToken.getToken(), baseUrl, isLocked);
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", user.getEmail().getValue(), e.getMessage());
             throw new RuntimeException("Failed to send verification email");
@@ -167,7 +163,7 @@ public class AuthService {
 
         // Send email asynchronously - don't throw on failure since email is queued
         try {
-            emailService.sendPasswordResetEmail(user.getEmail().getValue(), token.getToken(), baseUrl);
+            emailPort.sendPasswordResetEmail(user.getEmail().getValue(), token.getToken(), baseUrl);
             log.info("Password reset email queued for: {}", email);
         } catch (Exception e) {
             log.error("Failed to queue password reset email to {}: {}", email, e.getMessage(), e);
@@ -199,7 +195,7 @@ public class AuthService {
 
         // Send email to backup email asynchronously
         try {
-            emailService.sendPasswordResetEmail(user.getBackupEmail(), token.getToken(), baseUrl);
+            emailPort.sendPasswordResetEmail(user.getBackupEmail(), token.getToken(), baseUrl);
             log.info("Password reset email queued for backup email: {}", backupEmail);
         } catch (Exception e) {
             log.error("Failed to queue password reset email to backup email {}: {}", backupEmail, e.getMessage(), e);
@@ -255,18 +251,44 @@ public class AuthService {
 
     @Transactional
     public void resetPassword(String token, String newPassword) {
+        log.info("Processing password reset request");
+        
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired password reset token"));
+                .orElseThrow(() -> {
+                    log.warn("Password reset token not found: {}", token.substring(0, Math.min(8, token.length())) + "...");
+                    return new IllegalArgumentException("Invalid or expired password reset token");
+                });
+
+        log.info("Token found for user ID: {}, expiry: {}, current time: {} (Asia/Manila)", 
+                resetToken.getUser().getId(), 
+                resetToken.getExpiryDate(), 
+                java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Manila")));
 
         if (resetToken.isExpired()) {
-            throw new IllegalArgumentException("Token expired");
+            log.warn("Password reset token expired. Expiry: {}, Current: {} (Asia/Manila)", 
+                    resetToken.getExpiryDate(), java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Manila")));
+            // Clean up expired token
+            passwordResetTokenRepository.delete(resetToken);
+            throw new IllegalArgumentException("Password reset link has expired. Please request a new one.");
         }
 
         User user = resetToken.getUser();
-        user.updatePassword(passwordEncoder.encode(newPassword));
+        
+        // Check if user is active before attempting password update
+        if (!user.isActive()) {
+            log.warn("Attempted password reset for inactive user: {}", user.getEmail().getValue());
+            passwordResetTokenRepository.delete(resetToken);
+            throw new IllegalArgumentException("This account is inactive. Please contact support.");
+        }
+        
+        // Use setPasswordHash directly to avoid the ensureActive check in updatePassword
+        // since we've already verified the user is active
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        log.info("Password updated successfully for user: {}", user.getEmail().getValue());
 
         passwordResetTokenRepository.delete(resetToken);
+        log.info("Password reset token deleted");
     }
 
     // Login
@@ -410,49 +432,5 @@ public class AuthService {
             .backupEmail(savedUser.getBackupEmail())
             .profilePictureUrl(savedUser.getProfilePictureUrl())
             .build();
-    }
-
-    // Delete user account and all associated data
-    @Transactional
-    public void deleteAccount(String userEmail) {
-        Email emailVO = Email.of(userEmail);
-        User user = userRepository.findByEmail(emailVO)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        Long userId = user.getId();
-        log.info("Starting account deletion for user: {} (ID: {})", userEmail, userId);
-
-        // Delete verification tokens
-        tokenRepository.findByUser(user).ifPresent(token -> {
-            tokenRepository.delete(token);
-            log.info("Deleted verification token for user {}", userId);
-        });
-
-        // Delete password reset tokens
-        passwordResetTokenRepository.findByUser(user).ifPresent(token -> {
-            passwordResetTokenRepository.delete(token);
-            log.info("Deleted password reset token for user {}", userId);
-        });
-
-        // Delete all sessions (this also deletes session notes and todo items)
-        sessionService.clearAllSessions(userId);
-        log.info("Deleted all sessions for user {}", userId);
-
-        // Delete all activities
-        activityService.clearAllActivities(userId);
-        log.info("Deleted all activities for user {}", userId);
-
-        // Delete all badges
-        userBadgeRepository.deleteAllByUserId(userId);
-        log.info("Deleted all badges for user {}", userId);
-
-        // Delete all categories
-        categoryRepository.deleteAllByUserId(userId);
-        log.info("Deleted all categories for user {}", userId);
-
-        // Soft delete the user (deactivate)
-        user.deactivate();
-        userRepository.save(user);
-        log.info("Account deleted successfully for user: {} (ID: {})", userEmail, userId);
     }
 }

@@ -75,6 +75,9 @@ export class SessionTimerComponent implements OnDestroy {
   // AI suggestion state
   protected isGeneratingAi = signal(false);
 
+  // Notes panel toggle state
+  protected notesExpanded = signal(true);
+
   // State signals
   session = signal<PomodoroSession | null>(null);
   activityId = signal<number | null>(null);
@@ -1700,6 +1703,13 @@ export class SessionTimerComponent implements OnDestroy {
         }
       }
     });
+  }
+
+  /**
+   * Toggle notes panel expanded/collapsed state
+   */
+  protected toggleNotesPanel(): void {
+    this.notesExpanded.update(v => !v);
   }
 
   protected addTodo(): void {

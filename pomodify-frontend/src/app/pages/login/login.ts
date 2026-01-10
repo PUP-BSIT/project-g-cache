@@ -36,12 +36,13 @@ export class Login implements OnInit {
 
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', { validators: [Validators.required, Validators.email] }],
-    password: ['', { validators: [Validators.required, Validators.minLength(6)] }],
+    password: ['', { validators: [Validators.required, Validators.minLength(8)] }],
   });
 
   isLoading = false;
   passwordVisible = false;
   credentialsRejected = false;
+  submitted = false;
 
   ngOnInit(): void {
     ensurePublicPageLightTheme();
@@ -57,10 +58,10 @@ export class Login implements OnInit {
 
   onSubmit(): void {
     this.credentialsRejected = false;
+    this.submitted = true;
 
     if (this.loginForm.invalid) {
       this.notificationService.showError('Validation Error', 'Please fill in a valid email and password.');
-      this.loginForm.markAllAsTouched();
       return;
     }
 

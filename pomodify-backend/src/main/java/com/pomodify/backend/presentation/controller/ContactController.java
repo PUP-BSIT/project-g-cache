@@ -1,6 +1,6 @@
 package com.pomodify.backend.presentation.controller;
 
-import com.pomodify.backend.infrastructure.mail.EmailService;
+import com.pomodify.backend.application.port.EmailPort;
 import com.pomodify.backend.presentation.dto.request.contact.ContactRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 public class ContactController {
 
-    private final EmailService emailService;
+    private final EmailPort emailPort;
 
     @PostMapping
     public ResponseEntity<Map<String, String>> submitContactForm(@Valid @RequestBody ContactRequest request) {
@@ -26,7 +26,7 @@ public class ContactController {
             request.getMessage() != null ? request.getMessage().length() : 0);
         
         try {
-            emailService.sendContactEmail(
+            emailPort.sendContactEmail(
                 request.getName(),
                 request.getEmail(),
                 request.getReason(),

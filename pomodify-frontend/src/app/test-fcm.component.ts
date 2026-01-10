@@ -11,13 +11,13 @@ import { Auth } from './core/services/auth';
   imports: [CommonModule],
   template: `
     <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
-      <h2>🔔 FCM & Notification Testing</h2>
+      <h2><i class="fa-solid fa-bell"></i> FCM & Notification Testing</h2>
       
       <div style="margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;">
         <h3>Current Status</h3>
-        <p><strong>Tab Visible:</strong> {{ status.isTabVisible ? '✅ Yes' : '❌ No' }}</p>
+        <p><strong>Tab Visible:</strong> @if (status.isTabVisible) { <i class="fa-solid fa-check"></i> Yes } @else { <i class="fa-solid fa-xmark"></i> No }</p>
         <p><strong>Notification Permission:</strong> {{ status.notificationPermission }}</p>
-        <p><strong>Service Worker Supported:</strong> {{ status.serviceWorkerSupported ? '✅ Yes' : '❌ No' }}</p>
+        <p><strong>Service Worker Supported:</strong> @if (status.serviceWorkerSupported) { <i class="fa-solid fa-check"></i> Yes } @else { <i class="fa-solid fa-xmark"></i> No }</p>
         <p><strong>Pending Notifications:</strong> {{ status.pendingNotifications }}</p>
       </div>
 
@@ -49,7 +49,7 @@ import { Auth } from './core/services/auth';
       </div>
 
       <div style="margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-        <h3>📋 Testing Instructions</h3>
+        <h3><i class="fa-solid fa-clipboard-list"></i> Testing Instructions</h3>
         <ol>
           <li><strong>Initialize FCM:</strong> Click "Initialize FCM" button</li>
           <li><strong>Grant Permission:</strong> Allow notifications when prompted</li>
@@ -60,7 +60,7 @@ import { Auth } from './core/services/auth';
       </div>
 
       <div style="margin: 20px 0; padding: 15px; background: #fff3e0; border-radius: 8px;">
-        <h3>⚙️ Settings to Test</h3>
+        <h3><i class="fa-solid fa-gear"></i> Settings to Test</h3>
         <p>Go to Settings page and try different combinations:</p>
         <ul>
           <li><strong>Both enabled:</strong> Push notification + Sound</li>
@@ -72,7 +72,7 @@ import { Auth } from './core/services/auth';
 
       @if (logs.length > 0) {
         <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
-          <h3>📝 Logs</h3>
+          <h3><i class="fa-solid fa-file-lines"></i> Logs</h3>
           <div style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
             @for (log of logs; track $index) {
               <div>{{ log }}</div>
@@ -93,34 +93,34 @@ export class TestFcmComponent {
   logs: string[] = [];
 
   async initializeFCM() {
-    this.addLog('🔔 Initializing FCM...');
+    this.addLog('[BELL] Initializing FCM...');
     try {
       // Step 1: Check notification permission
-      this.addLog('📱 Checking notification permission...');
+      this.addLog('[MOBILE] Checking notification permission...');
       const permission = await Notification.requestPermission();
-      this.addLog(`📱 Permission result: ${permission}`);
+      this.addLog(`[MOBILE] Permission result: ${permission}`);
       
       if (permission !== 'granted') {
-        this.addLog('❌ Notification permission denied. Please allow notifications in browser settings.');
+        this.addLog('[ERROR] Notification permission denied. Please allow notifications in browser settings.');
         return;
       }
       
       // Step 2: Test manual notification
-      this.addLog('🧪 Testing manual notification...');
+      this.addLog('[TEST] Testing manual notification...');
       new Notification('FCM Test', {
         body: 'Testing notification system - this should appear!',
         icon: '/assets/images/logo.png'
       });
-      this.addLog('✅ Manual notification sent');
+      this.addLog('[OK] Manual notification sent');
       
       // Step 3: Initialize FCM service
-      this.addLog('🔧 Initializing FCM service...');
-        await this.fcmService.initializeFCM();
-      this.addLog('✅ FCM service initialized successfully');
+      this.addLog('[GEAR] Initializing FCM service...');
+      await this.fcmService.initializeFCM();
+      this.addLog('[OK] FCM service initialized successfully');
       
       this.refreshStatus();
     } catch (error) {
-      this.addLog(`❌ FCM initialization failed: ${error}`);
+      this.addLog(`[ERROR] FCM initialization failed: ${error}`);
     }
   }
 
@@ -128,10 +128,10 @@ export class TestFcmComponent {
     this.addLog('Testing session completion notification...');
     try {
       await this.testService.testDesktopClosedTabBehavior();
-      this.addLog('✅ Session completion test triggered');
-      this.addLog('💡 Switch to another tab or minimize browser to test closed tab behavior');
+      this.addLog('[OK] Session completion test triggered');
+      this.addLog('[TIP] Switch to another tab or minimize browser to test closed tab behavior');
     } catch (error) {
-      this.addLog(`❌ Test failed: ${error}`);
+      this.addLog(`[ERROR] Test failed: ${error}`);
     }
   }
 
@@ -139,15 +139,15 @@ export class TestFcmComponent {
     this.addLog('Testing phase completion notification...');
     try {
       await this.testService.testPhaseCompletion();
-      this.addLog('✅ Phase completion test triggered');
+      this.addLog('[OK] Phase completion test triggered');
     } catch (error) {
-      this.addLog(`❌ Test failed: ${error}`);
+      this.addLog(`[ERROR] Test failed: ${error}`);
     }
   }
 
   refreshStatus() {
     this.status = this.testService.getNotificationStatus();
-    this.addLog('📊 Status refreshed');
+    this.addLog('[INFO] Status refreshed');
   }
 
   private addLog(message: string) {

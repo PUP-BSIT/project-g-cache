@@ -56,10 +56,10 @@
                   </div>
                   <div class="session-title-area">
                     <h3 class="session-type-name">{{ session.sessionType }}</h3>
-                    <span class="session-date">
-                      <i class="fa-regular fa-calendar"></i>
-                      {{ formatDate(session.createdAt) }}
-                    </span>
+                    <div class="session-date-info">
+                      <span class="date-label"><i class="fa-regular fa-calendar"></i> Created</span>
+                      <span class="date-value">{{ formatDate(session.createdAt) }}</span>
+                    </div>
                   </div>
                 </div>
                 <span class="session-status" [ngClass]="getStatusClass(getEffectiveStatus(session))">
@@ -152,10 +152,10 @@
                   </div>
                   <div class="session-title-area">
                     <h3 class="session-type-name">{{ session.sessionType }}</h3>
-                    <span class="session-date">
-                      <i class="fa-regular fa-calendar"></i>
-                      {{ formatDate(session.createdAt) }}
-                    </span>
+                    <div class="session-date-info">
+                      <span class="date-label"><i class="fa-regular fa-calendar"></i> Created</span>
+                      <span class="date-value">{{ formatDate(session.createdAt) }}</span>
+                    </div>
                   </div>
                 </div>
                 <span class="session-status" [ngClass]="getStatusClass(session.status)">
@@ -281,10 +281,10 @@
                   </div>
                   <div class="session-title-area">
                     <h3 class="session-type-name">{{ session.sessionType }}</h3>
-                    <span class="session-date">
-                      <i class="fa-regular fa-calendar"></i>
-                      {{ formatDate(session.createdAt) }}
-                    </span>
+                    <div class="session-date-info">
+                      <span class="date-label"><i class="fa-regular fa-calendar"></i> Created</span>
+                      <span class="date-value">{{ formatDate(session.createdAt) }}</span>
+                    </div>
                   </div>
                 </div>
                 <span class="session-status status-abandoned">
