@@ -414,15 +414,20 @@ public class PomodoroSession {
                 throw new IllegalArgumentException("Long break must be between 15 and 30 minutes");
             }
 
-            // Validate cycle-based interval if provided
+            // Validate cycle-based interval if provided (preferred for Freestyle sessions)
             if (intervalCycles != null) {
                 if (intervalCycles < 2 || intervalCycles > 10) {
                     throw new IllegalArgumentException("Long break interval must be between 2 and 10 cycles");
                 }
-            } else if (interval == null || interval.toHours() < 3) {
-                // Fallback to time-based validation for backward compatibility
-                throw new IllegalArgumentException("Long break interval must be at least 3 hours");
+                // If cycle-based interval is provided, skip time-based validation
+            } else if (interval != null) {
+                // Only validate time-based interval if it's explicitly provided
+                if (interval.toHours() < 3) {
+                    throw new IllegalArgumentException("Long break interval must be at least 3 hours");
+                }
             }
+            // If neither intervalCycles nor interval is provided, that's okay for Freestyle sessions
+            // They will use the default cycle-based interval
         }
     }
 
