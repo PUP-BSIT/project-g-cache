@@ -50,7 +50,12 @@ public class SessionService {
         Duration interval = null;
         Integer intervalCycles = null;
         
-        if (command.enableLongBreak() != null && command.enableLongBreak() && totalMinutes > 180) {
+        // For Freestyle sessions, always allow long break configuration if enabled
+        // (Freestyle sessions don't have a fixed total duration, so skip the 180-minute check)
+        boolean isFreestyle = type == SessionType.FREESTYLE;
+        boolean longBreakEnabled = command.enableLongBreak() != null && command.enableLongBreak();
+        
+        if (longBreakEnabled && (isFreestyle || totalMinutes > 180)) {
             // Use cycle-based interval if provided, otherwise fall back to time-based
             if (command.longBreakIntervalInCycles() != null) {
                 intervalCycles = command.longBreakIntervalInCycles();
@@ -68,7 +73,7 @@ public class SessionService {
         }
         
         // For Freestyle sessions, set default longBreakIntervalCycles if not provided
-        if (type == SessionType.FREESTYLE && intervalCycles == null) {
+        if (isFreestyle && intervalCycles == null) {
             intervalCycles = command.longBreakIntervalInCycles() != null ? command.longBreakIntervalInCycles() : 4;
         }
 
