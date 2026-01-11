@@ -26,7 +26,7 @@ Pomodify is a customizable Pomodoro productivity tracker designed to help users 
 [![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://pomodify.site/)
 [![Documentation](https://img.shields.io/badge/📖_Documentation-Read_Docs-blue?style=for-the-badge)](document/)
 [![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Walkthrough-FF0000?style=for-the-badge)](https://youtu.be/sMEqr4PYfWk)
-[![Defense Video](https://img.shields.io/badge/🎬_Defense_Video_Presentation-Watch_Defense-FF6B6B?style=for-the-badge)](https://https://youtu.be/ADJ645F1rDU)
+[![Defense Video](https://img.shields.io/badge/🎬_Defense_Video_Presentation-Watch_Defense-FF6B6B?style=for-the-badge)](https://youtu.be/ADJ645F1rDU?si=jdh5arJiF8Y8bobQ)
 [![Issues](https://img.shields.io/badge/🐛_Issues-Report_Bug-red?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache/issues)
 
 </div>
