@@ -17,6 +17,22 @@
 
 Pomodify is a customizable Pomodoro productivity tracker designed to help users focus with flexible timers, activity grouping, and comprehensive progress tracking.
 
+---
+
+<div align="center">
+
+### Developed by the PUPT-DIT 3 G-Cache Team
+
+[![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://pomodify.site/)
+[![Documentation](https://img.shields.io/badge/📖_Documentation-Read_Docs-blue?style=for-the-badge)](document/)
+[![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Walkthrough-FF0000?style=for-the-badge)](https://youtu.be/sMEqr4PYfWk)
+[![Defense Video](https://img.shields.io/badge/🎬_Defense_Video_Presentation-Watch_Defense-FF6B6B?style=for-the-badge)](https://https://youtu.be/ADJ645F1rDU)
+[![Issues](https://img.shields.io/badge/🐛_Issues-Report_Bug-red?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache/issues)
+
+</div>
+
+---
+
 ## 🚀 What We're Building
 
 | 🎯 Focus Sessions | 📊 Progress Tracking | 🏷️ Activity Groups | 🔐 Secure Accounts |
@@ -236,12 +252,3 @@ For detailed guides and technical docs, explore:
 - **Developer Guide:** [document/](developer_guide.md)
 
 ---
-
-<div align="center">
-
-### Developed by the PUPT-DIT 3 G-Cache Team
-
-[![Live App](https://img.shields.io/badge/🌐_Live_App-Visit_Now-success?style=for-the-badge)](https://pomodify.site/)
-[![Documentation](https://img.shields.io/badge/📖_Documentation-Read_Docs-blue?style=for-the-badge)](document/)
-[![Video Demo](https://img.shields.io/badge/🎥_Video_Demo-Watch_Walkthrough-FF0000?style=for-the-badge)](https://youtu.be/sMEqr4PYfWk)
-[![Issues](https://img.shields.io/badge/🐛_Issues-Report_Bug-red?style=for-the-badge)](https://github.com/PUP-BSIT/project-g-cache/issues)
